@@ -1,28 +1,49 @@
-# Midnight Club: Los Santos (GTA V Enhanced total conversion)
+# Midnight Club: Los Santos
 
-Press **F7** in Story Mode to switch into Midnight Club Mode, an independent street-racing game with its own character, money, REP, cars and save. Press F7 again to go back to Story Mode exactly where you left it.
+A total conversion for **GTA V Enhanced** Story Mode. Press **F7** and Story Mode turns into an independent, Midnight Club-style street-racing game with its own driver, money, REP, cars, garages, career, rivals, police and living car culture. Press F7 again and Story Mode is exactly as you left it.
 
 ## Requirements
-- GTA V **Enhanced**, a build supported by Script Hook V (see KNOWN_ISSUES.md: 1.0.1158.16 is **not** supported yet)
-- Script Hook V + ASI loader (dinput8.dll / xinput1_4.dll)
-- Script Hook V .NET Enhanced 1.1.0.6+ (ScriptHookVDotNet.asi, ScriptHookVDotNet3.dll, MinHook.x64.dll)
+- GTA V Enhanced (tested build 1.0.1158.16), BattlEye off for Story Mode
+- Script Hook V + ASI loader, Script Hook V .NET Enhanced 1.1.0.6+ (ScriptHookVDotNet.asi, ScriptHookVDotNet3.dll, MinHook.x64.dll)
 
 ## Install
 Copy `MidnightClub.dll` into `<GTA V Enhanced>\scripts\`. No game files are modified.
-On first run the mod creates `scripts\MidnightClub\` with `config.ini`, `MidnightClub.log` and `saves\`.
+First run creates `scripts\MidnightClub\` (`config.ini`, `MidnightClub.log`, `saves\`, `data\`).
 
-## Controls (Phase 1)
-- **F7**: enter / leave Midnight Club Mode (configurable: `[General] ToggleKey`)
-- **V** (Change View): cycle Midnight Club cameras (Bumper, Hood, Cockpit, Close/Far/Action chase, Game default). Mouse/right stick looks around, Look Behind works.
-- **UP or F6**: Midnight Club phone (apps); the old menu is under Settings.
-- **F6 (old)**: Midnight Club menu (`[General] MenuKey`). Arrows navigate, Left/Right change values, Enter selects, Backspace/Esc goes back.
-- **E** at a garage entrance: buy it, or drive in. Garage screen: Left/Right choose car, Enter drive out, M manage, C customise (executive garages), Backspace leave in your current car.
-- **E** at a workshop (LS Customs, Beeker's, Benny's): tune and style the car. Up/Down highlight (live preview), Enter buy, Backspace back.
-- **E** at a dealership: showroom. Left/Right browse, Enter buy, T test drive, Backspace leave.
-- F6 > Vehicle catalogue: special order any dealership car (+35%).
-- `[General] DevMode=true`: catalogue can add any car for free (testing).
+## Controls
+| Key | Action |
+|---|---|
+| F7 | Enter / leave Midnight Club |
+| UP or F6 | Midnight Club phone |
+| E | Interact: garages, dealerships, workshops, race starts, car meets, street challenges |
+| V | Cycle cameras (bumper, hood, cockpit, close/far/action chase, game default) |
+| Menus | Arrows, Enter, Backspace/Esc; Left/Right change values |
+| Garage screen | Left/Right car, Enter drive out, M manage, C customise (executive garages) |
+| Showroom | Left/Right browse, Enter buy, T test drive |
+| Racing | Hold Backspace to quit |
+| F9 (DevMode) | Wheel Lab diagnostic |
+
+## What's in it
+- **Mode switch** with a state machine; the Story character is never touched (control moves to a separate driver); the Online map state is used while in Midnight Club.
+- **Driver**: character creator, vehicle-only gameplay, tow/repair recovery instead of wrecks.
+- **Cars**: automatic registry of every car in your build (incl. DLC/add-ons) with own pricing and tiers; multiple owned cars with stats, heat and build history.
+- **Garages**: 42 real GTA Online garages (2/6/10-car and executive) with interiors, a garage screen, free starter garage, executive garage styling.
+- **Dealerships**: PDM, Southern SA Super Autos, Luxury Autos, Legendary Motorsport, Benny's, LS Car Meet marketplace, Mosley's used cars; calendar-driven rotating stock (every car comes round), promotions, test drives, special orders.
+- **Workshops**: LS Customs, Beeker's, Benny's: performance, ECU tune, body, wheels, paint, lights, tint, livery, repair; adjustable fitment (camber, track width, tyre diameter); tyre compounds.
+- **Cameras**: NFS-style G-force reactive cameras with dynamic FOV.
+- **Racing**: sprint, circuit, time trial, drift, head-to-head on GPS-plotted real roads, AI opponents, championships, history, best times.
+- **Career**: 5 tiers, 6 rivals with 3 duels each, 5 clubs with independent reputation and dealership discounts.
+- **Police**: vehicle-only pursuits (no shooting), 4 levels, helicopter, evade/cover, busts, per-car heat.
+- **Living world**: car meets, spontaneous street races at lights, enthusiast traffic, speed traps.
+- **Phone**: messages, race invites, Street Buzz news, rankings, calendar and every menu as apps.
+- **Saves**: independent, versioned, validated, atomic with backups; Story saves are never written.
+
+## Configuration
+`config.ini` sections: General (keys, DevMode), Career (start cash/car/garage, tier REP), Character, Gameplay, HUD, Save, Vehicles, Economy, World (Online map, traffic, meets, challenges, traps), Camera, Fitment, Police.
+Data files (editable): `data\online_garages.ini`, `data\dealerships.ini`, `data\vehicles.ini`, `data\races.json` (+ `vehicle_registry.csv` export).
 
 ## Build
 `mcs -target:library -sdk:4.8 -unsafe -optimize+ -r:ScriptHookVDotNet3.dll -r:System.Windows.Forms.dll -r:System.Drawing.dll -r:System.Runtime.Serialization.dll -r:System.Core.dll -out:build/MidnightClub.dll -recurse:'src/*.cs'`
-(or any C# compiler targeting .NET Framework 4.8 with a reference to ScriptHookVDotNet3.dll).
-Save-system tests: `tests/SaveTests.cs` (runs without the game).
+Tests (no game needed): `tests/SaveTests.cs`, `EconomyTests.cs`, `RotationTests.cs`, `RaceDataTests.cs`.
+
+Docs: DEVELOPMENT_STATUS.md, CHANGELOG.md, KNOWN_ISSUES.md, TECHNICAL_NOTES.md, IMPLEMENTATION_ROADMAP.md, TESTING.md, THIRD_PARTY_NOTICES.md.

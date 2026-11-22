@@ -1,4 +1,8 @@
 # Changelog
+## 0.13.0 (2026-11-22): Phase 11 polish + Phase 12 pass
+- New Midnight Club speedometer: big digital speed, gear, 20-segment rev bar with shift/redline zones, car name; GTA vehicle/area/street name popups hidden in Midnight Club.
+- Cleanup audit: every system that creates persistent entities (races, world simulation, police, vehicles, character) releases them on leaving the mode and on script reload.
+- README rewritten (features, controls, config, data files, build, tests). Release zip with the scripts folder layout.
 ## 0.12.0-phase10 (2026-11-22)
 - Midnight Club phone (UP or F6; the game's own phone is disabled in Midnight Club): app grid with Messages, Races, Garage, Dealers, Catalogue, Career, Rivals, Clubs, Street Buzz, Rankings, Calendar, Bank, Properties, Settings. Unread badge.
 - Persistent inbox fed by game events: welcome, daily race invitations (with GPS to the start), weekend meet notices, promotions.

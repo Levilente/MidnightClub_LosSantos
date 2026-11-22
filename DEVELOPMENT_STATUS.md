@@ -15,7 +15,8 @@
 | 8 Police | **Code complete, compiled, awaiting in-game test** |
 | 9 World simulation | **Code complete, compiled, awaiting in-game test** |
 | 10 Phone and media | **Code complete, compiled, awaiting in-game test** |
-| 11–12 | Not started |
+| 11 UI and polish | Partly: new speedometer HUD, phone, consistent screens. Custom music not done. |
+| 12 Stability and release | Partly: cleanup audit, docs, release zip. **Real in-game testing is the main open item (TESTING.md).** |
 
 ## Phase 1 contents
 - `Core/GameModeManager`: STORY_MODE / ENTERING / MIDNIGHT_CLUB / EXITING / ERROR_RECOVERY state machine; refuses to enter during missions, cutscenes, character switches, while wanted or dead; ignores F7 during transitions.
