@@ -51,6 +51,11 @@ namespace MidnightClub.Persistence
         [DataMember] public string Nickname;
         [DataMember] public int PrimaryColor, SecondaryColor, PearlColor, WheelColor, WheelType;
         [DataMember] public List<ModEntry> Mods = new List<ModEntry>();
+        [DataMember] public List<int> Toggles = new List<int>();      // turbo 18, tyre smoke 20, xenon 22
+        [DataMember] public int WindowTint = -1, Livery = -1;
+        [DataMember] public int EcuLevel;                            // Midnight Club ECU tune (extra power)
+        [DataMember] public bool DriftTyres;
+        [DataMember] public List<string> BuildHistory = new List<string>();
         [DataMember] public float EngineHealth = 1000f, BodyHealth = 1000f;
         [DataMember] public long PurchasePrice;
         [DataMember] public string PurchasedAtUtc;
@@ -68,6 +73,9 @@ namespace MidnightClub.Persistence
         [DataMember] public int Recoveries;
         [DataMember] public int RacesEntered, RacesWon, PoliceEscapes;
         [DataMember] public string LastUsedUtc;
+        [DataMember] public long CustomizationSpent;
+        [DataMember] public int ModificationCount;
+        [DataMember] public int Repairs;
     }
 
     [DataContract] public sealed class ModEntry { [DataMember] public int Type; [DataMember] public int Index; public ModEntry() { } public ModEntry(int t, int i) { Type = t; Index = i; } }

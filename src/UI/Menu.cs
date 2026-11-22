@@ -27,6 +27,8 @@ namespace MidnightClub.UI
         public int Selected;
         public Action OnBack;            // null = Back closes the menu
         public Action OnOpen;
+        public Action<int> OnHighlight;  // called when the selection changes (live previews)
+        private int lastHighlight = -1;
         private const int Visible = 10;
         private int scroll;
 
@@ -39,6 +41,7 @@ namespace MidnightClub.UI
         public Menu(string title, string subtitle = null) { Title = title; Subtitle = subtitle; }
 
         public MenuItem Add(MenuItem item) { Items.Add(item); return item; }
+        public void ResetHighlight() { lastHighlight = -1; }
 
         public void Clamp()
         {
@@ -64,6 +67,7 @@ namespace MidnightClub.UI
             if (Game.IsControlJustPressed(Control.FrontendUp)) { Selected = (Selected - 1 + Items.Count) % Items.Count; Sound("NAV_UP_DOWN"); }
             if (Game.IsControlJustPressed(Control.FrontendDown)) { Selected = (Selected + 1) % Items.Count; Sound("NAV_UP_DOWN"); }
             Clamp();
+            if (Selected != lastHighlight) { lastHighlight = Selected; if (OnHighlight != null) OnHighlight(Selected); }
             var it = Items[Selected];
             if (it.Enabled && it.OnAdjust != null)
             {
@@ -136,7 +140,7 @@ namespace MidnightClub.UI
         public Menu Current { get { return stack.Count > 0 ? stack.Peek() : null; } }
 
         public void Open(Menu m) { stack.Clear(); Push(m); }
-        public void Push(Menu m) { stack.Push(m); if (m.OnOpen != null) m.OnOpen(); }
+        public void Push(Menu m) { stack.Push(m); if (m.OnOpen != null) m.OnOpen(); m.ResetHighlight(); }
         public void Close() { stack.Clear(); }
         public void Pop() { if (stack.Count > 0) stack.Pop(); if (Current != null && Current.OnOpen != null) Current.OnOpen(); }
 

@@ -16,3 +16,7 @@
 15. Auctions (spec §8) aren't implemented yet.
 16. Luxury Autos only shows 2-3 cars a week, so a full cycle takes many weeks; special orders cover the gap.
 17. The Online map state (ON_ENTER_MP) is loaded while in Midnight Club and restored on exit; if Story Mode ever looks wrong after leaving, set `[World] LoadOnlineMap=false` and report it.
+18. ECU tune uses SET_VEHICLE_CHEAT_POWER_INCREASE, re-applied every frame for the driven car; effect size untested.
+19. Mounted cameras use the "bonnet" bone / head bone; on some models the hood or cockpit position may need tuning.
+20. Free look reads mouse/right-stick input each frame; sensitivity untested.
+21. Workshop entrances are first-pass LS Customs door positions; the car is tuned where you stop, not inside the shop.

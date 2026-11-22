@@ -8,7 +8,9 @@
 | 3 Economy and garages | **Code complete, compiled, awaiting in-game test** |
 | 5 (part) Online garages | **Pulled forward at user request: code complete, awaiting in-game test** |
 | 4 Dealerships | **Code complete, compiled, awaiting in-game test** (auctions not done) |
-| 5 (rest), 6–12 | Not started |
+| 5 Workshops + customisation | **Code complete, compiled, awaiting in-game test** |
+| Camera system (user request) | **Code complete, compiled, awaiting in-game test** |
+| 6–12 | Not started |
 
 ## Phase 1 contents
 - `Core/GameModeManager`: STORY_MODE / ENTERING / MIDNIGHT_CLUB / EXITING / ERROR_RECOVERY state machine; refuses to enter during missions, cutscenes, character switches, while wanted or dead; ignores F7 during transitions.
@@ -55,3 +57,8 @@
 - `Dealerships/DealershipManager`: pools (every eligible car covered by at least one dealership), stock cache, promotions, used listings, purchase flow per spec 7.9, special orders.
 - `Dealerships/ShowroomScreen`: showroom UI, test drive, confirm menu.
 - Tests: rotation 17/17, economy 10/10, save 14/14.
+
+## 0.6.0 contents
+- `Cameras/CameraSystem`: 6 NFS-style cameras + game default; G-force reactions, dynamic FOV, shake, free look, look-behind, wall pull-in; profile-saved mode; other screens call Release().
+- `Workshops/WorkshopManager` + `WorkshopScreen`: workshop locations, orbit camera with per-category focus, generic mod lists with live preview/revert (Menu.OnHighlight), toggles, respray, tint, livery, repair, ECU, drift tyres; purchases via TransactionManager; capture/save after every purchase.
+- Save format: per-car toggles, tint, livery, ECU level, drift tyres, build history, spend/mod/repair counters; profile camera mode.
