@@ -52,6 +52,7 @@ namespace MidnightClub.Persistence
         [DataMember] public string PurchasedAtUtc;
         [DataMember] public string GarageId;     // home garage (null = no garage yet)
         [DataMember] public bool Favorite;
+        [DataMember] public int ParkingSlot;     // 0 = none, n = slot n-1 in the home garage
         [DataMember] public VehicleStats Stats = new VehicleStats();
     }
 
@@ -72,6 +73,7 @@ namespace MidnightClub.Persistence
     {
         [DataMember] public string Id;
         [DataMember] public int UpgradeLevel;
+        [DataMember] public int Decor, Lighting, Numbering;   // CEO garage customisation (1-based, 0 = default)
         [DataMember] public string PurchasedAtUtc;
     }
 

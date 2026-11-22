@@ -7,71 +7,59 @@ namespace MidnightClub.Garages
 {
     public enum GarageCategory { Small, Medium, Large, Premium, Special }
 
-    public sealed class GarageDefinition
+    public struct Spot
     {
-        public string Id, Name;
-        public GarageCategory Category;
-        public long Price;
-        public int Capacity, CapacityPerUpgrade, MaxUpgrades;
-        public double UpgradeCostFactor;
-        public Vector3 Position;
-        public float Heading;
-        public int CareerTier;
-
-        public int CapacityAt(int level) { return Capacity + CapacityPerUpgrade * level; }
-        public long UpgradeCost(int nextLevel) { return (long)(Price * UpgradeCostFactor * nextLevel); }
+        public Vector3 Position; public float Heading;
+        public Spot(float[] a) { Position = new Vector3(a[0], a[1], a[2]); Heading = a.Length > 3 ? a[3] : 0f; }
     }
 
-    /// <summary>Garage list from data\garages.ini (written with defaults on first run, then editable).</summary>
+    public sealed class GarageDefinition
+    {
+        public string Id, Name, Kind, Ipl;
+        public GarageCategory Category;
+        public long Price;
+        public float Radius;
+        public Spot Entrance, ExitMarker, SpawnIn, SpawnOut;
+        public List<Spot> Slots = new List<Spot>();
+        public Vector3 Position { get { return Entrance.Position; } }
+        public int Capacity { get { return Slots.Count; } }
+        public bool Customizable { get { return Kind == "ceo"; } }
+        public string KindLabel
+        {
+            get { return Kind == "low" ? "2-car garage" : Kind == "mid" ? "6-car garage" : Kind == "high" ? "10-car garage" : Kind == "ceo" ? "Executive office garage" : "Garage"; }
+        }
+    }
+
+    /// <summary>Real GTA Online garages (built-in catalog) with per-garage overrides in data\online_garages.ini.</summary>
     public static class GarageDefinitions
     {
         public static List<GarageDefinition> Load(string dataDir)
         {
-            var file = Path.Combine(dataDir, "garages.ini");
-            if (!File.Exists(file)) WriteDefaults(file);
+            var file = Path.Combine(dataDir, "online_garages.ini");
             var s = ScriptSettings.Load(file);
+            bool write = !File.Exists(file);
             var list = new List<GarageDefinition>();
-            foreach (var id in s.GetAllSectionNames())
+            foreach (var d in OnlineGarageCatalog.All)
             {
-                if (!s.GetValue(id, "Enabled", true)) continue;
+                if (write)
+                {
+                    s.SetValue(d.Id, "Name", d.Name); s.SetValue(d.Id, "Price", d.Price); s.SetValue(d.Id, "Enabled", true);
+                }
+                if (!s.GetValue(d.Id, "Enabled", true)) continue;
                 var g = new GarageDefinition
                 {
-                    Id = id,
-                    Name = s.GetValue(id, "Name", id),
-                    Category = s.GetValue(id, "Category", GarageCategory.Small),
-                    Price = s.GetValue(id, "Price", 25000L),
-                    Capacity = s.GetValue(id, "Capacity", 2),
-                    CapacityPerUpgrade = s.GetValue(id, "CapacityPerUpgrade", 2),
-                    MaxUpgrades = s.GetValue(id, "MaxUpgrades", 2),
-                    UpgradeCostFactor = s.GetValue(id, "UpgradeCostFactor", 0.35),
-                    Position = new Vector3(s.GetValue(id, "X", 0f), s.GetValue(id, "Y", 0f), s.GetValue(id, "Z", 0f)),
-                    Heading = s.GetValue(id, "Heading", 0f),
-                    CareerTier = s.GetValue(id, "CareerTier", 1)
+                    Id = d.Id, Kind = d.Kind, Ipl = d.Ipl,
+                    Name = s.GetValue(d.Id, "Name", d.Name),
+                    Price = s.GetValue(d.Id, "Price", d.Price),
+                    Radius = d.Radius,
+                    Entrance = new Spot(d.Entrance), ExitMarker = new Spot(d.ExitMarker), SpawnIn = new Spot(d.SpawnIn), SpawnOut = new Spot(d.SpawnOut),
+                    Category = d.Kind == "low" ? GarageCategory.Small : d.Kind == "mid" ? GarageCategory.Medium : d.Kind == "high" ? GarageCategory.Large : GarageCategory.Premium
                 };
-                if (g.Position != Vector3.Zero) list.Add(g);
+                foreach (var sl in d.Slots) g.Slots.Add(new Spot(sl));
+                list.Add(g);
             }
+            if (write) try { s.Save(); } catch { }
             return list;
-        }
-
-        private static void WriteDefaults(string file)
-        {
-            var s = ScriptSettings.Load(file);
-            // First-pass locations (public parking lots). Move them by editing X/Y/Z if one is awkward.
-            Add(s, "sandy_shores", "Sandy Shores Lot", GarageCategory.Small, 8000, 2, 1, 2, 1737.6f, 3710.2f, 34.1f, 20f, 1);
-            Add(s, "airport_longterm", "LSIA Long-Term Parking", GarageCategory.Small, 14000, 2, 2, 2, -796.9f, -2022.8f, 9.2f, 45f, 1);
-            Add(s, "paleto_bay", "Paleto Bay Garage", GarageCategory.Medium, 18000, 4, 2, 2, 105.4f, 6613.6f, 32.4f, 315f, 1);
-            Add(s, "mirror_park", "Mirror Park Garage", GarageCategory.Medium, 32000, 4, 2, 2, 1032.8f, -765.1f, 58.0f, 330f, 2);
-            Add(s, "legion_square", "Legion Square Parking", GarageCategory.Large, 75000, 6, 2, 3, 215.1f, -791.4f, 30.6f, 340f, 2);
-            Add(s, "eclipse_towers", "Eclipse Towers Garage", GarageCategory.Premium, 260000, 10, 2, 3, -796.5f, 308.9f, 85.7f, 180f, 3);
-            s.Save();
-        }
-
-        private static void Add(ScriptSettings s, string id, string name, GarageCategory cat, long price, int cap, int perUpg, int maxUpg, float x, float y, float z, float h, int tier)
-        {
-            s.SetValue(id, "Name", name); s.SetValue(id, "Category", cat); s.SetValue(id, "Price", price);
-            s.SetValue(id, "Capacity", cap); s.SetValue(id, "CapacityPerUpgrade", perUpg); s.SetValue(id, "MaxUpgrades", maxUpg);
-            s.SetValue(id, "UpgradeCostFactor", 0.35); s.SetValue(id, "X", x); s.SetValue(id, "Y", y); s.SetValue(id, "Z", z);
-            s.SetValue(id, "Heading", h); s.SetValue(id, "CareerTier", tier); s.SetValue(id, "Enabled", true);
         }
     }
 }

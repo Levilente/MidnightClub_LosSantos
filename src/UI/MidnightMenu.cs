@@ -80,8 +80,8 @@ namespace MidnightClub.UI
                 m.Items.Clear();
                 var info = Info(r);
                 bool current = r.Id == saves.Data.CurrentVehicleId;
-                m.Add(new MenuItem(current ? "Currently driving" : (cfg.DevMode ? "Drive this car (dev)" : "Take out"), () => { if (modes.SwitchVehicle(r)) stack.Close(); })
-                    { Enabled = !current, Description = () => cfg.DevMode ? null : "Cars are taken out at their home garage." });
+                m.Add(new MenuItem(current ? "Currently driving" : (cfg.DevMode ? "Drive this car (dev)" : "Swap at its garage"), () => { if (modes.SwitchVehicle(r)) stack.Close(); })
+                    { Enabled = !current, Description = () => cfg.DevMode ? null : "Drive into the car's home garage and pick it on the garage screen." });
                 m.Add(new MenuItem("Home garage") { Value = () => Garages == null ? "-" : Garages.GarageName(r.GarageId) });
                 m.Add(new MenuItem("Favourite", () => { r.Favorite = !r.Favorite; saves.IsDirty = true; }) { Value = () => r.Favorite ? "Yes" : "No" });
                 m.Add(new MenuItem("Nickname", () => { var s = Game.GetUserInput(r.Nickname ?? ""); if (s != null) { r.Nickname = s.Trim().Length == 0 ? null : s.Trim(); saves.IsDirty = true; } }) { Value = () => r.Nickname ?? "-" });
@@ -110,7 +110,7 @@ namespace MidnightClub.UI
                     m.Add(new MenuItem(def.Name, () => { Function.Call(Hash.SET_NEW_WAYPOINT, def.Position.X, def.Position.Y); GTA.UI.Notification.PostTicker("GPS set to " + def.Name + ".", true, false); })
                     {
                         Value = () => owned ? Garages.Used(def.Id) + " / " + Garages.Capacity(def.Id) : "$" + def.Price.ToString("N0"),
-                        Description = () => def.Category + (owned ? " garage, owned." : " garage, for sale.") + " Select to set GPS."
+                        Description = () => def.KindLabel + (owned ? ", owned." : ", for sale.") + " Select to set GPS."
                     });
                 }
             };

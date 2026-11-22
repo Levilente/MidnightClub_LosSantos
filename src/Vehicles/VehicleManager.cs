@@ -46,6 +46,24 @@ namespace MidnightClub.Vehicles
         public Vehicle Spawn(OwnedVehicle rec, Vector3 pos, float heading)
         {
             Despawn(false);
+            var v = Create(rec, pos, heading);
+            Current = v; CurrentRecord = rec; hasLastPos = false;
+            rec.Stats.LastUsedUtc = DateTime.UtcNow.ToString("o");
+            return v;
+        }
+
+        /// <summary>Spawns a parked/display copy of an owned car without making it the driven car.</summary>
+        public Vehicle SpawnDisplay(OwnedVehicle rec, Vector3 pos, float heading)
+        {
+            var v = Create(rec, pos, heading);
+            Function.Call(Hash.SET_VEHICLE_ON_GROUND_PROPERLY, v, 5f);
+            v.IsInvincible = true;
+            Function.Call(Hash.SET_VEHICLE_DOORS_LOCKED, v, 2);
+            return v;
+        }
+
+        private Vehicle Create(OwnedVehicle rec, Vector3 pos, float heading)
+        {
             var model = rec.ModelHash != 0 ? new Model(rec.ModelHash) : new Model(rec.Model);
             if (!model.IsValid || !model.IsInCdImage || !model.IsVehicle) throw new Exception("Vehicle model not available in this game build: " + rec.Model);
             if (!model.Request(5000)) throw new Exception("Vehicle model failed to load: " + rec.Model);
@@ -58,8 +76,6 @@ namespace MidnightClub.Vehicles
             v.DirtLevel = 0f;
             Apply(v, rec);
             Protect(v);
-            Current = v; CurrentRecord = rec; hasLastPos = false;
-            rec.Stats.LastUsedUtc = DateTime.UtcNow.ToString("o");
             return v;
         }
 

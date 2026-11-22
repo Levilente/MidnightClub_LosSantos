@@ -8,6 +8,6 @@
 7. Editing the driver while seated: the preview camera may clip into the car on some models.
 8. First-time character creation happens standing on the street at the spawn point; traffic is cleared once but may drive in.
 9. The registry includes every vehicle the game reports for the allowed classes; some special/mission variants may need hiding via `data\vehicles.ini` (`Enabled=false`).
-10. Garage positions are a first pass (public parking lots) and not checked in-game; adjust X/Y/Z in `data\garages.ini` if a marker sits somewhere awkward.
-11. Garages are drive-in points for now; walk-in interiors, vehicle display, lighting and decoration come with Phase 5 (Online interiors).
-12. Career-tier requirements on garages are shown but not enforced until the career system (Phase 7).
+10. Executive office garages load their interior with REQUEST_IPL; if Story Mode doesn't stream them, the log says "No interior found" and they need the MP map switch (to be tested).
+11. The garage-screen camera uses a fixed offset from each car; in the 2-car garage it may clip a wall.
+12. Clubhouse, warehouse, facility and storage-bay garages from the source data are not included yet (need extra IPLs).

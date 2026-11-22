@@ -339,18 +339,7 @@ namespace MidnightClub.Core
         {
             if (!InMidnightClub || rec == null || rec.Id == saves.Data.CurrentVehicleId) return false;
             if (!Stopped("switch cars")) return false;
-            var cur = saves.Data.Vehicles.Find(v => v.Id == saves.Data.CurrentVehicleId);
-            if (!cfg.DevMode && Garages != null)
-            {
-                var at = Garages.AtGarage;
-                if (at == null || Garages.Owned(at.Id) == null) { Notification.PostTicker("Drive to one of your ~g~garages~s~ to change cars.", true, false); return false; }
-                if (rec.GarageId != at.Id) { Notification.PostTicker("That car is stored at ~g~" + Garages.GarageName(rec.GarageId) + "~s~.", true, false); return false; }
-                if (cur != null && cur.GarageId == null)
-                {
-                    if (Garages.Used(at.Id) >= Garages.Capacity(at.Id)) { Notification.PostTicker("~r~No room~s~ here to park your current car.", true, false); return false; }
-                    cur.GarageId = at.Id;
-                }
-            }
+            if (!cfg.DevMode) { Notification.PostTicker("Drive into one of your ~g~garages~s~ to swap cars.", true, false); return false; }
             var ped = Game.Player.Character;
             var old = vehicles.Current;
             var pos = old != null && old.Exists() ? old.Position : ped.Position;
@@ -391,7 +380,7 @@ namespace MidnightClub.Core
             if (!cfg.DevMode || !InMidnightClub) return;
             var rec = VehicleManager.CreateRecord(info, 0);
             if (!saves.TryBeginTransaction("dev-" + rec.Id)) return;
-            if (Garages != null) rec.GarageId = Garages.FindFreeGarage();
+            if (Garages != null) Garages.AssignToFreeGarage(rec);
             saves.Data.Vehicles.Add(rec); saves.IsDirty = true;
             Notification.PostTicker("~y~DEV~s~: added " + info.Name + " to My vehicles.", true, false);
         }

@@ -6,7 +6,8 @@
 | 1 Core framework | **Working in-game** (user-tested 2026-11-22 on 1.0.1158.16) |
 | 2 Character and vehicles | Partly user-tested (registry 615 cars, profile load OK); creator fix in 0.2.1 |
 | 3 Economy and garages | **Code complete, compiled, awaiting in-game test** |
-| 4–12 | Not started |
+| 5 (part) Online garages | **Pulled forward at user request: code complete, awaiting in-game test** |
+| 4, 6–12 | Not started |
 
 ## Phase 1 contents
 - `Core/GameModeManager`: STORY_MODE / ENTERING / MIDNIGHT_CLUB / EXITING / ERROR_RECOVERY state machine; refuses to enter during missions, cutscenes, character switches, while wanted or dead; ignores F7 during transitions.
@@ -39,3 +40,9 @@
 - F6 menu: Garages (GPS to any garage), Finances (cash, REP, recent transactions), vehicle home garage + favourite.
 - HUD shows +$/-$ changes; tow & repair is charged through the ledger.
 - Tests: 10/10 economy tests + 14/14 save tests.
+
+## Online garages (0.4.0)
+- `Garages/OnlineGarageCatalog` (generated, MIT data from xnOnlineGarage): 42 garages with entrance, interior spawn, exit and parking slots.
+- `Garages/GarageManager`: blips, entrance markers, purchase, drive-in session (interior pin + IPL for executive garages, display cars per slot, slot normalisation), drive-out, entity-set customisation.
+- `Garages/GarageScreen`: blocking garage screen with camera interpolation, HUD, manage/customise menus.
+- Overrides: `data\online_garages.ini` (Name, Price, Enabled per garage).

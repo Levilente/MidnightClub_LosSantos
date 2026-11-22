@@ -1,4 +1,10 @@
 # Changelog
+## 0.4.0 (2026-11-22): real GTA Online garages
+- Replaced the parking-lot garages with 42 real GTA Online garages (2-, 6- and 10-car apartment garages and the 4 executive office garages) at their Online entrances.
+- Drive in: the interior loads with every car you keep there parked in its slot; Midnight Club garage screen with camera, car card (stats bars, condition, odometer, value) and controls bar.
+- Drive out with any car parked there; driving a car into another garage you own moves it there if there is room.
+- Manage menu (M): nickname, plate, favourite, move to another garage. Executive garages: customise floor/walls, lighting and numbering (C) with live preview, paid on apply.
+- Swapping cars now happens in garages (DevMode still allows swapping anywhere).
 ## 0.3.0-phase3 (2026-11-22)
 - Economy: TransactionManager with ledger and duplicate protection; HUD money popups; Finances menu.
 - Garages: 6 purchasable, upgradable garages (data\\garages.ini), map blips, drive-in markers, store/take out cars, home garages, favourites.
