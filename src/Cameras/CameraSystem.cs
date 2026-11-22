@@ -49,6 +49,7 @@ namespace MidnightClub.Cameras
         private int vehicleHandle; private Vector3 hoodLocal, bumperLocal, cockpitLocal;
         private float time; private int labelUntil;
         private float collideDist = 99f;
+        private int viewPressedAt;
 
         private static readonly CameraProfile[] Profiles =
         {
@@ -96,7 +97,8 @@ namespace MidnightClub.Cameras
 
             // Change View cycles our modes.
             Game.DisableControlThisFrame(Control.NextCamera);
-            if (Game.IsControlJustPressed(Control.NextCamera)) Cycle();
+            if (Game.IsControlJustPressed(Control.NextCamera)) viewPressedAt = Game.GameTime;
+            if (Game.IsControlJustReleased(Control.NextCamera) && Game.GameTime - viewPressedAt < 450) Cycle();   // a long hold toggles the mode instead
             if (Game.GameTime < labelUntil) DrawLabel();
 
             if (mode == CameraMode.GameDefault || !cfg.CustomCameras || car == null || !car.Exists() || !ped.IsInVehicle(car) || Game.IsCutsceneActive)
@@ -157,6 +159,12 @@ namespace MidnightClub.Cameras
         private void UpdateLook(float dt)
         {
             float x = Game.GetControlValueNormalized(Control.LookLeftRight), y = Game.GetControlValueNormalized(Control.LookUpDown);
+            if (Game.LastInputMethod == InputMethod.GamePad)
+            {   // right stick = look angle (NFS style): centre it and the view comes back
+                lookYaw = Lerp(lookYaw, -x * 160f, Math.Min(1f, dt * 10f));
+                lookPitch = Lerp(lookPitch, -y * 25f, Math.Min(1f, dt * 10f));
+                return;
+            }
             if (Math.Abs(x) > 0.02f || Math.Abs(y) > 0.02f)
             {
                 lookYaw = Clamp(lookYaw - x * 7f, -170f, 170f);

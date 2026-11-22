@@ -148,7 +148,8 @@ namespace MidnightClub.Racing
                     r.Progress = r.Cp * 100000f - r.Car.Position.DistanceTo(Cps[Math.Min(r.Cp, Cps.Count - 1)]);
 
             // hold Backspace to quit
-            if (Game.IsKeyPressed(System.Windows.Forms.Keys.Back)) { if (quitHeld < 0) quitHeld = now; else if (now - quitHeld > 1500) { Aborted = true; Done = true; } }
+            Game.DisableControlThisFrame(Control.VehicleCinCam);
+            if (Game.IsKeyPressed(System.Windows.Forms.Keys.Back) || Game.IsControlPressed(Control.FrontendCancel)) { if (quitHeld < 0) quitHeld = now; else if (now - quitHeld > 1500) { Aborted = true; Done = true; } }
             else quitHeld = -1;
 
             if (p.Finished)
@@ -273,7 +274,7 @@ namespace MidnightClub.Racing
             Text("CHECKPOINT " + Math.Min(Player.Cp + 1, Cps.Count) + "/" + Cps.Count, 0.97f, y, 0.32f, Color.FromArgb(220, 200, 200, 210), Font.ChaletLondon, Alignment.Right); y += 0.028f;
             if (Def.Kind == RaceType.Drift)
                 Text("DRIFT " + ((long)DriftScore).ToString("N0") + (driftChain > 0 ? "  ~y~+" + ((long)PendingDrift).ToString("N0") + " x" + DriftCombo.ToString("0.0") : ""), 0.97f, y, 0.42f, Color.White, Font.ChaletComprimeCologne, Alignment.Right);
-            if (quitHeld > 0) Text("Hold BACKSPACE to quit", 0.5f, 0.88f, 0.4f, Color.White, Font.ChaletLondon, Alignment.Center);
+            if (quitHeld > 0) Text("Hold ~INPUT_FRONTEND_CANCEL~ to quit", 0.5f, 0.88f, 0.4f, Color.White, Font.ChaletLondon, Alignment.Center);
         }
 
         public static string FormatTime(int ms) { if (ms < 0) ms = 0; return (ms / 60000) + ":" + (ms / 1000 % 60).ToString("00") + "." + (ms % 1000 / 10).ToString("00"); }

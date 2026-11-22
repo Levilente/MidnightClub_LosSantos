@@ -139,7 +139,7 @@ namespace MidnightClub.Core
                 lastAutoSave = Game.GameTime;
                 SetState(GameMode.MIDNIGHT_CLUB);
                 Screen.FadeIn(cfg.TransitionFadeMs);
-                Notification.PostTicker(isNew ? "~p~MIDNIGHT CLUB~s~: welcome to the streets. Press ~b~" + cfg.ToggleKey + "~s~ to return to Story Mode."
+                Notification.PostTicker(isNew ? "~p~MIDNIGHT CLUB~s~: welcome to the streets. ~b~" + cfg.ToggleKey + "~s~ (or hold ~INPUT_NEXT_CAMERA~ on a controller) returns to Story Mode. Phone: ~INPUT_PHONE~."
                                               : "~p~MIDNIGHT CLUB~s~: welcome back.", true, false);
             }
             catch (Exception ex)

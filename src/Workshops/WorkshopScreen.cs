@@ -118,7 +118,7 @@ namespace MidnightClub.Workshops
             AddModMenu(m, "Transmission", 13, 0.045, "default");
             AddModMenu(m, "Suspension", 15, 0.03, "side");
             m.Add(Toggle("Turbo", 18, 2500 + bp * 8 / 100));
-            m.Add(new MenuItem("Nitrous kit", () => menus.Push(Nitrous())) { Value = () => rec.NosLevel == 0 ? "None" : "Stage " + rec.NosLevel, Description = () => "Hold Sprint (Shift / A) to fire. Bigger stages: more power, longer burn, faster refill." });
+            m.Add(new MenuItem("Nitrous kit", () => menus.Push(Nitrous())) { Value = () => rec.NosLevel == 0 ? "None" : "Stage " + rec.NosLevel, Description = () => "Hold ~INPUT_SPRINT~ (keyboard) or ~INPUT_VEH_ROCKET_BOOST~ (controller) to fire. Bigger stages: more power, longer burn, faster refill." });
             m.Add(new MenuItem("ECU tune (Midnight Club)", () => menus.Push(Ecu())) { Value = () => rec.EcuLevel == 0 ? "Stock" : "Stage " + rec.EcuLevel,
                 Description = () => "Remapped engine management: +6% power per stage on top of the engine upgrade." });
             return m;
@@ -272,7 +272,7 @@ namespace MidnightClub.Workshops
                     set(Math.Max(min, Math.Min(max, v)));
                     saves.IsDirty = true; focus = camFocus;
                 },
-                Description = () => "LEFT/RIGHT to adjust (free). Changes show live."
+                Description = () => "~INPUT_FRONTEND_LEFT~~INPUT_FRONTEND_RIGHT~ to adjust (free). Changes show live."
             };
         }
 

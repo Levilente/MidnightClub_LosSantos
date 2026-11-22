@@ -13,15 +13,15 @@ First run creates `scripts\MidnightClub\` (`config.ini`, `MidnightClub.log`, `sa
 ## Controls
 | Key | Action |
 |---|---|
-| F7 | Enter / leave Midnight Club |
+| F7 (controller: hold Back/Select) | Enter / leave Midnight Club |
 | UP or F6 | Midnight Club phone |
 | E | Interact: garages, dealerships, workshops, race starts, car meets, street challenges |
 | V | Cycle cameras (bumper, hood, cockpit, close/far/action chase, game default) |
 | Menus | Arrows, Enter, Backspace/Esc; Left/Right change values |
 | Garage screen | Left/Right car, Enter drive out, M manage, C customise (executive garages) |
 | Showroom | Left/Right browse, Enter buy, T test drive |
-| Racing | Hold Backspace to quit |
-| Sprint (Shift / A) | Nitrous (with a kit) |
+| Racing | Hold Backspace / B to quit |
+| Sprint on keyboard / vehicle boost button on controller | Nitrous (with a kit) |
 | Caps Lock / L3+R3 | Special ability (Zone, Agro, Roar) when the meter is full |
 | F9 (DevMode) | Wheel Lab diagnostic |
 

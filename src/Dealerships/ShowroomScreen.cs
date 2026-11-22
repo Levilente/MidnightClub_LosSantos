@@ -184,7 +184,7 @@ namespace MidnightClub.Dealerships
                     int s = (end - Game.GameTime) / 1000;
                     Rect(0.4f, 0.04f, 0.2f, 0.07f, Panel);
                     Text("TEST DRIVE  " + s / 60 + ":" + (s % 60).ToString("00"), 0.5f, 0.045f, 0.5f, Purple, Font.ChaletComprimeCologne, Alignment.Center);
-                    Text(item.Info.Name + "  |  " + (int)(car.Speed * 3.6f) + " km/h  |  BACKSPACE to end", 0.5f, 0.085f, 0.3f, Color.White, Font.ChaletLondon, Alignment.Center);
+                    Text(item.Info.Name + "  |  " + (int)(car.Speed * 3.6f) + " km/h  |  ~INPUT_FRONTEND_CANCEL~ to end", 0.5f, 0.085f, 0.3f, Color.White, Font.ChaletLondon, Alignment.Center);
                     Script.Wait(0);
                 }
             }
@@ -231,7 +231,7 @@ namespace MidnightClub.Dealerships
             Text(price, x + 0.012f, y + 0.30f, 0.55f, Color.White, Font.ChaletComprimeCologne);
 
             Rect(0f, 0.95f, 1f, 0.05f, Color.FromArgb(220, 0, 0, 0));
-            Text("~p~LEFT/RIGHT~s~ Browse     ~p~ENTER~s~ Buy     ~p~T~s~ Test drive (90 s)     ~p~BACKSPACE~s~ Leave", 0.5f, 0.958f, 0.34f, Color.White, Font.ChaletLondon, Alignment.Center);
+            Text("~INPUT_FRONTEND_LEFT~~INPUT_FRONTEND_RIGHT~ Browse     ~INPUT_FRONTEND_ACCEPT~ Buy     ~INPUT_FRONTEND_X~ Test drive (90 s)     ~INPUT_FRONTEND_CANCEL~ Leave", 0.5f, 0.958f, 0.34f, Color.White, Font.ChaletLondon, Alignment.Center);
             Text((index + 1) + " / " + stock.Count, 0.97f, 0.958f, 0.34f, Cyan, Font.ChaletLondon, Alignment.Right);
             if (note != null && Game.GameTime < noteUntil)
             {

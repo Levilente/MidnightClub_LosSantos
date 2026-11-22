@@ -85,7 +85,9 @@ namespace MidnightClub.Gameplay
         private void Nitrous(Vehicle car, OwnedVehicle rec, float dt)
         {
             if (rec.NosLevel <= 0) return;
-            bool want = Game.IsControlPressed(Control.Sprint) && car.Speed > 3f && !car.IsInAir;
+            var nosControl = Game.LastInputMethod == InputMethod.GamePad ? Control.VehicleRocketBoost : Control.Sprint;
+            Game.DisableControlThisFrame(Control.VehicleRocketBoost);
+            bool want = Game.IsControlPressed(nosControl) && car.Speed > 3f && !car.IsInAir;
             float burn = 1f / (3.5f + rec.NosLevel * 1.5f);                 // full tank lasts 5 / 6.5 / 8 s
             if (want && nos > 0.02f)
             {

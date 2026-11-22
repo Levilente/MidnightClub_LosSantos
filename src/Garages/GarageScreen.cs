@@ -212,7 +212,7 @@ namespace MidnightClub.Garages
 
             // bottom bar: controls
             Rect(0f, 0.95f, 1f, 0.05f, Color.FromArgb(220, 0, 0, 0));
-            string hint = "~p~LEFT/RIGHT~s~ Choose car     ~p~ENTER~s~ Drive out     ~p~M~s~ Manage" + (g.Customizable ? "     ~p~C~s~ Customise garage" : "") + "     ~p~BACKSPACE~s~ Leave in " + (cars.Any(c => c.Key == arrivedIn) ? "current car" : "selected car");
+            string hint = "~INPUT_FRONTEND_LEFT~~INPUT_FRONTEND_RIGHT~ Choose car     ~INPUT_FRONTEND_ACCEPT~ Drive out     ~INPUT_FRONTEND_X~ Manage" + (g.Customizable ? "     ~INPUT_FRONTEND_Y~ Customise garage" : "") + "     ~INPUT_FRONTEND_CANCEL~ Leave in " + (cars.Any(c => c.Key == arrivedIn) ? "current car" : "selected car");
             Text(hint, 0.5f, 0.958f, 0.34f, Color.White, Font.ChaletLondon, Alignment.Center);
             Text((index + 1) + " / " + cars.Count, 0.97f, 0.958f, 0.34f, Cyan, Font.ChaletLondon, Alignment.Right);
 

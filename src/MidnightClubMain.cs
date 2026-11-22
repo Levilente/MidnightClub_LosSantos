@@ -21,7 +21,8 @@ namespace MidnightClub
         private readonly MainHUD hud;
         private readonly MidnightMenu menu;
         private readonly Phone.PhoneManager phone;
-        private bool togglePressed, menuPressed;
+        private bool togglePressed, menuPressed, viewHoldFired;
+        private int viewHoldStart = -1;
         private readonly bool initialized;
 
         public MidnightClubMain()
@@ -88,6 +89,13 @@ namespace MidnightClub
             {
                 if (togglePressed) { togglePressed = false; modes.Toggle(); }
                 if (menuPressed) { menuPressed = false; if (modes.InMidnightClub) phone.Toggle(); }
+                // Controller: hold Back/Select (Change View) for 1.5 s to enter/leave Midnight Club.
+                if (Game.LastInputMethod == InputMethod.GamePad && Game.IsControlPressed(GTA.Control.NextCamera))
+                {
+                    if (viewHoldStart < 0) viewHoldStart = Game.GameTime;
+                    else if (!viewHoldFired && Game.GameTime - viewHoldStart > 1500) { viewHoldFired = true; modes.Toggle(); }
+                }
+                else { viewHoldStart = -1; viewHoldFired = false; }
                 modes.Tick();
                 if (modes.InMidnightClub) menu.Tick();
                 if (modes.InMidnightClub && cfg.ShowHud) hud.Draw(saves.Data, vehicles);

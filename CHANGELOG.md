@@ -1,4 +1,10 @@
 # Changelog
+## 0.14.1 (2026-11-22): controller pass
+- Controller can enter/leave Midnight Club: hold Back/Select (Change View) 1.5 s. A tap still cycles cameras.
+- Nitrous is device-aware: Sprint on keyboard, the vehicle boost button (VEH_ROCKET_BOOST) on a controller.
+- Quit a race by holding B (Frontend Cancel) as well as Backspace; cinematic camera disabled during races so B doesn't fight it.
+- Right stick looks around NFS-style (stick angle = view angle, centres when released); the mouse keeps the spring-back free look.
+- Hint bars and tips use GTA input tokens, so they show the right button for keyboard or controller.
 ## 0.14.0 (2026-11-22): "feels like its own game"
 - Title card while Midnight Club loads (logo + gameplay tips).
 - Street style system in free roam: near misses, drafting (real slipstream power boost, "slingshot" when you pull out), airtime, drifts; combo multiplier up to x5; banked combos pay REP and fill the special-ability meter.

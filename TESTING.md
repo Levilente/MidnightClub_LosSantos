@@ -89,3 +89,9 @@ Tick items off or note what happened. Logs: `scripts\MidnightClub\MidnightClub.l
 - [ ] Workshop > Performance > Nitrous kit; hold Shift: boost, blue NOS bar drains and refills, screen effect
 - [ ] At tier 2 Zone unlocks: meter full -> Caps Lock = slow motion; Agro (tier 3) and Roar (tier 4) feel right / not too wild
 - [ ] Phone > Milestones / Ability
+
+## Controller (0.14.1)
+- [ ] Hold Back/Select 1.5 s in Story Mode enters Midnight Club; again leaves. A short tap changes the camera
+- [ ] Hint bars show controller buttons when using a pad (and keys with keyboard)
+- [ ] Nitrous on the controller boost button (which button is it on your pad?)
+- [ ] Right stick look feels OK; holding B quits a race
