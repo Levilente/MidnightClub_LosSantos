@@ -86,7 +86,7 @@ namespace MidnightClub.Vehicles
             ApplyOverrides(Path.Combine(dataDir, "vehicles.ini"));
             Export(Path.Combine(dataDir, "vehicle_registry.csv"));
             IsBuilt = true;
-            Log.Info("Vehicle registry: " + byHash.Count + " vehicles (" + byHash.Values.Count(v => v.Source == VehicleSource.AddOn) + " add-on) in " + sw.ElapsedMilliseconds + " ms");
+            Log.Info("Vehicle registry: " + byHash.Count + " vehicles (" + byHash.Values.Count(v => v.Source == VehicleSource.AddOn) + " not in SHVDN's list: newer DLC or add-on) in " + sw.ElapsedMilliseconds + " ms");
         }
 
         private static string Localize(string label, string fallback)

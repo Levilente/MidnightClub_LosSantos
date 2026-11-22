@@ -3,7 +3,7 @@
 | Phase | Status |
 |---|---|
 | 0 Technical research | Done (TECHNICAL_NOTES.md) |
-| 1 Core framework | **Code complete, compiled, awaiting first in-game test** |
+| 1 Core framework | **Working in-game** (user-tested 2026-11-22 on 1.0.1158.16) |
 | 2 Character and vehicles | **Code complete, compiled, awaiting in-game test** |
 | 3–12 | Not started |
 

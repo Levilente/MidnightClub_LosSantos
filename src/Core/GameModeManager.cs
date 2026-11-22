@@ -94,13 +94,14 @@ namespace MidnightClub.Core
                 while (!Function.Call<bool>(Hash.IS_NEW_LOAD_SCENE_LOADED) && Game.GameTime - t0 < 6000) Script.Wait(50);
                 Function.Call(Hash.NEW_LOAD_SCENE_STOP);
 
+                bool needCreator = !data.Character.Created;
                 var ped = characters.SpawnMidnightPed(data.Character, cfg.CharacterModel, pos, heading);
                 Game.Player.WantedLevel = 0;
                 characters.TakeControl(ped);
                 Script.Wait(0);
                 characters.ParkStoryPed(story);
 
-                if (!data.Character.Created)
+                if (needCreator)
                 {
                     characters.ApplyDriverSettings(ped, true);
                     Function.Call(Hash.CLEAR_AREA, pos.X, pos.Y, pos.Z, 20f, true, false, false, false);

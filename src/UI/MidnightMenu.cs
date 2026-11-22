@@ -118,7 +118,7 @@ namespace MidnightClub.UI
                         Value = () => "$" + info.BasePrice.ToString("N0"),
                         Description = () => string.Format("Tier {0}  |  {1:0} km/h  |  Accel {2:0.00}  |  Grip {3:0.00}{4}{5}",
                             info.Tier, info.MaxSpeed * 3.6f, info.Acceleration, info.Traction,
-                            info.Source == VehicleSource.AddOn ? "  |  add-on" : "",
+                            info.Source == VehicleSource.AddOn ? "  |  newer DLC / add-on" : "",
                             cfg.DevMode ? "" : "  |  Sold at dealerships (coming in Phase 4)")
                     });
                 }

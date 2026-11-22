@@ -55,6 +55,7 @@ namespace MidnightClub.Vehicles
 
             v.IsPersistent = true;
             v.PlaceOnGround();
+            v.DirtLevel = 0f;
             Apply(v, rec);
             Protect(v);
             Current = v; CurrentRecord = rec; hasLastPos = false;
