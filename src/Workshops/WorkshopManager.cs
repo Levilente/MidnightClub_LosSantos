@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using GTA;
 using GTA.Math;
+using GTA.Native;
 using GTA.UI;
 using MidnightClub.Core;
 using MidnightClub.Economy;
@@ -44,7 +45,45 @@ namespace MidnightClub.Workshops
         {
             this.saves = saves; this.money = money; this.registry = registry; this.vehicles = vehicles; this.stack = stack;
             EventBus.Subscribe<MidnightTickEvent>(e => Tick());
-            EventBus.Subscribe<ModeChangedEvent>(e => { if (e.To == GameMode.MIDNIGHT_CLUB) PlaceBlips(); else ClearBlips(); });
+            EventBus.Subscribe<ModeChangedEvent>(e => { if (e.To == GameMode.MIDNIGHT_CLUB) PlaceBlips(); else { ClearBlips(); CloseDoors(); } });
+        }
+
+        // Benny's roll-up door stays shut in Story Mode; register it with the door system and hold it open.
+        private static readonly Vector3 BennysDoorPos = new Vector3(-205.6828f, -1310.683f, 30.29572f);
+        private static readonly int BennysDoorModel = new Model("lr_prop_supermod_door_01").Hash;
+        private static readonly int BennysDoorId = unchecked((int)0x4D43B001);
+        private bool doorOpen;
+
+        private void KeepDoorsOpen(Vector3 playerPos)
+        {
+            if (playerPos.DistanceTo(BennysDoorPos) > 60f) return;
+            try
+            {
+                if (!Function.Call<bool>(Hash.IS_DOOR_REGISTERED_WITH_SYSTEM, BennysDoorId))
+                    Function.Call(Hash.ADD_DOOR_TO_SYSTEM, BennysDoorId, BennysDoorModel, BennysDoorPos.X, BennysDoorPos.Y, BennysDoorPos.Z, false, false, false);
+                if (!doorOpen)
+                {
+                    Function.Call(Hash.DOOR_SYSTEM_SET_DOOR_STATE, BennysDoorId, 0, false, true);   // unlocked
+                    Function.Call(Hash.DOOR_SYSTEM_SET_HOLD_OPEN, BennysDoorId, true);
+                    Log.Info("Benny's door opened");
+                    doorOpen = true;
+                }
+                Function.Call(Hash.DOOR_SYSTEM_SET_OPEN_RATIO, BennysDoorId, 1f, false, true);
+            }
+            catch (Exception ex) { Log.Error("Benny's door", ex); doorOpen = true; }
+        }
+
+        private void CloseDoors()
+        {
+            if (!doorOpen) return;
+            try
+            {
+                Function.Call(Hash.DOOR_SYSTEM_SET_HOLD_OPEN, BennysDoorId, false);
+                Function.Call(Hash.DOOR_SYSTEM_SET_OPEN_RATIO, BennysDoorId, 0f, false, true);
+                Function.Call(Hash.DOOR_SYSTEM_SET_DOOR_STATE, BennysDoorId, 1, false, true);
+            }
+            catch { }
+            doorOpen = false;
         }
 
         private void PlaceBlips()
@@ -65,6 +104,7 @@ namespace MidnightClub.Workshops
         {
             if (IsBusy) return;
             var pos = Game.Player.Character.Position;
+            KeepDoorsOpen(pos);
             nearby = null;
             foreach (var w in All)
             {

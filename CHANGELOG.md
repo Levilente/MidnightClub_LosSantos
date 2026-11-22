@@ -1,4 +1,6 @@
 # Changelog
+## 0.7.2 (2026-11-22)
+- Fix: Benny's roll-up door (lr_prop_supermod_door_01) stayed shut in Story Mode so the workshop couldn't be reached; it is now registered with the door system and held open while you're nearby in Midnight Club, and closed again when you leave the mode.
 ## 0.7.1-wheellab (2026-11-22)
 - DevMode diagnostic "Wheel Lab" (F9 in a Midnight Club car): finds the real CWheel X-offset field on this game build from wheel-bone positions, lists tyre/rim radius candidates and dumps wheel memory to the log; lets you scale tyre radius / rim radius / tyre width / X offset / Y rotation live to see which ones change the wheel's look. Purpose: verify the fitment offsets on Enhanced and find a way to make rim size and tyre profile independently adjustable.
 ## 0.7.0 (2026-11-22)

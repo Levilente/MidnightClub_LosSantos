@@ -33,7 +33,7 @@ namespace MidnightClub.Core
 
     public static class Version
     {
-        public const string Text = "0.7.1-wheellab";
+        public const string Text = "0.7.2";
         public const int SaveFormat = 1;
     }
 }
