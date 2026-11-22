@@ -22,6 +22,7 @@ namespace MidnightClub.Core
         public bool DisableStoryPolice = true;
         public bool PlayerInvincible = true;
         public bool ShowHud = true;
+        public bool ShowWelcome = true;
         public bool LoadOnlineMap = true;
         public bool CustomCameras = true;
         public bool FitmentEnabled = true;
@@ -67,6 +68,7 @@ namespace MidnightClub.Core
             c.RecoveryCost = Get(s, "Gameplay", "RecoveryCost", c.RecoveryCost);
             c.TransitionFadeMs = Get(s, "Gameplay", "TransitionFadeMs", c.TransitionFadeMs);
             c.ShowHud = Get(s, "HUD", "Show", c.ShowHud);
+            c.ShowWelcome = Get(s, "HUD", "WelcomeScreen", c.ShowWelcome);
             c.LoadOnlineMap = Get(s, "World", "LoadOnlineMap", c.LoadOnlineMap);
             c.CustomCameras = Get(s, "Camera", "Enabled", c.CustomCameras);
             c.FitmentEnabled = Get(s, "Fitment", "Enabled", c.FitmentEnabled);

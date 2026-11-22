@@ -184,7 +184,8 @@ namespace MidnightClub.Dealerships
                     int s = (end - Game.GameTime) / 1000;
                     Rect(0.4f, 0.04f, 0.2f, 0.07f, Panel);
                     Text("TEST DRIVE  " + s / 60 + ":" + (s % 60).ToString("00"), 0.5f, 0.045f, 0.5f, Purple, Font.ChaletComprimeCologne, Alignment.Center);
-                    Text(item.Info.Name + "  |  " + (int)(car.Speed * 3.6f) + " km/h  |  ~INPUT_FRONTEND_CANCEL~ to end", 0.5f, 0.085f, 0.3f, Color.White, Font.ChaletLondon, Alignment.Center);
+                    Text(item.Info.Name + "   ·   " + (int)(car.Speed * 3.6f) + " KM/H", 0.5f, 0.085f, 0.3f, Color.White, Font.ChaletLondon, Alignment.Center);
+                    Buttons.Draw(Control.FrontendCancel, "End test drive");
                     Script.Wait(0);
                 }
             }
@@ -203,41 +204,40 @@ namespace MidnightClub.Dealerships
         // ------------------------------------------------------------------ HUD
         private void DrawHud()
         {
+            Theme.FullscreenFrame();
             var item = stock[index]; var v = item.Info; bool sold = mgr.IsSold(item);
-            Rect(0.03f, 0.04f, 0.36f, 0.11f, Panel);
-            Text(d.Name.ToUpperInvariant(), 0.04f, 0.045f, 0.55f, Purple, Font.Pricedown);
-            Text(d.Tagline, 0.04f, 0.088f, 0.28f, Color.White, Font.ChaletLondon);
-            var promo = mgr.PromoClass(d);
-            int days = mgr.DaysUntilRotation(d);
-            Text("New stock in " + days + (days == 1 ? " day" : " days") + "   |   " + mgr.Calendar.DayName + "   |   $" + saves.Data.Cash.ToString("N0")
-                + (promo.HasValue ? "   |   ~y~" + VehicleRegistry.ClassName(promo.Value) + " -15%" : ""), 0.04f, 0.115f, 0.28f, Cyan, Font.ChaletLondon);
+            Theme.Card(0.03f, 0.05f, 0.40f, 0.12f);
+            Theme.Text(d.Name.ToUpperInvariant(), 0.045f, 0.055f, 0.58f, Theme.Purple, Font.Pricedown);
+            Theme.Text(d.Tagline, 0.045f, 0.1f, 0.27f, Color.White);
+            var promo = mgr.PromoClass(d); int days = mgr.DaysUntilRotation(d);
+            Theme.Text("NEW STOCK IN " + days + (days == 1 ? " DAY" : " DAYS") + "   ·   " + mgr.Calendar.DayName.ToUpperInvariant() + "   ·   $" + saves.Data.Cash.ToString("N0")
+                + (promo.HasValue ? "   ·   ~y~" + VehicleRegistry.ClassName(promo.Value).ToUpperInvariant() + " -15%" : ""), 0.045f, 0.13f, 0.26f, Theme.Cyan);
 
-            float x = 0.03f, y = 0.54f, w = 0.33f;
-            Rect(x, y, w, 0.35f, Panel); Rect(x, y, 0.004f, 0.35f, Purple);
-            Text(v.Name.ToUpperInvariant(), x + 0.012f, y + 0.008f, 0.6f, Color.White, Font.ChaletComprimeCologne);
-            Text(VehicleRegistry.ClassName(v.Class) + "  |  TIER " + v.Tier + (item.Badge != null ? "  |  ~y~" + item.Badge : ""), x + 0.012f, y + 0.055f, 0.32f, Cyan, Font.ChaletLondon);
-            float by = y + 0.093f;
-            Bar("TOP SPEED", v.MaxSpeed / maxSpeed, x, by); by += 0.03f;
-            Bar("ACCELERATION", v.Acceleration / maxAccel, x, by); by += 0.03f;
-            Bar("BRAKING", v.Braking / maxBrake, x, by); by += 0.03f;
-            Bar("GRIP", v.Traction / maxGrip, x, by); by += 0.035f;
+            float x = 0.03f, y = 0.5f, w = 0.36f, h = 0.38f;
+            Theme.Card(x, y, w, h);
+            Theme.Text((index + 1) + " / " + stock.Count, x + w - 0.012f, y + 0.012f, 0.28f, Theme.Cyan, Font.ChaletLondon, Alignment.Right);
+            Theme.Text(v.Name.ToUpperInvariant(), x + 0.014f, y + 0.01f, 0.62f, Color.White, Font.ChaletComprimeCologne);
+            Theme.Text(VehicleRegistry.ClassName(v.Class).ToUpperInvariant() + "   ·   TIER " + v.Tier + (item.Badge != null ? "   ·   ~y~" + item.Badge : ""), x + 0.014f, y + 0.058f, 0.3f, Theme.Cyan);
+            float by = y + 0.1f;
+            Theme.StatBar("TOP SPEED", v.MaxSpeed / maxSpeed, x + 0.014f, by, w - 0.03f); by += 0.03f;
+            Theme.StatBar("ACCELERATION", v.Acceleration / maxAccel, x + 0.014f, by, w - 0.03f); by += 0.03f;
+            Theme.StatBar("BRAKING", v.Braking / maxBrake, x + 0.014f, by, w - 0.03f); by += 0.03f;
+            Theme.StatBar("GRIP", v.Traction / maxGrip, x + 0.014f, by, w - 0.03f); by += 0.04f;
             if (d.IsUsedMarket && item.Preview != null)
             {
                 int cond = (int)Math.Round((item.Preview.EngineHealth + item.Preview.BodyHealth) / 20f);
-                Text("Condition " + cond + "%   Odometer " + item.Preview.Stats.DistanceKm.ToString("0") + " km   " + item.Preview.Mods.Count + " mods", x + 0.012f, by, 0.3f, Color.White, Font.ChaletLondon);
-                Text("Seller: " + item.Seller, x + 0.012f, by + 0.026f, 0.28f, Color.FromArgb(200, 200, 200, 210), Font.ChaletLondon);
+                Theme.Text("CONDITION " + cond + "%    ODOMETER " + item.Preview.Stats.DistanceKm.ToString("0") + " KM    " + item.Preview.Mods.Count + " MODS", x + 0.014f, by, 0.27f, Color.White);
+                Theme.Text("Seller: " + item.Seller, x + 0.014f, by + 0.027f, 0.27f, Theme.TextDim);
             }
-            string price = sold ? "~r~SOLD" : "$" + item.Price.ToString("N0") + (item.ListPrice > item.Price ? "  ~c~(was $" + item.ListPrice.ToString("N0") + ")" : "");
-            Text(price, x + 0.012f, y + 0.30f, 0.55f, Color.White, Font.ChaletComprimeCologne);
-
-            Rect(0f, 0.95f, 1f, 0.05f, Color.FromArgb(220, 0, 0, 0));
-            Text("~INPUT_FRONTEND_LEFT~~INPUT_FRONTEND_RIGHT~ Browse     ~INPUT_FRONTEND_ACCEPT~ Buy     ~INPUT_FRONTEND_X~ Test drive (90 s)     ~INPUT_FRONTEND_CANCEL~ Leave", 0.5f, 0.958f, 0.34f, Color.White, Font.ChaletLondon, Alignment.Center);
-            Text((index + 1) + " / " + stock.Count, 0.97f, 0.958f, 0.34f, Cyan, Font.ChaletLondon, Alignment.Right);
+            Theme.Rect(x + 0.014f, y + h - 0.07f, w - 0.028f, 0.001f, Theme.Line);
+            string price = sold ? "~r~SOLD" : "$" + item.Price.ToString("N0") + (item.ListPrice > item.Price ? "  ~c~$" + item.ListPrice.ToString("N0") : "");
+            Theme.Text(price, x + 0.014f, y + h - 0.062f, 0.7f, Color.White, Font.ChaletComprimeCologne);
             if (note != null && Game.GameTime < noteUntil)
             {
-                Rect(0.35f, 0.17f, 0.30f, 0.05f, Panel);
-                Text(note, 0.5f, 0.18f, 0.32f, Color.White, Font.ChaletLondon, Alignment.Center, 0.29f);
+                Theme.Card(0.36f, 0.2f, 0.28f, 0.05f);
+                Theme.Text(note, 0.5f, 0.212f, 0.3f, Color.White, Font.ChaletLondon, Alignment.Center, 0.26f);
             }
+            if (!menus.IsOpen) Buttons.Draw(Control.FrontendAccept, "Buy", Control.FrontendCancel, "Leave", Control.FrontendX, "Test drive", Control.FrontendRight, "", Control.FrontendLeft, "Browse");
         }
 
         private void Bar(string label, float val, float x, float y)

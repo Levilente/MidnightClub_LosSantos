@@ -401,7 +401,10 @@ namespace MidnightClub.Racing
             int until = Game.GameTime + 12000;
             while (Game.GameTime < until)
             {
-                Function.Call(Hash.DRAW_RECT, 0.5f, 0.45f, 0.42f, 0.56f, 8, 6, 16, 215, false);
+                UI.Theme.FullscreenFrame();
+                Game.DisableAllControlsThisFrame();
+                UI.Theme.Card(0.29f, 0.17f, 0.42f, 0.54f);
+                UI.Theme.Rect(0.29f, 0.17f, 0.42f, 0.003f, UI.Theme.Cyan);
                 T(r.Name.ToUpperInvariant(), 0.5f, 0.19f, 0.6f, Color.FromArgb(255, 170, 90, 255), Font.Pricedown);
                 string head = res.Position == 0 ? "DID NOT FINISH" : res.Medal != null ? res.Medal.ToUpperInvariant() + (r.Kind == RaceType.Drift ? "   " + res.Score.ToString("N0") + " pts" : "   " + RaceSession.FormatTime((int)res.TimeMs)) : "POSITION " + res.Position + "/" + res.Of + "   " + RaceSession.FormatTime((int)res.TimeMs);
                 T(head, 0.5f, 0.25f, 0.55f, Color.White, Font.ChaletComprimeCologne);
@@ -410,7 +413,7 @@ namespace MidnightClub.Racing
                 y += 0.01f;
                 T("~g~+$" + res.Cash.ToString("N0") + "~s~    ~b~+" + res.Rep + " REP", 0.5f, y, 0.45f, Color.White, Font.ChaletComprimeCologne); y += 0.045f;
                 if (champLine != null) T(champLine, 0.5f, y, 0.34f, Color.White, Font.ChaletLondon);
-                T("ENTER to continue", 0.5f, 0.69f, 0.3f, Color.FromArgb(200, 200, 200, 210), Font.ChaletLondon);
+                UI.Buttons.Draw(Control.FrontendAccept, "Continue");
                 if (Game.IsControlJustPressed(Control.FrontendAccept) || Game.IsControlJustPressed(Control.FrontendCancel)) break;
                 Script.Wait(0);
             }

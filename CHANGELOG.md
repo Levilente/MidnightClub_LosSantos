@@ -1,4 +1,11 @@
 # Changelog
+## 0.15.0 (2026-11-22): UI overhaul
+- New Midnight Club UI theme (purple/cyan neon on dark glass, game menu textures): menus, garage, showroom, workshop, race results, phone.
+- All button hints now use the game's own instructional-buttons bar (bottom right) with real keyboard/controller glyphs; fixes the broken "b_196"-style text in the garage/showroom hint bars. No more ~INPUT~ tokens in drawn text.
+- Welcome screen every time you enter Midnight Club: orbit shot of your car, career card (cash, REP, tier, cars, garages, races), next objective, unread messages / street news, and a front-end menu (Hit the streets / Career & garage / Phone / Back to Story Mode). [HUD] WelcomeScreen=false turns it off.
+- Objective box moved to a top-centre pill; hidden while help text, a menu or the phone is up, and during races (no more overlap with button prompts).
+- Full-screen screens hide the feed, help text and area/street names.
+- Garage interiors: the player and every display car are now forced into the interior's room (FORCE_ROOM_FOR_ENTITY / FORCE_ROOM_FOR_GAME_VIEWPORT) so the script camera renders the interior instead of the void; cleaned up on exit. Log line "Garage room: interior X room Y".
 ## 0.14.3 (2026-11-22)
 - Cockpit cam: driver model hidden (locally, per frame); head-movement G-force from filtered longitudinal acceleration and yaw-rate x speed lateral G (pitch, lean, small head shift); dynamic FOV. [Camera] GForceIntensity scales it (0 = off). Bumper and hood stay rigid with FOV only.
 ## 0.14.2 (2026-11-22): camera rewrite after first feedback

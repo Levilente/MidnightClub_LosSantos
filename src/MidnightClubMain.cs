@@ -59,9 +59,10 @@ namespace MidnightClub
                 phone = new Phone.PhoneManager(saves, stack, menu, calendar, races, rivals.RivalsMenu, clubs.ClubsMenu);
                 new Gameplay.StyleSystem(saves, money, vehicles);
                 var abilities = new Gameplay.Abilities(saves, vehicles);
-                var objectives = new Gameplay.Objectives(saves, money);
+                var objectives = new Gameplay.Objectives(saves, money) { stackOpen = () => stack.IsOpen || phone.IsOpen };
                 phone.MilestonesMenu = objectives.MilestonesMenu; phone.AbilityMenu = abilities.AbilityMenu;
-                EventBus.Subscribe<ModeChangedEvent>(e => menu.Close());
+                EventBus.Subscribe<ModeChangedEvent>(e => { menu.Close(); if (e.To == GameMode.MIDNIGHT_CLUB && cfg.ShowWelcome) welcomePending = Game.GameTime + 1500; });
+                welcomeCalendar = calendar;
                 hud = new MainHUD(cfg.HudX, cfg.HudY);
                 Interval = 0;
                 Tick += OnTick;
@@ -74,6 +75,9 @@ namespace MidnightClub
                 Log.Error("Initialization failed", ex);
             }
         }
+
+        private int welcomePending;
+        private WorldSim.WorldCalendar welcomeCalendar;
 
         private void OnKeyDown(object sender, KeyEventArgs e)
         {
@@ -97,6 +101,15 @@ namespace MidnightClub
                 }
                 else { viewHoldStart = -1; viewHoldFired = false; }
                 modes.Tick();
+                if (welcomePending > 0 && modes.InMidnightClub && Game.GameTime > welcomePending && !menu.IsOpen && !phone.IsOpen && !Racing.RaceManager.IsRacing && Game.Player.Character.IsInVehicle())
+                {
+                    welcomePending = 0;
+                    var c = WelcomeScreen.Show(saves.Data, welcomeCalendar.DayName);
+                    if (c == WelcomeScreen.Choice.Menu) menu.Toggle();
+                    else if (c == WelcomeScreen.Choice.Phone) phone.Toggle();
+                    else if (c == WelcomeScreen.Choice.Story) modes.Exit();
+                }
+                else if (!modes.InMidnightClub) welcomePending = 0;
                 if (modes.InMidnightClub) menu.Tick();
                 if (modes.InMidnightClub && cfg.ShowHud) hud.Draw(saves.Data, vehicles);
             }

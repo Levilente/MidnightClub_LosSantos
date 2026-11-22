@@ -186,40 +186,42 @@ namespace MidnightClub.Garages
         // ------------------------------------------------------------------ HUD
         private void DrawHud()
         {
+            Theme.FullscreenFrame();
             var r = cars[index].Key; var info = mgr.Info(r);
-            // top-left: garage
-            Rect(0.03f, 0.04f, 0.30f, 0.085f, Panel);
-            Text(g.Name.ToUpperInvariant(), 0.04f, 0.045f, 0.62f, Purple, Font.Pricedown);
-            Text(g.KindLabel + "   " + cars.Count + " / " + g.Capacity + " cars   $" + saves.Data.Cash.ToString("N0"), 0.04f, 0.09f, 0.32f, Color.White, Font.ChaletLondon);
-
-            // bottom-left: car card
-            float x = 0.03f, y = 0.56f, w = 0.30f;
-            Rect(x, y, w, 0.33f, Panel);
-            Rect(x, y, 0.004f, 0.33f, Purple);
-            Text((r.Favorite ? "* " : "") + mgr.Title(r).ToUpperInvariant(), x + 0.012f, y + 0.008f, 0.6f, Color.White, Font.ChaletComprimeCologne);
-            Text(info == null ? r.Model : (info.Make + "  |  " + VehicleRegistry.ClassName(info.Class) + "  |  TIER " + info.Tier), x + 0.012f, y + 0.055f, 0.32f, Cyan, Font.ChaletLondon);
-            float by = y + 0.095f;
+            // header
+            Theme.Card(0.03f, 0.05f, 0.34f, 0.09f);
+            Theme.Text(g.Name.ToUpperInvariant(), 0.045f, 0.055f, 0.62f, Theme.Purple, Font.Pricedown);
+            Theme.Text(g.KindLabel.ToUpperInvariant() + "   ·   " + cars.Count + " / " + g.Capacity + " CARS   ·   $" + saves.Data.Cash.ToString("N0"), 0.045f, 0.103f, 0.28f, Theme.TextDim);
+            // car card
+            float x = 0.03f, y = 0.52f, w = 0.34f, h = 0.36f;
+            Theme.Card(x, y, w, h);
+            Theme.Text((index + 1) + " / " + cars.Count, x + w - 0.012f, y + 0.012f, 0.28f, Theme.Cyan, Font.ChaletLondon, Alignment.Right);
+            Theme.Text((r.Favorite ? "* " : "") + mgr.Title(r).ToUpperInvariant(), x + 0.014f, y + 0.01f, 0.62f, Color.White, Font.ChaletComprimeCologne);
+            Theme.Text(info == null ? r.Model : (info.Make + "   ·   " + VehicleRegistry.ClassName(info.Class) + "   ·   TIER " + info.Tier), x + 0.014f, y + 0.058f, 0.3f, Theme.Cyan);
+            float by = y + 0.1f;
             if (info != null)
             {
-                Bar("TOP SPEED", info.MaxSpeed / maxSpeed, x, by); by += 0.03f;
-                Bar("ACCELERATION", info.Acceleration / maxAccel, x, by); by += 0.03f;
-                Bar("BRAKING", info.Braking / maxBrake, x, by); by += 0.03f;
-                Bar("GRIP", info.Traction / maxGrip, x, by); by += 0.035f;
+                Theme.StatBar("TOP SPEED", info.MaxSpeed / maxSpeed, x + 0.014f, by, w - 0.03f); by += 0.03f;
+                Theme.StatBar("ACCELERATION", info.Acceleration / maxAccel, x + 0.014f, by, w - 0.03f); by += 0.03f;
+                Theme.StatBar("BRAKING", info.Braking / maxBrake, x + 0.014f, by, w - 0.03f); by += 0.03f;
+                Theme.StatBar("GRIP", info.Traction / maxGrip, x + 0.014f, by, w - 0.03f); by += 0.04f;
             }
+            Theme.Rect(x + 0.014f, by - 0.008f, w - 0.028f, 0.001f, Theme.Line);
             int cond = (int)Math.Round(Math.Max(0, Math.Min(100, (r.EngineHealth + r.BodyHealth) / 20f)));
-            Text("Condition " + cond + "%     Odometer " + r.Stats.DistanceKm.ToString("0.0") + " km     Best " + r.Stats.TopSpeedKmh.ToString("0") + " km/h", x + 0.012f, by, 0.3f, Color.White, Font.ChaletLondon);
-            Text("Plate " + r.Plate + "     Value $" + PricingEngine.EstimatedValue(info, r.Stats.DistanceKm, r.EngineHealth, r.BodyHealth).ToString("N0"), x + 0.012f, by + 0.028f, 0.3f, Color.FromArgb(200, 200, 200, 210), Font.ChaletLondon);
-
-            // bottom bar: controls
-            Rect(0f, 0.95f, 1f, 0.05f, Color.FromArgb(220, 0, 0, 0));
-            string hint = "~INPUT_FRONTEND_LEFT~~INPUT_FRONTEND_RIGHT~ Choose car     ~INPUT_FRONTEND_ACCEPT~ Drive out     ~INPUT_FRONTEND_X~ Manage" + (g.Customizable ? "     ~INPUT_FRONTEND_Y~ Customise garage" : "") + "     ~INPUT_FRONTEND_CANCEL~ Leave in " + (cars.Any(c => c.Key == arrivedIn) ? "current car" : "selected car");
-            Text(hint, 0.5f, 0.958f, 0.34f, Color.White, Font.ChaletLondon, Alignment.Center);
-            Text((index + 1) + " / " + cars.Count, 0.97f, 0.958f, 0.34f, Cyan, Font.ChaletLondon, Alignment.Right);
-
+            Theme.Text("CONDITION  " + cond + "%", x + 0.014f, by, 0.27f, Color.White);
+            Theme.Text("ODOMETER  " + r.Stats.DistanceKm.ToString("0.0") + " KM", x + 0.12f, by, 0.27f, Color.White);
+            Theme.Text("BEST  " + r.Stats.TopSpeedKmh.ToString("0") + " KM/H", x + 0.23f, by, 0.27f, Color.White);
+            Theme.Text("PLATE  " + r.Plate + "      VALUE  $" + PricingEngine.EstimatedValue(info, r.Stats.DistanceKm, r.EngineHealth, r.BodyHealth).ToString("N0"), x + 0.014f, by + 0.03f, 0.27f, Theme.TextDim);
             if (note != null && Game.GameTime < noteUntil)
             {
-                Rect(0.35f, 0.04f, 0.30f, 0.05f, Panel);
-                Text(note, 0.5f, 0.05f, 0.32f, Color.White, Font.ChaletLondon, Alignment.Center, 0.29f);
+                Theme.Card(0.36f, 0.05f, 0.28f, 0.05f);
+                Theme.Text(note, 0.5f, 0.062f, 0.3f, Color.White, Font.ChaletLondon, Alignment.Center, 0.26f);
+            }
+            if (!menus.IsOpen)
+            {
+                bool here = cars.Any(c => c.Key == arrivedIn);
+                if (g.Customizable) Buttons.Draw(Control.FrontendAccept, "Drive out", Control.FrontendCancel, here ? "Leave in current car" : "Leave", Control.FrontendX, "Manage", Control.FrontendY, "Customise garage", Control.FrontendRight, "", Control.FrontendLeft, "Choose car");
+                else Buttons.Draw(Control.FrontendAccept, "Drive out", Control.FrontendCancel, here ? "Leave in current car" : "Leave", Control.FrontendX, "Manage", Control.FrontendRight, "", Control.FrontendLeft, "Choose car");
             }
         }
 

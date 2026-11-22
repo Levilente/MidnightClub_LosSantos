@@ -19,7 +19,7 @@ namespace MidnightClub.UI
             "Every car in the game comes round at a dealership eventually. Or special-order it from the phone.",
             "Drive into a garage you own and the car you arrived in parks there.",
             "Rivals hand over their car after you beat them three times.",
-            "Hold ~INPUT_SPRINT~ / ~INPUT_VEH_ROCKET_BOOST~ for nitrous once a workshop has fitted a kit. Hold ~INPUT_NEXT_CAMERA~ on a controller to enter or leave Midnight Club."
+            "Nitrous: Sprint on keyboard, the boost button on a controller, once a workshop has fitted a kit. On a controller, hold Back/Select to enter or leave Midnight Club."
         };
 
         public static void Show(int ms)

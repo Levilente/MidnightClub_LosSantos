@@ -28,7 +28,7 @@ namespace MidnightClub.Garages
         private readonly Dictionary<string, Blip> blips = new Dictionary<string, Blip>();
         private readonly List<Vehicle> display = new List<Vehicle>();
         private GarageDefinition nearby;
-        private int pinnedInterior;
+        private int pinnedInterior, roomInterior, roomKey;
         public bool IsInside { get; private set; }
         private const float MarkerDrawDistance = 60f;
 
@@ -240,9 +240,24 @@ namespace MidnightClub.Garages
                 saves.IsDirty = true;
 
                 ped.Position = g.SpawnIn.Position; ped.Heading = g.SpawnIn.Heading;
-                Function.Call(Hash.FREEZE_ENTITY_POSITION, ped, true);
                 Function.Call(Hash.SET_ENTITY_VISIBLE, ped, false, false);
+                Function.Call(Hash.SET_FOCUS_POS_AND_VEL, g.SpawnIn.Position.X, g.SpawnIn.Position.Y, g.SpawnIn.Position.Z, 0f, 0f, 0f);
                 LoadInterior(g);
+                // Let the (invisible) driver land inside so the game assigns the interior room, then pin that room
+                // to the viewport and to every parked car: otherwise script cameras show the void and cars fall through.
+                ped.Position = g.SpawnIn.Position;
+                int t0 = Game.GameTime;
+                while (Function.Call<int>(Hash.GET_INTERIOR_FROM_ENTITY, ped) == 0 && Game.GameTime - t0 < 3000) Script.Wait(50);
+                roomInterior = Function.Call<int>(Hash.GET_INTERIOR_FROM_ENTITY, ped);
+                roomKey = Function.Call<int>(Hash.GET_ROOM_KEY_FROM_ENTITY, ped);
+                if (roomInterior == 0) roomInterior = pinnedInterior;
+                if (roomInterior != 0 && roomKey != 0)
+                {
+                    Function.Call(Hash.FORCE_ROOM_FOR_ENTITY, ped, roomInterior, roomKey);
+                    Function.Call(Hash.FORCE_ROOM_FOR_GAME_VIEWPORT, roomInterior, roomKey);
+                }
+                Log.Info("Garage room: interior " + roomInterior + " room " + roomKey);
+                Function.Call(Hash.FREEZE_ENTITY_POSITION, ped, true);
 
                 var parked = new List<KeyValuePair<OwnedVehicle, Vehicle>>();
                 foreach (var r in saves.Data.Vehicles.Where(v => v.GarageId == g.Id).OrderBy(v => v.ParkingSlot))
@@ -251,6 +266,7 @@ namespace MidnightClub.Garages
                     {
                         var spot = g.Slots[r.ParkingSlot - 1];
                         var v = vehicles.SpawnDisplay(r, spot.Position + new Vector3(0, 0, 0.6f), spot.Heading);
+                        if (roomInterior != 0 && roomKey != 0) Function.Call(Hash.FORCE_ROOM_FOR_ENTITY, v, roomInterior, roomKey);
                         display.Add(v);
                         parked.Add(new KeyValuePair<OwnedVehicle, Vehicle>(r, v));
                     }
@@ -333,6 +349,8 @@ namespace MidnightClub.Garages
             foreach (var v in display) try { if (v.Exists()) v.Delete(); } catch { }
             display.Clear();
             if (pinnedInterior != 0) { try { Function.Call(Hash.UNPIN_INTERIOR, pinnedInterior); } catch { } pinnedInterior = 0; }
+            try { Function.Call(Hash.CLEAR_ROOM_FOR_GAME_VIEWPORT); Function.Call(Hash.CLEAR_FOCUS); var pp = Game.Player.Character; if (pp != null && pp.Exists()) Function.Call(Hash.CLEAR_ROOM_FOR_ENTITY, pp); } catch { }
+            roomInterior = roomKey = 0;
             try { Function.Call(Hash.RENDER_SCRIPT_CAMS, false, false, 0, true, false, 0); Function.Call(Hash.DISPLAY_RADAR, true); } catch { }
         }
 

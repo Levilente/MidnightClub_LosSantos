@@ -100,3 +100,9 @@ Tick items off or note what happened. Logs: `scripts\MidnightClub\MidnightClub.l
 - [ ] Bumper/hood: rigid, no wobble, only FOV opens with speed
 - [ ] Cockpit: eye height OK ([Camera] CockpitHeight to adjust), driver hidden, head leans the right way in corners and pitches on throttle/brake
 - [ ] Chase cams closer to NFS Unbound now? What still feels off (distance, height, lag, FOV)?
+
+## UI overhaul (0.15.0)
+- [ ] Entering Midnight Club shows the welcome screen (orbiting car, career card, menu). Each menu entry works; B/Backspace = hit the streets.
+- [ ] Garage (Davis Lockup and an Online garage): the interior is visible and the cars are there (not the void). Send the log line "Garage room: ..." if not.
+- [ ] Bottom-right button bar shows correct glyphs on keyboard and on controller in garage, showroom, test drive, menus, phone, race results.
+- [ ] Objective pill (top centre) never covers help text / prompts.

@@ -211,7 +211,7 @@ namespace MidnightClub.Phone
                 var b = apps[i].Badge != null ? apps[i].Badge() : null;
                 if (b != null) { Rect(tx + tw - 0.022f, ty + 0.004f, 0.016f, 0.026f, Color.FromArgb(255, 220, 40, 60)); Text(b, tx + tw - 0.014f, ty + 0.005f, 0.26f, Color.White, Font.ChaletLondon, Alignment.Center); }
             }
-            Text("~INPUT_FRONTEND_UP~~INPUT_FRONTEND_DOWN~ select   ~INPUT_FRONTEND_ACCEPT~ open   ~INPUT_FRONTEND_CANCEL~ close", x + w / 2, y + h - 0.03f, 0.22f, Color.FromArgb(200, 200, 200, 210), Font.ChaletLondon, Alignment.Center);
+            Buttons.Draw(Control.FrontendAccept, "Open", Control.FrontendCancel, "Close", Control.FrontendDown, "Select");
         }
 
         private static void Rect(float x, float y, float w, float h, Color c) { Function.Call(Hash.DRAW_RECT, x + w / 2f, y + h / 2f, w, h, c.R, c.G, c.B, c.A, false); }

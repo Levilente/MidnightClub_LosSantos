@@ -55,6 +55,9 @@ namespace MidnightClub.Gameplay
             new Milestone { Id = "elite", Name = "Midnight Club", Desc = "Reach Midnight Club Elite", Cash = 250000, Rep = 0, Done = d => d.CareerTierNotified >= 5 },
         };
 
+        public Func<bool> stackOpen = () => false;
+        public static string CurrentText;
+
         public Objectives(SaveManager saves, TransactionManager money)
         {
             this.saves = saves; this.money = money;
@@ -86,10 +89,15 @@ namespace MidnightClub.Gameplay
         {
             if (saves.Data == null) return;
             var g = Current;
-            if (g != null && !RaceManager.IsRacing)
+            CurrentText = g == null ? null : g.Text;
+            if (g != null && !RaceManager.IsRacing && !stackOpen() && !Function.Call<bool>(Hash.IS_HELP_MESSAGE_BEING_DISPLAYED))
             {
-                Function.Call(Hash.DRAW_RECT, 0.125f, 0.035f, 0.23f, 0.04f, 8, 6, 16, 180, false);
-                new TextElement("~p~OBJECTIVE~s~  " + g.Text, new PointF(0.015f * 1280f, 0.022f * 720f), 0.28f, Color.White, Font.ChaletLondon, Alignment.Left, true, true, 0.22f * 1280f).ScaledDraw();
+                // Top-centre pill: clear of help text (top-left), the feed (bottom-left) and the button bar (bottom-right).
+                float w = 0.30f;
+                UI.Theme.Rect(0.5f - w / 2, 0.012f, w, 0.036f, UI.Theme.Panel);
+                UI.Theme.Rect(0.5f - w / 2, 0.012f, 0.003f, 0.036f, UI.Theme.Purple);
+                UI.Theme.Text("OBJECTIVE", 0.5f - w / 2 + 0.01f, 0.019f, 0.24f, UI.Theme.Purple, Font.ChaletLondon);
+                UI.Theme.Text(g.Text, 0.5f - w / 2 + 0.065f, 0.019f, 0.26f, Color.White, Font.ChaletLondon, Alignment.Left, w - 0.075f);
             }
             if (Game.GameTime < nextMilestoneCheck) return;
             nextMilestoneCheck = Game.GameTime + 5000;

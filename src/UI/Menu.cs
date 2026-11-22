@@ -32,11 +32,7 @@ namespace MidnightClub.UI
         private const int Visible = 10;
         private int scroll;
 
-        private static readonly Color Bg = Color.FromArgb(215, 10, 8, 18);
-        private static readonly Color Head = Color.FromArgb(235, 70, 20, 120);
-        private static readonly Color Sel = Color.FromArgb(230, 150, 60, 255);
-        private static readonly Color Dim = Color.FromArgb(150, 160, 160, 170);
-        private const float X = 0.02f, W = 0.26f, RowH = 0.034f, HeadH = 0.07f, Top = 0.06f;
+        private const float X = 0.03f, W = 0.27f, RowH = 0.034f, HeadH = 0.085f, Top = 0.07f;
 
         public Menu(string title, string subtitle = null) { Title = title; Subtitle = subtitle; }
 
@@ -86,45 +82,71 @@ namespace MidnightClub.UI
         public void Draw()
         {
             Clamp();
-            Rect(X, Top, W, HeadH, Head);
-            Text(Title.ToUpperInvariant(), X + 0.01f, Top + 0.008f, 0.75f, Color.White, GTA.UI.Font.Pricedown, false);
-            float y = Top + HeadH;
-            Rect(X, y, W, RowH, Color.FromArgb(240, 0, 0, 0));
-            Text((Subtitle ?? "").ToUpperInvariant(), X + 0.008f, y + 0.005f, 0.32f, Color.FromArgb(255, 80, 220, 255), GTA.UI.Font.ChaletLondon, false);
-            Text(Items.Count == 0 ? "" : (Selected + 1) + " / " + Items.Count, X + W - 0.008f, y + 0.005f, 0.32f, Dim, GTA.UI.Font.ChaletLondon, true);
+            Theme.FullscreenFrame();
+            float x = X, w = W, y = Top;
+            // header: deep purple with a neon sheen
+            Theme.Rect(x, y, w, HeadH, Theme.PurpleDeep);
+            Theme.Sprite("commonmenu", "gradient_nav", x, y, w, HeadH, Color.FromArgb(150, 168, 85, 247));
+            Theme.Rect(x, y + HeadH - 0.003f, w, 0.003f, Theme.Cyan);
+            Theme.Text("MIDNIGHT CLUB", x + w - 0.008f, y + 0.006f, 0.26f, Color.FromArgb(200, 255, 255, 255), GTA.UI.Font.ChaletComprimeCologne, Alignment.Right);
+            Theme.Text(Title.ToUpperInvariant(), x + 0.012f, y + 0.012f, 0.72f, Color.White, GTA.UI.Font.Pricedown);
+            y += HeadH;
+            Theme.Rect(x, y, w, RowH, Color.FromArgb(240, 0, 0, 0));
+            Theme.Text((Subtitle ?? "").ToUpperInvariant(), x + 0.01f, y + 0.006f, 0.3f, Theme.Cyan, GTA.UI.Font.ChaletLondon);
+            if (Items.Count > 0) Theme.Text((Selected + 1) + " / " + Items.Count, x + w - 0.01f, y + 0.006f, 0.3f, Theme.TextDim, GTA.UI.Font.ChaletLondon, Alignment.Right);
             y += RowH;
+            int shown = Math.Min(Visible, Items.Count - scroll);
+            Theme.Sprite("commonmenu", "gradient_bgd", x, y, w, RowH * Math.Max(1, shown), Color.FromArgb(240, 255, 255, 255));
+            Theme.Rect(x, y, w, RowH * Math.Max(1, shown), Color.FromArgb(110, 8, 6, 18));
+            bool adjustable = false;
             for (int i = scroll; i < Items.Count && i < scroll + Visible; i++)
             {
                 var it = Items[i]; bool sel = i == Selected;
-                Rect(X, y, W, RowH, sel ? Sel : Bg);
-                var c = !it.Enabled ? Dim : Color.White;
-                Text(it.Label, X + 0.008f, y + 0.004f, 0.36f, c, GTA.UI.Font.ChaletLondon, false);
+                if (sel)
+                {
+                    Theme.Sprite("commonmenu", "gradient_nav", x, y, w, RowH, Color.FromArgb(255, 168, 85, 247));
+                    Theme.Rect(x, y, 0.003f, RowH, Color.White);
+                    adjustable = it.Enabled && it.OnAdjust != null;
+                }
+                var c = !it.Enabled ? Color.FromArgb(150, 150, 150, 165) : Color.White;
+                Theme.Text(it.Label, x + 0.011f, y + 0.0045f, 0.34f, c);
                 string v = it.Value != null ? it.Value() : null;
                 if (!string.IsNullOrEmpty(v))
-                    Text(it.OnAdjust != null && sel ? "- " + v + " +" : v, X + W - 0.008f, y + 0.004f, 0.36f, c, GTA.UI.Font.ChaletLondon, true);
+                {
+                    if (sel && it.OnAdjust != null)
+                    {
+                        Theme.Text(v, x + w - 0.022f, y + 0.0045f, 0.34f, c, GTA.UI.Font.ChaletLondon, Alignment.Right);
+                        Theme.Sprite("commonmenu", "arrowright", x + w - 0.018f, y + 0.008f, 0.01f, 0.018f, Color.White);
+                    }
+                    else Theme.Text(v, x + w - 0.01f, y + 0.0045f, 0.34f, c, GTA.UI.Font.ChaletLondon, Alignment.Right);
+                }
                 y += RowH;
+            }
+            if (Items.Count > Visible)
+            {
+                Theme.Rect(x, y, w, RowH * 0.8f, Color.FromArgb(220, 0, 0, 0));
+                Theme.Sprite("commonmenu", "shop_arrows_upanddown", x + w / 2f - 0.008f, y + 0.002f, 0.016f, RowH * 0.75f, Color.White);
+                y += RowH * 0.8f;
             }
             if (Items.Count > 0 && Items[Selected].Description != null)
             {
                 var d = Items[Selected].Description();
                 if (!string.IsNullOrEmpty(d))
                 {
-                    Rect(X, y + 0.004f, W, RowH * 1.6f, Color.FromArgb(225, 0, 0, 0));
-                    Text(d, X + 0.008f, y + 0.008f, 0.32f, Color.White, GTA.UI.Font.ChaletLondon, false, W - 0.016f);
+                    y += 0.006f;
+                    int lines = 1 + d.Length / 58;
+                    Theme.Card(x, y, w, 0.016f + lines * 0.024f);
+                    Theme.Text(d, x + 0.011f, y + 0.007f, 0.3f, Color.White, GTA.UI.Font.ChaletLondon, Alignment.Left, w - 0.02f);
                 }
             }
+            if (adjustable) Buttons.Draw(Control.FrontendAccept, "Select", Control.FrontendCancel, "Back", Control.FrontendRight, "Change", Control.FrontendLeft, "");
+            else Buttons.Draw(Control.FrontendAccept, "Select", Control.FrontendCancel, "Back", Control.FrontendDown, "Navigate");
         }
 
-        private static void Rect(float x, float y, float w, float h, Color c)
-        {
-            Function.Call(Hash.DRAW_RECT, x + w / 2f, y + h / 2f, w, h, c.R, c.G, c.B, c.A, false);
-        }
+        private static void Rect(float x, float y, float w, float h, Color c) { Theme.Rect(x, y, w, h, c); }
 
         private static void Text(string s, float x, float y, float scale, Color c, GTA.UI.Font f, bool right, float wrap = 0f)
-        {
-            var t = new TextElement(s, new PointF(x * 1280f, y * 720f), scale, c, f, right ? Alignment.Right : Alignment.Left, false, true, wrap * 1280f);
-            t.ScaledDraw();
-        }
+        { Theme.Text(s, x, y, scale, c, f, right ? Alignment.Right : Alignment.Left, wrap); }
 
         private static void Sound(string name)
         {
