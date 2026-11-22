@@ -193,6 +193,8 @@ namespace MidnightClub.Garages
         private void Buy(GarageDefinition g)
         {
             if (Owned(g.Id) != null) return;
+            int need = g.Kind == "ceo" ? 4 : g.Kind == "high" ? 2 : 1;
+            if (Career.CareerManager.Instance != null && Career.CareerManager.Instance.Tier < need) { Notify("~r~Requires career tier " + need + "~s~ (" + Career.CareerManager.TierNames[need] + ")."); return; }
             if (!money.CanAfford(g.Price)) { Notify("~r~Not enough cash~s~ for " + g.Name + "."); return; }
             if (!money.TrySpend(g.Price, "garage", "Bought " + g.Name, "garage-buy:" + g.Id, saveNow: false)) return;
             saves.Data.Garages.Add(new OwnedGarage { Id = g.Id, PurchasedAtUtc = DateTime.UtcNow.ToString("o") });

@@ -25,6 +25,9 @@ namespace MidnightClub.Persistence
         [DataMember] public int LastClockHour = -1;
         [DataMember] public List<string> SoldStock = new List<string>();   // "dealer:rotation:modelhash" / "used:rotation:slot"
         [DataMember] public int RacesStarted;
+        [DataMember] public int CareerTierNotified = 1;
+        [DataMember] public List<RivalState> Rivals = new List<RivalState>();
+        [DataMember] public List<KeyValue> ClubRep = new List<KeyValue>();
         [DataMember] public List<RaceResult> RaceHistory = new List<RaceResult>();
         [DataMember] public List<KeyValue> BestTimes = new List<KeyValue>();      // raceId -> ms
         [DataMember] public List<ChampionshipProgress> Championships = new List<ChampionshipProgress>();
@@ -123,5 +126,12 @@ namespace MidnightClub.Persistence
         [DataMember] public int Round;              // index of the next race
         [DataMember] public bool Finished;
         [DataMember] public List<KeyValue> Points = new List<KeyValue>();   // driver -> points
+    }
+
+    [DataContract] public sealed class RivalState
+    {
+        [DataMember] public string Id;
+        [DataMember] public int Stage, Wins, Losses;
+        [DataMember] public bool Defeated;
     }
 }

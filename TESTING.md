@@ -51,3 +51,11 @@ Tick items off or note what happened. Logs: `scripts\MidnightClub\MidnightClub.l
 - [ ] Hold Backspace quits a race; opponents are removed
 - [ ] F6 > Races: GPS works, championships can be entered (Street Beginner Cup needs 300 REP)
 - [ ] Opponent difficulty: too easy / too hard?
+
+## Career, rivals, clubs (0.9.0)
+- [ ] HUD shows the career tier next to REP; F6 > Career shows progress
+- [ ] Dealership purchase of a higher-tier car is refused with a clear message
+- [ ] F6 > Rivals: Kenji and Blackout available at tier 1; "Challenge" moves you to the start line and the duel begins with one purple-blip opponent
+- [ ] Winning advances the stage and pays out; losing counts a loss; after 3 wins their car shows up in a garage
+- [ ] Nikki (drift) duel: beating her score counts as a win
+- [ ] F6 > Clubs: racing in a muscle car raises Muscle Car Society rep; level-up message; discount appears at Southern SA (level 2+)

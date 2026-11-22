@@ -184,7 +184,8 @@ namespace MidnightClub.Dealerships
             var items = new List<StockItem>();
             foreach (var v in RotationMath.Pick(d.Id, pool, d.MinStock, d.MaxStock, rot))
             {
-                long list = PricingEngine.Round(v.BasePrice * d.PriceFactor);
+                double club = Factions.ClubManager.Instance != null ? Factions.ClubManager.Instance.Discount(d.Id) : 0;
+                long list = PricingEngine.Round(v.BasePrice * d.PriceFactor * (1 - club));
                 bool onPromo = promo.HasValue && v.Class == promo.Value;
                 var info = v;
                 items.Add(new StockItem
@@ -251,6 +252,9 @@ namespace MidnightClub.Dealerships
             // 1. validate vehicle
             if (item == null || item.Info == null || !item.Info.Enabled) return "This car isn't available.";
             if (item.SoldKey != null && IsSold(item)) return "Already sold.";
+            var career = Career.CareerManager.Instance;
+            if (career != null && item.Info.RequiredCareerTier > career.Tier)
+                return "Requires career tier " + item.Info.RequiredCareerTier + " (" + Career.CareerManager.TierNames[item.Info.RequiredCareerTier] + "). Earn more REP.";
             var model = new Model(item.Info.Hash);
             if (!model.IsValid || !model.IsInCdImage) return "This car doesn't exist in your game build.";
             // 2. funds

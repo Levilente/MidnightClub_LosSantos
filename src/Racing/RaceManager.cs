@@ -16,7 +16,14 @@ using Font = GTA.UI.Font;
 
 namespace MidnightClub.Racing
 {
-    public sealed class RaceFinishedEvent { public RaceDefinition Race; public RaceResult Result; public RaceFinishedEvent(RaceDefinition r, RaceResult res) { Race = r; Result = res; } }
+    public sealed class RaceFinishedEvent
+    {
+        public RaceDefinition Race; public RaceResult Result; public string RivalId; public bool Won;
+        public RaceFinishedEvent(RaceDefinition r, RaceResult res, string rival, bool won) { Race = r; Result = res; RivalId = rival; Won = won; }
+    }
+
+    /// <summary>Opponent override for rival challenges.</summary>
+    public sealed class RivalSpec { public string Id, Name; public VehicleInfo Car; public float Skill = 1.05f; public float DriftTarget; }
 
     /// <summary>Race starts on the map, race menus, the race lifecycle, rewards, history and championships.</summary>
     public sealed class RaceManager
@@ -34,6 +41,7 @@ namespace MidnightClub.Racing
         private readonly Dictionary<string, Blip> blips = new Dictionary<string, Blip>();
         private RaceSession session;
         private string championshipId;
+        private RivalSpec rival;
         private RaceDefinition nearby;
 
         public static readonly string[] DriverNames =
@@ -223,13 +231,19 @@ namespace MidnightClub.Racing
         private static int RotationSeed(string s) { return Dealerships.RotationMath.Seed("champ", s); }
 
         // ------------------------------------------------------------------ lifecycle
-        private void StartRace(RaceDefinition r, string champ)
+        public void StartRivalRace(RaceDefinition r, RivalSpec spec)
+        {
+            if (session != null) return;
+            StartRace(r, null, spec);
+        }
+
+        private void StartRace(RaceDefinition r, string champ, RivalSpec rivalSpec = null)
         {
             var car = vehicles.Current; var ped = Game.Player.Character;
             if (car == null || !car.Exists()) return;
             if (!string.IsNullOrEmpty(r.Classes) && !r.Classes.Split(',').Any(c => c.Trim().Equals(car.ClassType.ToString(), StringComparison.OrdinalIgnoreCase)))
             { Notification.PostTicker("~r~Wrong car class.~s~ Allowed: " + r.Classes, true, false); return; }
-            if (champ == null && r.EntryFee > 0 && !money.TrySpend(r.EntryFee, "race", r.Name + " entry", "race-fee:" + r.Id + ":" + saves.Data.RacesStarted))
+            if (champ == null && rivalSpec == null && r.EntryFee > 0 && !money.TrySpend(r.EntryFee, "race", r.Name + " entry", "race-fee:" + r.Id + ":" + saves.Data.RacesStarted))
             { Notification.PostTicker("~r~Not enough cash~s~ for the entry fee.", true, false); return; }
             saves.Data.RacesStarted++;
             if (Cameras.CameraSystem.Instance != null) Cameras.CameraSystem.Instance.Release();
@@ -244,13 +258,18 @@ namespace MidnightClub.Racing
                 if (champ == null && r.EntryFee > 0) money.Earn(r.EntryFee, 0, "race", "Refund " + r.Name, "race-refund:" + r.Id + ":" + saves.Data.RacesStarted);
                 return;
             }
-            championshipId = champ;
+            championshipId = champ; rival = rivalSpec;
             Function.Call(Hash.CLEAR_AREA_OF_VEHICLES, r.Start.X, r.Start.Y, r.Start.Z, 45f, false, false, false, false, false, false, 0);
             float heading = (float)(Math.Atan2(-(lap[0].X - r.Start.X), lap[0].Y - r.Start.Y) * 180.0 / Math.PI);
             car.Position = r.Start; car.Heading = heading; car.PlaceOnGround(); car.Repair();
             session = new RaceSession(r, lap);
             session.AddPlayer(car, ped);
-            if (r.HasOpponents)
+            if (rivalSpec != null && rivalSpec.Car != null && r.Kind != RaceType.Drift)
+            {
+                session.SpawnOpponents(new[] { rivalSpec.Name }, new[] { rivalSpec.Car }, r.Start, heading, saves.Data.RacesStarted);
+                foreach (var x in session.Racers) if (!x.IsPlayer) { x.Skill = rivalSpec.Skill; if (x.Blip != null && x.Blip.Exists()) x.Blip.Color = BlipColor.Purple; }
+            }
+            else if (r.HasOpponents)
             {
                 int n = r.Kind == RaceType.HeadToHead ? 1 : Math.Max(1, Math.Min(7, r.Opponents));
                 var names = champ != null ? Roster(lib.Championships.First(c => c.Id == champ)).Take(n).ToList() : DriverNames.OrderBy(x => Guid.NewGuid()).Take(n).ToList();
@@ -323,7 +342,10 @@ namespace MidnightClub.Racing
             saves.Data.RaceHistory.Add(res);
             string champLine = championshipId != null ? ScoreChampionship(order, s) : null;
             saves.Save();
-            EventBus.Publish(new RaceFinishedEvent(r, res));
+            bool won = rival != null && (rival.DriftTarget > 0 ? pos > 0 && res.Score >= rival.DriftTarget : pos == 1);
+            if (rival != null) res.Name = r.Name + " vs " + rival.Name;
+            EventBus.Publish(new RaceFinishedEvent(r, res, rival != null ? rival.Id : null, won));
+            rival = null;
             Log.Info("Race " + r.Id + " finished: P" + pos + " time " + res.TimeMs + " score " + res.Score + " cash " + res.Cash + " rep " + res.Rep);
 
             var lines = order.Select((x, i) => (i + 1) + ".  " + x.Name + "   " + (x.Finished ? RaceSession.FormatTime(x.FinishTime) : "DNF")).ToList();

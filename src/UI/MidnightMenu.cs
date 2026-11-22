@@ -22,6 +22,8 @@ namespace MidnightClub.UI
         public Garages.GarageManager Garages { get; set; }
         public Dealerships.DealershipManager Dealers { get; set; }
         public Racing.RaceManager Races { get; set; }
+        public Rivals.RivalManager RivalMgr { get; set; }
+        public Factions.ClubManager ClubMgr { get; set; }
 
         public MidnightMenu(MenuStack stack, GameModeManager modes, SaveManager saves, VehicleRegistry registry, VehicleManager vehicles, Config cfg)
         {
@@ -41,6 +43,9 @@ namespace MidnightClub.UI
             {
                 m.Items.Clear();
                 var d = saves.Data;
+                if (Career.CareerManager.Instance != null) m.Add(new MenuItem("Career", () => stack.Push(CareerMenu())) { Value = () => "Tier " + Career.CareerManager.Instance.Tier });
+                if (RivalMgr != null) m.Add(new MenuItem("Rivals", () => stack.Push(RivalMgr.RivalsMenu())));
+                if (ClubMgr != null) m.Add(new MenuItem("Clubs", () => stack.Push(ClubMgr.ClubsMenu())));
                 if (Races != null) m.Add(new MenuItem("Races", () => stack.Push(Races.RacesMenu())) { Value = () => d.Rep.ToString("N0") + " REP", Description = () => "Races, championships and your history." });
                 m.Add(new MenuItem("My vehicles", () => stack.Push(MyVehicles())) { Value = () => d.Vehicles.Count.ToString() });
                 m.Add(new MenuItem("Garages", () => stack.Push(GarageList())) { Value = () => d.Garages.Count + " owned" });
@@ -117,6 +122,27 @@ namespace MidnightClub.UI
                         Description = () => def.KindLabel + (owned ? ", owned." : ", for sale.") + " Select to set GPS."
                     });
                 }
+            };
+            return m;
+        }
+
+        private Menu CareerMenu()
+        {
+            var c = Career.CareerManager.Instance;
+            var m = new Menu("Career", c.TierName);
+            m.OnOpen = () =>
+            {
+                m.Items.Clear();
+                m.Add(new MenuItem("Tier") { Value = () => c.Tier + " / 5", Enabled = false });
+                m.Add(new MenuItem("REP") { Value = () => saves.Data.Rep.ToString("N0") + (c.Tier < 5 ? " / " + c.NextThreshold.ToString("N0") : ""), Enabled = false });
+                m.Add(new MenuItem("Progress to next tier") { Value = () => (c.ProgressToNext * 100).ToString("0") + "%", Enabled = false });
+                for (int t = 1; t <= 5; t++)
+                {
+                    int tier = t;
+                    m.Add(new MenuItem(tier + ". " + Career.CareerManager.TierNames[tier]) { Value = () => tier <= c.Tier ? "~g~UNLOCKED" : c.Threshold(tier).ToString("N0") + " REP", Description = () => Career.CareerManager.TierUnlocks[tier] });
+                }
+                int wins = saves.Data.RaceHistory.Count(h => h.Position == 1);
+                m.Add(new MenuItem("Races won / entered") { Value = () => wins + " / " + saves.Data.RaceHistory.Count, Enabled = false });
             };
             return m;
         }

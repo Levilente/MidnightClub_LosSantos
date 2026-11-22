@@ -11,7 +11,8 @@
 | 5 Workshops + customisation | **Code complete, compiled, awaiting in-game test** |
 | Camera system (user request) | **Code complete, compiled, awaiting in-game test** |
 | 6 Racing | **Code complete, compiled, awaiting in-game test** |
-| 7–12 | Not started |
+| 7 Career, rivals, clubs | **Code complete, compiled, awaiting in-game test** |
+| 8–12 | Not started |
 
 ## Phase 1 contents
 - `Core/GameModeManager`: STORY_MODE / ENTERING / MIDNIGHT_CLUB / EXITING / ERROR_RECOVERY state machine; refuses to enter during missions, cutscenes, character switches, while wanted or dead; ignores F7 during transitions.

@@ -38,7 +38,7 @@ namespace MidnightClub.UI
             Hud.HideComponentThisFrame(HudComponent.Cash);
             Hud.HideComponentThisFrame(HudComponent.WeaponIcon);
             cash.Caption = "$" + d.Cash.ToString("N0");
-            rep.Caption = d.Rep.ToString("N0") + " REP";
+            rep.Caption = d.Rep.ToString("N0") + " REP" + (Career.CareerManager.Instance != null ? "  |  " + Career.CareerManager.Instance.TierName.ToUpperInvariant() : "");
             var r = vehicles.CurrentRecord; var v = vehicles.Current;
             car.Caption = r == null ? "" : (string.IsNullOrEmpty(r.Nickname) ? r.Model.ToUpperInvariant() : r.Nickname)
                 + (v != null && v.Exists() ? "  " + (int)(v.Speed * 3.6f) + " KM/H" : "");

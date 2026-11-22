@@ -71,6 +71,9 @@ namespace MidnightClub.Persistence
         {
             // Future format upgrades go here: if (d.FormatVersion == 1) { ...; d.FormatVersion = 2; }
             foreach (var v in d.Vehicles) { if (v.Mods == null) v.Mods = new System.Collections.Generic.List<ModEntry>(); if (v.Stats == null) v.Stats = new VehicleStats(); if (v.Toggles == null) v.Toggles = new System.Collections.Generic.List<int>(); if (v.BuildHistory == null) v.BuildHistory = new System.Collections.Generic.List<string>(); if (v.DriftTyres && v.TyreCompound == 0) { v.TyreCompound = 4; v.DriftTyres = false; } }
+            if (d.Rivals == null) d.Rivals = new System.Collections.Generic.List<RivalState>();
+            if (d.ClubRep == null) d.ClubRep = new System.Collections.Generic.List<KeyValue>();
+            if (d.CareerTierNotified <= 0) d.CareerTierNotified = 1;
             if (d.RaceHistory == null) d.RaceHistory = new System.Collections.Generic.List<RaceResult>();
             if (d.BestTimes == null) d.BestTimes = new System.Collections.Generic.List<KeyValue>();
             if (d.Championships == null) d.Championships = new System.Collections.Generic.List<ChampionshipProgress>();

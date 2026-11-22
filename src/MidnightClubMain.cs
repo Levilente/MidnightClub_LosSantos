@@ -48,7 +48,10 @@ namespace MidnightClub
                 new WheelLab(vehicles, cfg);
                 var dealers = new Dealerships.DealershipManager(saves, money, registry, vehicles, garages, calendar, stack, Path.Combine(dir, "data"));
                 var races = new Racing.RaceManager(saves, money, registry, vehicles, calendar, stack, Path.Combine(dir, "data"));
-                menu = new MidnightMenu(stack, modes, saves, registry, vehicles, cfg) { Garages = garages, Dealers = dealers, Races = races };
+                new Career.CareerManager(saves, cfg);
+                var rivals = new Rivals.RivalManager(saves, money, registry, races, garages, stack);
+                var clubs = new Factions.ClubManager(saves, registry, vehicles);
+                menu = new MidnightMenu(stack, modes, saves, registry, vehicles, cfg) { Garages = garages, Dealers = dealers, Races = races, RivalMgr = rivals, ClubMgr = clubs };
                 EventBus.Subscribe<ModeChangedEvent>(e => menu.Close());
                 hud = new MainHUD(cfg.HudX, cfg.HudY);
                 Interval = 0;

@@ -1,4 +1,9 @@
 # Changelog
+## 0.9.0-phase7 (2026-11-22)
+- Career: 5 tiers by REP (Street Beginner, Street Regular, Underground Competitor, Professional Street Racer, Midnight Club Elite; thresholds in config.ini [Career]). Promotion announcement, tier on the HUD, F6 > Career with progress and unlocks.
+- Tier gates: dealership/special-order cars need the matching tier (D/C 1, B 2, A 3, S 4, X 5); 10-car garages tier 2, executive garages tier 4.
+- Rivals: Kenji Mori (tuners), Dee 'Blackout' Ramos (muscle), Lexi Cruz (circuits), Nikki Sato (drift), Vance Holloway (highway), Dmitri Volkov (supercars). Unlock by tier, 3 escalating duels each (their car gets faster), win/loss record, cash/REP prizes, their car as the final prize. F6 > Rivals.
+- Clubs: Underground Tuners, Muscle Car Society, Supercar Elite, Drift Community, Highway Racers. Independent reputation earned by racing their style; levels 1-5; 5 % / 10 % discount at the tied dealership. F6 > Clubs.
 ## 0.8.0-phase6 (2026-11-22)
 - Racing framework: data-driven races (data\races.json, generated once, editable/extendable): Sprint, Circuit (laps), Time trial (medals), Drift challenge (angle x speed scoring with combo), Head-to-head.
 - Routes follow real roads: the game's GPS route between the race's control points is sampled every 20 m and thinned to checkpoints (denser in corners). Start/finish points are verified Online garage entrances.

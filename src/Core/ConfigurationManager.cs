@@ -25,6 +25,7 @@ namespace MidnightClub.Core
         public bool LoadOnlineMap = true;
         public bool CustomCameras = true;
         public bool FitmentEnabled = true;
+        public long TierRep2 = 1000, TierRep3 = 3500, TierRep4 = 9000, TierRep5 = 20000;
         public float CamberSign = 1f;
         public float CameraGForce = 1.0f, CameraFovScale = 1.0f, CameraShake = 1.0f;
         public float HudX = 0.985f, HudY = 0.04f;
@@ -63,6 +64,8 @@ namespace MidnightClub.Core
             c.LoadOnlineMap = Get(s, "World", "LoadOnlineMap", c.LoadOnlineMap);
             c.CustomCameras = Get(s, "Camera", "Enabled", c.CustomCameras);
             c.FitmentEnabled = Get(s, "Fitment", "Enabled", c.FitmentEnabled);
+            c.TierRep2 = Get(s, "Career", "Tier2Rep", c.TierRep2); c.TierRep3 = Get(s, "Career", "Tier3Rep", c.TierRep3);
+            c.TierRep4 = Get(s, "Career", "Tier4Rep", c.TierRep4); c.TierRep5 = Get(s, "Career", "Tier5Rep", c.TierRep5);
             c.CamberSign = Get(s, "Fitment", "CamberSign", c.CamberSign);
             c.CameraGForce = Get(s, "Camera", "GForceIntensity", c.CameraGForce);
             c.CameraFovScale = Get(s, "Camera", "DynamicFovIntensity", c.CameraFovScale);
