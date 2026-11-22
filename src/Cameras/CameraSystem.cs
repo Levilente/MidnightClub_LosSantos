@@ -42,6 +42,7 @@ namespace MidnightClub.Cameras
         private float time, lastLookInput;
         // chase state
         private float yaw, yawVel, dist, distVel, fov, fovVel, collide = 99f, collideVel, accelPull, lastSpeed;
+        private float latG, lastHeading, headPitch, headRoll, headX, headY;
         private float lookYaw, lookPitch;
         private Vector3 hoodLocal, bumperLocal, cockpitLocal;
 
@@ -101,7 +102,7 @@ namespace MidnightClub.Cameras
                 cam.IsActive = true;
                 Function.Call(Hash.RENDER_SCRIPT_CAMS, true, false, 0, true, false, 0);
                 active = true;
-                yaw = car.Heading; yawVel = 0; dist = p.Distance; distVel = 0; fov = p.BaseFov; fovVel = 0; collide = 99f; lastSpeed = car.Speed; accelPull = 0;
+                yaw = car.Heading; yawVel = 0; lastHeading = car.Heading; latG = 0; headPitch = headRoll = headX = headY = 0; dist = p.Distance; distVel = 0; fov = p.BaseFov; fovVel = 0; collide = 99f; lastSpeed = car.Speed; accelPull = 0;
             }
             UpdateLook(dt);
             float speed = car.Speed;
@@ -109,6 +110,10 @@ namespace MidnightClub.Cameras
             float a = (speed - lastSpeed) / dt; lastSpeed = speed;
             if (Math.Abs(a) > 60f) a = 0f;
             accelPull += (Clamp(a / 9.81f, -0.6f, 1f) - accelPull) * Math.Min(1f, dt * 2.5f);
+            // Lateral G from yaw rate x speed (much smoother than differentiating velocity).
+            float yawRate = DeltaAngle(lastHeading, car.Heading) / dt * (float)(Math.PI / 180.0); lastHeading = car.Heading;
+            if (Math.Abs(yawRate) > 6f) yawRate = 0f;
+            latG += (Clamp(speed * yawRate / 9.81f, -1.5f, 1.5f) - latG) * Math.Min(1f, dt * 4f);
 
             if (p.Chase) { if (attached) { Function.Call(Hash.DETACH_CAM, cam); attached = false; } Chase(car, p, speed, dt); }
             else Mounted(car, ped, p, speed, dt);
@@ -203,7 +208,20 @@ namespace MidnightClub.Cameras
             float maxLook = mode == CameraMode.Cockpit ? 110f : 70f;
             float ry = behind ? 180f : Clamp(lookYaw, -maxLook, maxLook);
             // Rigid, relative hard attach: moves exactly with the car, no lag, no G effects.
-            Function.Call(Hash.HARD_ATTACH_CAM_TO_ENTITY, cam, car, lookPitch * 0.6f, 0f, ry, local.X, local.Y, local.Z, true);
+            float pitch = lookPitch * 0.6f, roll = 0f;
+            if (mode == CameraMode.Cockpit)
+            {
+                // Driver's head: hide the driver model (local only) and let the head move against the load.
+                Function.Call(Hash.SET_ENTITY_LOCALLY_INVISIBLE, ped);
+                float g = cfg.CameraGForce;
+                headPitch += (-accelPull * 2.2f * g - headPitch) * Math.Min(1f, dt * 5f);     // brake: nose down, throttle: head back
+                headRoll += (latG * 2.5f * g - headRoll) * Math.Min(1f, dt * 5f);             // lean into the load in corners
+                headX += (-latG * 0.035f * g - headX) * Math.Min(1f, dt * 5f);               // head shifts to the outside
+                headY += (-accelPull * 0.04f * g - headY) * Math.Min(1f, dt * 5f);           // pushed back under acceleration
+                pitch += headPitch; roll = headRoll;
+                local = local + new Vector3(headX, headY, 0f);
+            }
+            Function.Call(Hash.HARD_ATTACH_CAM_TO_ENTITY, cam, car, pitch, roll, ry, local.X, local.Y, local.Z, true);
             attached = true;
             fov = SmoothDamp(fov, TargetFov(p, speed), ref fovVel, 0.35f, dt);
             cam.FieldOfView = fov;

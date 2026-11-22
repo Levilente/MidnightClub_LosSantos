@@ -1,4 +1,6 @@
 # Changelog
+## 0.14.3 (2026-11-22)
+- Cockpit cam: driver model hidden (locally, per frame); head-movement G-force from filtered longitudinal acceleration and yaw-rate x speed lateral G (pitch, lean, small head shift); dynamic FOV. [Camera] GForceIntensity scales it (0 = off). Bumper and hood stay rigid with FOV only.
 ## 0.14.2 (2026-11-22): camera rewrite after first feedback
 - Bumper / hood / cockpit: rigidly hard-attached to the car (game camera attach, no lag or jitter), no G-force sway/tilt/roll, no shake; only dynamic FOV. Cockpit lowered ~10 cm to eye level ([Camera] CockpitHeight, HoodHeight to fine-tune).
 - Chase cameras rebuilt NFS Unbound-style: low and tight, looking slightly down (car in the lower third), critically damped heading follow (blended a little towards the direction of travel to show drift angle), slight pull-back with speed and filtered acceleration, strong speed FOV, no roll, no G-wobble, shake only with nitrous / above 220 km/h.

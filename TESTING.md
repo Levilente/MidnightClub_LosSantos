@@ -95,3 +95,8 @@ Tick items off or note what happened. Logs: `scripts\MidnightClub\MidnightClub.l
 - [ ] Hint bars show controller buttons when using a pad (and keys with keyboard)
 - [ ] Nitrous on the controller boost button (which button is it on your pad?)
 - [ ] Right stick look feels OK; holding B quits a race
+
+## Cameras v2 (0.14.2-0.14.3)
+- [ ] Bumper/hood: rigid, no wobble, only FOV opens with speed
+- [ ] Cockpit: eye height OK ([Camera] CockpitHeight to adjust), driver hidden, head leans the right way in corners and pitches on throttle/brake
+- [ ] Chase cams closer to NFS Unbound now? What still feels off (distance, height, lag, FOV)?
