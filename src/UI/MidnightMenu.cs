@@ -99,6 +99,8 @@ namespace MidnightClub.UI
                 m.Add(new MenuItem("Distance driven") { Value = () => r.Stats.DistanceKm.ToString("0.0") + " km" });
                 m.Add(new MenuItem("Top speed recorded") { Value = () => r.Stats.TopSpeedKmh.ToString("0") + " km/h" });
                 m.Add(new MenuItem("Recoveries") { Value = () => r.Stats.Recoveries.ToString() });
+                m.Add(new MenuItem("Police escapes") { Value = () => r.Stats.PoliceEscapes.ToString() });
+                m.Add(new MenuItem("Police heat") { Value = () => r.Heat.ToString("0.0") + " / 5", Description = () => "High heat: police notice this car sooner and start at a higher level. Drops each day; a new plate or respray cuts it." });
                 m.Add(new MenuItem("Races won / entered") { Value = () => r.Stats.RacesWon + " / " + r.Stats.RacesEntered });
                 m.Add(new MenuItem("Purchase price") { Value = () => "$" + r.PurchasePrice.ToString("N0") });
                 m.Add(new MenuItem("Estimated value") { Value = () => "$" + PricingEngine.EstimatedValue(info, r.Stats.DistanceKm, r.EngineHealth, r.BodyHealth).ToString("N0") });

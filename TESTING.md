@@ -59,3 +59,11 @@ Tick items off or note what happened. Logs: `scripts\MidnightClub\MidnightClub.l
 - [ ] Winning advances the stage and pays out; losing counts a loss; after 3 wins their car shows up in a garage
 - [ ] Nikki (drift) duel: beating her score counts as a win
 - [ ] F6 > Clubs: racing in a muscle car raises Muscle Car Society rep; level-up message; discount appears at Southern SA (level 2+)
+
+## Police (0.10.0)
+- [ ] Speed past a police car (> ~115 km/h) or bump one: "POLICE PURSUIT" + red HUD bar at the top
+- [ ] Units chase and ram but never shoot; level rises over time; helicopter at level 3 with searchlight
+- [ ] Losing them: evade bar fills when out of sight; hiding under a bridge/tunnel shows "UNDER COVER"
+- [ ] Getting boxed in while stopped for 5 s = BUSTED + fine
+- [ ] F6 > My vehicles > a car shows Police escapes and Police heat; new plate lowers heat
+- [ ] Too aggressive / too easy? (config [Police] Difficulty, SpeedTriggerKmh)

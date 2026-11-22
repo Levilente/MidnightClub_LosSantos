@@ -26,6 +26,7 @@ namespace MidnightClub.Persistence
         [DataMember] public List<string> SoldStock = new List<string>();   // "dealer:rotation:modelhash" / "used:rotation:slot"
         [DataMember] public int RacesStarted;
         [DataMember] public int CareerTierNotified = 1;
+        [DataMember] public int Pursuits, PursuitEscapes, Busts;
         [DataMember] public List<RivalState> Rivals = new List<RivalState>();
         [DataMember] public List<KeyValue> ClubRep = new List<KeyValue>();
         [DataMember] public List<RaceResult> RaceHistory = new List<RaceResult>();
@@ -67,7 +68,8 @@ namespace MidnightClub.Persistence
         [DataMember] public float TrackF, TrackR;                    // cm wider (+) / narrower (-) per side
         [DataMember] public float TyreF, TyreR;                      // tyre diameter multiplier, 0 = stock (1.0)
         [DataMember] public int TyreCompound;                        // 0 street, 1 sport, 2 semi-slick, 3 race slick, 4 drift
-        [DataMember] public bool LetteredTyres;                      // custom-tyre sidewall variation
+        [DataMember] public bool LetteredTyres;
+        [DataMember] public float Heat;                               // police attention on this car (0-5)                      // custom-tyre sidewall variation
         [DataMember] public List<string> BuildHistory = new List<string>();
         [DataMember] public float EngineHealth = 1000f, BodyHealth = 1000f;
         [DataMember] public long PurchasePrice;

@@ -306,6 +306,7 @@ namespace MidnightClub.Workshops
                     if (col == installed) return;
                     if (!Pay(price, what)) return;
                     installed = col; Bought(what + ": " + Pretty(((VehicleColor)col).ToString()), price);
+                    if (what == "Primary") Police.PursuitManager.CoolDownIdentity(rec, 1f);
                 }) { Value = () => col == installed ? "~g~CURRENT" : "$" + price.ToString("N0") });
             }
             m.Selected = Math.Max(0, colors.IndexOf(installed));

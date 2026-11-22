@@ -1,4 +1,10 @@
 # Changelog
+## 0.10.0-phase8 (2026-11-22)
+- Police pursuits (vehicle-only): patrol cars that see you speeding (trigger lowered by heat and during races) or that you hit start a pursuit. Units chase, box in and ram; drivers carry no weapons, drive-bys disabled; your car still can't explode.
+- 4 levels over time/heat: more units, interceptors (police2/3 etc.), helicopter with searchlight from level 3. Unit cap scales with [Police] Difficulty.
+- Escape: break line of sight; the evade bar fills while nobody sees you (longer at higher levels); being under a bridge/tunnel/parking deck hides you from the helicopter. Escape pays REP and counts per car. Busted when stopped and boxed in for 5 s: fine scaled by level.
+- Heat per car (0-5): rises with pursuits/busts, falls each day, and drops with a new plate or primary respray. Shown in the vehicle menu.
+- 60 s cooldown after a pursuit. [Police] Enabled, SpeedTriggerKmh, Difficulty in config.ini.
 ## 0.9.0-phase7 (2026-11-22)
 - Career: 5 tiers by REP (Street Beginner, Street Regular, Underground Competitor, Professional Street Racer, Midnight Club Elite; thresholds in config.ini [Career]). Promotion announcement, tier on the HUD, F6 > Career with progress and unlocks.
 - Tier gates: dealership/special-order cars need the matching tier (D/C 1, B 2, A 3, S 4, X 5); 10-car garages tier 2, executive garages tier 4.

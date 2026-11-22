@@ -384,6 +384,7 @@ namespace MidnightClub.Core
             text = text.Trim().ToUpperInvariant();
             if (text.Length == 0 || text.Length > 8) { Notification.PostTicker("Plates hold 1-8 characters.", true, false); return; }
             rec.Plate = text; saves.IsDirty = true;
+            Police.PursuitManager.CoolDownIdentity(rec, 1f);
             if (rec.Id == saves.Data.CurrentVehicleId && vehicles.Current != null && vehicles.Current.Exists()) vehicles.Current.Mods.LicensePlate = text;
         }
 

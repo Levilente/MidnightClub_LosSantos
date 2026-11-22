@@ -137,7 +137,7 @@ namespace MidnightClub.Garages
                 var s = Game.GetUserInput(r.Plate ?? "");
                 if (s == null) return; s = s.Trim().ToUpperInvariant();
                 if (s.Length < 1 || s.Length > 8) { Flash("Plates hold 1-8 characters."); return; }
-                r.Plate = s; saves.IsDirty = true;
+                r.Plate = s; saves.IsDirty = true; Police.PursuitManager.CoolDownIdentity(r, 1f);
                 var v = cars[index].Value; if (v.Exists() && cars[index].Key == r) v.Mods.LicensePlate = s;
             }) { Value = () => r.Plate });
             m.Add(new MenuItem("Favourite", () => { r.Favorite = !r.Favorite; saves.IsDirty = true; }) { Value = () => r.Favorite ? "Yes" : "No" });
