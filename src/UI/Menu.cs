@@ -97,7 +97,7 @@ namespace MidnightClub.UI
                 Text(it.Label, X + 0.008f, y + 0.004f, 0.36f, c, GTA.UI.Font.ChaletLondon, false);
                 string v = it.Value != null ? it.Value() : null;
                 if (!string.IsNullOrEmpty(v))
-                    Text(it.OnAdjust != null && sel ? "< " + v + " >" : v, X + W - 0.008f, y + 0.004f, 0.36f, c, GTA.UI.Font.ChaletLondon, true);
+                    Text(it.OnAdjust != null && sel ? "- " + v + " +" : v, X + W - 0.008f, y + 0.004f, 0.36f, c, GTA.UI.Font.ChaletLondon, true);
                 y += RowH;
             }
             if (Items.Count > 0 && Items[Selected].Description != null)

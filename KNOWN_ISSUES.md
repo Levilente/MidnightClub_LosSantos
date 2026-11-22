@@ -15,3 +15,4 @@
 14. Showroom cars are shown where you parked, not inside the showroom buildings.
 15. Auctions (spec §8) aren't implemented yet.
 16. Luxury Autos only shows 2-3 cars a week, so a full cycle takes many weeks; special orders cover the gap.
+17. The Online map state (ON_ENTER_MP) is loaded while in Midnight Club and restored on exit; if Story Mode ever looks wrong after leaving, set `[World] LoadOnlineMap=false` and report it.

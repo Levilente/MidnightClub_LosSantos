@@ -1,4 +1,8 @@
 # Changelog
+## 0.5.1 (2026-11-22)
+- Fix: garage interiors didn't load in Story Mode (interior found but never ready). Midnight Club now loads the GTA Online map state on entry (ON_ENTER_MP, reverted on exit; `[World] LoadOnlineMap`) and un-disables/un-caps the garage interior before pinning it.
+- Fix: vehicle class showed as "VEH_CLASS_6"; now localized.
+- Fix: "< >" vanished from hint bars (GTA text treats < as a tag); now "LEFT/RIGHT".
 ## 0.5.0-phase4 (2026-11-22)
 - Free starter garage (Davis Lockup, 2 cars) for every profile, including existing ones.
 - Midnight Club calendar: own day counter that only advances while playing Midnight Club; drives rotations.

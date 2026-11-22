@@ -25,6 +25,7 @@ namespace MidnightClub.Core
         private readonly CharacterCreator creator;
         private readonly string dataDir;
         private StorySnapshot story;
+        private bool onlineMap;
         public Garages.GarageManager Garages { get; set; }
         public TransactionManager Money { get; set; }
         private int lastAutoSave;
@@ -74,6 +75,13 @@ namespace MidnightClub.Core
                 Screen.FadeOut(cfg.TransitionFadeMs);
                 Script.Wait(cfg.TransitionFadeMs + 100);
 
+                if (cfg.LoadOnlineMap && !onlineMap)
+                {   // GTA Online map state (MP interiors, Online-only world changes); reverted when leaving.
+                    Function.Call(Hash.ON_ENTER_MP);
+                    Function.Call(Hash.SET_INSTANCE_PRIORITY_MODE, 1);
+                    onlineMap = true;
+                    Log.Info("Online map state loaded");
+                }
                 if (!registry.IsBuilt) registry.Build(dataDir, cfg);
                 story = characters.CaptureStory();
                 Log.Info("Story snapshot: ped " + story.StoryPed.Handle + " at " + story.Position + (story.StoryVehicle != null ? " in vehicle " + story.StoryVehicle.Handle : ""));
@@ -198,6 +206,11 @@ namespace MidnightClub.Core
         /// <summary>Puts Story Mode back. Safe to call from any state; never throws.</summary>
         private void RestoreStory()
         {
+            if (onlineMap)
+            {
+                try { Function.Call(Hash.ON_ENTER_SP); Function.Call(Hash.SET_INSTANCE_PRIORITY_MODE, 0); Log.Info("Story map state restored"); } catch { }
+                onlineMap = false;
+            }
             try { creator.DestroyCamera(); Function.Call(Hash.RENDER_SCRIPT_CAMS, false, false, 0, true, false, 0); } catch { }
             try { vehicles.Despawn(false); } catch (Exception ex) { Log.Error("Despawn vehicle", ex); }
             if (story != null)

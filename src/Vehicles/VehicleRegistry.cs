@@ -175,6 +175,22 @@ namespace MidnightClub.Vehicles
             catch (Exception ex) { Log.Warn("Registry export failed: " + ex.Message); }
         }
 
+        /// <summary>Localized class name ("Sports Classics" instead of the VEH_CLASS_6 label).</summary>
+        public static string ClassName(VehicleClass c)
+        {
+            var label = Vehicle.GetClassDisplayName(c);
+            try
+            {
+                if (!string.IsNullOrEmpty(label) && Function.Call<bool>(Hash.DOES_TEXT_LABEL_EXIST, label))
+                {
+                    var s = Game.GetLocalizedString(label);
+                    if (!string.IsNullOrEmpty(s) && s != "NULL") return s;
+                }
+            }
+            catch { }
+            return c.ToString();
+        }
+
         public VehicleInfo Get(int hash) { VehicleInfo v; return byHash.TryGetValue(hash, out v) ? v : null; }
         public VehicleInfo Get(string id) { VehicleInfo v; return id != null && byId.TryGetValue(id, out v) ? v : null; }
     }

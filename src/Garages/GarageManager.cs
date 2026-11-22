@@ -290,9 +290,14 @@ namespace MidnightClub.Garages
             int interior = 0, t0 = Game.GameTime;
             while (interior == 0 && Game.GameTime - t0 < 3000) { interior = Function.Call<int>(Hash.GET_INTERIOR_AT_COORDS, p.X, p.Y, p.Z); if (interior == 0) Script.Wait(50); }
             if (interior == 0) { Log.Warn("No interior found at " + p + " for " + g.Id); return; }
+            bool disabled = Function.Call<bool>(Hash.IS_INTERIOR_DISABLED, interior), capped = Function.Call<bool>(Hash.IS_INTERIOR_CAPPED, interior);
+            if (disabled) Function.Call(Hash.DISABLE_INTERIOR, interior, false);
+            if (capped) Function.Call(Hash.CAP_INTERIOR, interior, false);
+            Function.Call(Hash.SET_INTERIOR_ACTIVE, interior, true);
             Function.Call(Hash.PIN_INTERIOR_IN_MEMORY, interior);
             t0 = Game.GameTime;
-            while (!Function.Call<bool>(Hash.IS_INTERIOR_READY, interior) && Game.GameTime - t0 < 5000) Script.Wait(50);
+            while (!Function.Call<bool>(Hash.IS_INTERIOR_READY, interior) && Game.GameTime - t0 < 8000) Script.Wait(50);
+            Log.Info("Interior " + interior + " was disabled=" + disabled + " capped=" + capped);
             pinnedInterior = interior;
             if (g.Customizable) ApplyCustomization(g, Owned(g.Id), interior);
             Log.Info("Garage interior " + g.Id + " id " + interior + " ready=" + Function.Call<bool>(Hash.IS_INTERIOR_READY, interior));

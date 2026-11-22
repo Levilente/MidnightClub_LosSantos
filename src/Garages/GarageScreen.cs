@@ -196,7 +196,7 @@ namespace MidnightClub.Garages
             Rect(x, y, w, 0.33f, Panel);
             Rect(x, y, 0.004f, 0.33f, Purple);
             Text((r.Favorite ? "* " : "") + mgr.Title(r).ToUpperInvariant(), x + 0.012f, y + 0.008f, 0.6f, Color.White, Font.ChaletComprimeCologne);
-            Text(info == null ? r.Model : (info.Make + "  |  " + Vehicle.GetClassDisplayName(info.Class) + "  |  TIER " + info.Tier), x + 0.012f, y + 0.055f, 0.32f, Cyan, Font.ChaletLondon);
+            Text(info == null ? r.Model : (info.Make + "  |  " + VehicleRegistry.ClassName(info.Class) + "  |  TIER " + info.Tier), x + 0.012f, y + 0.055f, 0.32f, Cyan, Font.ChaletLondon);
             float by = y + 0.095f;
             if (info != null)
             {
@@ -211,7 +211,7 @@ namespace MidnightClub.Garages
 
             // bottom bar: controls
             Rect(0f, 0.95f, 1f, 0.05f, Color.FromArgb(220, 0, 0, 0));
-            string hint = "~p~< >~s~ Choose car     ~p~ENTER~s~ Drive out     ~p~M~s~ Manage" + (g.Customizable ? "     ~p~C~s~ Customise garage" : "") + "     ~p~BACKSPACE~s~ Leave in " + (cars.Any(c => c.Key == arrivedIn) ? "current car" : "selected car");
+            string hint = "~p~LEFT/RIGHT~s~ Choose car     ~p~ENTER~s~ Drive out     ~p~M~s~ Manage" + (g.Customizable ? "     ~p~C~s~ Customise garage" : "") + "     ~p~BACKSPACE~s~ Leave in " + (cars.Any(c => c.Key == arrivedIn) ? "current car" : "selected car");
             Text(hint, 0.5f, 0.958f, 0.34f, Color.White, Font.ChaletLondon, Alignment.Center);
             Text((index + 1) + " / " + cars.Count, 0.97f, 0.958f, 0.34f, Cyan, Font.ChaletLondon, Alignment.Right);
 

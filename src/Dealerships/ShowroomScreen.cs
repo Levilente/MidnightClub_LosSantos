@@ -209,12 +209,12 @@ namespace MidnightClub.Dealerships
             var promo = mgr.PromoClass(d);
             int days = mgr.DaysUntilRotation(d);
             Text("New stock in " + days + (days == 1 ? " day" : " days") + "   |   " + mgr.Calendar.DayName + "   |   $" + saves.Data.Cash.ToString("N0")
-                + (promo.HasValue ? "   |   ~y~" + Vehicle.GetClassDisplayName(promo.Value) + " -15%" : ""), 0.04f, 0.115f, 0.28f, Cyan, Font.ChaletLondon);
+                + (promo.HasValue ? "   |   ~y~" + VehicleRegistry.ClassName(promo.Value) + " -15%" : ""), 0.04f, 0.115f, 0.28f, Cyan, Font.ChaletLondon);
 
             float x = 0.03f, y = 0.54f, w = 0.33f;
             Rect(x, y, w, 0.35f, Panel); Rect(x, y, 0.004f, 0.35f, Purple);
             Text(v.Name.ToUpperInvariant(), x + 0.012f, y + 0.008f, 0.6f, Color.White, Font.ChaletComprimeCologne);
-            Text(Vehicle.GetClassDisplayName(v.Class) + "  |  TIER " + v.Tier + (item.Badge != null ? "  |  ~y~" + item.Badge : ""), x + 0.012f, y + 0.055f, 0.32f, Cyan, Font.ChaletLondon);
+            Text(VehicleRegistry.ClassName(v.Class) + "  |  TIER " + v.Tier + (item.Badge != null ? "  |  ~y~" + item.Badge : ""), x + 0.012f, y + 0.055f, 0.32f, Cyan, Font.ChaletLondon);
             float by = y + 0.093f;
             Bar("TOP SPEED", v.MaxSpeed / maxSpeed, x, by); by += 0.03f;
             Bar("ACCELERATION", v.Acceleration / maxAccel, x, by); by += 0.03f;
@@ -230,7 +230,7 @@ namespace MidnightClub.Dealerships
             Text(price, x + 0.012f, y + 0.30f, 0.55f, Color.White, Font.ChaletComprimeCologne);
 
             Rect(0f, 0.95f, 1f, 0.05f, Color.FromArgb(220, 0, 0, 0));
-            Text("~p~< >~s~ Browse     ~p~ENTER~s~ Buy     ~p~T~s~ Test drive (90 s)     ~p~BACKSPACE~s~ Leave", 0.5f, 0.958f, 0.34f, Color.White, Font.ChaletLondon, Alignment.Center);
+            Text("~p~LEFT/RIGHT~s~ Browse     ~p~ENTER~s~ Buy     ~p~T~s~ Test drive (90 s)     ~p~BACKSPACE~s~ Leave", 0.5f, 0.958f, 0.34f, Color.White, Font.ChaletLondon, Alignment.Center);
             Text((index + 1) + " / " + stock.Count, 0.97f, 0.958f, 0.34f, Cyan, Font.ChaletLondon, Alignment.Right);
             if (note != null && Game.GameTime < noteUntil)
             {

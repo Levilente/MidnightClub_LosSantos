@@ -167,7 +167,7 @@ namespace MidnightClub.UI
                 foreach (var g in registry.All.Where(v => v.Enabled).GroupBy(v => v.Class).OrderBy(g => g.Key))
                 {
                     var cls = g.Key;
-                    m.Add(new MenuItem(Vehicle.GetClassDisplayName(cls), () => stack.Push(ClassList(cls))) { Value = () => g.Count().ToString() });
+                    m.Add(new MenuItem(VehicleRegistry.ClassName(cls), () => stack.Push(ClassList(cls))) { Value = () => g.Count().ToString() });
                 }
             };
             return m;
@@ -175,7 +175,7 @@ namespace MidnightClub.UI
 
         private Menu ClassList(VehicleClass cls)
         {
-            var m = new Menu(Vehicle.GetClassDisplayName(cls), cfg.DevMode ? "DEV MODE: select = add free" : "Prices");
+            var m = new Menu(VehicleRegistry.ClassName(cls), cfg.DevMode ? "DEV MODE: select = add free" : "Prices");
             m.OnOpen = () =>
             {
                 m.Items.Clear();

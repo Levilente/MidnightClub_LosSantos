@@ -22,6 +22,7 @@ namespace MidnightClub.Core
         public bool DisableStoryPolice = true;
         public bool PlayerInvincible = true;
         public bool ShowHud = true;
+        public bool LoadOnlineMap = true;
         public float HudX = 0.985f, HudY = 0.04f;
         public int AutoSaveSeconds = 120;
         public int BackupCount = 5;
@@ -55,6 +56,7 @@ namespace MidnightClub.Core
             c.RecoveryCost = Get(s, "Gameplay", "RecoveryCost", c.RecoveryCost);
             c.TransitionFadeMs = Get(s, "Gameplay", "TransitionFadeMs", c.TransitionFadeMs);
             c.ShowHud = Get(s, "HUD", "Show", c.ShowHud);
+            c.LoadOnlineMap = Get(s, "World", "LoadOnlineMap", c.LoadOnlineMap);
             c.HudX = Get(s, "HUD", "X", c.HudX);
             c.HudY = Get(s, "HUD", "Y", c.HudY);
             c.AutoSaveSeconds = Get(s, "Save", "AutoSaveSeconds", c.AutoSaveSeconds);
