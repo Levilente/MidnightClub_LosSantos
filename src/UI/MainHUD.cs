@@ -70,8 +70,8 @@ namespace MidnightClub.UI
             string g = v.Speed < 0.5f && v.Throttle <= 0 ? "N" : gear == 0 ? "R" : gear.ToString();
             float gs = 0.042f, gx = right - Ds.Px(0.042f), gy = bottom - 0.105f;
             bool red = rpmShown > 0.93f;
-            Ds.Round(gx, gy, Ds.Px(gs), gs, 0.01f, red ? Ds.Red : Ds.Violet);
-            Ds.T(g, gx + Ds.Px(gs) / 2, gy + 0.001f, 0.6f, Color.White, Ds.Display, Alignment.Center);
+            Ds.Skew(gx, gy, Ds.Px(gs), gs, Ds.SlantFor(gs), red ? Ds.Red : Ds.Violet);
+            Ds.T(g, gx + Ds.Px(gs) / 2 + Ds.SlantFor(gs) / 2, gy + 0.001f, 0.6f, Color.White, Ds.Display, Alignment.Center);
             // rev bar: 24 slim segments, violet -> amber -> red, with a lit "head"
             rpmShown = Ds.Damp(rpmShown, v.CurrentRPM, 18f);
             int segs = 24; float bw = Ds.Px(0.2f), bx = right - bw, by = bottom - 0.028f, sw = bw / segs;
@@ -80,7 +80,7 @@ namespace MidnightClub.UI
                 float t = (i + 0.5f) / segs; bool lit = t <= rpmShown;
                 var c = t > 0.88f ? Ds.Red : t > 0.72f ? Ds.Amber : Ds.Violet;
                 float h = 0.006f + 0.008f * t;
-                Ds.Rect(bx + i * sw, by + 0.014f - h, sw - Ds.Px(0.0018f), h, lit ? c : Ds.A(Ds.Stroke, 0.8f));
+                Ds.Skew(bx + i * sw, by + 0.014f - h, sw - Ds.Px(0.0022f), h, Ds.SlantFor(h), lit ? c : Ds.A(Ds.Stroke, 0.8f));
             }
             // car name
             string name = r == null ? "" : (string.IsNullOrEmpty(r.Nickname) ? r.Model : r.Nickname);

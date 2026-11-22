@@ -64,26 +64,66 @@ namespace MidnightClub.UI
         public static void Rect(float x, float y, float w, float h, Color c)
         { if (c.A > 0 && w > 0 && h > 0) Function.Call(Hash.DRAW_RECT, x + w / 2f, y + h / 2f, w, h, (int)c.R, (int)c.G, (int)c.B, (int)c.A, false); }
 
-        /// <summary>Rounded rectangle (r = corner radius as a fraction of screen height). Pieces never overlap, so alpha stays even.</summary>
-        public static void Round(float x, float y, float w, float h, float r, Color c)
+        /// <summary>Sharp panel (the design is deliberately corner-free; kept for call-site compatibility).</summary>
+        public static void Round(float x, float y, float w, float h, float r, Color c) { Rect(x, y, w, h, c); }
+
+        private const float Row = 2f / 1080f;
+        /// <summary>Parallelogram leaning right: the top edge is shifted right by 'slant' (screen-x fraction). Drawn as
+        /// 2-pixel rows so the slanted edges are clean. The street-racing shape of the whole UI.</summary>
+        public static void Skew(float x, float y, float w, float h, float slant, Color c)
         {
-            float ry = Math.Min(r, h / 2f), rx = Math.Min(Px(r), w / 2f);
-            Rect(x + rx, y, w - 2 * rx, h, c);
-            Rect(x, y + ry, rx, h - 2 * ry, c);
-            Rect(x + w - rx, y + ry, rx, h - 2 * ry, c);
-            // quarter circles as three disjoint rows per corner
-            float[] r0 = { 0f, 0.25f, 0.6f }, r1 = { 0.25f, 0.6f, 1f }, inset = { 0.45f, 0.15f, 0.02f };
-            for (int i = 0; i < 3; i++)
+            if (c.A == 0 || w <= 0 || h <= 0) return;
+            if (slant == 0) { Rect(x, y, w, h, c); return; }
+            int rows = Math.Max(1, (int)Math.Ceiling(h / Row)); float rh = h / rows;
+            for (int i = 0; i < rows; i++)
             {
-                float rh = (r1[i] - r0[i]) * ry, ins = inset[i] * rx, cw = rx - ins;
-                float top = y + r0[i] * ry, bot = y + h - r1[i] * ry;
-                Rect(x + ins, top, cw, rh, c); Rect(x + w - rx, top, cw, rh, c);
-                Rect(x + ins, bot, cw, rh, c); Rect(x + w - rx, bot, cw, rh, c);
+                float off = slant * (1f - (i + 0.5f) / rows);
+                Function.Call(Hash.DRAW_RECT, x + off + w / 2f, y + i * rh + rh / 2f, w, rh + 0.0002f, (int)c.R, (int)c.G, (int)c.B, (int)c.A, false);
             }
         }
+        public static void Dot(float cx, float cy, float d, Color c) { Skew(cx - Px(d) / 2f, cy - d / 2f, Px(d) * 0.8f, d, Px(d * 0.3f), c); }
 
-        /// <summary>Circle-ish dot of diameter d (height fraction), centred.</summary>
-        public static void Dot(float cx, float cy, float d, Color c) { Round(cx - Px(d) / 2f, cy - d / 2f, Px(d), d, d / 2f, c); }
+        /// <summary>Slant that matches a 14 degree lean for a given height.</summary>
+        public static float SlantFor(float h) { return Px(h * 0.25f); }
+
+        /// <summary>A light band sweeping across a skewed bar every 'period' seconds.</summary>
+        public static void Shine(float x, float y, float w, float h, float slant, float period, float alpha)
+        {
+            float t = (Game.GameTime % (int)(period * 1000)) / 1000f / 0.55f;
+            if (t > 1f) return;
+            float bw = Px(0.03f), bx = x + (w - bw) * EaseInOut(t);
+            Skew(bx, y, bw, h, slant, A(Color.White, 0.22f * alpha * (float)Math.Sin(t * Math.PI)));
+        }
+
+        /// <summary>Small skewed tag with text (used for kickers, chips and badges). Returns its width.</summary>
+        public static float Tag(string s, float x, float y, Color bg, Color fg, float scale = 0.24f, float alpha = 1f)
+        {
+            float h = 0.024f * scale / 0.24f, sl = SlantFor(h), w = Width(s, scale, Display) + Px(0.014f);
+            Skew(x, y, w, h, sl, A(bg, alpha));
+            T(s, x + sl / 2 + w / 2, y - 0.0005f, scale * 1.05f, A(fg, alpha), Display, Alignment.Center);
+            return w + sl;
+        }
+
+        /// <summary>Racing stripes: a thick and a thin skewed line.</summary>
+        public static void Stripes(float x, float y, float w, Color a, Color b, float alpha = 1f)
+        {
+            Skew(x, y, w, 0.0045f, Px(0.0012f), A(a, alpha));
+            Skew(x + Px(0.01f), y + 0.0075f, w * 0.6f, 0.002f, Px(0.0006f), A(b, alpha));
+        }
+
+        /// <summary>Animated horizontal speed streaks inside a region (background energy).</summary>
+        public static void Streaks(float x, float y, float w, float h, Color c, float alpha, int count = 14, float speed = 0.6f)
+        {
+            for (int i = 0; i < count; i++)
+            {
+                float seed = (i * 0.618034f) % 1f, len = Px(0.05f + 0.12f * ((i * 0.37f) % 1f));
+                float sp = speed * (0.6f + seed), t = ((Game.GameTime / 1000f) * sp + seed * 7f) % 1.6f;
+                float sx = x + w - t * (w + len), sy = y + h * ((i * 0.4142f + 0.13f) % 1f);
+                float l = Math.Max(0f, Math.Min(sx + len, x + w) - Math.Max(sx, x));
+                if (l <= 0) continue;
+                Rect(Math.Max(sx, x), sy, l, 0.0012f, A(c, alpha * (0.25f + 0.5f * seed)));
+            }
+        }
 
         /// <summary>Vertical gradient from top colour to bottom colour, drawn in strips.</summary>
         public static void VGrad(float x, float y, float w, float h, Color top, Color bottom, int steps = 16)
@@ -137,17 +177,17 @@ namespace MidnightClub.UI
             T("MIDNIGHT", x0, y, s1, A(Text, alpha), Display);
             T("CLUB", x0 + w1 + gap, y, s1, A(Violet, alpha), Display);
             if (!tag) return;
-            float lh = 0.072f * size;
-            Rect(x0, y + lh, total, 0.0018f, A(Stroke, alpha));
-            Rect(x0, y + lh, total * 0.32f, 0.0018f, A(Violet, alpha));
-            T("LOS SANTOS", x0 + total, y + lh + 0.004f, 0.32f * size, A(Muted, alpha), Body, Alignment.Right);
+            float lh = 0.074f * size;
+            Skew(x0, y + lh, total * 0.62f, 0.0035f * size, Px(0.001f * size), A(Violet, alpha));
+            Skew(x0 + total * 0.64f, y + lh, total * 0.08f, 0.0035f * size, Px(0.001f * size), A(Cyan, alpha));
+            T("LOS SANTOS", x0 + total, y + lh + 0.006f * size, 0.3f * size, A(Muted, alpha), Display, Alignment.Right);
         }
 
         /// <summary>Small uppercase label with a coloured dot.</summary>
         public static void Kicker(string s, float x, float y, Color accent, float alpha = 1f)
         {
-            Dot(x + Px(0.004f), y + 0.0105f, 0.008f, A(accent, alpha));
-            T(s, x + Px(0.013f), y, 0.25f, A(Muted, alpha), Body);
+            Skew(x, y + 0.003f, Px(0.0045f), 0.018f, Px(0.0045f), A(accent, alpha));
+            T(s, x + Px(0.016f), y - 0.001f, 0.3f, A(Muted, alpha), Display);
         }
     }
 

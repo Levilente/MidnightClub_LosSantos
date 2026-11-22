@@ -246,14 +246,13 @@ namespace MidnightClub.Police
         {
             lastHud = Game.GameTime;
             float w = 0.24f, x = 0.5f - w / 2, y = 0.02f;
-            UI.Ds.Round(x, y, w, 0.078f, 0.016f, UI.Ds.A(UI.Ds.Surface, 0.94f));
-            UI.Ds.Dot(x + UI.Ds.Px(0.018f), y + 0.024f, 0.012f, (Game.GameTime / 250) % 2 == 0 ? UI.Ds.Red : UI.Ds.Blue);
-            UI.Ds.T("PURSUIT", x + UI.Ds.Px(0.032f), y + 0.012f, 0.25f, UI.Ds.Muted);
-            UI.Ds.T("LEVEL " + Level, x + UI.Ds.Px(0.032f), y + 0.028f, 0.5f, UI.Ds.Text, UI.Ds.Display);
+            UI.Ds.Skew(x, y, w, 0.078f, UI.Ds.SlantFor(0.078f) * 0.5f, UI.Ds.A(UI.Ds.Surface, 0.94f));
+            UI.Ds.Tag("PURSUIT", x + UI.Ds.Px(0.022f), y + 0.012f, (Game.GameTime / 250) % 2 == 0 ? UI.Ds.Red : UI.Ds.Blue, UI.Ds.Text, 0.26f);
+            UI.Ds.T("LEVEL " + Level, x + UI.Ds.Px(0.02f), y + 0.032f, 0.5f, UI.Ds.Text, UI.Ds.Display);
             UI.Ds.T(units.Count + " UNITS" + (covered ? "  ·  UNDER COVER" : ""), x + w - UI.Ds.Px(0.014f), y + 0.034f, 0.25f, covered ? UI.Ds.Cyan : UI.Ds.Muted, UI.Ds.Body, Alignment.Right);
             float fr = Math.Min(1f, evade / need), bx = x + UI.Ds.Px(0.018f), bw = w - UI.Ds.Px(0.036f);
-            UI.Ds.Round(bx, y + 0.062f, bw, 0.005f, 0.0025f, UI.Ds.Stroke);
-            if (fr > 0.01f) UI.Ds.Round(bx, y + 0.062f, bw * fr, 0.005f, 0.0025f, seen ? UI.Ds.Red : UI.Ds.Lime);
+            UI.Ds.Skew(bx, y + 0.064f, bw, 0.005f, UI.Ds.Px(0.0012f), UI.Ds.Stroke);
+            if (fr > 0.01f) UI.Ds.Skew(bx, y + 0.064f, bw * fr, 0.005f, UI.Ds.Px(0.0012f), seen ? UI.Ds.Red : UI.Ds.Lime);
         }
 
     }

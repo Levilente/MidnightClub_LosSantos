@@ -94,22 +94,22 @@ namespace MidnightClub.UI
             // soft backdrop on the left third so text always reads
             Ds.HGrad(0f, 0f, 0.42f, 1f, Ds.A(Color.FromArgb(255, 6, 5, 10), 0.82f * a), Ds.A(Color.FromArgb(255, 6, 5, 10), 0f), 18);
             // header
-            Ds.Kicker("MIDNIGHT CLUB", x, y, Ds.Violet, a);
-            Ds.T(Ds.Fit(Title.ToUpperInvariant(), 0.85f, w, Ds.Display), x - 0.001f, y + 0.02f, 0.85f, Ds.A(Ds.Text, a), Ds.Display);
-            y += 0.09f;
+            Ds.Tag("MIDNIGHT CLUB", x, y, Ds.Violet, Ds.Text, 0.26f, a);
+            Ds.T(Ds.Fit(Title.ToUpperInvariant(), 0.95f, w, Ds.Display), x - 0.001f, y + 0.026f, 0.95f, Ds.A(Ds.Text, a), Ds.Display);
+            y += 0.1f;
             Ds.T(Ds.Fit((Subtitle ?? "").ToUpperInvariant(), 0.25f, w * 0.8f), x, y, 0.25f, Ds.A(Ds.Muted, a));
             if (Items.Count > 0) Ds.T((Selected + 1) + " / " + Items.Count, x + w, y, 0.25f, Ds.A(Ds.Faint, a), Ds.Body, Alignment.Right);
             y += 0.03f;
-            Ds.Rect(x, y, w, 0.0016f, Ds.A(Ds.Stroke, a));
-            Ds.Rect(x, y, w * 0.18f, 0.0016f, Ds.A(Ds.Violet, a));
-            y += 0.012f;
+            Ds.Stripes(x, y, w, Ds.Violet, Ds.Cyan, a);
+            y += 0.02f;
             int shown = Math.Min(VisibleRows, Items.Count - scroll);
             float target = y + (Selected - scroll) * rh;
             animSel = animSel < 0 ? target : Ds.Damp(animSel, target, 26f);
             if (Items.Count > 0)
             {
-                Ds.Round(x - Ds.Px(0.008f), animSel, w + Ds.Px(0.016f), rh - 0.004f, 0.01f, Ds.A(Ds.Violet, a));
-                Ds.HGrad(x - Ds.Px(0.002f), animSel + 0.003f, w * 0.6f, rh - 0.01f, Ds.A(Color.FromArgb(255, 190, 130, 255), 0.35f * a), Ds.A(Ds.Violet, 0f), 10);
+                float sl = Ds.SlantFor(rh - 0.004f);
+                Ds.Skew(x - Ds.Px(0.012f), animSel, w + Ds.Px(0.02f), rh - 0.004f, sl, Ds.A(Ds.Violet, a));
+                Ds.Shine(x - Ds.Px(0.012f), animSel, w + Ds.Px(0.02f), rh - 0.004f, sl, 2.6f, a);
             }
             bool adjustable = false;
             for (int i = scroll; i < Items.Count && i < scroll + VisibleRows; i++)
@@ -124,8 +124,9 @@ namespace MidnightClub.UI
                 {
                     if (sel && it.OnAdjust != null && it.Enabled)
                     {
-                        Icons.Draw("chevron", x + w - Ds.Px(0.002f), y + rh / 2 - 0.002f, 0.018f, Ds.A(Color.White, a), Ds.A(Ds.Violet, a));
-                        Ds.T(Ds.Fit(v, 0.3f, w * 0.5f), x + w - Ds.Px(0.014f), y + 0.009f, 0.3f, Ds.A(Color.White, a), Ds.Body, Alignment.Right);
+                        Theme.Sprite("commonmenu", "arrowright", x + w - Ds.Px(0.012f), y + 0.011f, Ds.Px(0.016f), 0.016f, Ds.A(Color.White, a));
+                        Theme.Sprite("commonmenu", "arrowleft", x + w - Ds.Px(0.03f) - Math.Min(w * 0.5f, Ds.Width(v, 0.3f)), y + 0.011f, Ds.Px(0.016f), 0.016f, Ds.A(Color.White, a));
+                        Ds.T(Ds.Fit(v, 0.3f, w * 0.5f), x + w - Ds.Px(0.016f), y + 0.009f, 0.3f, Ds.A(Color.White, a), Ds.Body, Alignment.Right);
                     }
                     else Ds.T(Ds.Fit(v, 0.3f, w * 0.5f), x + w - Ds.Px(0.002f), y + 0.009f, 0.3f, Ds.A(sel ? Color.White : Ds.Muted, a), Ds.Body, Alignment.Right);
                 }
@@ -144,7 +145,8 @@ namespace MidnightClub.UI
                 {
                     y += 0.014f;
                     int lines = 1 + (int)(Ds.Width(d, 0.28f) / (w - Ds.Px(0.02f)));
-                    Ds.Round(x - Ds.Px(0.008f), y, w + Ds.Px(0.016f), 0.022f + lines * 0.026f, 0.012f, Ds.A(Ds.Surface, 0.94f * a));
+                    Ds.Rect(x - Ds.Px(0.008f), y, w + Ds.Px(0.016f), 0.022f + lines * 0.026f, Ds.A(Ds.Surface, 0.94f * a));
+                    Ds.Rect(x - Ds.Px(0.008f), y, Ds.Px(0.0025f), 0.022f + lines * 0.026f, Ds.A(Ds.Violet, a));
                     Ds.T(d, x + Ds.Px(0.004f), y + 0.01f, 0.28f, Ds.A(Ds.Muted, a), Ds.Body, Alignment.Left, w - Ds.Px(0.012f));
                 }
             }

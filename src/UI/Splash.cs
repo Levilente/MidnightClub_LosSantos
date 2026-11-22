@@ -36,8 +36,9 @@ namespace MidnightClub.UI
                 Ds.Logo(0.5f, 0.38f - (1f - e) * 0.02f, 2.2f, e, Alignment.Center, true);
                 Ds.T(tip, 0.5f, 0.64f, 0.32f, Ds.A(Ds.Muted, e), Ds.Body, Alignment.Center, 0.5f);
                 float bw = 0.22f;
-                Ds.Round(0.5f - bw / 2, 0.88f, bw, 0.004f, 0.002f, Ds.Stroke);
-                Ds.Round(0.5f - bw / 2, 0.88f, bw * Ds.EaseInOut(t), 0.004f, 0.002f, Ds.Violet);
+                Ds.Streaks(0f, 0.3f, 1f, 0.4f, Ds.Violet, 0.6f * e, 22, 0.7f);
+                Ds.Skew(0.5f - bw / 2, 0.88f, bw, 0.005f, Ds.Px(0.0015f), Ds.Stroke);
+                Ds.Skew(0.5f - bw / 2, 0.88f, bw * Ds.EaseInOut(t), 0.005f, Ds.Px(0.0015f), Ds.Violet);
                 Ds.T("LOADING", 0.5f, 0.892f, 0.24f, Ds.Faint, Ds.Body, Alignment.Center);
                 Script.Wait(0);
             }

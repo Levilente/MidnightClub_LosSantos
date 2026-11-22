@@ -78,20 +78,21 @@ namespace MidnightClub.UI
             v = v < 0.03f ? 0.03f : v > 1f ? 1f : v;
             Theme.Text(label, x, y, 0.24f, Theme.TextDim);
             Theme.Text(((int)Math.Round(v * 10f * 10f) / 10f).ToString("0.0"), x + w, y - 0.004f, 0.3f, Color.White, GTA.UI.Font.ChaletComprimeCologne, GTA.UI.Alignment.Right);
-            Theme.Rect(x, y + 0.028f, w, 0.004f, Color.FromArgb(70, 255, 255, 255));
-            Theme.Rect(x, y + 0.028f, w * v, 0.004f, Theme.Purple);
+            Ds.Skew(x, y + 0.028f, w, 0.006f, Ds.Px(0.0016f), Color.FromArgb(70, 255, 255, 255));
+            Ds.Skew(x, y + 0.028f, w * v, 0.006f, Ds.Px(0.0016f), Ds.Violet);
         }
 
         /// <summary>NFS-style bottom block: kicker, big car name, subtitle, four stats, details on the right.</summary>
         public static void CarStrip(string kicker, string name, string sub, float[] stats, string[] rightLines, string counter)
         {
             Fade(true, 0.34f, 235);
+            Ds.Streaks(0f, 0.72f, 1f, 0.2f, Ds.Violet, 0.35f, 14, 0.4f);
             float x = 0.05f, y = 0.735f;
-            Theme.Text(kicker, x, y, 0.27f, Theme.Cyan);
-            if (counter != null) Theme.Text(counter, x + Theme.TextWidth(kicker, 0.27f) + 0.012f, y, 0.27f, Theme.TextDim);
-            Theme.Text(name, x - 0.002f, y + 0.02f, 1.0f, Color.White, GTA.UI.Font.ChaletComprimeCologne);
-            Theme.Rect(x, y + 0.1f, 0.05f, 0.003f, Theme.Purple);
-            Theme.Text(sub, x, y + 0.108f, 0.3f, Color.FromArgb(230, 255, 255, 255));
+            float kw = Ds.Tag(kicker, x, y, Ds.Violet, Ds.Text, 0.26f);
+            if (counter != null) Ds.T(counter, x + kw + Ds.Px(0.008f), y - 0.001f, 0.28f, Ds.Muted, Ds.Display);
+            Theme.Text(name, x - 0.002f, y + 0.022f, 1.05f, Color.White, GTA.UI.Font.ChaletComprimeCologne);
+            Ds.Stripes(x, y + 0.1f, 0.09f, Ds.Violet, Ds.Cyan);
+            Theme.Text(sub, x, y + 0.114f, 0.3f, Color.FromArgb(230, 255, 255, 255));
             if (stats != null)
             {
                 string[] labels = { "SPEED", "ACCELERATION", "BRAKING", "HANDLING" };
@@ -115,7 +116,7 @@ namespace MidnightClub.UI
         public static void Title(string kicker, string title, string right)
         {
             Fade(false, 0.16f, 170);
-            Theme.Text(kicker, 0.05f, 0.04f, 0.26f, Theme.Purple);
+            Ds.Tag(kicker, 0.05f, 0.036f, Ds.Violet, Ds.Text, 0.24f);
             Theme.Text(title, 0.05f, 0.058f, 0.62f, Color.White, GTA.UI.Font.ChaletComprimeCologne);
             if (right != null) Theme.Text(right, 0.95f, 0.05f, 0.34f, Color.White, GTA.UI.Font.ChaletComprimeCologne, GTA.UI.Alignment.Right);
         }

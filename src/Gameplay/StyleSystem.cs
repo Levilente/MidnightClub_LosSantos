@@ -117,9 +117,8 @@ namespace MidnightClub.Gameplay
             if (combo > 0)
             {
                 string cs = "COMBO  " + combo.ToString("N0");
-                float cw = UI.Ds.Width(cs, 0.27f) + UI.Ds.Px(0.03f);
-                UI.Ds.Round(0.5f - cw / 2, 0.832f, cw, 0.03f, 0.015f, UI.Ds.A(UI.Ds.Surface, 0.9f * a));
-                UI.Ds.T(cs, 0.5f, 0.8355f, 0.27f, UI.Ds.A(UI.Ds.Violet, a), UI.Ds.Body, Alignment.Center);
+                float cw = UI.Ds.Width(cs, 0.3f, UI.Ds.Display) + UI.Ds.Px(0.014f) + UI.Ds.SlantFor(0.03f);
+                UI.Ds.Tag(cs, 0.5f - cw / 2, 0.832f, UI.Ds.Violet, UI.Ds.Text, 0.3f, a);
             }
         }
     }

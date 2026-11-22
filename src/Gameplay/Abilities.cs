@@ -26,9 +26,10 @@ namespace MidnightClub.Gameplay
         private float nos = 1f; private bool nosOn, fxNos;
         private string active; private float activeLeft; private bool fxZone;
 
+        public static Abilities Instance;
         public Abilities(SaveManager saves, VehicleManager vehicles)
         {
-            this.saves = saves; this.vehicles = vehicles;
+            this.saves = saves; this.vehicles = vehicles; Instance = this;
             EventBus.Subscribe<MidnightTickEvent>(e => Tick());
             EventBus.Subscribe<ModeChangedEvent>(e => { if (e.To != GameMode.MIDNIGHT_CLUB) StopAll(); });
             EventBus.Subscribe<Career.TierUpEvent>(e =>
@@ -167,8 +168,8 @@ namespace MidnightClub.Gameplay
             if (rec.NosLevel > 0)
             {
                 UI.Ds.T("NOS", x - UI.Ds.Px(0.008f), y - 0.009f, 0.22f, nosOn ? UI.Ds.Text : UI.Ds.Muted, UI.Ds.Body, Alignment.Right);
-                UI.Ds.Round(x, y, bw, 0.006f, 0.003f, UI.Ds.Stroke);
-                if (nos > 0.01f) UI.Ds.Round(x, y, bw * nos, 0.006f, 0.003f, nosOn ? Color.White : UI.Ds.Cyan);
+                UI.Ds.Skew(x, y, bw, 0.007f, UI.Ds.Px(0.002f), UI.Ds.Stroke);
+                if (nos > 0.01f) UI.Ds.Skew(x, y, bw * nos, 0.007f, UI.Ds.Px(0.002f), nosOn ? Color.White : UI.Ds.Cyan);
                 y += 0.016f;
             }
             if (style != null && Selected != null)
@@ -176,8 +177,8 @@ namespace MidnightClub.Gameplay
                 bool full = style.Meter >= 0.999f;
                 var c = full ? UI.Ds.Mix(UI.Ds.Amber, Color.White, UI.Ds.Pulse(2f) * 0.5f) : UI.Ds.Violet;
                 UI.Ds.T((active ?? Selected).ToUpperInvariant() + (full && active == null ? " READY" : ""), x - UI.Ds.Px(0.008f), y - 0.009f, 0.22f, full ? UI.Ds.Amber : UI.Ds.Muted, UI.Ds.Body, Alignment.Right);
-                UI.Ds.Round(x, y, bw, 0.006f, 0.003f, UI.Ds.Stroke);
-                if (style.Meter > 0.01f) UI.Ds.Round(x, y, bw * style.Meter, 0.006f, 0.003f, c);
+                UI.Ds.Skew(x, y, bw, 0.007f, UI.Ds.Px(0.002f), UI.Ds.Stroke);
+                if (style.Meter > 0.01f) UI.Ds.Skew(x, y, bw * style.Meter, 0.007f, UI.Ds.Px(0.002f), c);
             }
         }
 

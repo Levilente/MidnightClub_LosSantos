@@ -66,8 +66,9 @@ namespace MidnightClub.UI
                     // menu (left)
                     float mx = 0.04f, my = 0.36f, rowH = 0.072f;
                     selY = selY < 0 ? my + sel * rowH : Ds.Damp(selY, my + sel * rowH, 22f);
-                    Ds.Round(mx - Ds.Px(0.01f), selY, 0.3f, 0.06f, 0.012f, Ds.A(Ds.Violet, fade));
-                    Ds.HGrad(mx - Ds.Px(0.004f), selY + 0.004f, 0.18f, 0.052f, Ds.A(Color.FromArgb(255, 200, 150, 255), 0.35f * fade), Ds.A(Ds.Violet, 0f), 10);
+                    Ds.Streaks(0f, 0.3f, 0.45f, 0.4f, Ds.Violet, 0.5f * fade, 16, 0.5f);
+                    Ds.Skew(mx - Ds.Px(0.014f), selY, 0.3f, 0.06f, Ds.SlantFor(0.06f), Ds.A(Ds.Violet, fade));
+                    Ds.Shine(mx - Ds.Px(0.014f), selY, 0.3f, 0.06f, Ds.SlantFor(0.06f), 2.4f, fade);
                     for (int i = 0; i < Items.Length; i++)
                     {
                         float y = my + i * rowH, ent = Ds.EaseOut(Ds.Clamp01((Game.GameTime - start) / 450f - i * 0.12f));
@@ -79,7 +80,8 @@ namespace MidnightClub.UI
                     float cx = 0.68f, cy = 0.2f, cw = 0.28f, ca = Ds.EaseOut(Ds.Clamp01((Game.GameTime - start - 150) / 500f)), co = (1f - ca) * 0.02f;
                     cx += co;
                     Ds.Round(cx, cy, cw, 0.2f, 0.018f, Ds.A(Ds.Surface, 0.94f * ca));
-                    Ds.Kicker("YOUR CAREER", cx + Ds.Px(0.02f), cy + 0.016f, Ds.Violet, ca);
+                    Ds.Rect(cx, cy, Ds.Px(0.003f), 0.2f, Ds.A(Ds.Violet, ca));
+                    Ds.Tag("YOUR CAREER", cx + Ds.Px(0.02f), cy + 0.016f, Ds.Violet, Ds.Text, 0.24f, ca);
                     Ds.T("$" + d.Cash.ToString("N0"), cx + Ds.Px(0.02f), cy + 0.038f, 0.95f, Ds.A(Ds.Text, ca), Ds.Display);
                     Ds.T(d.Rep.ToString("N0") + " REP", cx + Ds.Px(0.02f), cy + 0.112f, 0.42f, Ds.A(Ds.Violet, ca), Ds.Display);
                     Ds.T(tier, cx + cw - Ds.Px(0.02f), cy + 0.118f, 0.25f, Ds.A(Ds.Muted, ca), Ds.Body, Alignment.Right);

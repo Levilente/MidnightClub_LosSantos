@@ -1,4 +1,8 @@
 # Changelog
+## 0.17.0 (2026-11-22): street-racing design language + garage fix
+- FIX: you could get stuck free-roaming inside a garage interior (after a script reload/crash in the garage, or a save made inside). Every second the mod now checks for this and puts you outside in your car; positions inside garage interiors are never saved, and a saved position inside one spawns you outside.
+- Design language v3: no rounded/pixel shapes or pixel icons any more. Everything is sharp and slanted: parallelogram selection bars with a light sweep, slanted tags for kickers/chips/badges, racing stripes, animated speed streaks, slanted rev-bar segments, gear badge, NOS/ability bars, objective and pursuit panels.
+- Phone v3: slim dark-glass device with neon edge; big clock, cash/REP/tier tags; numbered app list in large condensed type with live info per app (unread, open races, cars, days to new stock, rivals beaten, tier, rank, cash, goals, ability); accent-coloured slanted selection that springs between rows; staggered entrance; apps open inside the phone with a tag + big title + stripes header and the same slanted list.
 ## 0.16.0 (2026-11-22): new design system, new phone
 - Design system (UI/Design.cs): palette, condensed display + body typography, rounded shapes (anti-stepped corners), gradients, easing/spring motion, text fitting with ellipsis, MIDNIGHT CLUB wordmark. Pricedown removed everywhere.
 - Vector icon set (16 app icons + UI glyphs) drawn from rectangles on a 12x12 grid: crisp, no textures needed.
