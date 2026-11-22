@@ -1,4 +1,6 @@
 # Changelog
+## 0.7.1-wheellab (2026-11-22)
+- DevMode diagnostic "Wheel Lab" (F9 in a Midnight Club car): finds the real CWheel X-offset field on this game build from wheel-bone positions, lists tyre/rim radius candidates and dumps wheel memory to the log; lets you scale tyre radius / rim radius / tyre width / X offset / Y rotation live to see which ones change the wheel's look. Purpose: verify the fitment offsets on Enhanced and find a way to make rim size and tyre profile independently adjustable.
 ## 0.7.0 (2026-11-22)
 - Adjust fitment (workshop): one-time kit, then free per-axle camber (-15..+5 deg), track width (-8..+15 cm per side) and tyre diameter (85-120 %), live preview; also shown on cars parked in garages.
 - Tyre compounds: Street, Sport (+5 % grip), Semi-slick (+10 %), Race slick (+16 %), Drift (low grip). Lettered sidewalls as a separate visual option.

@@ -65,3 +65,6 @@
 
 ## 0.7.0
 - `Vehicles/FitmentManager`: stance via CWheel (validated, re-applied per frame, applied to garage display cars too) and tyre-compound grip via handling data (restored when you stop driving the model). Workshop: Adjust fitment, Tyre compound, Lettered sidewalls.
+
+## Reverse engineering in progress
+- GTA5_Enhanced.exe code is not scannable on disk (even SHVDNE's working Enhanced patterns aren't found there), so wheel fields must be found at runtime. `Vehicles/WheelLab` does that; results from an in-game run decide the visual wheel size / tyre profile work.
