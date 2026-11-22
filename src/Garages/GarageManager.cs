@@ -154,6 +154,7 @@ namespace MidnightClub.Garages
         private void Tick()
         {
             if (IsInside) return;
+            if (Racing.RaceManager.IsRacing) return;
             var pos = Game.Player.Character.Position;
             nearby = null;
             foreach (var g in defs)

@@ -24,6 +24,10 @@ namespace MidnightClub.Persistence
         [DataMember] public int CalendarDay;          // Midnight Club in-game days elapsed (only advances while playing MC)
         [DataMember] public int LastClockHour = -1;
         [DataMember] public List<string> SoldStock = new List<string>();   // "dealer:rotation:modelhash" / "used:rotation:slot"
+        [DataMember] public int RacesStarted;
+        [DataMember] public List<RaceResult> RaceHistory = new List<RaceResult>();
+        [DataMember] public List<KeyValue> BestTimes = new List<KeyValue>();      // raceId -> ms
+        [DataMember] public List<ChampionshipProgress> Championships = new List<ChampionshipProgress>();
         [DataMember] public List<OwnedGarage> Garages = new List<OwnedGarage>();
         [DataMember] public List<LedgerEntry> Ledger = new List<LedgerEntry>();
         [DataMember] public List<KeyValue> Extensions = new List<KeyValue>();
@@ -103,5 +107,21 @@ namespace MidnightClub.Persistence
         [DataMember] public long Cash;
         [DataMember] public long Rep;
         [DataMember] public long BalanceAfter;
+    }
+
+    [DataContract] public sealed class RaceResult
+    {
+        [DataMember] public string RaceId, Name, Type, Utc, Car;
+        [DataMember] public int Position, Of;      // 0 = DNF
+        [DataMember] public long TimeMs, Cash, Rep, Score;
+        [DataMember] public string Medal;
+    }
+
+    [DataContract] public sealed class ChampionshipProgress
+    {
+        [DataMember] public string Id;
+        [DataMember] public int Round;              // index of the next race
+        [DataMember] public bool Finished;
+        [DataMember] public List<KeyValue> Points = new List<KeyValue>();   // driver -> points
     }
 }

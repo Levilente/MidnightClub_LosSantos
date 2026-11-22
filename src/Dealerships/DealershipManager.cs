@@ -122,6 +122,7 @@ namespace MidnightClub.Dealerships
         private void Tick()
         {
             if (IsBusy || garages.IsInside) return;
+            if (Racing.RaceManager.IsRacing) return;
             var pos = Game.Player.Character.Position;
             nearby = null;
             foreach (var d in defs)

@@ -71,6 +71,9 @@ namespace MidnightClub.Persistence
         {
             // Future format upgrades go here: if (d.FormatVersion == 1) { ...; d.FormatVersion = 2; }
             foreach (var v in d.Vehicles) { if (v.Mods == null) v.Mods = new System.Collections.Generic.List<ModEntry>(); if (v.Stats == null) v.Stats = new VehicleStats(); if (v.Toggles == null) v.Toggles = new System.Collections.Generic.List<int>(); if (v.BuildHistory == null) v.BuildHistory = new System.Collections.Generic.List<string>(); if (v.DriftTyres && v.TyreCompound == 0) { v.TyreCompound = 4; v.DriftTyres = false; } }
+            if (d.RaceHistory == null) d.RaceHistory = new System.Collections.Generic.List<RaceResult>();
+            if (d.BestTimes == null) d.BestTimes = new System.Collections.Generic.List<KeyValue>();
+            if (d.Championships == null) d.Championships = new System.Collections.Generic.List<ChampionshipProgress>();
             if (d.SoldStock == null) d.SoldStock = new System.Collections.Generic.List<string>();
             if (d.Garages == null) d.Garages = new System.Collections.Generic.List<OwnedGarage>();
             if (d.Ledger == null) d.Ledger = new System.Collections.Generic.List<LedgerEntry>();
@@ -88,6 +91,7 @@ namespace MidnightClub.Persistence
                 Data.Revision++;
                 Data.ModVersion = Core.Version.Text;
                 Data.SavedAtUtc = DateTime.UtcNow.ToString("o");
+                if (Data.RaceHistory.Count > 200) Data.RaceHistory.RemoveRange(0, Data.RaceHistory.Count - 200);
                 if (Data.SoldStock.Count > 300) Data.SoldStock.RemoveRange(0, Data.SoldStock.Count - 300);
                 if (Data.Ledger.Count > 200) Data.Ledger.RemoveRange(0, Data.Ledger.Count - 200);
                 if (Data.ProcessedTransactions.Count > 500)

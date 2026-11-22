@@ -1,4 +1,11 @@
 # Changelog
+## 0.8.0-phase6 (2026-11-22)
+- Racing framework: data-driven races (data\races.json, generated once, editable/extendable): Sprint, Circuit (laps), Time trial (medals), Drift challenge (angle x speed scoring with combo), Head-to-head.
+- Routes follow real roads: the game's GPS route between the race's control points is sampled every 20 m and thinned to checkpoints (denser in corners). Start/finish points are verified Online garage entrances.
+- Opponent AI: tier-matched cars with random performance mods, racing driver settings, checkpoint-to-checkpoint tasks, mild catch-up, un-stick (never in view). Countdown, native checkpoints, route on the minimap, live position/lap/time HUD, hold Backspace to quit.
+- Rewards via TransactionManager (entry fee, payouts by position or medal, REP), race history, best times, per-car races entered/won, RaceFinishedEvent for later career/rival systems.
+- Championships: 3 series with entry fee, points (10-8-6-5-4-3-2-1), persistent standings and prizes.
+- F6 > Races: list with GPS, championships, history. Race starts on the map (locked ones grey; some races are night-only).
 ## 0.7.2 (2026-11-22)
 - Fix: Benny's roll-up door (lr_prop_supermod_door_01) stayed shut in Story Mode so the workshop couldn't be reached; it is now registered with the door system and held open while you're nearby in Midnight Club, and closed again when you leave the mode.
 ## 0.7.1-wheellab (2026-11-22)

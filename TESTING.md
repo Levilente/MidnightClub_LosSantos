@@ -42,5 +42,12 @@ Tick items off or note what happened. Logs: `scripts\MidnightClub\MidnightClub.l
 - [ ] Lettered sidewalls visible
 - [ ] **Wheel Lab: in a Midnight Club car press F9.** PgUp/PgDn pick a field, +/- scale it, Backspace resets. For each of the 5 fields write down what visibly happens (whole wheel bigger? only tyre sidewall? wheel moves out? nothing?). Screenshots help. This decides whether separate visual rim size / tyre profile is possible.
 
-## Racing (0.8.0, next)
-See the section added with the racing release.
+## Racing (0.8.0)
+- [ ] Red/blue/yellow race-car blips; checkered marker at the start; E opens the race card
+- [ ] **Route plotting**: after Start the screen fades briefly while the route is built. Does a route appear (checkpoints + minimap line)? If not, the log has a "Route ..." line; tell me.
+- [ ] Countdown 3-2-1-GO, opponents start and follow the checkpoints, they don't get stuck forever
+- [ ] Position/lap/time HUD makes sense; finishing shows results with cash/REP
+- [ ] Time trial gives a medal; drift challenge scores while sliding (combo resets on crash)
+- [ ] Hold Backspace quits a race; opponents are removed
+- [ ] F6 > Races: GPS works, championships can be entered (Street Beginner Cup needs 300 REP)
+- [ ] Opponent difficulty: too easy / too hard?

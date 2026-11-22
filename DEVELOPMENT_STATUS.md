@@ -10,7 +10,8 @@
 | 4 Dealerships | **Code complete, compiled, awaiting in-game test** (auctions not done) |
 | 5 Workshops + customisation | **Code complete, compiled, awaiting in-game test** |
 | Camera system (user request) | **Code complete, compiled, awaiting in-game test** |
-| 6–12 | Not started |
+| 6 Racing | **Code complete, compiled, awaiting in-game test** |
+| 7–12 | Not started |
 
 ## Phase 1 contents
 - `Core/GameModeManager`: STORY_MODE / ENTERING / MIDNIGHT_CLUB / EXITING / ERROR_RECOVERY state machine; refuses to enter during missions, cutscenes, character switches, while wanted or dead; ignores F7 during transitions.
@@ -68,3 +69,9 @@
 
 ## Reverse engineering in progress
 - GTA5_Enhanced.exe code is not scannable on disk (even SHVDNE's working Enhanced patterns aren't found there), so wheel fields must be found at runtime. `Vehicles/WheelLab` does that; results from an in-game run decide the visual wheel size / tyre profile work.
+
+## Phase 6 contents (0.8.0)
+- `Racing/RaceData` (+ tests 8/8): definitions, championships, generator, JSON library.
+- `Racing/RouteBuilder`: GPS-sampled routes (tries GPS route types 0-3 and remembers the one that works), checkpoint thinning, cache.
+- `Racing/RaceSession`: grid, countdown, checkpoints, opponent AI, drift scoring, HUD, cleanup.
+- `Racing/RaceManager`: map starts, menus, lifecycle, rewards, history, best times, championships; other location prompts are suppressed while racing.

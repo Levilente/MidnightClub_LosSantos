@@ -103,6 +103,7 @@ namespace MidnightClub.Workshops
         private void Tick()
         {
             if (IsBusy) return;
+            if (Racing.RaceManager.IsRacing) return;
             var pos = Game.Player.Character.Position;
             KeepDoorsOpen(pos);
             nearby = null;

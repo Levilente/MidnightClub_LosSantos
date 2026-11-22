@@ -21,6 +21,7 @@ namespace MidnightClub.UI
 
         public Garages.GarageManager Garages { get; set; }
         public Dealerships.DealershipManager Dealers { get; set; }
+        public Racing.RaceManager Races { get; set; }
 
         public MidnightMenu(MenuStack stack, GameModeManager modes, SaveManager saves, VehicleRegistry registry, VehicleManager vehicles, Config cfg)
         {
@@ -40,6 +41,7 @@ namespace MidnightClub.UI
             {
                 m.Items.Clear();
                 var d = saves.Data;
+                if (Races != null) m.Add(new MenuItem("Races", () => stack.Push(Races.RacesMenu())) { Value = () => d.Rep.ToString("N0") + " REP", Description = () => "Races, championships and your history." });
                 m.Add(new MenuItem("My vehicles", () => stack.Push(MyVehicles())) { Value = () => d.Vehicles.Count.ToString() });
                 m.Add(new MenuItem("Garages", () => stack.Push(GarageList())) { Value = () => d.Garages.Count + " owned" });
                 m.Add(new MenuItem("Finances", () => stack.Push(Finances())) { Value = () => "$" + d.Cash.ToString("N0") });
