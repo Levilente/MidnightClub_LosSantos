@@ -33,7 +33,7 @@ namespace MidnightClub.Core
 
     public static class Version
     {
-        public const string Text = "0.1.0-phase1";
+        public const string Text = "0.2.0-phase2";
         public const int SaveFormat = 1;
     }
 }

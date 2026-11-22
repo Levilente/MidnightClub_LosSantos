@@ -8,6 +8,11 @@ namespace MidnightClub.Core
     public sealed class Config
     {
         public Keys ToggleKey = Keys.F7;
+        public Keys MenuKey = Keys.F6;
+        public bool DevMode = false;
+        public bool IncludeMotorcycles = true;
+        public double PriceMultiplier = 1.0;
+        public long MinVehiclePrice = 4000, MaxVehiclePrice = 3000000;
         public int StartingCash = 15000;
         public string StartingVehicle = "futo";
         public string CharacterModel = "mp_m_freemode_01";
@@ -29,6 +34,12 @@ namespace MidnightClub.Core
             var s = ScriptSettings.Load(file);
             var c = new Config();
             c.ToggleKey = Get(s, "General", "ToggleKey", c.ToggleKey);
+            c.MenuKey = Get(s, "General", "MenuKey", c.MenuKey);
+            c.DevMode = Get(s, "General", "DevMode", c.DevMode);
+            c.IncludeMotorcycles = Get(s, "Vehicles", "IncludeMotorcycles", c.IncludeMotorcycles);
+            c.PriceMultiplier = Get(s, "Economy", "PriceMultiplier", c.PriceMultiplier);
+            c.MinVehiclePrice = Get(s, "Economy", "MinVehiclePrice", c.MinVehiclePrice);
+            c.MaxVehiclePrice = Get(s, "Economy", "MaxVehiclePrice", c.MaxVehiclePrice);
             c.StartingCash = Get(s, "Career", "StartingCash", c.StartingCash);
             c.StartingVehicle = Get(s, "Career", "StartingVehicle", c.StartingVehicle);
             c.CharacterModel = Get(s, "Character", "Model", c.CharacterModel);

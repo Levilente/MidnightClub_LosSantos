@@ -40,6 +40,7 @@ namespace MidnightClub.Persistence
     {
         [DataMember] public string Id;
         [DataMember] public string Model;
+        [DataMember] public int ModelHash;
         [DataMember] public string Plate;
         [DataMember] public string Nickname;
         [DataMember] public int PrimaryColor, SecondaryColor, PearlColor, WheelColor, WheelType;

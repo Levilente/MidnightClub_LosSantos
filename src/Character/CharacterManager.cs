@@ -92,7 +92,7 @@ namespace MidnightClub.Character
 
             if (!data.Created) CreateDefaultAppearance(ped, data);
             ApplyAppearance(ped, data);
-            data.Model = model.Hash == new Model("mp_f_freemode_01").Hash ? "mp_f_freemode_01" : (string.IsNullOrEmpty(data.Model) ? defaultModel : data.Model);
+            data.Model = IsFemale(ped) ? "mp_f_freemode_01" : "mp_m_freemode_01";
             MidnightPed = ped;
             return ped;
         }
@@ -109,14 +109,40 @@ namespace MidnightClub.Character
             d.HeadShape1 = 4; d.HeadShape2 = 21; d.HeadSkin1 = 4; d.HeadSkin2 = 21; d.ShapeMix = 0.5f; d.SkinMix = 0.5f;
             d.HairColor = 2; d.HairHighlight = 2;
             Function.Call(Hash.SET_PED_HEAD_BLEND_DATA, ped, d.HeadShape1, d.HeadShape2, 0, d.HeadSkin1, d.HeadSkin2, 0, d.ShapeMix, d.SkinMix, 0f, false);
-            // Street-racer outfit for the default male freemode ped: hair, jacket, jeans, sneakers.
-            SetComp(ped, 2, 12, 0); SetComp(ped, 11, 4, 0); SetComp(ped, 8, 15, 0); SetComp(ped, 3, 4, 0);
-            SetComp(ped, 4, 4, 0); SetComp(ped, 6, 1, 0);
+            if (IsFemale(ped))
+            {
+                d.HeadShape1 = 21; d.HeadShape2 = 33; d.HeadSkin1 = 21; d.HeadSkin2 = 33;
+                Function.Call(Hash.SET_PED_HEAD_BLEND_DATA, ped, d.HeadShape1, d.HeadShape2, 0, d.HeadSkin1, d.HeadSkin2, 0, d.ShapeMix, d.SkinMix, 0f, false);
+                SetComp(ped, 2, 4, 0); SetComp(ped, 11, 3, 0); SetComp(ped, 8, 2, 0); SetComp(ped, 3, 3, 0);
+                SetComp(ped, 4, 0, 0); SetComp(ped, 6, 3, 0);
+            }
+            else
+            {   // Street-racer outfit for the default male freemode ped: hair, jacket, jeans, sneakers.
+                SetComp(ped, 2, 12, 0); SetComp(ped, 11, 4, 0); SetComp(ped, 8, 15, 0); SetComp(ped, 3, 4, 0);
+                SetComp(ped, 4, 4, 0); SetComp(ped, 6, 1, 0);
+            }
             Capture(ped, d);
             d.Created = true;
         }
 
-        private static void SetComp(Ped ped, int comp, int drawable, int texture)
+        public static bool IsFemale(Ped ped) { return ped.Model.Hash == new Model("mp_f_freemode_01").Hash; }
+
+        /// <summary>Replaces the Midnight Club ped with the other freemode model (appearance reset to defaults).</summary>
+        public Ped ChangeSex(CharacterData data, bool female)
+        {
+            var old = MidnightPed;
+            var veh = old != null && old.Exists() ? old.CurrentVehicle : null;
+            var pos = old.Position; var heading = old.Heading;
+            data.Model = female ? "mp_f_freemode_01" : "mp_m_freemode_01";
+            data.Created = false;
+            var ped = SpawnMidnightPed(data, data.Model, pos + new Vector3(0, 0, 1.5f), heading);
+            TakeControl(ped);
+            if (veh != null && veh.Exists()) { old.Delete(); ped.SetIntoVehicle(veh, VehicleSeat.Driver); }
+            else { old.Delete(); ped.Position = pos; ped.Heading = heading; }
+            return ped;
+        }
+
+        public static void SetComp(Ped ped, int comp, int drawable, int texture)
         {
             if (Function.Call<bool>(Hash.IS_PED_COMPONENT_VARIATION_VALID, ped, comp, drawable, texture))
                 Function.Call(Hash.SET_PED_COMPONENT_VARIATION, ped, comp, drawable, texture, 0);
@@ -139,7 +165,7 @@ namespace MidnightClub.Character
             }
         }
 
-        private static void ApplyAppearance(Ped ped, CharacterData d)
+        public static void ApplyAppearance(Ped ped, CharacterData d)
         {
             Function.Call(Hash.SET_PED_HEAD_BLEND_DATA, ped, d.HeadShape1, d.HeadShape2, 0, d.HeadSkin1, d.HeadSkin2, 0, d.ShapeMix, d.SkinMix, 0f, false);
             Function.Call(Hash.SET_PED_HAIR_TINT, ped, d.HairColor, d.HairHighlight);

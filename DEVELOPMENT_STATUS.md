@@ -4,7 +4,8 @@
 |---|---|
 | 0 Technical research | Done (TECHNICAL_NOTES.md) |
 | 1 Core framework | **Code complete, compiled, awaiting first in-game test** |
-| 2–12 | Not started |
+| 2 Character and vehicles | **Code complete, compiled, awaiting in-game test** |
+| 3–12 | Not started |
 
 ## Phase 1 contents
 - `Core/GameModeManager`: STORY_MODE / ENTERING / MIDNIGHT_CLUB / EXITING / ERROR_RECOVERY state machine; refuses to enter during missions, cutscenes, character switches, while wanted or dead; ignores F7 during transitions.
@@ -21,3 +22,11 @@
 - Compiles against the installed ScriptHookVDotNet3.dll (SHVDNE 1.1.0.6) with zero warnings.
 - Save system: 14/14 automated tests pass (round trip, backup pruning, corruption recovery, invalid-data refusal, duplicate transactions).
 - In-game: none yet.
+
+## Phase 2 contents
+- `UI/Menu` + `MenuStack`: own Midnight Club styled menu (no external library), keyboard + controller via frontend controls.
+- `Character/CharacterCreator`: runs automatically for a new profile (before the first car spawns) and from the F6 menu: sex, two-parent face/skin blend, hair + colours, top/undershirt/arms/legs/shoes with colours, hat, glasses; live preview camera.
+- `Vehicles/VehicleRegistry`: built at first entry from `Vehicle.GetAllModels()`: every car, bike and open-wheeler actually present in the installed build (base game, DLC, add-ons), so invalid models are never offered. Per-car make, localized name, class, speed/accel/braking/traction, percentile performance, tier (D–X), career tier, base price. Exported to `data\vehicle_registry.csv`; overrides in `data\vehicles.ini`.
+- `Economy/PricingEngine`: own prices (class base × exponential performance curve, rounded, configurable multiplier and clamps) + estimated value with wear/condition.
+- Multiple owned cars: switch car (stopped), nickname, custom plate, per-car stats/condition/value.
+- F6 menu: My vehicles, Vehicle catalogue (by class), Edit driver, Save, Return to Story Mode. `DevMode=true` in config.ini lets the catalogue add any car for free, for testing.

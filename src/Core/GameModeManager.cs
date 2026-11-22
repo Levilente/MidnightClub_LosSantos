@@ -6,6 +6,7 @@ using GTA.UI;
 using MidnightClub.Character;
 using MidnightClub.Persistence;
 using MidnightClub.Vehicles;
+using MidnightClub.Economy;
 
 namespace MidnightClub.Core
 {
@@ -20,13 +21,18 @@ namespace MidnightClub.Core
         private readonly SaveManager saves;
         private readonly CharacterManager characters;
         private readonly VehicleManager vehicles;
+        private readonly VehicleRegistry registry;
+        private readonly CharacterCreator creator;
+        private readonly string dataDir;
         private StorySnapshot story;
         private int lastAutoSave;
         private int onFootSince = -1;
 
-        public GameModeManager(Config cfg, SaveManager saves, CharacterManager characters, VehicleManager vehicles)
+        public GameModeManager(Config cfg, SaveManager saves, CharacterManager characters, VehicleManager vehicles, VehicleRegistry registry, string dataDir)
         {
             this.cfg = cfg; this.saves = saves; this.characters = characters; this.vehicles = vehicles;
+            this.registry = registry; this.dataDir = dataDir;
+            creator = new CharacterCreator(characters);
         }
 
         private void SetState(GameMode next)
@@ -66,6 +72,7 @@ namespace MidnightClub.Core
                 Screen.FadeOut(cfg.TransitionFadeMs);
                 Script.Wait(cfg.TransitionFadeMs + 100);
 
+                if (!registry.IsBuilt) registry.Build(dataDir, cfg);
                 story = characters.CaptureStory();
                 Log.Info("Story snapshot: ped " + story.StoryPed.Handle + " at " + story.Position + (story.StoryVehicle != null ? " in vehicle " + story.StoryVehicle.Handle : ""));
 
@@ -92,6 +99,17 @@ namespace MidnightClub.Core
                 characters.TakeControl(ped);
                 Script.Wait(0);
                 characters.ParkStoryPed(story);
+
+                if (!data.Character.Created)
+                {
+                    characters.ApplyDriverSettings(ped, true);
+                    Function.Call(Hash.CLEAR_AREA, pos.X, pos.Y, pos.Z, 20f, true, false, false, false);
+                    Screen.FadeIn(cfg.TransitionFadeMs);
+                    creator.Run(data.Character, true);
+                    ped = characters.MidnightPed;
+                    Screen.FadeOut(cfg.TransitionFadeMs);
+                    Script.Wait(cfg.TransitionFadeMs + 100);
+                }
 
                 var rec = CurrentRecord(data);
                 var car = vehicles.Spawn(rec, pos, heading);
@@ -121,8 +139,9 @@ namespace MidnightClub.Core
         {
             var d = new SaveData { Cash = cfg.StartingCash, Rep = 0 };
             d.Character.Model = cfg.CharacterModel;
-            var model = VehicleManager.IsSpawnable(cfg.StartingVehicle) ? cfg.StartingVehicle : "futo";
-            var starter = VehicleManager.CreateRecord(model, 0);
+            var info = registry.Get(cfg.StartingVehicle) ?? registry.Get("futo");
+            var model = info != null ? info.Id : (VehicleManager.IsSpawnable(cfg.StartingVehicle) ? cfg.StartingVehicle : "futo");
+            var starter = info != null ? VehicleManager.CreateRecord(info, 0) : VehicleManager.CreateRecord(model, 0);
             starter.Nickname = "Starter";
             d.Vehicles.Add(starter);
             d.CurrentVehicleId = starter.Id;
@@ -176,6 +195,7 @@ namespace MidnightClub.Core
         /// <summary>Puts Story Mode back. Safe to call from any state; never throws.</summary>
         private void RestoreStory()
         {
+            try { creator.DestroyCamera(); Function.Call(Hash.RENDER_SCRIPT_CAMS, false, false, 0, true, false, 0); } catch { }
             try { vehicles.Despawn(false); } catch (Exception ex) { Log.Error("Despawn vehicle", ex); }
             if (story != null)
             {
@@ -280,6 +300,85 @@ namespace MidnightClub.Core
             else flipSince = -1;
         }
         private int flipSince = -1;
+
+        // ---------------------------------------------------------------- actions used by menus
+        private bool Stopped(string what)
+        {
+            var v = vehicles.Current;
+            if (v != null && v.Exists() && v.Speed > 1.5f) { Notification.PostTicker("Stop the car to " + what + ".", true, false); return false; }
+            return true;
+        }
+
+        public void SaveNow()
+        {
+            if (!InMidnightClub) return;
+            SnapshotProfile();
+            Notification.PostTicker(saves.Save() ? "~p~MIDNIGHT CLUB~s~: progress saved." : "~r~Save failed~s~ (see log).", true, false);
+        }
+
+        public void EditCharacter()
+        {
+            if (!InMidnightClub || !Stopped("edit your driver")) return;
+            var ped = characters.MidnightPed;
+            var car = vehicles.Current;
+            if (car != null && car.Exists()) Function.Call(Hash.FREEZE_ENTITY_POSITION, car, true);
+            try { creator.Run(saves.Data.Character, false); }
+            finally
+            {
+                if (car != null && car.Exists()) Function.Call(Hash.FREEZE_ENTITY_POSITION, car, false);
+                ped = characters.MidnightPed;
+                if (ped != null && ped.Exists()) characters.ApplyDriverSettings(ped, cfg.PlayerInvincible);
+                saves.IsDirty = true;
+            }
+        }
+
+        public bool SwitchVehicle(OwnedVehicle rec)
+        {
+            if (!InMidnightClub || rec == null || rec.Id == saves.Data.CurrentVehicleId) return false;
+            if (!Stopped("switch cars")) return false;
+            var ped = Game.Player.Character;
+            var old = vehicles.Current;
+            var pos = old != null && old.Exists() ? old.Position : ped.Position;
+            var heading = old != null && old.Exists() ? old.Heading : ped.Heading;
+            Screen.FadeOut(300); Script.Wait(350);
+            try
+            {
+                vehicles.Capture();
+                var car = vehicles.Spawn(rec, pos, heading);
+                ped.SetIntoVehicle(car, VehicleSeat.Driver);
+                car.IsEngineRunning = true;
+                saves.Data.CurrentVehicleId = rec.Id;
+                saves.IsDirty = true;
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Log.Error("Switching vehicle failed", ex);
+                Notification.PostTicker("~r~Could not spawn that car~s~ (see log).", true, false);
+                RecoverVehicle("Restored your car");
+                return false;
+            }
+            finally { Screen.FadeIn(300); }
+        }
+
+        public void SetPlate(OwnedVehicle rec, string text)
+        {
+            if (text == null) return;
+            text = text.Trim().ToUpperInvariant();
+            if (text.Length == 0 || text.Length > 8) { Notification.PostTicker("Plates hold 1-8 characters.", true, false); return; }
+            rec.Plate = text; saves.IsDirty = true;
+            if (rec.Id == saves.Data.CurrentVehicleId && vehicles.Current != null && vehicles.Current.Exists()) vehicles.Current.Mods.LicensePlate = text;
+        }
+
+        /// <summary>DevMode only: add any registry car to the collection for free (for testing).</summary>
+        public void DevGiveVehicle(VehicleInfo info)
+        {
+            if (!cfg.DevMode || !InMidnightClub) return;
+            var rec = VehicleManager.CreateRecord(info, 0);
+            if (!saves.TryBeginTransaction("dev-" + rec.Id)) return;
+            saves.Data.Vehicles.Add(rec); saves.IsDirty = true;
+            Notification.PostTicker("~y~DEV~s~: added " + info.Name + " to My vehicles.", true, false);
+        }
 
         private void RecoverVehicle(string why)
         {

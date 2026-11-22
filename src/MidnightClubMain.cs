@@ -19,7 +19,8 @@ namespace MidnightClub
         private readonly GameModeManager modes;
         private readonly VehicleManager vehicles;
         private readonly MainHUD hud;
-        private bool togglePressed;
+        private readonly MidnightMenu menu;
+        private bool togglePressed, menuPressed;
         private readonly bool initialized;
 
         public MidnightClubMain()
@@ -32,7 +33,11 @@ namespace MidnightClub
                 cfg = Config.Load(dir);
                 saves = new SaveManager(dir, cfg.BackupCount);
                 vehicles = new VehicleManager();
-                modes = new GameModeManager(cfg, saves, new CharacterManager(), vehicles);
+                var registry = new VehicleRegistry();
+                modes = new GameModeManager(cfg, saves, new CharacterManager(), vehicles, registry, Path.Combine(dir, "data"));
+                Directory.CreateDirectory(Path.Combine(dir, "data"));
+                menu = new MidnightMenu(new MenuStack(), modes, saves, registry, vehicles, cfg);
+                EventBus.Subscribe<ModeChangedEvent>(e => menu.Close());
                 hud = new MainHUD(cfg.HudX, cfg.HudY);
                 Interval = 0;
                 Tick += OnTick;
@@ -48,7 +53,9 @@ namespace MidnightClub
 
         private void OnKeyDown(object sender, KeyEventArgs e)
         {
-            if (initialized && e.KeyCode == cfg.ToggleKey) togglePressed = true;
+            if (!initialized) return;
+            if (e.KeyCode == cfg.ToggleKey) togglePressed = true;
+            else if (e.KeyCode == cfg.MenuKey) menuPressed = true;
         }
 
         private void OnTick(object sender, EventArgs e)
@@ -57,7 +64,9 @@ namespace MidnightClub
             try
             {
                 if (togglePressed) { togglePressed = false; modes.Toggle(); }
+                if (menuPressed) { menuPressed = false; if (modes.InMidnightClub) menu.Toggle(); }
                 modes.Tick();
+                if (modes.InMidnightClub) menu.Tick();
                 if (modes.InMidnightClub && cfg.ShowHud) hud.Draw(saves.Data, vehicles);
             }
             catch (Exception ex)

@@ -16,12 +16,20 @@ namespace MidnightClub.Vehicles
         public OwnedVehicle CurrentRecord { get; private set; }
         private Vector3 lastPos; private bool hasLastPos;
 
+        public static OwnedVehicle CreateRecord(VehicleInfo info, long price)
+        {
+            var r = CreateRecord(info.Id, price);
+            r.ModelHash = info.Hash;
+            return r;
+        }
+
         public static OwnedVehicle CreateRecord(string model, long price)
         {
             return new OwnedVehicle
             {
                 Id = Guid.NewGuid().ToString("N"),
                 Model = model,
+                ModelHash = new Model(model).Hash,
                 Plate = "MC" + new Random().Next(100000, 999999),
                 PurchasePrice = price,
                 PurchasedAtUtc = DateTime.UtcNow.ToString("o"),
@@ -38,7 +46,7 @@ namespace MidnightClub.Vehicles
         public Vehicle Spawn(OwnedVehicle rec, Vector3 pos, float heading)
         {
             Despawn(false);
-            var model = new Model(rec.Model);
+            var model = rec.ModelHash != 0 ? new Model(rec.ModelHash) : new Model(rec.Model);
             if (!model.IsValid || !model.IsInCdImage || !model.IsVehicle) throw new Exception("Vehicle model not available in this game build: " + rec.Model);
             if (!model.Request(5000)) throw new Exception("Vehicle model failed to load: " + rec.Model);
             var v = World.CreateVehicle(model, pos, heading);
