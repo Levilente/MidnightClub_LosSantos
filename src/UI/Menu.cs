@@ -28,6 +28,8 @@ namespace MidnightClub.UI
         public Action OnBack;            // null = Back closes the menu
         public Action OnOpen;
         public Action<int> OnHighlight;  // called when the selection changes (live previews)
+        public bool IsShopList;          // mod shop: items are purchasable parts (shows the price/detail panel)
+        public int Tab = -1;             // mod shop: which tab this menu belongs to
         private int lastHighlight = -1;
         public int VisibleRows = 10;
         private int scroll;
@@ -175,6 +177,9 @@ namespace MidnightClub.UI
         public bool IsOpen { get { return stack.Count > 0; } }
         /// <summary>True while the current menus are shown inside the phone.</summary>
         public bool PhoneStyle;
+        /// <summary>Optional renderer for this stack (e.g. the mod shop).</summary>
+        public Action<Menu> CustomRenderer;
+        public int Depth { get { return stack.Count; } }
         public static Action<Menu> PhoneRenderer;
         public Menu Current { get { return stack.Count > 0 ? stack.Peek() : null; } }
 
@@ -194,6 +199,7 @@ namespace MidnightClub.UI
                 if (!IsOpen) ClosedByBack = true;
             }
             if (!IsOpen) PhoneStyle = false;
+            else if (CustomRenderer != null) CustomRenderer(Current);
             else if (PhoneStyle && PhoneRenderer != null) PhoneRenderer(Current);
             else Current.Draw();
         }

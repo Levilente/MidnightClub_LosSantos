@@ -28,10 +28,10 @@ namespace MidnightClub.Vehicles
         public sealed class Profile
         {
             public string Archetype;
-            public float BrakeDrift = 1f;
+            public float Spring = 1f, Damping = 1f, Travel = 1f, AntiRoll = 1f, Inertia = 1f;
             public float Grip, SlipAngle, Wheelspin, SteerLock, HighSpeedSteer, Stability, SpinAngle, DriftSustain, Downforce, AirControl, ComDrop, Brakes;
         }
-        private sealed class Stock { public float TMax, TMin, TLat, LowLoss, Steer, Brake; public Vector3 Com; }
+        private sealed class Stock { public float TMax, TMin, TLat, LowLoss, Steer, Brake, SForce, SComp, SReb, SUp, SLow, Arb, RollF, RollR; public Vector3 Com, Inertia; }
 
         private readonly VehicleManager vehicles; private readonly VehicleRegistry registry; private readonly Config cfg;
         private readonly string file;
@@ -49,19 +49,22 @@ namespace MidnightClub.Vehicles
         }
 
         // ------------------------------------------------------------------ profiles
+        // GTA VI-style tuning: heavier and more physical than GTA V (softer springs, more travel, more body roll,
+        // more rotational inertia, less sticky tyres, longer braking), but still forgiving (light anti-spin,
+        // speed-sensitive steering). Muscle and classic cars wallow, modern supercars stay tight.
         private static readonly Dictionary<string, float[]> Base = new Dictionary<string, float[]>
-        {   //            grip   slip  spin   lock  hiSteer stab  spinAng sustain down  air   com    brake
-            { "Super",   new[] { 1.10f, 17f, 0.80f, 1.00f, 0.50f, 0.80f, 32f, 0.00f, 1.00f, 0.80f, -0.05f, 1.15f } },
-            { "AWD",     new[] { 1.08f, 18f, 0.60f, 1.00f, 0.55f, 0.75f, 34f, 0.05f, 0.50f, 0.70f, -0.04f, 1.10f } },
-            { "Sports",  new[] { 1.04f, 20f, 1.00f, 1.05f, 0.60f, 0.55f, 42f, 0.25f, 0.35f, 0.60f, -0.03f, 1.08f } },
-            { "Tuner",   new[] { 1.00f, 22f, 1.10f, 1.10f, 0.62f, 0.45f, 52f, 0.45f, 0.20f, 0.60f, -0.03f, 1.05f } },
-            { "Drift",   new[] { 0.96f, 26f, 1.25f, 1.25f, 0.70f, 0.30f, 68f, 0.80f, 0.10f, 0.60f, -0.02f, 1.00f } },
-            { "Muscle",  new[] { 0.97f, 21f, 1.50f, 1.00f, 0.60f, 0.50f, 48f, 0.40f, 0.10f, 0.50f, -0.02f, 0.95f } },
-            { "Classic", new[] { 0.95f, 20f, 1.10f, 1.00f, 0.60f, 0.50f, 45f, 0.20f, 0.00f, 0.50f, -0.02f, 0.90f } },
-            { "FWD",     new[] { 1.02f, 17f, 0.80f, 1.00f, 0.58f, 0.70f, 36f, 0.00f, 0.10f, 0.60f, -0.03f, 1.05f } },
-            { "Street",  new[] { 1.00f, 19f, 1.00f, 1.00f, 0.60f, 0.60f, 40f, 0.15f, 0.10f, 0.60f, -0.03f, 1.00f } },
-            { "Heavy",   new[] { 0.98f, 17f, 0.90f, 0.95f, 0.55f, 0.80f, 32f, 0.00f, 0.00f, 0.50f, -0.05f, 1.00f } },
-            { "Rally",   new[] { 1.00f, 22f, 1.00f, 1.05f, 0.62f, 0.50f, 50f, 0.40f, 0.00f, 0.70f, -0.02f, 1.00f } },
+        {   //            grip   slip  spin   lock  hiSteer stab  spinAng sustain down  air   com    brake | spring damp  travel arb   inertia
+            { "Super",   new[] { 1.02f, 18f, 0.90f, 1.00f, 0.62f, 0.55f, 30f, 0.00f, 0.45f, 0.40f, -0.03f, 1.05f, 0.95f, 0.95f, 1.00f, 0.90f, 1.08f } },
+            { "AWD",     new[] { 1.00f, 18f, 0.70f, 1.00f, 0.65f, 0.50f, 32f, 0.00f, 0.20f, 0.40f, -0.02f, 1.00f, 0.92f, 0.90f, 1.05f, 0.80f, 1.10f } },
+            { "Sports",  new[] { 0.97f, 20f, 1.15f, 1.02f, 0.66f, 0.40f, 38f, 0.05f, 0.15f, 0.35f, -0.02f, 1.00f, 0.90f, 0.88f, 1.08f, 0.75f, 1.10f } },
+            { "Tuner",   new[] { 0.96f, 21f, 1.20f, 1.05f, 0.68f, 0.35f, 44f, 0.10f, 0.10f, 0.35f, -0.02f, 1.00f, 0.92f, 0.90f, 1.05f, 0.80f, 1.08f } },
+            { "Drift",   new[] { 0.93f, 24f, 1.30f, 1.20f, 0.72f, 0.25f, 60f, 0.35f, 0.05f, 0.35f, -0.01f, 0.97f, 0.95f, 0.92f, 1.00f, 0.85f, 1.05f } },
+            { "Muscle",  new[] { 0.92f, 21f, 1.60f, 0.98f, 0.65f, 0.35f, 42f, 0.10f, 0.00f, 0.30f,  0.00f, 0.88f, 0.80f, 0.78f, 1.18f, 0.60f, 1.15f } },
+            { "Classic", new[] { 0.90f, 21f, 1.20f, 0.98f, 0.65f, 0.35f, 40f, 0.05f, 0.00f, 0.30f,  0.00f, 0.82f, 0.78f, 0.75f, 1.20f, 0.55f, 1.15f } },
+            { "FWD",     new[] { 0.97f, 17f, 0.90f, 1.00f, 0.66f, 0.50f, 34f, 0.00f, 0.00f, 0.35f, -0.02f, 0.98f, 0.88f, 0.85f, 1.10f, 0.75f, 1.08f } },
+            { "Street",  new[] { 0.95f, 19f, 1.05f, 1.00f, 0.66f, 0.45f, 36f, 0.05f, 0.00f, 0.35f, -0.01f, 0.95f, 0.85f, 0.82f, 1.12f, 0.70f, 1.12f } },
+            { "Heavy",   new[] { 0.92f, 17f, 0.90f, 0.95f, 0.62f, 0.55f, 30f, 0.00f, 0.00f, 0.30f,  0.00f, 0.90f, 0.82f, 0.80f, 1.15f, 0.60f, 1.18f } },
+            { "Rally",   new[] { 0.95f, 22f, 1.05f, 1.03f, 0.68f, 0.40f, 46f, 0.15f, 0.00f, 0.45f, -0.01f, 0.95f, 0.85f, 0.85f, 1.25f, 0.70f, 1.10f } },
         };
 
         public Profile For(Vehicle car)
@@ -72,7 +75,7 @@ namespace MidnightClub.Vehicles
             var info = registry.Get(hash);
             string arch = Classify(info, h);
             var b = Base[arch];
-            p = new Profile { Archetype = arch, Grip = b[0], SlipAngle = b[1], Wheelspin = b[2], SteerLock = b[3], HighSpeedSteer = b[4], Stability = b[5], SpinAngle = b[6], DriftSustain = b[7], Downforce = b[8], AirControl = b[9], ComDrop = b[10], Brakes = b[11] };
+            p = new Profile { Archetype = arch, Grip = b[0], SlipAngle = b[1], Wheelspin = b[2], SteerLock = b[3], HighSpeedSteer = b[4], Stability = b[5], SpinAngle = b[6], DriftSustain = b[7], Downforce = b[8], AirControl = b[9], ComDrop = b[10], Brakes = b[11], Spring = b[12], Damping = b[13], Travel = b[14], AntiRoll = b[15], Inertia = b[16] };
             // the car's own numbers shape it further
             float mass = h.Mass, force = h.InitialDriveForce;
             float pw = force / Math.Max(0.1f, mass / 1500f);                     // relative power-to-weight
@@ -84,7 +87,6 @@ namespace MidnightClub.Vehicles
             p.Grip *= 0.97f + (float)r.NextDouble() * 0.06f;
             p.SlipAngle += (float)r.NextDouble() * 3f - 1.5f;
             p.DriftSustain = Math.Max(0f, p.DriftSustain + (float)r.NextDouble() * 0.1f - 0.05f);
-            p.BrakeDrift = arch == "Heavy" ? 0.5f : arch == "Drift" || arch == "Tuner" ? 1.15f : 1f;
             p = LoadOverrides(car, p);
             profiles[hash] = p;
             Log.Info("Simcade profile " + Name(car) + ": " + p.Archetype + " grip " + p.Grip.ToString("0.00") + " slip " + p.SlipAngle.ToString("0.0") + " stab " + p.Stability.ToString("0.00"));
@@ -117,7 +119,17 @@ namespace MidnightClub.Vehicles
         {
             try
             {
-                if (ini == null) ini = ScriptSettings.Load(file);
+                if (ini == null)
+                {
+                    ini = ScriptSettings.Load(file);
+                    if (ini.GetValue("_meta", "Version", 0) < 2)
+                    {
+                        // 0.21: new GTA VI-style base tuning; old per-model values would override it
+                        try { if (File.Exists(file)) File.Copy(file, file + ".v1.bak", true); File.Delete(file); } catch { }
+                        ini = ScriptSettings.Load(file); ini.SetValue("_meta", "Version", 2); ini.Save();
+                        Log.Info("simcade.ini reset for the GTA VI-style tuning (old file kept as simcade.ini.v1.bak)");
+                    }
+                }
                 string sec = Name(car);
                 Func<string, float, float> g = (k, v) =>
                 {
@@ -131,7 +143,8 @@ namespace MidnightClub.Vehicles
                 p.Grip = g("Grip", p.Grip); p.SlipAngle = g("SlipAngle", p.SlipAngle); p.Wheelspin = g("Wheelspin", p.Wheelspin);
                 p.SteerLock = g("SteerLock", p.SteerLock); p.HighSpeedSteer = g("HighSpeedSteer", p.HighSpeedSteer);
                 p.Stability = g("Stability", p.Stability); p.SpinAngle = g("SpinAngle", p.SpinAngle); p.DriftSustain = g("DriftSustain", p.DriftSustain);
-                p.Downforce = g("Downforce", p.Downforce); p.BrakeDrift = g("BrakeToDrift", p.BrakeDrift); p.AirControl = g("AirControl", p.AirControl); p.ComDrop = g("ComDrop", p.ComDrop); p.Brakes = g("Brakes", p.Brakes);
+                p.Downforce = g("Downforce", p.Downforce); p.AirControl = g("AirControl", p.AirControl); p.ComDrop = g("ComDrop", p.ComDrop); p.Brakes = g("Brakes", p.Brakes);
+                p.Spring = g("Spring", p.Spring); p.Damping = g("Damping", p.Damping); p.Travel = g("Travel", p.Travel); p.AntiRoll = g("AntiRoll", p.AntiRoll); p.Inertia = g("Inertia", p.Inertia);
                 if (dirty) { ini.Save(); dirty = false; }
             }
             catch (Exception ex) { Log.Error("simcade.ini", ex); }
@@ -146,7 +159,9 @@ namespace MidnightClub.Vehicles
             if (appliedModel == hash && appliedCompound == compound) return;
             Restore();
             var h = car.HandlingData; if (h == null || !h.IsValid) return;
-            Stock s; if (!stocks.TryGetValue(hash, out s)) stocks[hash] = s = new Stock { TMax = h.TractionCurveMax, TMin = h.TractionCurveMin, TLat = h.TractionCurveLateral, LowLoss = h.LowSpeedTractionLossMultiplier, Steer = h.SteeringLock, Brake = h.BrakeForce, Com = h.CenterOfMassOffset };
+            Stock s; if (!stocks.TryGetValue(hash, out s)) stocks[hash] = s = new Stock { TMax = h.TractionCurveMax, TMin = h.TractionCurveMin, TLat = h.TractionCurveLateral, LowLoss = h.LowSpeedTractionLossMultiplier, Steer = h.SteeringLock, Brake = h.BrakeForce, Com = h.CenterOfMassOffset,
+                SForce = h.SuspensionForce, SComp = h.SuspensionCompressionDamping, SReb = h.SuspensionReboundDamping, SUp = h.SuspensionUpperLimit, SLow = h.SuspensionLowerLimit,
+                Arb = h.AntiRollBarForce, RollF = h.RollCenterHeightFront, RollR = h.RollCenterHeightRear, Inertia = h.InertiaMultiplier };
             float k = cfg.SimcadeIntensity;
             float grip = 1f + (p.Grip * compound - 1f) * k;
             h.TractionCurveMax = s.TMax * grip;
@@ -155,6 +170,17 @@ namespace MidnightClub.Vehicles
             h.LowSpeedTractionLossMultiplier = s.LowLoss * (1f + (p.Wheelspin - 1f) * k);
             h.BrakeForce = s.Brake * (1f + (p.Brakes - 1f) * k);
             h.CenterOfMassOffset = s.Com + new Vector3(0, 0, p.ComDrop * k);
+            // weight: softer springs and dampers, more travel, more roll, more rotational inertia
+            float wgt = k * cfg.SimcadeWeight;
+            h.SuspensionForce = s.SForce * (1f + (p.Spring - 1f) * wgt);
+            h.SuspensionCompressionDamping = s.SComp * (1f + (p.Damping - 1f) * wgt);
+            h.SuspensionReboundDamping = s.SReb * (1f + (p.Damping - 1f) * wgt);
+            h.SuspensionUpperLimit = s.SUp * (1f + (p.Travel - 1f) * wgt);
+            h.SuspensionLowerLimit = s.SLow * (1f + (p.Travel - 1f) * wgt);
+            h.AntiRollBarForce = s.Arb * (1f + (p.AntiRoll - 1f) * wgt);
+            h.RollCenterHeightFront = s.RollF * (1f + (p.AntiRoll - 1f) * 0.5f * wgt);
+            h.RollCenterHeightRear = s.RollR * (1f + (p.AntiRoll - 1f) * 0.5f * wgt);
+            h.InertiaMultiplier = s.Inertia * (1f + (p.Inertia - 1f) * wgt);
             appliedModel = hash; appliedCompound = compound;
         }
 
@@ -164,85 +190,17 @@ namespace MidnightClub.Vehicles
 
         public void Restore()
         {
-            EndDrift(null);
             if (appliedModel == 0) return;
             try
             {
                 Stock s; var h = HandlingData.GetByVehicleModel(new Model(appliedModel));
                 if (h != null && h.IsValid && stocks.TryGetValue(appliedModel, out s))
-                { h.TractionCurveMax = s.TMax; h.TractionCurveMin = s.TMin; h.TractionCurveLateral = s.TLat; h.LowSpeedTractionLossMultiplier = s.LowLoss; h.SteeringLock = s.Steer; h.BrakeForce = s.Brake; h.CenterOfMassOffset = s.Com; }
+                { h.TractionCurveMax = s.TMax; h.TractionCurveMin = s.TMin; h.TractionCurveLateral = s.TLat; h.LowSpeedTractionLossMultiplier = s.LowLoss; h.SteeringLock = s.Steer; h.BrakeForce = s.Brake; h.CenterOfMassOffset = s.Com;
+                  h.SuspensionForce = s.SForce; h.SuspensionCompressionDamping = s.SComp; h.SuspensionReboundDamping = s.SReb; h.SuspensionUpperLimit = s.SUp; h.SuspensionLowerLimit = s.SLow;
+                  h.AntiRollBarForce = s.Arb; h.RollCenterHeightFront = s.RollF; h.RollCenterHeightRear = s.RollR; h.InertiaMultiplier = s.Inertia; }
             }
             catch (Exception ex) { Log.Error("Simcade restore", ex); }
             appliedModel = 0; appliedCompound = -1f;
-        }
-
-        // ------------------------------------------------------------------ brake to drift (NFS style)
-        // Grip cars stay grippy; tap the brake while turning at speed (with or then back on throttle) and the car
-        // kicks into a controlled drift: rear grip drops, the nose swings in, the steering sets the angle, throttle
-        // holds it and keeps the speed up. Straighten up, lift off or brake hard to grip up again.
-        public bool Drifting { get; private set; }
-        private float driftTarget, driftEntrySpeed, driftTime, liftTime, straightTime;
-        private int brakeDownAt = -1; private bool brakeWasDown;
-        private float savedBias, savedTMin, savedTMax; private int savedModel;
-
-        private void BrakeToDrift(Vehicle car, Profile p, float slip, float speed, float dt)
-        {
-            if (!cfg.BrakeToDrift || p.BrakeDrift <= 0f) { EndDrift(car); return; }
-            float brake = Function.Call<float>(Hash.GET_CONTROL_NORMAL, 0, (int)Control.VehicleBrake);
-            float throttle = Function.Call<float>(Hash.GET_CONTROL_NORMAL, 0, (int)Control.VehicleAccelerate);
-            float steer = Function.Call<float>(Hash.GET_CONTROL_NORMAL, 0, (int)Control.VehicleMoveLeftRight);   // -1 left .. +1 right
-            bool brakeDown = brake > 0.4f;
-            if (brakeDown && !brakeWasDown) brakeDownAt = Game.GameTime;
-            bool tapReleased = !brakeDown && brakeWasDown && brakeDownAt > 0 && Game.GameTime - brakeDownAt < 450;
-            bool brakeWithGas = brakeDown && throttle > 0.5f;
-            brakeWasDown = brakeDown;
-
-            if (!Drifting)
-            {
-                if (speed > 14f && Math.Abs(steer) > 0.35f && (tapReleased && throttle > 0.3f || brakeWithGas)) StartDrift(car, p, steer, speed);
-                return;
-            }
-            driftTime += dt;
-            // steering sets the angle: full lock = wide, centred = shallow, counter-steer = coming out
-            float dir = Math.Sign(slip) != 0 ? Math.Sign(slip) : Math.Sign(steer);
-            float into = steer * dir;                                    // >0 steering into the drift
-            driftTarget = Math.Max(8f, 22f + 22f * Math.Max(0f, into) * p.BrakeDrift - 18f * Math.Max(0f, -into));
-            float target = driftTarget * dir;
-            float e = target - slip;                                     // degrees
-            var w = car.WorldRotationVelocity;
-            float wantWz = w.Z + Math.Max(-2.5f, Math.Min(2.5f, -e * 0.06f * cfg.BrakeToDriftStrength));
-            float blend = Math.Min(1f, 5f * dt);
-            Function.Call(Hash.SET_ENTITY_ANGULAR_VELOCITY, car, w.X, w.Y, w.Z + (wantWz - w.Z) * blend);
-            liftTime = throttle < 0.2f ? liftTime + dt : 0f;
-            straightTime = Math.Abs(steer) < 0.15f && Math.Abs(slip) < 10f ? straightTime + dt : 0f;
-            bool hardBrake = brakeDown && brakeDownAt > 0 && Game.GameTime - brakeDownAt > 700;
-            if (liftTime > 0.45f || straightTime > 0.25f || speed < 8f || hardBrake || driftTime > 12f || Math.Abs(slip) > 85f) EndDrift(car);
-        }
-
-        private void StartDrift(Vehicle car, Profile p, float steer, float speed)
-        {
-            var h = car.HandlingData; if (h == null || !h.IsValid) return;
-            savedModel = car.Model.Hash; savedBias = h.TractionBiasFront; savedTMin = h.TractionCurveMin; savedTMax = h.TractionCurveMax;
-            float s = cfg.BrakeToDriftStrength * p.BrakeDrift;
-            h.TractionBiasFront = Math.Min(0.7f, savedBias + 0.12f * s);   // rear lets go
-            h.TractionCurveMin = savedTMin * (1f - 0.18f * s);
-            h.TractionCurveMax = savedTMax * (1f - 0.05f * s);
-            var w = car.WorldRotationVelocity;
-            Function.Call(Hash.SET_ENTITY_ANGULAR_VELOCITY, car, w.X, w.Y, w.Z - steer * 1.1f * s);   // kick the nose in
-            Drifting = true; driftTime = liftTime = straightTime = 0f; driftEntrySpeed = speed;
-            Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "NAV_LEFT_RIGHT", "HUD_FRONTEND_DEFAULT_SOUNDSET", true);
-        }
-
-        private void EndDrift(Vehicle car)
-        {
-            if (!Drifting) return;
-            Drifting = false;
-            try
-            {
-                var h = HandlingData.GetByVehicleModel(new Model(savedModel));
-                if (h != null && h.IsValid) { h.TractionBiasFront = savedBias; h.TractionCurveMin = savedTMin; h.TractionCurveMax = savedTMax; }
-            }
-            catch (Exception ex) { Log.Error("Brake-to-drift end", ex); }
         }
 
         // ------------------------------------------------------------------ live assists
@@ -280,7 +238,7 @@ namespace MidnightClub.Vehicles
                 Function.Call(Hash.SET_ENTITY_ANGULAR_VELOCITY, car, w.X * damp, w.Y * damp, w.Z);
                 return;
             }
-            if (speed < 4f) { SlipDeg = 0f; EndDrift(car); return; }
+            if (speed < 4f) { SlipDeg = 0f; return; }
             var fwd = car.ForwardVector; var flatV = new Vector3(v.X, v.Y, 0); var flatF = new Vector3(fwd.X, fwd.Y, 0);
             if (flatV.Length() < 0.5f || flatF.Length() < 0.1f) return;
             flatV.Normalize(); flatF.Normalize();
@@ -290,9 +248,8 @@ namespace MidnightClub.Vehicles
             SlipDeg = slip;
             float abs = Math.Abs(slip);
             var wv = car.WorldRotationVelocity;
-            BrakeToDrift(car, p, slip, speed, dt);
             // anti-spin: past the car's spin angle, damp the yaw that is making the slide worse
-            float spin = Drifting ? Math.Max(p.SpinAngle, driftTarget + 18f) : p.SpinAngle;
+            float spin = p.SpinAngle;
             if (abs > spin * 0.75f)
             {
                 bool worsening = Math.Sign(wv.Z) == -Math.Sign(slip);   // nose rotating away from the direction of travel
@@ -303,11 +260,8 @@ namespace MidnightClub.Vehicles
             float throttle = Function.Call<float>(Hash.GET_CONTROL_NORMAL, 0, (int)Control.VehicleAccelerate);
             var nv = v;
             // drift sustain: while sliding on throttle, scrub less speed
-            if (p.DriftSustain > 0f && abs > 12f && abs < spin && throttle > 0.3f && speed > 8f && !Drifting)
-                nv += Vector3.Normalize(v) * (p.DriftSustain * k * 2.2f * throttle * dt);
-            // brake-to-drift: hold the entry speed through the slide (minus a little), NFS style
-            if (Drifting && throttle > 0.3f && speed < driftEntrySpeed * 0.93f)
-                nv += Vector3.Normalize(v) * (Math.Min(4.5f, (driftEntrySpeed * 0.93f - speed) * 1.5f) * throttle * dt);
+            if (p.DriftSustain > 0f && abs > 12f && abs < spin && throttle > 0.3f && speed > 8f)
+                nv += Vector3.Normalize(v) * (p.DriftSustain * k * 1.2f * throttle * dt);
             // downforce: grows with speed squared
             if (p.Downforce > 0f && speed > 25f)
                 nv += new Vector3(0, 0, -p.Downforce * k * 3.5f * (speed / 60f) * (speed / 60f) * dt);

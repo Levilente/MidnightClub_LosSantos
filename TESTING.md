@@ -129,3 +129,8 @@ Tick items off or note what happened. Logs: `scripts\MidnightClub\MidnightClub.l
 - [ ] High speed: steering calmer, no twitchy spins; slides past the limit get caught (less for drift cars).
 - [ ] Jumps land flatter. If anything feels wrong, [Simcade] Intensity=0.5 or Enabled=false, and tell me which car.
 - [ ] 0.20.1 brake-to-drift: at 60+ km/h, steer and tap brake then gas (or brake+gas): car drifts, steering changes the angle, gas holds speed; lifting/straightening ends it. Tell me if it's too strong/weak (BrakeToDriftStrength).
+
+## GTA VI physics & mod shops (0.21.0)
+- [ ] Driving: cars feel heavier, roll and pitch more, brake longer; muscle/classics wallow, supercars stay planted. Too much? [Simcade] Weight=0.6. Log line "simcade.ini reset ..." appears once.
+- [ ] Mod shop: tabs switch with LB/RB (Q/E); stat card shows green/red preview while browsing parts; Pro Builds apply; interior tab camera looks at the dash.
+- [ ] New shop Whisler Motorsport at Hayes Autos (Strawberry): marker on the driveway, reachable by car.
