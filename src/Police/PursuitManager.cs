@@ -29,6 +29,8 @@ namespace MidnightClub.Police
         private readonly Config cfg;
         private readonly List<Unit> units = new List<Unit>();
         public bool Active { get; private set; }
+        public static bool AnyActive { get { return Game.GameTime - lastHud < 500; } }
+        private static int lastHud = -10000;
         public int Level { get; private set; }
         private int startedAt, lastScan, lastSpawn, cooldownUntil, bustSince = -1;
         private float evade; private bool seen;
@@ -242,12 +244,17 @@ namespace MidnightClub.Police
 
         private void DrawHud(float need, float nearest, bool covered)
         {
-            Function.Call(Hash.DRAW_RECT, 0.5f, 0.06f, 0.24f, 0.07f, 30, 0, 0, 190, false);
-            string s = "~r~PURSUIT LV " + Level + "~s~   " + units.Count + " units" + (covered ? "   ~b~UNDER COVER" : "");
-            new TextElement(s, new PointF(640f, 0.03f * 720f), 0.4f, Color.White, Font.ChaletComprimeCologne, Alignment.Center, true, true).ScaledDraw();
-            float frac = Math.Min(1f, evade / need);
-            Function.Call(Hash.DRAW_RECT, 0.5f, 0.083f, 0.2f, 0.01f, 60, 60, 70, 200, false);
-            Function.Call(Hash.DRAW_RECT, 0.4f + 0.1f * frac, 0.083f, 0.2f * frac, 0.01f, seen ? 220 : 80, seen ? 40 : 220, 60, 230, false);
+            lastHud = Game.GameTime;
+            float w = 0.24f, x = 0.5f - w / 2, y = 0.02f;
+            UI.Ds.Round(x, y, w, 0.078f, 0.016f, UI.Ds.A(UI.Ds.Surface, 0.94f));
+            UI.Ds.Dot(x + UI.Ds.Px(0.018f), y + 0.024f, 0.012f, (Game.GameTime / 250) % 2 == 0 ? UI.Ds.Red : UI.Ds.Blue);
+            UI.Ds.T("PURSUIT", x + UI.Ds.Px(0.032f), y + 0.012f, 0.25f, UI.Ds.Muted);
+            UI.Ds.T("LEVEL " + Level, x + UI.Ds.Px(0.032f), y + 0.028f, 0.5f, UI.Ds.Text, UI.Ds.Display);
+            UI.Ds.T(units.Count + " UNITS" + (covered ? "  ·  UNDER COVER" : ""), x + w - UI.Ds.Px(0.014f), y + 0.034f, 0.25f, covered ? UI.Ds.Cyan : UI.Ds.Muted, UI.Ds.Body, Alignment.Right);
+            float fr = Math.Min(1f, evade / need), bx = x + UI.Ds.Px(0.018f), bw = w - UI.Ds.Px(0.036f);
+            UI.Ds.Round(bx, y + 0.062f, bw, 0.005f, 0.0025f, UI.Ds.Stroke);
+            if (fr > 0.01f) UI.Ds.Round(bx, y + 0.062f, bw * fr, 0.005f, 0.0025f, seen ? UI.Ds.Red : UI.Ds.Lime);
         }
+
     }
 }

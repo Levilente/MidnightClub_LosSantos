@@ -26,15 +26,19 @@ namespace MidnightClub.UI
         {
             string tip = Tips[new Random().Next(Tips.Length)];
             int end = Game.GameTime + ms;
+            int start = Game.GameTime;
             while (Game.GameTime < end)
             {
-                Function.Call(Hash.DRAW_RECT, 0.5f, 0.5f, 1f, 1f, 4, 3, 10, 255, false);
-                Function.Call(Hash.DRAW_RECT, 0.5f, 0.555f, 0.36f, 0.003f, 170, 90, 255, 255, false);
-                T("MIDNIGHT CLUB", 0.5f, 0.37f, 1.6f, Color.FromArgb(255, 170, 90, 255), Font.Pricedown);
-                T("LOS SANTOS", 0.5f, 0.48f, 0.7f, Color.FromArgb(255, 80, 220, 255), Font.ChaletComprimeCologne);
-                T(tip, 0.5f, 0.62f, 0.34f, Color.White, Font.ChaletLondon);
-                int dots = (Game.GameTime / 300) % 4;
-                T("LOADING" + new string('.', dots), 0.5f, 0.9f, 0.3f, Color.FromArgb(200, 200, 200, 210), Font.ChaletLondon);
+                float t = (Game.GameTime - start) / (float)ms, e = Ds.EaseOut(Math.Min(1f, (Game.GameTime - start) / 600f));
+                Ds.Rect(0f, 0f, 1f, 1f, Ds.Bg);
+                Ds.VGrad(0f, 0.25f, 1f, 0.5f, Ds.A(Ds.Bg, 0f), Ds.A(Color.FromArgb(255, 40, 14, 78), 0.9f), 20);
+                Ds.VGrad(0f, 0.5f, 1f, 0.25f, Ds.A(Color.FromArgb(255, 40, 14, 78), 0.9f), Ds.A(Ds.Bg, 0f), 20);
+                Ds.Logo(0.5f, 0.38f - (1f - e) * 0.02f, 2.2f, e, Alignment.Center, true);
+                Ds.T(tip, 0.5f, 0.64f, 0.32f, Ds.A(Ds.Muted, e), Ds.Body, Alignment.Center, 0.5f);
+                float bw = 0.22f;
+                Ds.Round(0.5f - bw / 2, 0.88f, bw, 0.004f, 0.002f, Ds.Stroke);
+                Ds.Round(0.5f - bw / 2, 0.88f, bw * Ds.EaseInOut(t), 0.004f, 0.002f, Ds.Violet);
+                Ds.T("LOADING", 0.5f, 0.892f, 0.24f, Ds.Faint, Ds.Body, Alignment.Center);
                 Script.Wait(0);
             }
         }

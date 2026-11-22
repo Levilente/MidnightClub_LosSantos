@@ -109,8 +109,18 @@ namespace MidnightClub.Gameplay
         private void DrawPopup()
         {
             if (Game.GameTime > popupUntil) return;
-            new TextElement(popup, new PointF(640f, 0.80f * 720f), 0.5f, Color.FromArgb(255, 80, 220, 255), Font.ChaletComprimeCologne, Alignment.Center, true, true).ScaledDraw();
-            if (combo > 0) new TextElement("COMBO " + combo.ToString("N0"), new PointF(640f, 0.84f * 720f), 0.34f, Color.White, Font.ChaletLondon, Alignment.Center, true, true).ScaledDraw();
+            float age = (1800 - (popupUntil - Game.GameTime)) / 1000f, a = age > 1.4f ? (1.8f - age) / 0.4f : 1f;
+            float pop = UI.Ds.EaseBack(Math.Min(1f, age / 0.25f)), sc = 0.62f * (0.8f + 0.2f * pop);
+            UI.Ds.T(popup, 0.5f, 0.775f - (1f - pop) * 0.01f, sc, UI.Ds.A(UI.Ds.Text, a), UI.Ds.Display, Alignment.Center);
+            float uw = UI.Ds.Width(popup, sc, UI.Ds.Display) * pop;
+            UI.Ds.Rect(0.5f - uw / 2, 0.822f, uw, 0.003f, UI.Ds.A(UI.Ds.Cyan, a));
+            if (combo > 0)
+            {
+                string cs = "COMBO  " + combo.ToString("N0");
+                float cw = UI.Ds.Width(cs, 0.27f) + UI.Ds.Px(0.03f);
+                UI.Ds.Round(0.5f - cw / 2, 0.832f, cw, 0.03f, 0.015f, UI.Ds.A(UI.Ds.Surface, 0.9f * a));
+                UI.Ds.T(cs, 0.5f, 0.8355f, 0.27f, UI.Ds.A(UI.Ds.Violet, a), UI.Ds.Body, Alignment.Center);
+            }
         }
     }
 }

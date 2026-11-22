@@ -37,7 +37,7 @@ namespace MidnightClub.UI
                     cam.FieldOfView = 42f;
                     World.RenderingCamera = cam;
                 }
-                int sel = 0; float ang = 200f; int start = Game.GameTime;
+                int sel = 0; float ang = 200f, selY = -1f; int start = Game.GameTime;
                 Wait(); // swallow the key that opened us
                 while (true)
                 {
@@ -55,56 +55,60 @@ namespace MidnightClub.UI
                     float fade = Math.Min(1f, (Game.GameTime - start) / 500f);
                     Func<int, int> A = a => (int)(a * fade);
                     // vignette bars
-                    Theme.Rect(0f, 0f, 1f, 0.12f, Color.FromArgb(A(200), 4, 3, 10));
-                    Theme.Rect(0f, 0.88f, 1f, 0.12f, Color.FromArgb(A(200), 4, 3, 10));
-                    Theme.Rect(0f, 0.12f, 1f, 0.002f, Color.FromArgb(A(255), Theme.Purple));
-                    Theme.Text("MIDNIGHT CLUB", 0.04f, 0.022f, 1.0f, Color.FromArgb(A(255), Theme.Purple), Font.Pricedown);
-                    Theme.Text("LOS SANTOS", 0.235f, 0.058f, 0.5f, Color.FromArgb(A(255), Theme.Cyan), Font.ChaletComprimeCologne);
+                    Studio.Fade(false, 0.2f, A(200));
+                    Studio.Fade(true, 0.25f, A(220));
+                    Ds.HGrad(0f, 0f, 0.45f, 1f, Ds.A(Ds.Bg, 0.75f * fade), Ds.A(Ds.Bg, 0f), 18);
+                    Ds.Logo(0.04f, 0.03f, 1.0f, fade);
                     string tier = Career.CareerManager.Instance != null ? "TIER " + Career.CareerManager.Instance.Tier + "  ·  " + Career.CareerManager.Instance.TierName.ToUpperInvariant() : "";
-                    Theme.Text(dayName.ToUpperInvariant() + "  ·  " + World.CurrentTimeOfDay.ToString(@"hh\:mm"), 0.96f, 0.035f, 0.34f, Color.White, Font.ChaletLondon, Alignment.Right);
-                    Theme.Text(tier, 0.96f, 0.065f, 0.3f, Theme.Cyan, Font.ChaletLondon, Alignment.Right);
+                    Ds.T(World.CurrentTimeOfDay.ToString(@"hh\:mm"), 0.96f, 0.03f, 0.75f, Ds.A(Ds.Text, fade), Ds.Display, Alignment.Right);
+                    Ds.T(dayName.ToUpperInvariant(), 0.96f, 0.085f, 0.25f, Ds.A(Ds.Muted, fade), Ds.Body, Alignment.Right);
 
                     // menu (left)
-                    float mx = 0.04f, my = 0.34f;
+                    float mx = 0.04f, my = 0.36f, rowH = 0.072f;
+                    selY = selY < 0 ? my + sel * rowH : Ds.Damp(selY, my + sel * rowH, 22f);
+                    Ds.Round(mx - Ds.Px(0.01f), selY, 0.3f, 0.06f, 0.012f, Ds.A(Ds.Violet, fade));
+                    Ds.HGrad(mx - Ds.Px(0.004f), selY + 0.004f, 0.18f, 0.052f, Ds.A(Color.FromArgb(255, 200, 150, 255), 0.35f * fade), Ds.A(Ds.Violet, 0f), 10);
                     for (int i = 0; i < Items.Length; i++)
                     {
-                        bool s = i == sel; float y = my + i * 0.07f;
-                        if (s)
-                        {
-                            Theme.Sprite("commonmenu", "gradient_nav", mx, y, 0.28f, 0.058f, Color.FromArgb(A(230), Theme.Purple));
-                            Theme.Rect(mx, y, 0.004f, 0.058f, Color.White);
-                        }
-                        else Theme.Rect(mx, y, 0.28f, 0.058f, Color.FromArgb(A(150), 8, 6, 18));
-                        Theme.Text(Items[i], mx + 0.016f, y + 0.009f, 0.55f, s ? Color.White : Color.FromArgb(A(220), Theme.TextDim), Font.ChaletComprimeCologne);
+                        float y = my + i * rowH, ent = Ds.EaseOut(Ds.Clamp01((Game.GameTime - start) / 450f - i * 0.12f));
+                        Ds.T(Items[i], mx + (1f - ent) * -0.02f, y + 0.008f, 0.62f, Ds.A(i == sel ? Color.White : Ds.Muted, ent), Ds.Display);
                     }
-                    Theme.Text(Hints[sel], mx, my + Items.Length * 0.07f + 0.01f, 0.28f, Theme.TextDim, Font.ChaletLondon, Alignment.Left, 0.28f);
+                    Ds.T(Hints[sel], mx, my + Items.Length * rowH + 0.012f, 0.28f, Ds.A(Ds.Muted, fade), Ds.Body, Alignment.Left, 0.28f);
 
                     // career card (right)
-                    float cx = 0.68f, cy = 0.2f, cw = 0.28f;
-                    Theme.Card(cx, cy, cw, 0.2f);
-                    Theme.Text("YOUR CAREER", cx + 0.014f, cy + 0.01f, 0.3f, Theme.Purple);
-                    Theme.Text("$" + d.Cash.ToString("N0"), cx + 0.014f, cy + 0.04f, 0.75f, Color.White, Font.ChaletComprimeCologne);
-                    Theme.Text(d.Rep.ToString("N0") + " REP", cx + 0.014f, cy + 0.1f, 0.4f, Theme.Cyan, Font.ChaletComprimeCologne);
-                    Theme.Text(d.Vehicles.Count + " CARS  ·  " + d.Garages.Count + " GARAGES  ·  " + d.RaceHistory.Count + " RACES", cx + 0.014f, cy + 0.145f, 0.27f, Theme.TextDim);
+                    float cx = 0.68f, cy = 0.2f, cw = 0.28f, ca = Ds.EaseOut(Ds.Clamp01((Game.GameTime - start - 150) / 500f)), co = (1f - ca) * 0.02f;
+                    cx += co;
+                    Ds.Round(cx, cy, cw, 0.2f, 0.018f, Ds.A(Ds.Surface, 0.94f * ca));
+                    Ds.Kicker("YOUR CAREER", cx + Ds.Px(0.02f), cy + 0.016f, Ds.Violet, ca);
+                    Ds.T("$" + d.Cash.ToString("N0"), cx + Ds.Px(0.02f), cy + 0.038f, 0.95f, Ds.A(Ds.Text, ca), Ds.Display);
+                    Ds.T(d.Rep.ToString("N0") + " REP", cx + Ds.Px(0.02f), cy + 0.112f, 0.42f, Ds.A(Ds.Violet, ca), Ds.Display);
+                    Ds.T(tier, cx + cw - Ds.Px(0.02f), cy + 0.118f, 0.25f, Ds.A(Ds.Muted, ca), Ds.Body, Alignment.Right);
+                    Ds.Rect(cx + Ds.Px(0.02f), cy + 0.152f, cw - Ds.Px(0.04f), 0.0015f, Ds.A(Ds.Stroke, ca));
+                    Ds.T(d.Vehicles.Count + " CARS  ·  " + d.Garages.Count + " GARAGES  ·  " + d.RaceHistory.Count + " RACES", cx + Ds.Px(0.02f), cy + 0.162f, 0.25f, Ds.A(Ds.Muted, ca));
                     var cur = car != null && car.Exists() ? Game.GetLocalizedString(Function.Call<string>(Hash.GET_DISPLAY_NAME_FROM_VEHICLE_MODEL, car.Model.Hash)) : null;
-                    if (!string.IsNullOrEmpty(cur)) Theme.Text("DRIVING  " + cur.ToUpperInvariant(), cx + 0.014f, cy + 0.17f, 0.27f, Color.White);
-
-                    float ny = cy + 0.22f;
+                    float ny = cy + 0.215f;
                     if (Gameplay.Objectives.CurrentText != null)
                     {
-                        Theme.Card(cx, ny, cw, 0.07f);
-                        Theme.Text("NEXT OBJECTIVE", cx + 0.014f, ny + 0.008f, 0.26f, Theme.Purple);
-                        Theme.Text(Gameplay.Objectives.CurrentText, cx + 0.014f, ny + 0.03f, 0.3f, Color.White, Font.ChaletLondon, Alignment.Left, cw - 0.03f);
-                        ny += 0.08f;
+                        Ds.Round(cx, ny, cw, 0.072f, 0.016f, Ds.A(Ds.Surface, 0.94f * ca));
+                        Ds.Rect(cx, ny + 0.016f, Ds.Px(0.003f), 0.04f, Ds.A(Ds.Violet, ca));
+                        Ds.T("NEXT OBJECTIVE", cx + Ds.Px(0.02f), ny + 0.012f, 0.23f, Ds.A(Ds.Violet, ca));
+                        Ds.T(Ds.Fit(Gameplay.Objectives.CurrentText, 0.32f, cw - Ds.Px(0.04f)), cx + Ds.Px(0.02f), ny + 0.033f, 0.32f, Ds.A(Ds.Text, ca));
+                        ny += 0.085f;
                     }
                     int unread = d.Messages.Count(m => !m.Read);
                     var news = d.News.LastOrDefault();
                     if (news != null || unread > 0)
                     {
-                        Theme.Card(cx, ny, cw, 0.09f);
-                        Theme.Text(unread > 0 ? "PHONE  ·  " + unread + " UNREAD" : "STREET NEWS", cx + 0.014f, ny + 0.008f, 0.26f, Theme.Cyan);
+                        Ds.Round(cx, ny, cw, 0.072f, 0.016f, Ds.A(Ds.Surface, 0.94f * ca));
+                        Ds.Rect(cx, ny + 0.016f, Ds.Px(0.003f), 0.04f, Ds.A(unread > 0 ? Ds.Cyan : Ds.Pink, ca));
+                        Ds.T(unread > 0 ? "PHONE  ·  " + unread + " UNREAD" : "STREET BUZZ", cx + Ds.Px(0.02f), ny + 0.012f, 0.23f, Ds.A(unread > 0 ? Ds.Cyan : Ds.Pink, ca));
                         string line = unread > 0 ? d.Messages.Last(m => !m.Read).From + ": " + d.Messages.Last(m => !m.Read).Subject : news.Headline;
-                        Theme.Text(line, cx + 0.014f, ny + 0.03f, 0.29f, Color.White, Font.ChaletLondon, Alignment.Left, cw - 0.03f);
+                        Ds.T(Ds.Fit(line, 0.32f, cw - Ds.Px(0.04f)), cx + Ds.Px(0.02f), ny + 0.033f, 0.32f, Ds.A(Ds.Text, ca));
+                    }
+                    if (!string.IsNullOrEmpty(cur))
+                    {
+                        Ds.T("NOW DRIVING", 0.04f, 0.84f, 0.24f, Ds.A(Ds.Muted, fade));
+                        Ds.T(cur.ToUpperInvariant(), 0.04f, 0.858f, 0.8f, Ds.A(Ds.Text, fade), Ds.Display);
                     }
 
                     Buttons.Draw(Control.FrontendAccept, "Select", Control.FrontendCancel, "Hit the streets", Control.FrontendDown, "Navigate");

@@ -405,7 +405,7 @@ namespace MidnightClub.Racing
                 Game.DisableAllControlsThisFrame();
                 UI.Theme.Card(0.29f, 0.17f, 0.42f, 0.54f);
                 UI.Theme.Rect(0.29f, 0.17f, 0.42f, 0.003f, UI.Theme.Cyan);
-                T(r.Name.ToUpperInvariant(), 0.5f, 0.19f, 0.6f, Color.FromArgb(255, 170, 90, 255), Font.Pricedown);
+                T(r.Name.ToUpperInvariant(), 0.5f, 0.19f, 0.7f, UI.Ds.Violet, Font.ChaletComprimeCologne);
                 string head = res.Position == 0 ? "DID NOT FINISH" : res.Medal != null ? res.Medal.ToUpperInvariant() + (r.Kind == RaceType.Drift ? "   " + res.Score.ToString("N0") + " pts" : "   " + RaceSession.FormatTime((int)res.TimeMs)) : "POSITION " + res.Position + "/" + res.Of + "   " + RaceSession.FormatTime((int)res.TimeMs);
                 T(head, 0.5f, 0.25f, 0.55f, Color.White, Font.ChaletComprimeCologne);
                 float y = 0.31f;

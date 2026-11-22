@@ -1,4 +1,11 @@
 # Changelog
+## 0.16.0 (2026-11-22): new design system, new phone
+- Design system (UI/Design.cs): palette, condensed display + body typography, rounded shapes (anti-stepped corners), gradients, easing/spring motion, text fitting with ellipsis, MIDNIGHT CLUB wordmark. Pricedown removed everywhere.
+- Vector icon set (16 app icons + UI glyphs) drawn from rectangles on a 12x12 grid: crisp, no textures needed.
+- Phone rebuilt: real phone body with notch, status bar and home indicator; animated night-city wallpaper; big clock, cash/REP/tier chips; 4x4 icon grid with per-app accent colours, spring highlight, staggered entrance, pulsing badges; next-objective / street-buzz card. Slides up/down. Apps now open INSIDE the phone (header, animated list, scrollbar, description card) instead of a side menu. Leaving an app via an action closes the phone; Back returns to the home screen.
+- Side menus redesigned: kicker + big condensed title, animated violet selection, adjust chevrons, scrollbar, description card, soft left backdrop, slide-in.
+- HUD redesigned: wordmark, rolling cash counter, REP + tier, animated +$ / +REP deltas; new speedometer (big speed, gear badge that turns red at the limiter, 24-segment rev bar), NOS and ability bars under it. HUD hides while the phone or a menu is open (no more overlap).
+- Pursuit HUD, objective pill, style popups (pop-in animation, combo chip), loading screen and welcome screen restyled to match.
 ## 0.15.1 (2026-11-22): NFS-style car screens
 - Studio lighting in garage, showroom and workshop: overhead key + camera-side key spot, purple/cyan rim lights, warm front/rear fills, drawn every frame. Headlights off on display cars (no glare). [HUD] StudioLight scales it (1.0 default).
 - Shallow depth of field focused on the car.

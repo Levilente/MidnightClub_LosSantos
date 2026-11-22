@@ -29,8 +29,9 @@ namespace MidnightClub.UI
         public Action OnOpen;
         public Action<int> OnHighlight;  // called when the selection changes (live previews)
         private int lastHighlight = -1;
-        private const int Visible = 10;
+        public int VisibleRows = 10;
         private int scroll;
+        public int Scroll { get { return scroll; } }
 
         private const float X = 0.03f, W = 0.27f, RowH = 0.034f, HeadH = 0.085f, Top = 0.07f;
 
@@ -45,7 +46,8 @@ namespace MidnightClub.UI
             if (Selected >= Items.Count) Selected = Items.Count - 1;
             if (Selected < 0) Selected = 0;
             if (Selected < scroll) scroll = Selected;
-            if (Selected >= scroll + Visible) scroll = Selected - Visible + 1;
+            if (Selected >= scroll + VisibleRows) scroll = Selected - VisibleRows + 1;
+            if (scroll > Math.Max(0, Items.Count - VisibleRows)) scroll = Math.Max(0, Items.Count - VisibleRows);
         }
 
         /// <summary>Handles input. Returns false when the user backed out of this menu.</summary>
@@ -79,69 +81,79 @@ namespace MidnightClub.UI
             return true;
         }
 
+        // animation state (panel style)
+        private float animSel = -1f, openT;
+
         public void Draw()
         {
             Clamp();
             Theme.FullscreenFrame();
-            float x = X, w = W, y = Top;
-            // header: deep purple with a neon sheen
-            Theme.Rect(x, y, w, HeadH, Theme.PurpleDeep);
-            Theme.Sprite("commonmenu", "gradient_nav", x, y, w, HeadH, Color.FromArgb(150, 168, 85, 247));
-            Theme.Rect(x, y + HeadH - 0.003f, w, 0.003f, Theme.Cyan);
-            Theme.Text("MIDNIGHT CLUB", x + w - 0.008f, y + 0.006f, 0.26f, Color.FromArgb(200, 255, 255, 255), GTA.UI.Font.ChaletComprimeCologne, Alignment.Right);
-            Theme.Text(Title.ToUpperInvariant(), x + 0.012f, y + 0.012f, 0.72f, Color.White, GTA.UI.Font.Pricedown);
-            y += HeadH;
-            Theme.Rect(x, y, w, RowH, Color.FromArgb(240, 0, 0, 0));
-            Theme.Text((Subtitle ?? "").ToUpperInvariant(), x + 0.01f, y + 0.006f, 0.3f, Theme.Cyan, GTA.UI.Font.ChaletLondon);
-            if (Items.Count > 0) Theme.Text((Selected + 1) + " / " + Items.Count, x + w - 0.01f, y + 0.006f, 0.3f, Theme.TextDim, GTA.UI.Font.ChaletLondon, Alignment.Right);
-            y += RowH;
-            int shown = Math.Min(Visible, Items.Count - scroll);
-            Theme.Sprite("commonmenu", "gradient_bgd", x, y, w, RowH * Math.Max(1, shown), Color.FromArgb(240, 255, 255, 255));
-            Theme.Rect(x, y, w, RowH * Math.Max(1, shown), Color.FromArgb(110, 8, 6, 18));
+            openT = Ds.Damp(openT, 1f, 12f);
+            float a = Ds.Clamp01(openT * 1.4f), off = (1f - Ds.EaseOut(openT)) * -0.03f;
+            float x = 0.04f + off, w = 0.26f, y = 0.075f, rh = 0.04f;
+            // soft backdrop on the left third so text always reads
+            Ds.HGrad(0f, 0f, 0.42f, 1f, Ds.A(Color.FromArgb(255, 6, 5, 10), 0.82f * a), Ds.A(Color.FromArgb(255, 6, 5, 10), 0f), 18);
+            // header
+            Ds.Kicker("MIDNIGHT CLUB", x, y, Ds.Violet, a);
+            Ds.T(Ds.Fit(Title.ToUpperInvariant(), 0.85f, w, Ds.Display), x - 0.001f, y + 0.02f, 0.85f, Ds.A(Ds.Text, a), Ds.Display);
+            y += 0.09f;
+            Ds.T(Ds.Fit((Subtitle ?? "").ToUpperInvariant(), 0.25f, w * 0.8f), x, y, 0.25f, Ds.A(Ds.Muted, a));
+            if (Items.Count > 0) Ds.T((Selected + 1) + " / " + Items.Count, x + w, y, 0.25f, Ds.A(Ds.Faint, a), Ds.Body, Alignment.Right);
+            y += 0.03f;
+            Ds.Rect(x, y, w, 0.0016f, Ds.A(Ds.Stroke, a));
+            Ds.Rect(x, y, w * 0.18f, 0.0016f, Ds.A(Ds.Violet, a));
+            y += 0.012f;
+            int shown = Math.Min(VisibleRows, Items.Count - scroll);
+            float target = y + (Selected - scroll) * rh;
+            animSel = animSel < 0 ? target : Ds.Damp(animSel, target, 26f);
+            if (Items.Count > 0)
+            {
+                Ds.Round(x - Ds.Px(0.008f), animSel, w + Ds.Px(0.016f), rh - 0.004f, 0.01f, Ds.A(Ds.Violet, a));
+                Ds.HGrad(x - Ds.Px(0.002f), animSel + 0.003f, w * 0.6f, rh - 0.01f, Ds.A(Color.FromArgb(255, 190, 130, 255), 0.35f * a), Ds.A(Ds.Violet, 0f), 10);
+            }
             bool adjustable = false;
-            for (int i = scroll; i < Items.Count && i < scroll + Visible; i++)
+            for (int i = scroll; i < Items.Count && i < scroll + VisibleRows; i++)
             {
                 var it = Items[i]; bool sel = i == Selected;
-                if (sel)
-                {
-                    Theme.Sprite("commonmenu", "gradient_nav", x, y, w, RowH, Color.FromArgb(255, 168, 85, 247));
-                    Theme.Rect(x, y, 0.003f, RowH, Color.White);
-                    adjustable = it.Enabled && it.OnAdjust != null;
-                }
-                var c = !it.Enabled ? Color.FromArgb(150, 150, 150, 165) : Color.White;
-                Theme.Text(it.Label, x + 0.011f, y + 0.0045f, 0.34f, c);
+                if (sel) adjustable = it.Enabled && it.OnAdjust != null;
                 string v = it.Value != null ? it.Value() : null;
+                float vw = string.IsNullOrEmpty(v) ? 0 : Math.Min(w * 0.5f, Ds.Width(v, 0.3f) + (sel && it.OnAdjust != null ? Ds.Px(0.03f) : 0));
+                var c = !it.Enabled ? Ds.Faint : sel ? Color.White : Color.FromArgb(255, 214, 210, 230);
+                Ds.T(Ds.Fit(it.Label, 0.33f, w - vw - Ds.Px(0.015f)), x + Ds.Px(0.004f), y + 0.0075f, 0.33f, Ds.A(c, a));
                 if (!string.IsNullOrEmpty(v))
                 {
-                    if (sel && it.OnAdjust != null)
+                    if (sel && it.OnAdjust != null && it.Enabled)
                     {
-                        Theme.Text(v, x + w - 0.022f, y + 0.0045f, 0.34f, c, GTA.UI.Font.ChaletLondon, Alignment.Right);
-                        Theme.Sprite("commonmenu", "arrowright", x + w - 0.018f, y + 0.008f, 0.01f, 0.018f, Color.White);
+                        Icons.Draw("chevron", x + w - Ds.Px(0.002f), y + rh / 2 - 0.002f, 0.018f, Ds.A(Color.White, a), Ds.A(Ds.Violet, a));
+                        Ds.T(Ds.Fit(v, 0.3f, w * 0.5f), x + w - Ds.Px(0.014f), y + 0.009f, 0.3f, Ds.A(Color.White, a), Ds.Body, Alignment.Right);
                     }
-                    else Theme.Text(v, x + w - 0.01f, y + 0.0045f, 0.34f, c, GTA.UI.Font.ChaletLondon, Alignment.Right);
+                    else Ds.T(Ds.Fit(v, 0.3f, w * 0.5f), x + w - Ds.Px(0.002f), y + 0.009f, 0.3f, Ds.A(sel ? Color.White : Ds.Muted, a), Ds.Body, Alignment.Right);
                 }
-                y += RowH;
+                y += rh;
             }
-            if (Items.Count > Visible)
+            if (Items.Count > VisibleRows)
             {
-                Theme.Rect(x, y, w, RowH * 0.8f, Color.FromArgb(220, 0, 0, 0));
-                Theme.Sprite("commonmenu", "shop_arrows_upanddown", x + w / 2f - 0.008f, y + 0.002f, 0.016f, RowH * 0.75f, Color.White);
-                y += RowH * 0.8f;
+                float th = rh * VisibleRows, top = y - rh * shown;
+                Ds.Rect(x + w + Ds.Px(0.014f), top, Ds.Px(0.002f), th, Ds.A(Ds.Stroke, a));
+                Ds.Rect(x + w + Ds.Px(0.014f), top + th * scroll / Items.Count, Ds.Px(0.002f), th * VisibleRows / Items.Count, Ds.A(Ds.Violet, a));
             }
             if (Items.Count > 0 && Items[Selected].Description != null)
             {
                 var d = Items[Selected].Description();
                 if (!string.IsNullOrEmpty(d))
                 {
-                    y += 0.006f;
-                    int lines = 1 + d.Length / 58;
-                    Theme.Card(x, y, w, 0.016f + lines * 0.024f);
-                    Theme.Text(d, x + 0.011f, y + 0.007f, 0.3f, Color.White, GTA.UI.Font.ChaletLondon, Alignment.Left, w - 0.02f);
+                    y += 0.014f;
+                    int lines = 1 + (int)(Ds.Width(d, 0.28f) / (w - Ds.Px(0.02f)));
+                    Ds.Round(x - Ds.Px(0.008f), y, w + Ds.Px(0.016f), 0.022f + lines * 0.026f, 0.012f, Ds.A(Ds.Surface, 0.94f * a));
+                    Ds.T(d, x + Ds.Px(0.004f), y + 0.01f, 0.28f, Ds.A(Ds.Muted, a), Ds.Body, Alignment.Left, w - Ds.Px(0.012f));
                 }
             }
             if (adjustable) Buttons.Draw(Control.FrontendAccept, "Select", Control.FrontendCancel, "Back", Control.FrontendRight, "Change", Control.FrontendLeft, "");
             else Buttons.Draw(Control.FrontendAccept, "Select", Control.FrontendCancel, "Back", Control.FrontendDown, "Navigate");
         }
+
+        /// <summary>Restarts the open animation (called when the menu becomes current).</summary>
+        public void Reanimate() { openT = 0f; animSel = -1f; }
 
         private static void Rect(float x, float y, float w, float h, Color c) { Theme.Rect(x, y, w, h, c); }
 
@@ -159,11 +171,15 @@ namespace MidnightClub.UI
     {
         private readonly Stack<Menu> stack = new Stack<Menu>();
         public bool IsOpen { get { return stack.Count > 0; } }
+        /// <summary>True while the current menus are shown inside the phone.</summary>
+        public bool PhoneStyle;
+        public static Action<Menu> PhoneRenderer;
         public Menu Current { get { return stack.Count > 0 ? stack.Peek() : null; } }
 
-        public void Open(Menu m) { stack.Clear(); Push(m); }
-        public void Push(Menu m) { stack.Push(m); if (m.OnOpen != null) m.OnOpen(); m.ResetHighlight(); }
-        public void Close() { stack.Clear(); }
+        public void Open(Menu m) { stack.Clear(); PhoneStyle = false; ClosedByBack = false; Push(m); }
+        public void Push(Menu m) { stack.Push(m); if (m.OnOpen != null) m.OnOpen(); m.ResetHighlight(); m.Reanimate(); }
+        public bool ClosedByBack;
+        public void Close() { stack.Clear(); PhoneStyle = false; ClosedByBack = false; }
         public void Pop() { if (stack.Count > 0) stack.Pop(); if (Current != null && Current.OnOpen != null) Current.OnOpen(); }
 
         public void Tick()
@@ -173,8 +189,11 @@ namespace MidnightClub.UI
             if (!m.ProcessInput())
             {
                 if (m.OnBack != null) m.OnBack(); else Pop();
+                if (!IsOpen) ClosedByBack = true;
             }
-            if (IsOpen) Current.Draw();
+            if (!IsOpen) PhoneStyle = false;
+            else if (PhoneStyle && PhoneRenderer != null) PhoneRenderer(Current);
+            else Current.Draw();
         }
     }
 }

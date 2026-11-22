@@ -267,7 +267,7 @@ namespace MidnightClub.Racing
             if (Player.Finished) t = Player.FinishTime;
             Rect(0.80f, 0.30f, 0.18f, Def.HasOpponents ? 0.22f : 0.17f, Panel);
             float y = 0.305f;
-            if (Def.HasOpponents) { Text(pos + "/" + Racers.Count, 0.97f, y, 1.0f, Color.White, Font.Pricedown, Alignment.Right); y += 0.075f; }
+            if (Def.HasOpponents) { Text(pos + "/" + Racers.Count, 0.97f, y, 1.0f, Color.White, Font.ChaletComprimeCologne, Alignment.Right); y += 0.075f; }
             Text(Def.Name.ToUpperInvariant(), 0.97f, y, 0.3f, Purple, Font.ChaletLondon, Alignment.Right); y += 0.025f;
             if (Def.Kind == RaceType.Circuit) { Text("LAP " + Math.Min(Def.Laps, LapOf(Player)) + "/" + Def.Laps, 0.97f, y, 0.42f, Color.White, Font.ChaletComprimeCologne, Alignment.Right); y += 0.035f; }
             Text("TIME " + FormatTime(t), 0.97f, y, 0.42f, Color.White, Font.ChaletComprimeCologne, Alignment.Right); y += 0.035f;
@@ -279,7 +279,7 @@ namespace MidnightClub.Racing
 
         public static string FormatTime(int ms) { if (ms < 0) ms = 0; return (ms / 60000) + ":" + (ms / 1000 % 60).ToString("00") + "." + (ms % 1000 / 10).ToString("00"); }
 
-        private static void BigText(string s) { Text(s, 0.5f, 0.32f, 2.2f, Color.FromArgb(255, 170, 90, 255), Font.Pricedown, Alignment.Center); }
+        private static void BigText(string s) { Text(s, 0.5f, 0.3f, 2.6f, Color.White, Font.ChaletComprimeCologne, Alignment.Center); }
         private static void Rect(float x, float y, float w, float h, Color c) { Function.Call(Hash.DRAW_RECT, x + w / 2f, y + h / 2f, w, h, c.R, c.G, c.B, c.A, false); }
         private static void Text(string s, float x, float y, float scale, Color c, Font f, Alignment a = Alignment.Left)
         { new TextElement(s, new PointF(x * 1280f, y * 720f), scale, c, f, a, true, true).ScaledDraw(); }

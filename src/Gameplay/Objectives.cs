@@ -90,14 +90,14 @@ namespace MidnightClub.Gameplay
             if (saves.Data == null) return;
             var g = Current;
             CurrentText = g == null ? null : g.Text;
-            if (g != null && !RaceManager.IsRacing && !stackOpen() && !Function.Call<bool>(Hash.IS_HELP_MESSAGE_BEING_DISPLAYED))
+            if (g != null && !RaceManager.IsRacing && !stackOpen() && !Function.Call<bool>(Hash.IS_HELP_MESSAGE_BEING_DISPLAYED) && !Police.PursuitManager.AnyActive)
             {
                 // Top-centre pill: clear of help text (top-left), the feed (bottom-left) and the button bar (bottom-right).
-                float w = 0.30f;
-                UI.Theme.Rect(0.5f - w / 2, 0.012f, w, 0.036f, UI.Theme.Panel);
-                UI.Theme.Rect(0.5f - w / 2, 0.012f, 0.003f, 0.036f, UI.Theme.Purple);
-                UI.Theme.Text("OBJECTIVE", 0.5f - w / 2 + 0.01f, 0.019f, 0.24f, UI.Theme.Purple, Font.ChaletLondon);
-                UI.Theme.Text(g.Text, 0.5f - w / 2 + 0.065f, 0.019f, 0.26f, Color.White, Font.ChaletLondon, Alignment.Left, w - 0.075f);
+                float tw = UI.Ds.Width(g.Text, 0.28f), kw = UI.Ds.Width("OBJECTIVE", 0.22f), w = tw + kw + UI.Ds.Px(0.05f), x = 0.5f - w / 2;
+                UI.Ds.Round(x, 0.016f, w, 0.034f, 0.017f, UI.Ds.A(UI.Ds.Surface, 0.92f));
+                UI.Ds.Dot(x + UI.Ds.Px(0.016f), 0.033f, 0.009f, UI.Ds.Violet);
+                UI.Ds.T("OBJECTIVE", x + UI.Ds.Px(0.026f), 0.0255f, 0.22f, UI.Ds.Violet);
+                UI.Ds.T(g.Text, x + UI.Ds.Px(0.026f) + kw + UI.Ds.Px(0.01f), 0.0215f, 0.28f, UI.Ds.Text);
             }
             if (Game.GameTime < nextMilestoneCheck) return;
             nextMilestoneCheck = Game.GameTime + 5000;
