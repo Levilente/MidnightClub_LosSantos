@@ -1,4 +1,10 @@
 # Changelog
+## 0.20.0 (2026-11-22): per-car simcade physics
+- New Simcade system (Vehicles/Simcade.cs). Every car gets its own profile at runtime, derived from its stock handling (mass, drivetrain split, power-to-weight, grip curve), class and tags: archetype (Super, AWD, Sports, Tuner, Drift, Muscle, Classic, FWD, Street, Heavy, Rally) + per-model personality. Written to data\simcade.ini (one section per model, every value editable).
+- While you drive it, that model's handling is retuned (grip, slip angle, low-speed wheelspin, brakes, lower centre of mass; tyre compounds stack on top) and restored afterwards.
+- Live assists: speed-sensitive steering, anti-spin yaw damping past the car's spin angle (drift cars allow much more), drift sustain on throttle, speed-squared downforce, airborne pitch/roll settling for flat landings.
+- Garage and showroom show the car's handling archetype.
+- config.ini [Simcade]: Enabled, Intensity (0-1.5), SteeringAssist, StabilityAssist.
 ## 0.19.0 (2026-11-22): premium showroom, location markers, no stacked locations
 - Showroom rebuilt: the dealership's whole current offer is parked in an arc on a quiet, studio-lit stage (LSIA apron), each car on a glowing floor ring. Left/right flies the camera smoothly to the next car (no respawn, no HUD flash); right stick / mouse orbits, triggers / mouse wheel zoom, slow showcase drift when idle. Sold cars stay with a red ring. Test drive starts at the dealership and returns to the stage.
 - New in-world location markers for dealerships, garages, workshops and races: pulsing ring on the real ground, soft light column, floating rotating icon, and a 3D label (name + action / price / lock reason) when close.

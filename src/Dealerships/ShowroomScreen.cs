@@ -307,7 +307,8 @@ namespace MidnightClub.Dealerships
                 right.Add(""); right.Add("CONDITION  " + cond + "%"); right.Add(item.Preview.Stats.DistanceKm.ToString("0") + " KM  ·  " + item.Preview.Mods.Count + " MODS"); right.Add("SELLER  " + item.Seller.ToUpperInvariant());
             }
             Studio.CarStrip(item.Badge != null ? item.Badge.ToUpperInvariant() : "IN STOCK", v.DisplayName.ToUpperInvariant(),
-                v.Make.ToUpperInvariant() + "   " + VehicleRegistry.ClassName(v.Class).ToUpperInvariant() + "   TIER " + v.Tier,
+                v.Make.ToUpperInvariant() + "   " + VehicleRegistry.ClassName(v.Class).ToUpperInvariant() + "   TIER " + v.Tier
+                    + (Simcade.Active && Selected != null && Selected.Exists() ? "   " + Simcade.Instance.For(Selected).Archetype.ToUpperInvariant() + " HANDLING" : ""),
                 new[] { v.MaxSpeed / maxSpeed, v.Acceleration / maxAccel, v.Braking / maxBrake, v.Traction / maxGrip }, right.ToArray(),
                 "<  " + (index + 1) + " / " + stock.Count + "  >");
             if (note != null && Game.GameTime < noteUntil)

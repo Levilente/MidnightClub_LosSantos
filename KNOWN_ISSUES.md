@@ -28,3 +28,5 @@
 
 - 0.18.0: shard banner colour indices (purple/gold/blue) are best guesses; if a banner is invisible or oddly coloured, report it.
 - 0.18.0: existing saves start the exploration from the starter set too (already-used workshops/dealers must be rediscovered by driving near them).
+
+- 0.20.0: GTA shares handling per model, so traffic cars of the same model as yours drive with your car's simcade handling while you are in it (restored when you leave it).

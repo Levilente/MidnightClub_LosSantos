@@ -26,6 +26,7 @@ namespace MidnightClub.Core
         public bool LoadOnlineMap = true;
         public bool CustomCameras = true;
         public bool FitmentEnabled = true;
+        public bool SimcadeEnabled = true; public float SimcadeIntensity = 1f, SimcadeSteerAssist = 1f, SimcadeStability = 1f;
         public bool PoliceEnabled = true;
         public bool AlwaysNight = false;
         public float TrafficDensity = 1f, ParkedDensity = 1f;
@@ -73,6 +74,10 @@ namespace MidnightClub.Core
             c.LoadOnlineMap = Get(s, "World", "LoadOnlineMap", c.LoadOnlineMap);
             c.CustomCameras = Get(s, "Camera", "Enabled", c.CustomCameras);
             c.FitmentEnabled = Get(s, "Fitment", "Enabled", c.FitmentEnabled);
+            c.SimcadeEnabled = Get(s, "Simcade", "Enabled", c.SimcadeEnabled);
+            c.SimcadeIntensity = Get(s, "Simcade", "Intensity", c.SimcadeIntensity);
+            c.SimcadeSteerAssist = Get(s, "Simcade", "SteeringAssist", c.SimcadeSteerAssist);
+            c.SimcadeStability = Get(s, "Simcade", "StabilityAssist", c.SimcadeStability);
             c.PoliceEnabled = Get(s, "Police", "Enabled", c.PoliceEnabled);
             c.AlwaysNight = Get(s, "World", "AlwaysNight", c.AlwaysNight);
             c.TrafficDensity = Get(s, "World", "TrafficDensity", c.TrafficDensity); c.ParkedDensity = Get(s, "World", "ParkedDensity", c.ParkedDensity);

@@ -41,7 +41,8 @@ namespace MidnightClub.Vehicles
             var car = vehicles.Current; var rec = vehicles.CurrentRecord;
             if (car == null || !car.Exists() || rec == null) { RestoreGrip(); return; }
             ApplyTo(car, rec);
-            ApplyGrip(car, CompoundGrip[Math.Max(0, Math.Min(4, rec.TyreCompound))]);
+            if (Simcade.Active) RestoreGrip();     // simcade owns the handling and stacks the compound itself
+            else ApplyGrip(car, CompoundGrip[Math.Max(0, Math.Min(4, rec.TyreCompound))]);
         }
 
         /// <summary>Writes the record's stance onto any spawned car (driven or parked in a garage).</summary>

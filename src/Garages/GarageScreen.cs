@@ -193,6 +193,8 @@ namespace MidnightClub.Garages
             int cond = (int)Math.Round(Math.Max(0, Math.Min(100, (r.EngineHealth + r.BodyHealth) / 20f)));
             float[] stats = info == null ? null : new[] { info.MaxSpeed / maxSpeed, info.Acceleration / maxAccel, info.Braking / maxBrake, info.Traction / maxGrip };
             string sub = info == null ? r.Model : info.Make.ToUpperInvariant() + "   " + VehicleRegistry.ClassName(info.Class).ToUpperInvariant() + "   TIER " + info.Tier;
+            var cv = cars[index].Value;
+            if (Simcade.Active && cv != null && cv.Exists()) sub += "   " + Simcade.Instance.For(cv).Archetype.ToUpperInvariant() + " HANDLING";
             Studio.CarStrip(r.Favorite ? "FAVOURITE" : "MY GARAGE", mgr.Title(r).ToUpperInvariant(), sub, stats,
                 new[] { "$" + PricingEngine.EstimatedValue(info, r.Stats.DistanceKm, r.EngineHealth, r.BodyHealth).ToString("N0"), "ESTIMATED VALUE", "",
                         "CONDITION  " + cond + "%", r.Stats.DistanceKm.ToString("0.0") + " KM  ·  BEST " + r.Stats.TopSpeedKmh.ToString("0") + " KM/H", "PLATE  " + r.Plate },
