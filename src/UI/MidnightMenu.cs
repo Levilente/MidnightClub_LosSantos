@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using GTA;
+using GTA.Native;
 using MidnightClub.Core;
 using MidnightClub.Economy;
 using MidnightClub.Persistence;
@@ -17,6 +18,8 @@ namespace MidnightClub.UI
         private readonly VehicleRegistry registry;
         private readonly VehicleManager vehicles;
         private readonly Config cfg;
+
+        public Garages.GarageManager Garages { get; set; }
 
         public MidnightMenu(MenuStack stack, GameModeManager modes, SaveManager saves, VehicleRegistry registry, VehicleManager vehicles, Config cfg)
         {
@@ -37,6 +40,8 @@ namespace MidnightClub.UI
                 m.Items.Clear();
                 var d = saves.Data;
                 m.Add(new MenuItem("My vehicles", () => stack.Push(MyVehicles())) { Value = () => d.Vehicles.Count.ToString() });
+                m.Add(new MenuItem("Garages", () => stack.Push(GarageList())) { Value = () => d.Garages.Count + " owned" });
+                m.Add(new MenuItem("Finances", () => stack.Push(Finances())) { Value = () => "$" + d.Cash.ToString("N0") });
                 m.Add(new MenuItem("Vehicle catalogue", () => stack.Push(Catalogue())) { Value = () => registry.Count.ToString(),
                     Description = () => "Every car available in your game build, with Midnight Club prices." });
                 m.Add(new MenuItem("Edit driver", () => { stack.Close(); modes.EditCharacter(); }) { Description = () => "Stop the car first." });
@@ -75,7 +80,10 @@ namespace MidnightClub.UI
                 m.Items.Clear();
                 var info = Info(r);
                 bool current = r.Id == saves.Data.CurrentVehicleId;
-                m.Add(new MenuItem(current ? "Currently driving" : "Drive this car", () => { if (modes.SwitchVehicle(r)) stack.Close(); }) { Enabled = !current });
+                m.Add(new MenuItem(current ? "Currently driving" : (cfg.DevMode ? "Drive this car (dev)" : "Take out"), () => { if (modes.SwitchVehicle(r)) stack.Close(); })
+                    { Enabled = !current, Description = () => cfg.DevMode ? null : "Cars are taken out at their home garage." });
+                m.Add(new MenuItem("Home garage") { Value = () => Garages == null ? "-" : Garages.GarageName(r.GarageId) });
+                m.Add(new MenuItem("Favourite", () => { r.Favorite = !r.Favorite; saves.IsDirty = true; }) { Value = () => r.Favorite ? "Yes" : "No" });
                 m.Add(new MenuItem("Nickname", () => { var s = Game.GetUserInput(r.Nickname ?? ""); if (s != null) { r.Nickname = s.Trim().Length == 0 ? null : s.Trim(); saves.IsDirty = true; } }) { Value = () => r.Nickname ?? "-" });
                 m.Add(new MenuItem("License plate", () => modes.SetPlate(r, Game.GetUserInput(r.Plate ?? ""))) { Value = () => r.Plate });
                 m.Add(new MenuItem("Condition") { Value = () => Condition(r) + "%" });
@@ -85,6 +93,45 @@ namespace MidnightClub.UI
                 m.Add(new MenuItem("Races won / entered") { Value = () => r.Stats.RacesWon + " / " + r.Stats.RacesEntered });
                 m.Add(new MenuItem("Purchase price") { Value = () => "$" + r.PurchasePrice.ToString("N0") });
                 m.Add(new MenuItem("Estimated value") { Value = () => "$" + PricingEngine.EstimatedValue(info, r.Stats.DistanceKm, r.EngineHealth, r.BodyHealth).ToString("N0") });
+            };
+            return m;
+        }
+
+        private Menu GarageList()
+        {
+            var m = new Menu("Garages", "Owned and for sale");
+            m.OnOpen = () =>
+            {
+                m.Items.Clear();
+                if (Garages == null) return;
+                foreach (var g in Garages.Definitions.OrderBy(x => Garages.Owned(x.Id) == null).ThenBy(x => x.Price))
+                {
+                    var def = g; bool owned = Garages.Owned(def.Id) != null;
+                    m.Add(new MenuItem(def.Name, () => { Function.Call(Hash.SET_NEW_WAYPOINT, def.Position.X, def.Position.Y); GTA.UI.Notification.PostTicker("GPS set to " + def.Name + ".", true, false); })
+                    {
+                        Value = () => owned ? Garages.Used(def.Id) + " / " + Garages.Capacity(def.Id) : "$" + def.Price.ToString("N0"),
+                        Description = () => def.Category + (owned ? " garage, owned." : " garage, for sale.") + " Select to set GPS."
+                    });
+                }
+            };
+            return m;
+        }
+
+        private Menu Finances()
+        {
+            var m = new Menu("Finances", "Recent transactions");
+            m.OnOpen = () =>
+            {
+                m.Items.Clear();
+                var d = saves.Data;
+                m.Add(new MenuItem("Cash") { Value = () => "$" + d.Cash.ToString("N0") });
+                m.Add(new MenuItem("REP") { Value = () => d.Rep.ToString("N0") });
+                foreach (var e in Enumerable.Reverse(d.Ledger).Take(15))
+                {
+                    var entry = e;
+                    m.Add(new MenuItem(entry.Description ?? entry.Category)
+                    { Value = () => (entry.Cash >= 0 ? "~g~+$" : "~r~-$") + Math.Abs(entry.Cash).ToString("N0") + (entry.Rep != 0 ? "~s~ +" + entry.Rep + " REP" : "") });
+                }
             };
             return m;
         }

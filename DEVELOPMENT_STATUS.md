@@ -4,8 +4,9 @@
 |---|---|
 | 0 Technical research | Done (TECHNICAL_NOTES.md) |
 | 1 Core framework | **Working in-game** (user-tested 2026-11-22 on 1.0.1158.16) |
-| 2 Character and vehicles | **Code complete, compiled, awaiting in-game test** |
-| 3–12 | Not started |
+| 2 Character and vehicles | Partly user-tested (registry 615 cars, profile load OK); creator fix in 0.2.1 |
+| 3 Economy and garages | **Code complete, compiled, awaiting in-game test** |
+| 4–12 | Not started |
 
 ## Phase 1 contents
 - `Core/GameModeManager`: STORY_MODE / ENTERING / MIDNIGHT_CLUB / EXITING / ERROR_RECOVERY state machine; refuses to enter during missions, cutscenes, character switches, while wanted or dead; ignores F7 during transitions.
@@ -30,3 +31,11 @@
 - `Economy/PricingEngine`: own prices (class base × exponential performance curve, rounded, configurable multiplier and clamps) + estimated value with wear/condition.
 - Multiple owned cars: switch car (stopped), nickname, custom plate, per-car stats/condition/value.
 - F6 menu: My vehicles, Vehicle catalogue (by class), Edit driver, Save, Return to Story Mode. `DevMode=true` in config.ini lets the catalogue add any car for free, for testing.
+
+## Phase 3 contents
+- `Economy/TransactionManager`: the only place cash/REP change; validates amounts, never overspends, deduplicates by transaction id, writes a ledger (last 200), raises `MoneyChangedEvent`, saves immediately after purchases.
+- `Garages/GarageDefinitions`: `data\garages.ini` (6 defaults: Small → Premium, editable/extendable: position, price, capacity, upgrades, career tier).
+- `Garages/GarageManager`: map blips (owned / for sale), drive-in markers, E to enter; buy, capacity upgrades, take a stored car out, set a car's home garage. Car switching now only works at the car's home garage (DevMode bypasses).
+- F6 menu: Garages (GPS to any garage), Finances (cash, REP, recent transactions), vehicle home garage + favourite.
+- HUD shows +$/-$ changes; tow & repair is charged through the ledger.
+- Tests: 10/10 economy tests + 14/14 save tests.

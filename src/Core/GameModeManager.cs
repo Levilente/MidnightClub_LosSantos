@@ -25,6 +25,8 @@ namespace MidnightClub.Core
         private readonly CharacterCreator creator;
         private readonly string dataDir;
         private StorySnapshot story;
+        public Garages.GarageManager Garages { get; set; }
+        public TransactionManager Money { get; set; }
         private int lastAutoSave;
         private int onFootSince = -1;
 
@@ -238,7 +240,7 @@ namespace MidnightClub.Core
             try { if (State == GameMode.MIDNIGHT_CLUB) { SnapshotProfile(); saves.Save(); } } catch { }
             RestoreStory();
             try { if (Screen.IsFadedOut || Screen.IsFadingOut) Screen.FadeIn(0); } catch { }
-            State = GameMode.STORY_MODE;
+            SetState(GameMode.STORY_MODE);   // lets subsystems remove blips etc.
         }
 
         // ---------------------------------------------------------------- per tick
@@ -337,6 +339,18 @@ namespace MidnightClub.Core
         {
             if (!InMidnightClub || rec == null || rec.Id == saves.Data.CurrentVehicleId) return false;
             if (!Stopped("switch cars")) return false;
+            var cur = saves.Data.Vehicles.Find(v => v.Id == saves.Data.CurrentVehicleId);
+            if (!cfg.DevMode && Garages != null)
+            {
+                var at = Garages.AtGarage;
+                if (at == null || Garages.Owned(at.Id) == null) { Notification.PostTicker("Drive to one of your ~g~garages~s~ to change cars.", true, false); return false; }
+                if (rec.GarageId != at.Id) { Notification.PostTicker("That car is stored at ~g~" + Garages.GarageName(rec.GarageId) + "~s~.", true, false); return false; }
+                if (cur != null && cur.GarageId == null)
+                {
+                    if (Garages.Used(at.Id) >= Garages.Capacity(at.Id)) { Notification.PostTicker("~r~No room~s~ here to park your current car.", true, false); return false; }
+                    cur.GarageId = at.Id;
+                }
+            }
             var ped = Game.Player.Character;
             var old = vehicles.Current;
             var pos = old != null && old.Exists() ? old.Position : ped.Position;
@@ -377,6 +391,7 @@ namespace MidnightClub.Core
             if (!cfg.DevMode || !InMidnightClub) return;
             var rec = VehicleManager.CreateRecord(info, 0);
             if (!saves.TryBeginTransaction("dev-" + rec.Id)) return;
+            if (Garages != null) rec.GarageId = Garages.FindFreeGarage();
             saves.Data.Vehicles.Add(rec); saves.IsDirty = true;
             Notification.PostTicker("~y~DEV~s~: added " + info.Name + " to My vehicles.", true, false);
         }
@@ -400,8 +415,7 @@ namespace MidnightClub.Core
                 ped.SetIntoVehicle(car, VehicleSeat.Driver);
                 car.IsEngineRunning = true;
 
-                long cost = Math.Min(d.Cash, cfg.RecoveryCost);
-                d.Cash -= cost; saves.IsDirty = true;
+                long cost = Money != null ? Money.ChargeUpTo(cfg.RecoveryCost, "repair", "Tow & repair") : 0;
                 Screen.FadeIn(400);
                 Notification.PostTicker("~p~MIDNIGHT CLUB~s~: " + why + ". Repair & recovery: ~r~-$" + cost, true, false);
                 Log.Info("Vehicle recovered (" + why + "), charged " + cost);

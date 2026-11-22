@@ -14,6 +14,7 @@ On first run the mod creates `scripts\MidnightClub\` with `config.ini`, `Midnigh
 ## Controls (Phase 1)
 - **F7**: enter / leave Midnight Club Mode (configurable: `[General] ToggleKey`)
 - **F6**: Midnight Club menu (`[General] MenuKey`). Arrows navigate, Left/Right change values, Enter selects, Backspace/Esc goes back.
+- **E** at a garage marker: garage menu (buy, upgrade, take cars out).
 - `[General] DevMode=true`: catalogue can add any car for free (testing).
 
 ## Build

@@ -36,7 +36,11 @@ namespace MidnightClub
                 var registry = new VehicleRegistry();
                 modes = new GameModeManager(cfg, saves, new CharacterManager(), vehicles, registry, Path.Combine(dir, "data"));
                 Directory.CreateDirectory(Path.Combine(dir, "data"));
-                menu = new MidnightMenu(new MenuStack(), modes, saves, registry, vehicles, cfg);
+                var stack = new MenuStack();
+                var money = new Economy.TransactionManager(saves);
+                var garages = new Garages.GarageManager(saves, money, registry, vehicles, modes, stack, Path.Combine(dir, "data"));
+                modes.Garages = garages; modes.Money = money;
+                menu = new MidnightMenu(stack, modes, saves, registry, vehicles, cfg) { Garages = garages };
                 EventBus.Subscribe<ModeChangedEvent>(e => menu.Close());
                 hud = new MainHUD(cfg.HudX, cfg.HudY);
                 Interval = 0;

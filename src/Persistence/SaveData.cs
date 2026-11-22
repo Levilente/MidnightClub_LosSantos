@@ -20,6 +20,8 @@ namespace MidnightClub.Persistence
         [DataMember] public float PosX, PosY, PosZ, Heading;
         [DataMember] public bool HasPosition;
         [DataMember] public List<string> ProcessedTransactions = new List<string>();
+        [DataMember] public List<OwnedGarage> Garages = new List<OwnedGarage>();
+        [DataMember] public List<LedgerEntry> Ledger = new List<LedgerEntry>();
         [DataMember] public List<KeyValue> Extensions = new List<KeyValue>();
     }
 
@@ -48,7 +50,8 @@ namespace MidnightClub.Persistence
         [DataMember] public float EngineHealth = 1000f, BodyHealth = 1000f;
         [DataMember] public long PurchasePrice;
         [DataMember] public string PurchasedAtUtc;
-        [DataMember] public string GarageId;
+        [DataMember] public string GarageId;     // home garage (null = no garage yet)
+        [DataMember] public bool Favorite;
         [DataMember] public VehicleStats Stats = new VehicleStats();
     }
 
@@ -64,4 +67,21 @@ namespace MidnightClub.Persistence
 
     [DataContract] public sealed class ModEntry { [DataMember] public int Type; [DataMember] public int Index; public ModEntry() { } public ModEntry(int t, int i) { Type = t; Index = i; } }
     [DataContract] public sealed class KeyValue { [DataMember] public string Key; [DataMember] public string Value; }
+
+    [DataContract] public sealed class OwnedGarage
+    {
+        [DataMember] public string Id;
+        [DataMember] public int UpgradeLevel;
+        [DataMember] public string PurchasedAtUtc;
+    }
+
+    [DataContract] public sealed class LedgerEntry
+    {
+        [DataMember] public string Utc;
+        [DataMember] public string Category;
+        [DataMember] public string Description;
+        [DataMember] public long Cash;
+        [DataMember] public long Rep;
+        [DataMember] public long BalanceAfter;
+    }
 }

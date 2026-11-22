@@ -71,6 +71,8 @@ namespace MidnightClub.Persistence
         {
             // Future format upgrades go here: if (d.FormatVersion == 1) { ...; d.FormatVersion = 2; }
             foreach (var v in d.Vehicles) { if (v.Mods == null) v.Mods = new System.Collections.Generic.List<ModEntry>(); if (v.Stats == null) v.Stats = new VehicleStats(); }
+            if (d.Garages == null) d.Garages = new System.Collections.Generic.List<OwnedGarage>();
+            if (d.Ledger == null) d.Ledger = new System.Collections.Generic.List<LedgerEntry>();
             if (d.ProcessedTransactions == null) d.ProcessedTransactions = new System.Collections.Generic.List<string>();
             if (d.Extensions == null) d.Extensions = new System.Collections.Generic.List<KeyValue>();
         }
@@ -85,6 +87,7 @@ namespace MidnightClub.Persistence
                 Data.Revision++;
                 Data.ModVersion = Core.Version.Text;
                 Data.SavedAtUtc = DateTime.UtcNow.ToString("o");
+                if (Data.Ledger.Count > 200) Data.Ledger.RemoveRange(0, Data.Ledger.Count - 200);
                 if (Data.ProcessedTransactions.Count > 500)
                     Data.ProcessedTransactions.RemoveRange(0, Data.ProcessedTransactions.Count - 500);
 

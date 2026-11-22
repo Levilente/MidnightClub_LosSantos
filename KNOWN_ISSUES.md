@@ -8,3 +8,6 @@
 7. Editing the driver while seated: the preview camera may clip into the car on some models.
 8. First-time character creation happens standing on the street at the spawn point; traffic is cleared once but may drive in.
 9. The registry includes every vehicle the game reports for the allowed classes; some special/mission variants may need hiding via `data\vehicles.ini` (`Enabled=false`).
+10. Garage positions are a first pass (public parking lots) and not checked in-game; adjust X/Y/Z in `data\garages.ini` if a marker sits somewhere awkward.
+11. Garages are drive-in points for now; walk-in interiors, vehicle display, lighting and decoration come with Phase 5 (Online interiors).
+12. Career-tier requirements on garages are shown but not enforced until the career system (Phase 7).

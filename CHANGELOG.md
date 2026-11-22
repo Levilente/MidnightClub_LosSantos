@@ -1,4 +1,9 @@
 # Changelog
+## 0.3.0-phase3 (2026-11-22)
+- Economy: TransactionManager with ledger and duplicate protection; HUD money popups; Finances menu.
+- Garages: 6 purchasable, upgradable garages (data\\garages.ini), map blips, drive-in markers, store/take out cars, home garages, favourites.
+- Car switching moved to garages (DevMode still allows it anywhere).
+- Fix: blips/state cleaned up properly on script reload.
 ## 0.2.1 (2026-11-22)
 - Fix: character creator never opened for a new profile (default appearance marked the character as created first).
 - Spawned cars are clean (dirt level 0).
