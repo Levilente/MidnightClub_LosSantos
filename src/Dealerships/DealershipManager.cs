@@ -144,6 +144,7 @@ namespace MidnightClub.Dealerships
         private void OpenShowroom(DealershipDefinition d)
         {
             IsBusy = true;
+            EventBus.Publish(new ShowroomOpenedEvent());
             try { new ShowroomScreen(this, d, vehicles, saves).Run(); }
             catch (Exception ex) { Log.Error("Showroom failed", ex); }
             finally { IsBusy = false; }

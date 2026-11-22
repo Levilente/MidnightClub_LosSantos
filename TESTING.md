@@ -81,3 +81,11 @@ Tick items off or note what happened. Logs: `scripts\MidnightClub\MidnightClub.l
 - [ ] Every app opens its screen; backing out returns to the phone home
 - [ ] Messages: welcome + a race invite with "Set GPS"; unread badge; new message sound/notification
 - [ ] Street Buzz fills up after notable results; Rankings shows your place
+
+## Game feel (0.14.0)
+- [ ] F7 shows the MIDNIGHT CLUB title card with a tip while loading
+- [ ] Objective panel top-left; completing one pays and shows the next
+- [ ] Near misses / drafting / air / drift popups at the bottom; combo multiplier; REP when the combo ends
+- [ ] Workshop > Performance > Nitrous kit; hold Shift: boost, blue NOS bar drains and refills, screen effect
+- [ ] At tier 2 Zone unlocks: meter full -> Caps Lock = slow motion; Agro (tier 3) and Roar (tier 4) feel right / not too wild
+- [ ] Phone > Milestones / Ability

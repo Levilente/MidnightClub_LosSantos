@@ -118,8 +118,28 @@ namespace MidnightClub.Workshops
             AddModMenu(m, "Transmission", 13, 0.045, "default");
             AddModMenu(m, "Suspension", 15, 0.03, "side");
             m.Add(Toggle("Turbo", 18, 2500 + bp * 8 / 100));
+            m.Add(new MenuItem("Nitrous kit", () => menus.Push(Nitrous())) { Value = () => rec.NosLevel == 0 ? "None" : "Stage " + rec.NosLevel, Description = () => "Hold Sprint (Shift / A) to fire. Bigger stages: more power, longer burn, faster refill." });
             m.Add(new MenuItem("ECU tune (Midnight Club)", () => menus.Push(Ecu())) { Value = () => rec.EcuLevel == 0 ? "Stock" : "Stage " + rec.EcuLevel,
                 Description = () => "Remapped engine management: +6% power per stage on top of the engine upgrade." });
+            return m;
+        }
+
+        private Menu Nitrous()
+        {
+            var m = new Menu("Nitrous", Title());
+            m.OnOpen = () => focus = "rear";
+            for (int lvl = 0; lvl <= 3; lvl++)
+            {
+                int l = lvl;
+                long price = l == 0 ? 0 : PricingEngine.Round((4000 + bp * 0.03) * l);
+                m.Add(new MenuItem(l == 0 ? "Remove kit" : "Stage " + l + (l == 1 ? " (street)" : l == 2 ? " (sport)" : " (race)"), () =>
+                {
+                    if (rec.NosLevel == l) return;
+                    bool upgrade = l > rec.NosLevel;
+                    if (upgrade && !Pay(price, "nitrous stage " + l)) return;
+                    rec.NosLevel = l; Bought(l == 0 ? "Nitrous removed" : "Nitrous stage " + l, upgrade ? price : 0);
+                }) { Value = () => rec.NosLevel == l ? "~g~INSTALLED" : (l < rec.NosLevel ? "Free" : "$" + price.ToString("N0")) });
+            }
             return m;
         }
 
@@ -439,6 +459,7 @@ namespace MidnightClub.Workshops
             saves.Save();
             Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "PURCHASE", "HUD_LIQUOR_STORE_SOUNDSET", true);
             Flash("~g~" + what);
+            if (price > 0) EventBus.Publish(new WorkshopPurchaseEvent(what));
         }
 
         // ------------------------------------------------------------------ names, camera, HUD

@@ -49,4 +49,10 @@ namespace MidnightClub.Core
 
     /// <summary>Raised right before the Midnight Club profile is written to disk.</summary>
     public sealed class BeforeSaveEvent { public static readonly BeforeSaveEvent Instance = new BeforeSaveEvent(); }
+
+    public sealed class GarageEnteredEvent { }
+    public sealed class ShowroomOpenedEvent { }
+    public sealed class WorkshopPurchaseEvent { public string What; public WorkshopPurchaseEvent(string w) { What = w; } }
+    public sealed class MeetShowoffEvent { }
+    public sealed class StyleEvent { public string Name; public int Points; public StyleEvent(string n, int p) { Name = n; Points = p; } }
 }

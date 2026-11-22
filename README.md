@@ -21,6 +21,8 @@ First run creates `scripts\MidnightClub\` (`config.ini`, `MidnightClub.log`, `sa
 | Garage screen | Left/Right car, Enter drive out, M manage, C customise (executive garages) |
 | Showroom | Left/Right browse, Enter buy, T test drive |
 | Racing | Hold Backspace to quit |
+| Sprint (Shift / A) | Nitrous (with a kit) |
+| Caps Lock / L3+R3 | Special ability (Zone, Agro, Roar) when the meter is full |
 | F9 (DevMode) | Wheel Lab diagnostic |
 
 ## What's in it
@@ -35,6 +37,8 @@ First run creates `scripts\MidnightClub\` (`config.ini`, `MidnightClub.log`, `sa
 - **Career**: 5 tiers, 6 rivals with 3 duels each, 5 clubs with independent reputation and dealership discounts.
 - **Police**: vehicle-only pursuits (no shooting), 4 levels, helicopter, evade/cover, busts, per-car heat.
 - **Living world**: car meets, spontaneous street races at lights, enthusiast traffic, speed traps.
+- **Street style, nitrous, abilities**: near misses, drafting, air and drifts fill a meter for Zone / Agro / Roar; nitrous kits.
+- **New-game flow**: title card, starter objectives, milestones.
 - **Phone**: messages, race invites, Street Buzz news, rankings, calendar and every menu as apps.
 - **Saves**: independent, versioned, validated, atomic with backups; Story saves are never written.
 

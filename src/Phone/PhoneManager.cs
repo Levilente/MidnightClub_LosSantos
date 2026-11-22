@@ -40,6 +40,8 @@ namespace MidnightClub.Phone
         private static readonly Color Tile = Color.FromArgb(230, 32, 24, 52);
         private static readonly Color Purple = Color.FromArgb(255, 170, 90, 255);
 
+        public Func<Menu> MilestonesMenu, AbilityMenu;
+
         public PhoneManager(SaveManager saves, MenuStack stack, MidnightMenu menu, WorldCalendar calendar, RaceManager races, Func<Menu> rivalsMenu, Func<Menu> clubsMenu)
         {
             this.saves = saves; this.stack = stack; this.menu = menu; this.calendar = calendar; this.races = races; this.rivalsMenu = rivalsMenu; this.clubsMenu = clubsMenu;
@@ -56,6 +58,8 @@ namespace MidnightClub.Phone
             apps.Add(new App { Name = "Calendar", Icon = "CAL", Open = CalendarApp });
             apps.Add(new App { Name = "Bank", Icon = "$", Open = () => menu.Finances() });
             apps.Add(new App { Name = "Properties", Icon = "GAR", Open = () => menu.GarageList() });
+            apps.Add(new App { Name = "Milestones", Icon = "WIN", Open = () => MilestonesMenu != null ? MilestonesMenu() : null });
+            apps.Add(new App { Name = "Ability", Icon = "ZONE", Open = () => AbilityMenu != null ? AbilityMenu() : null });
             apps.Add(new App { Name = "Settings", Icon = "SYS", Open = () => menu.MainMenu() });
 
             EventBus.Subscribe<MidnightTickEvent>(e => Tick());

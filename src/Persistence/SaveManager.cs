@@ -75,6 +75,8 @@ namespace MidnightClub.Persistence
             if (d.MeetShowoffs == null) d.MeetShowoffs = new System.Collections.Generic.List<string>();
             if (d.Messages == null) d.Messages = new System.Collections.Generic.List<PhoneMessage>();
             if (d.News == null) d.News = new System.Collections.Generic.List<NewsItem>();
+            if (d.ObjectivesDone == null) d.ObjectivesDone = new System.Collections.Generic.List<string>();
+            if (d.MilestonesDone == null) d.MilestonesDone = new System.Collections.Generic.List<string>();
             if (d.Rivals == null) d.Rivals = new System.Collections.Generic.List<RivalState>();
             if (d.ClubRep == null) d.ClubRep = new System.Collections.Generic.List<KeyValue>();
             if (d.CareerTierNotified <= 0) d.CareerTierNotified = 1;

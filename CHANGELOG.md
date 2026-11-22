@@ -1,4 +1,11 @@
 # Changelog
+## 0.14.0 (2026-11-22): "feels like its own game"
+- Title card while Midnight Club loads (logo + gameplay tips).
+- Street style system in free roam: near misses, drafting (real slipstream power boost, "slingshot" when you pull out), airtime, drifts; combo multiplier up to x5; banked combos pay REP and fill the special-ability meter.
+- Nitrous: workshop kit stages 1-3 (power, burn time, refill), hold Sprint; NOS bar, turbo screen effect, FOV kick and shake through the camera system.
+- Special abilities (Midnight Club 3 style), unlocked by career tier and powered by the style meter, Caps Lock / L3+R3: Zone (slow motion, tier 2), Agro (extra power, throws cars aside, tier 3), Roar (shockwave clears the road ahead, tier 4). Phone > Ability to choose.
+- Starter objective chain on the HUD (garage, workshop, showroom, first win, style, meet, police escape, rival) with rewards; 13 milestones with cash/REP. Phone > Milestones.
+- Optional [World] AlwaysNight (Story time restored when you leave).
 ## 0.13.0 (2026-11-22): Phase 11 polish + Phase 12 pass
 - New Midnight Club speedometer: big digital speed, gear, 20-segment rev bar with shift/redline zones, car name; GTA vehicle/area/street name popups hidden in Midnight Club.
 - Cleanup audit: every system that creates persistent entities (races, world simulation, police, vehicles, character) releases them on leaving the mode and on script reload.

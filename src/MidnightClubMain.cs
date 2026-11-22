@@ -56,6 +56,10 @@ namespace MidnightClub
                 new WorldSim.WorldSimulationManager(saves, money, registry, vehicles, calendar, races, stack, cfg);
                 menu = new MidnightMenu(stack, modes, saves, registry, vehicles, cfg) { Garages = garages, Dealers = dealers, Races = races, RivalMgr = rivals, ClubMgr = clubs };
                 phone = new Phone.PhoneManager(saves, stack, menu, calendar, races, rivals.RivalsMenu, clubs.ClubsMenu);
+                new Gameplay.StyleSystem(saves, money, vehicles);
+                var abilities = new Gameplay.Abilities(saves, vehicles);
+                var objectives = new Gameplay.Objectives(saves, money);
+                phone.MilestonesMenu = objectives.MilestonesMenu; phone.AbilityMenu = abilities.AbilityMenu;
                 EventBus.Subscribe<ModeChangedEvent>(e => menu.Close());
                 hud = new MainHUD(cfg.HudX, cfg.HudY);
                 Interval = 0;

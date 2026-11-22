@@ -31,6 +31,8 @@ namespace MidnightClub.Cameras
     public sealed class CameraSystem
     {
         public static CameraSystem Instance { get; private set; }
+        /// <summary>Set every frame by boost systems (nitrous, abilities): extra FOV and shake.</summary>
+        public static float BoostFov, BoostShake;
 
         private readonly SaveManager saves;
         private readonly VehicleManager vehicles;
@@ -114,6 +116,7 @@ namespace MidnightClub.Cameras
             UpdateLook(dt);
             var p = Profiles[(int)mode];
             if (p.Chase) Chase(car, p, dt); else Mounted(car, ped, p, dt);
+            BoostShake = 0f;
         }
 
         private void Cycle()
@@ -170,7 +173,7 @@ namespace MidnightClub.Cameras
         private float Shake(float amount, float freq)
         {
             float kmh = speed * 3.6f;
-            float s = Clamp((kmh - 60f) / 200f, 0f, 1f) * amount * cfg.CameraShake;
+            float s = (Clamp((kmh - 60f) / 200f, 0f, 1f) + BoostShake) * amount * cfg.CameraShake;
             return s * (float)(Math.Sin(time * freq) * 0.6 + Math.Sin(time * freq * 2.3 + 1.7) * 0.3 + Math.Sin(time * freq * 5.1 + 0.4) * 0.1);
         }
 
@@ -179,7 +182,8 @@ namespace MidnightClub.Cameras
             float kmh = speed * 3.6f;
             float speedPart = (float)Math.Pow(Clamp(kmh / 260f, 0f, 1f), 1.3) * p.SpeedFov;
             float accelPart = Clamp(longG, 0f, 1.2f) * p.AccelFov;
-            return Clamp(p.BaseFov + (speedPart + accelPart) * cfg.CameraFovScale, 30f, 110f);
+            float boost = BoostFov; BoostFov = 0f;
+            return Clamp(p.BaseFov + (speedPart + accelPart) * cfg.CameraFovScale + boost, 30f, 115f);
         }
 
         // ---------------------------------------------------------------- chase cameras

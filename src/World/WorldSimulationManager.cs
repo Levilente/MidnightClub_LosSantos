@@ -57,6 +57,7 @@ namespace MidnightClub.WorldSim
             nextSlowTick = Game.GameTime + 1000;
             try
             {
+                if (cfg.AlwaysNight) { int hr = calendar.Hour; if (hr >= 5 && hr < 20) Function.Call(Hash.SET_CLOCK_TIME, 21, 0, 0); }
                 if (cfg.CarMeets) MeetSlow(car);
                 if (cfg.StreetChallenges && !Busy) ChallengeSlow(car);
                 EnthusiastSlow(car);
@@ -237,6 +238,7 @@ namespace MidnightClub.WorldSim
                 saves.Data.MeetShowoffs.Add(key);
                 money.Earn(0, rep, "meet", "Showed off at " + s.Name, "meet:" + key);
                 Notification.PostTicker("~p~The crowd likes it.~s~ +" + rep + " REP", true, false);
+                EventBus.Publish(new MeetShowoffEvent());
                 stack.Close();
             }) { Value = () => saves.Data.MeetShowoffs.Contains(key) ? "Done" : "", Description = () => "More modifications and a quicker car impress more. Once per meet per night." });
             m.Add(new MenuItem("Race someone from the meet", () => { stack.Close(); MeetRace(s); }) { Description = () => "A one-on-one sprint against a car from the meet." });

@@ -33,6 +33,11 @@ namespace MidnightClub.Persistence
         [DataMember] public List<PhoneMessage> Messages = new List<PhoneMessage>();
         [DataMember] public List<NewsItem> News = new List<NewsItem>();
         [DataMember] public int LastInviteDay = -1;
+        [DataMember] public List<string> ObjectivesDone = new List<string>();
+        [DataMember] public List<string> MilestonesDone = new List<string>();
+        [DataMember] public string SelectedAbility;
+        [DataMember] public long StylePointsTotal;
+        [DataMember] public float BestSpeedKmh;
         [DataMember] public List<RivalState> Rivals = new List<RivalState>();
         [DataMember] public List<KeyValue> ClubRep = new List<KeyValue>();
         [DataMember] public List<RaceResult> RaceHistory = new List<RaceResult>();
@@ -75,7 +80,8 @@ namespace MidnightClub.Persistence
         [DataMember] public float TyreF, TyreR;                      // tyre diameter multiplier, 0 = stock (1.0)
         [DataMember] public int TyreCompound;                        // 0 street, 1 sport, 2 semi-slick, 3 race slick, 4 drift
         [DataMember] public bool LetteredTyres;
-        [DataMember] public float Heat;                               // police attention on this car (0-5)                      // custom-tyre sidewall variation
+        [DataMember] public float Heat;
+        [DataMember] public int NosLevel;                             // 0 none, 1-3 nitrous kit                               // police attention on this car (0-5)                      // custom-tyre sidewall variation
         [DataMember] public List<string> BuildHistory = new List<string>();
         [DataMember] public float EngineHealth = 1000f, BodyHealth = 1000f;
         [DataMember] public long PurchasePrice;

@@ -26,6 +26,7 @@ namespace MidnightClub.Core
         public bool CustomCameras = true;
         public bool FitmentEnabled = true;
         public bool PoliceEnabled = true;
+        public bool AlwaysNight = false;
         public float TrafficDensity = 1f, ParkedDensity = 1f;
         public int MaxEnthusiasts = 4;
         public bool StreetChallenges = true, CarMeets = true, SpeedTraps = true;
@@ -70,6 +71,7 @@ namespace MidnightClub.Core
             c.CustomCameras = Get(s, "Camera", "Enabled", c.CustomCameras);
             c.FitmentEnabled = Get(s, "Fitment", "Enabled", c.FitmentEnabled);
             c.PoliceEnabled = Get(s, "Police", "Enabled", c.PoliceEnabled);
+            c.AlwaysNight = Get(s, "World", "AlwaysNight", c.AlwaysNight);
             c.TrafficDensity = Get(s, "World", "TrafficDensity", c.TrafficDensity); c.ParkedDensity = Get(s, "World", "ParkedDensity", c.ParkedDensity);
             c.MaxEnthusiasts = Get(s, "World", "MaxEnthusiastCars", c.MaxEnthusiasts);
             c.StreetChallenges = Get(s, "World", "StreetChallenges", c.StreetChallenges); c.CarMeets = Get(s, "World", "CarMeets", c.CarMeets); c.SpeedTraps = Get(s, "World", "SpeedTraps", c.SpeedTraps);
