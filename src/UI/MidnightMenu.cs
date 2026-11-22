@@ -36,6 +36,10 @@ namespace MidnightClub.UI
             stack.Open(Main());
         }
 
+        public void OpenApp(Menu m) { stack.Open(m); }
+        public Menu MainMenu() { return Main(); }
+        public GameModeManager Modes { get { return modes; } }
+
         private Menu Main()
         {
             var m = new Menu("Midnight Club", "Main menu");
@@ -60,7 +64,7 @@ namespace MidnightClub.UI
             return m;
         }
 
-        private Menu MyVehicles()
+        public Menu MyVehicles()
         {
             var m = new Menu("My vehicles", "Your collection");
             m.OnOpen = () =>
@@ -108,7 +112,7 @@ namespace MidnightClub.UI
             return m;
         }
 
-        private Menu GarageList()
+        public Menu GarageList()
         {
             var m = new Menu("Garages", "Owned and for sale");
             m.OnOpen = () =>
@@ -128,7 +132,7 @@ namespace MidnightClub.UI
             return m;
         }
 
-        private Menu CareerMenu()
+        public Menu CareerMenu()
         {
             var c = Career.CareerManager.Instance;
             var m = new Menu("Career", c.TierName);
@@ -149,7 +153,7 @@ namespace MidnightClub.UI
             return m;
         }
 
-        private Menu DealerList()
+        public Menu DealerList()
         {
             var m = new Menu("Dealerships", Dealers == null ? "" : "Day " + (Dealers.Calendar.Day + 1) + ", " + Dealers.Calendar.DayName);
             m.OnOpen = () =>
@@ -169,7 +173,7 @@ namespace MidnightClub.UI
             return m;
         }
 
-        private Menu Finances()
+        public Menu Finances()
         {
             var m = new Menu("Finances", "Recent transactions");
             m.OnOpen = () =>
@@ -188,7 +192,7 @@ namespace MidnightClub.UI
             return m;
         }
 
-        private Menu Catalogue()
+        public Menu Catalogue()
         {
             var m = new Menu("Catalogue", "Classes");
             m.OnOpen = () =>

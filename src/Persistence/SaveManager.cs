@@ -73,6 +73,8 @@ namespace MidnightClub.Persistence
             foreach (var v in d.Vehicles) { if (v.Mods == null) v.Mods = new System.Collections.Generic.List<ModEntry>(); if (v.Stats == null) v.Stats = new VehicleStats(); if (v.Toggles == null) v.Toggles = new System.Collections.Generic.List<int>(); if (v.BuildHistory == null) v.BuildHistory = new System.Collections.Generic.List<string>(); if (v.DriftTyres && v.TyreCompound == 0) { v.TyreCompound = 4; v.DriftTyres = false; } }
             if (d.SpeedTrapRecords == null) d.SpeedTrapRecords = new System.Collections.Generic.List<KeyValue>();
             if (d.MeetShowoffs == null) d.MeetShowoffs = new System.Collections.Generic.List<string>();
+            if (d.Messages == null) d.Messages = new System.Collections.Generic.List<PhoneMessage>();
+            if (d.News == null) d.News = new System.Collections.Generic.List<NewsItem>();
             if (d.Rivals == null) d.Rivals = new System.Collections.Generic.List<RivalState>();
             if (d.ClubRep == null) d.ClubRep = new System.Collections.Generic.List<KeyValue>();
             if (d.CareerTierNotified <= 0) d.CareerTierNotified = 1;
@@ -96,6 +98,8 @@ namespace MidnightClub.Persistence
                 Data.Revision++;
                 Data.ModVersion = Core.Version.Text;
                 Data.SavedAtUtc = DateTime.UtcNow.ToString("o");
+                if (Data.Messages.Count > 50) Data.Messages.RemoveRange(0, Data.Messages.Count - 50);
+                if (Data.News.Count > 30) Data.News.RemoveRange(0, Data.News.Count - 30);
                 if (Data.MeetShowoffs.Count > 60) Data.MeetShowoffs.RemoveRange(0, Data.MeetShowoffs.Count - 60);
                 if (Data.RaceHistory.Count > 200) Data.RaceHistory.RemoveRange(0, Data.RaceHistory.Count - 200);
                 if (Data.SoldStock.Count > 300) Data.SoldStock.RemoveRange(0, Data.SoldStock.Count - 300);

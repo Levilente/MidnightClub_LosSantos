@@ -20,6 +20,7 @@ namespace MidnightClub
         private readonly VehicleManager vehicles;
         private readonly MainHUD hud;
         private readonly MidnightMenu menu;
+        private readonly Phone.PhoneManager phone;
         private bool togglePressed, menuPressed;
         private readonly bool initialized;
 
@@ -54,6 +55,7 @@ namespace MidnightClub
                 new Police.PursuitManager(saves, money, vehicles, cfg);
                 new WorldSim.WorldSimulationManager(saves, money, registry, vehicles, calendar, races, stack, cfg);
                 menu = new MidnightMenu(stack, modes, saves, registry, vehicles, cfg) { Garages = garages, Dealers = dealers, Races = races, RivalMgr = rivals, ClubMgr = clubs };
+                phone = new Phone.PhoneManager(saves, stack, menu, calendar, races, rivals.RivalsMenu, clubs.ClubsMenu);
                 EventBus.Subscribe<ModeChangedEvent>(e => menu.Close());
                 hud = new MainHUD(cfg.HudX, cfg.HudY);
                 Interval = 0;
@@ -81,7 +83,7 @@ namespace MidnightClub
             try
             {
                 if (togglePressed) { togglePressed = false; modes.Toggle(); }
-                if (menuPressed) { menuPressed = false; if (modes.InMidnightClub) menu.Toggle(); }
+                if (menuPressed) { menuPressed = false; if (modes.InMidnightClub) phone.Toggle(); }
                 modes.Tick();
                 if (modes.InMidnightClub) menu.Tick();
                 if (modes.InMidnightClub && cfg.ShowHud) hud.Draw(saves.Data, vehicles);

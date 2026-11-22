@@ -30,6 +30,9 @@ namespace MidnightClub.Persistence
         [DataMember] public List<KeyValue> SpeedTrapRecords = new List<KeyValue>();   // trap id -> km/h
         [DataMember] public List<string> MeetShowoffs = new List<string>();            // "meetId:day" already rewarded
         [DataMember] public int StreetRacesWon;
+        [DataMember] public List<PhoneMessage> Messages = new List<PhoneMessage>();
+        [DataMember] public List<NewsItem> News = new List<NewsItem>();
+        [DataMember] public int LastInviteDay = -1;
         [DataMember] public List<RivalState> Rivals = new List<RivalState>();
         [DataMember] public List<KeyValue> ClubRep = new List<KeyValue>();
         [DataMember] public List<RaceResult> RaceHistory = new List<RaceResult>();
@@ -138,5 +141,16 @@ namespace MidnightClub.Persistence
         [DataMember] public string Id;
         [DataMember] public int Stage, Wins, Losses;
         [DataMember] public bool Defeated;
+    }
+
+    [DataContract] public sealed class PhoneMessage
+    {
+        [DataMember] public string From, Subject, Body, Utc, Action;   // Action: "gps:x,y" / "race:id" / "" 
+        [DataMember] public bool Read;
+    }
+
+    [DataContract] public sealed class NewsItem
+    {
+        [DataMember] public string Headline, Body, Utc; [DataMember] public int Day;
     }
 }

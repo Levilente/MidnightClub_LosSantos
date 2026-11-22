@@ -75,3 +75,9 @@ Tick items off or note what happened. Logs: `scripts\MidnightClub\MidnightClub.l
 - [ ] Waiting at a red light: sometimes a racer pulls up and revs; E accepts a street race
 - [ ] Tuned enthusiast cars appear in traffic now and then
 - [ ] Yellow camera blips = speed traps; passing one fast shows your speed and records
+
+## Phone (0.12.0)
+- [ ] UP (or F6) opens the Midnight Club phone instead of the GTA phone; arrows move, Enter opens an app, Backspace closes
+- [ ] Every app opens its screen; backing out returns to the phone home
+- [ ] Messages: welcome + a race invite with "Set GPS"; unread badge; new message sound/notification
+- [ ] Street Buzz fills up after notable results; Rankings shows your place

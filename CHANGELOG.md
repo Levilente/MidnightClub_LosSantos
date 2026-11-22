@@ -1,4 +1,9 @@
 # Changelog
+## 0.12.0-phase10 (2026-11-22)
+- Midnight Club phone (UP or F6; the game's own phone is disabled in Midnight Club): app grid with Messages, Races, Garage, Dealers, Catalogue, Career, Rivals, Clubs, Street Buzz, Rankings, Calendar, Bank, Properties, Settings. Unread badge.
+- Persistent inbox fed by game events: welcome, daily race invitations (with GPS to the start), weekend meet notices, promotions.
+- Street Buzz: fictional automotive news written from your notable results (rival upsets, big wins, gold times, citywide escapes, tier-ups).
+- Rankings: underground leaderboard of 16 named drivers whose REP grows with the calendar; you're placed by your REP.
 ## 0.11.0-phase9 (2026-11-22)
 - World Simulation Manager: one scheduler and entity budget for the living world (1 Hz scheduling, per-frame only for markers/input), proximity activation, distance cleanup.
 - Car meets: 5 spots (Legion Square, Cypress Flats, LSIA, Sandy Shores airfield, Vinewood Bowl) with themes; two active per night (21:00-04:00) or all day at weekends, rotating with the calendar; tuned parked cars and hanging-out NPCs spawn when you're near. E at a meet: show off your car (REP from mods/performance, once per meet per night) or race someone from the meet.
