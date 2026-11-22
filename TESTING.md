@@ -116,3 +116,9 @@ Tick items off or note what happened. Logs: `scripts\MidnightClub\MidnightClub.l
 - [ ] Phone > Progress and Phone > Daily work; daily challenges complete with a banner.
 - [ ] Drive into a speed zone (stopwatch blip) / drift zone (steering wheel blip) in the right direction: live HUD, result banner with stars.
 - [ ] Reach level 3: barn find rumour area on the map; find the dusty car; it is delivered to a garage.
+
+## Showroom & markers (0.19.0)
+- [ ] Showroom: all stock cars in an arc, camera glides between them, right stick/mouse orbit, triggers/wheel zoom, no flicker when switching. Buy and test drive work; after a test drive you are back on the stage.
+- [ ] Is the LSIA stage clear (no plane/traffic driving through)? If something is in the way, tell me and I'll move the stage.
+- [ ] Markers at dealerships/garages/workshops/races: ring on the ground (not floating/buried), icon, label when close.
+- [ ] Log: "Moved N race points away from garages/dealerships/workshops"; no race marker on top of a garage any more.

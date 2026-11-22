@@ -132,9 +132,9 @@ namespace MidnightClub.Dealerships
             {
                 Vector3 m; if (!markers.TryGetValue(d.Id, out m)) continue;
                 float dist = pos.DistanceTo(m);
-                if (dist > 60f) continue;
-                World.DrawMarker(MarkerType.Cylinder, m - new Vector3(0, 0, 0.95f), Vector3.Zero, Vector3.Zero, new Vector3(7f, 7f, 0.8f),
-                    Color.FromArgb(140, 80, 220, 255), false, false, false, null, null, false);
+                if (dist > 90f) continue;
+                if (!Explore.Discovery.Known("dl:" + d.Id)) continue;
+                UI.WorldMarker.Draw(m, 3.5f, Color.FromArgb(255, 34, 211, 238), MarkerType.TransformCar, d.Name, dist < 5f ? "Press to browse" : "Dealership", dist, dist < 5f);
                 if (dist < 5f) nearby = d;
             }
             if (nearby == null || stack.IsOpen) return;

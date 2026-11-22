@@ -163,11 +163,11 @@ namespace MidnightClub.Garages
             foreach (var g in defs)
             {
                 float dist = pos.DistanceTo(g.Position);
-                if (dist > MarkerDrawDistance) continue;
+                if (dist > 90f) continue;
                 bool owned = Owned(g.Id) != null;
-                var c = owned ? Color.FromArgb(140, 60, 220, 120) : Color.FromArgb(140, 170, 90, 255);
-                World.DrawMarker(MarkerType.Cylinder, g.Position - new Vector3(0, 0, 0.95f), Vector3.Zero, Vector3.Zero,
-                    new Vector3(g.Radius * 1.4f, g.Radius * 1.4f, 0.8f), c, false, false, false, null, null, false);
+                if (!owned && !Explore.Discovery.Known("gar:" + g.Id)) continue;
+                var c = owned ? Color.FromArgb(255, 163, 230, 53) : Color.FromArgb(255, 168, 85, 247);
+                UI.WorldMarker.Draw(g.Position, g.Radius * 0.7f, c, owned ? MarkerType.TransformCar : MarkerType.Money, g.Name, owned ? (dist < g.Radius ? "Press to enter" : "Your garage") : "For sale  $" + g.Price.ToString("N0"), dist, dist < g.Radius);
                 if (dist < g.Radius) nearby = g;
             }
             if (nearby == null || stack.IsOpen) return;

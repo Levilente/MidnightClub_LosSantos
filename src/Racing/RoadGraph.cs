@@ -172,6 +172,30 @@ namespace MidnightClub.Racing
             return -1;
         }
 
+        /// <summary>Breadth-first along the roads from p to the closest GPS road node that is at least 'clear' metres from
+        /// every location in both lists. Returns Vector3.Zero if none within ~1.5 km. heading = road direction there.</summary>
+        public static Vector3 ClearSpot(Vector3 p, List<Vector3> a, List<Vector3> b, float clear, out float heading)
+        {
+            heading = 0f;
+            if (!EnsureLoaded()) return Vector3.Zero;
+            int s = Nearest(p); if (s < 0) return Vector3.Zero;
+            var q = new Queue<int>(); var seen = new HashSet<int> { s }; q.Enqueue(s);
+            while (q.Count > 0 && seen.Count < 4000)
+            {
+                int c = q.Dequeue(); var cp = Pos(c);
+                bool ok = (fl[c] & (byte)NodeFlags.Gps) != 0 && (fl[c] & (byte)(NodeFlags.Water | NodeFlags.Junction)) == 0
+                    && !a.Exists(x => x.DistanceTo(cp) < clear) && !b.Exists(x => x.DistanceTo(cp) < clear * 0.5f);
+                if (ok)
+                {
+                    int nb = off[c + 1] > off[c] ? adj[off[c]] : -1;
+                    if (nb >= 0) { var d = Pos(nb) - cp; heading = (float)(Math.Atan2(-d.X, d.Y) * 180.0 / Math.PI); }
+                    return cp;
+                }
+                for (int k = off[c]; k < off[c + 1]; k++) if (seen.Add(adj[k])) q.Enqueue(adj[k]);
+            }
+            return Vector3.Zero;
+        }
+
         private sealed class MinHeap
         {
             private readonly List<int> ids = new List<int>(); private readonly List<float> pr = new List<float>();

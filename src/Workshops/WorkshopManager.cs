@@ -113,9 +113,9 @@ namespace MidnightClub.Workshops
             foreach (var w in All)
             {
                 float d = pos.DistanceTo(w.Position);
-                if (d > 60f) continue;
-                World.DrawMarker(MarkerType.Cylinder, w.Position - new Vector3(0, 0, 0.95f), Vector3.Zero, Vector3.Zero, new Vector3(6f, 6f, 0.8f),
-                    Color.FromArgb(140, 255, 170, 40), false, false, false, null, null, false);
+                if (d > 90f) continue;
+                if (!Explore.Discovery.Known("ws:" + w.Id)) continue;
+                UI.WorldMarker.Draw(w.Position, 3f, Color.FromArgb(255, 251, 191, 36), MarkerType.Boxes, w.Name, d < 4.5f ? "Press to enter" : "Workshop", d, d < 4.5f);
                 if (d < 4.5f) nearby = w;
             }
             if (nearby == null || stack.IsOpen) return;

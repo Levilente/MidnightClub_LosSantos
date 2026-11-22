@@ -56,7 +56,7 @@ namespace MidnightClub.Racing
             EventBus.Subscribe<Explore.DiscoveredEvent>(e => { if (e.Id.StartsWith("race:")) RefreshBlips(); });
             EventBus.Subscribe<ModeChangedEvent>(e =>
             {
-                if (e.To == GameMode.MIDNIGHT_CLUB) { try { lib = RaceLibrary.Load(this.dataDir); } catch (Exception ex) { Log.Error("Race library", ex); } RefreshBlips(); }
+                if (e.To == GameMode.MIDNIGHT_CLUB) { try { lib = RaceLibrary.Load(this.dataDir); SeparateFromLocations(); } catch (Exception ex) { Log.Error("Race library", ex); } RefreshBlips(); }
                 else { EndSession(true); ClearBlips(); }
             });
             EventBus.Subscribe<MidnightTickEvent>(e => Tick());
@@ -72,6 +72,32 @@ namespace MidnightClub.Racing
         {
             var kv = saves.Data.BestTimes.FirstOrDefault(x => x.Key == id);
             long v; return kv != null && long.TryParse(kv.Value, out v) ? v : 0;
+        }
+
+        /// <summary>Race starts/finishes generated at garage entrances would stack on top of garages, dealerships and
+        /// workshops (two prompts, two markers). Move any such point along the road to the nearest spot 90 m clear.</summary>
+        private void SeparateFromLocations()
+        {
+            var locs = new List<Vector3>();
+            foreach (var g in Garages.OnlineGarageCatalog.All) locs.Add(new Vector3(g.Entrance[0], g.Entrance[1], g.Entrance[2]));
+            foreach (var d in Dealerships.DealershipDefinitions.Defaults()) locs.Add(d.Position);
+            foreach (var w in Workshops.WorkshopManager.All) locs.Add(w.Position);
+            var used = new List<Vector3>();
+            int moved = 0;
+            foreach (var r in lib.Races)
+                for (int i = 0; i < r.Points.Count; i++)
+                {
+                    var p = new Vector3(r.Points[i][0], r.Points[i][1], r.Points[i][2]);
+                    // also keep different races' starts apart
+                    bool clash = locs.Exists(l => l.DistanceTo(p) < 60f) || (i == 0 && used.Exists(u => u.DistanceTo(p) < 40f));
+                    if (clash)
+                    {
+                        float h; var np = RoadGraph.ClearSpot(p, locs, used, 90f, out h);
+                        if (np != Vector3.Zero) { r.Points[i] = new[] { np.X, np.Y, np.Z, h }; p = np; moved++; }
+                    }
+                    if (i == 0) used.Add(p);
+                }
+            if (moved > 0) Log.Info("Moved " + moved + " race points away from garages/dealerships/workshops");
         }
 
         // ------------------------------------------------------------------ map presence
@@ -106,9 +132,9 @@ namespace MidnightClub.Racing
             {
                 if (r.Points.Count < 2) continue;
                 float d = pos.DistanceTo(r.Start);
-                if (d > 70f) continue;
-                World.DrawMarker(MarkerType.RingFlag, r.Start + new Vector3(0, 0, 1.6f), Vector3.Zero, Vector3.Zero, new Vector3(2.5f, 2.5f, 2.5f),
-                    Available(r) ? Color.FromArgb(200, 170, 90, 255) : Color.FromArgb(120, 200, 200, 200), true, true, false, null, null, false);
+                if (d > 90f) continue;
+                if (!Explore.Discovery.Known("race:" + r.Id)) continue;
+                UI.WorldMarker.Draw(r.Start, 4f, Available(r) ? Color.FromArgb(255, 248, 72, 94) : Color.FromArgb(255, 150, 145, 172), MarkerType.CheckeredFlagRect, r.Name, Available(r) ? (d < 7f ? "Press to race" : r.Kind.ToString()) : "Locked: " + r.RequiredRep.ToString("N0") + " REP", d, d < 7f);
                 if (d < 7f) nearby = r;
             }
             if (nearby == null || stack.IsOpen) return;
