@@ -27,6 +27,7 @@ namespace MidnightClub.Core
         public bool CustomCameras = true;
         public bool FitmentEnabled = true;
         public bool SimcadeEnabled = true; public float SimcadeIntensity = 1f, SimcadeSteerAssist = 1f, SimcadeStability = 1f;
+        public bool BrakeToDrift = true; public float BrakeToDriftStrength = 1f;
         public bool PoliceEnabled = true;
         public bool AlwaysNight = false;
         public float TrafficDensity = 1f, ParkedDensity = 1f;
@@ -78,6 +79,8 @@ namespace MidnightClub.Core
             c.SimcadeIntensity = Get(s, "Simcade", "Intensity", c.SimcadeIntensity);
             c.SimcadeSteerAssist = Get(s, "Simcade", "SteeringAssist", c.SimcadeSteerAssist);
             c.SimcadeStability = Get(s, "Simcade", "StabilityAssist", c.SimcadeStability);
+            c.BrakeToDrift = Get(s, "Simcade", "BrakeToDrift", c.BrakeToDrift);
+            c.BrakeToDriftStrength = Get(s, "Simcade", "BrakeToDriftStrength", c.BrakeToDriftStrength);
             c.PoliceEnabled = Get(s, "Police", "Enabled", c.PoliceEnabled);
             c.AlwaysNight = Get(s, "World", "AlwaysNight", c.AlwaysNight);
             c.TrafficDensity = Get(s, "World", "TrafficDensity", c.TrafficDensity); c.ParkedDensity = Get(s, "World", "ParkedDensity", c.ParkedDensity);

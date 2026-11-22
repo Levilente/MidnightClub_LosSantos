@@ -128,3 +128,4 @@ Tick items off or note what happened. Logs: `scripts\MidnightClub\MidnightClub.l
 - [ ] Compare a drift car, a muscle car, a supercar and an FWD hatch: each should feel different (muscle: wheelspin; drift: holds long angles; super: planted at speed; FWD: safe).
 - [ ] High speed: steering calmer, no twitchy spins; slides past the limit get caught (less for drift cars).
 - [ ] Jumps land flatter. If anything feels wrong, [Simcade] Intensity=0.5 or Enabled=false, and tell me which car.
+- [ ] 0.20.1 brake-to-drift: at 60+ km/h, steer and tap brake then gas (or brake+gas): car drifts, steering changes the angle, gas holds speed; lifting/straightening ends it. Tell me if it's too strong/weak (BrakeToDriftStrength).

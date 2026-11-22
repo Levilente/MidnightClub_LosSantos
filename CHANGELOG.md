@@ -1,4 +1,7 @@
 # Changelog
+## 0.20.1 (2026-11-22): NFS-style brake-to-drift
+- Grip cars stay simcade-grippy, but a quick brake tap while turning at speed (released back onto the throttle, or brake + throttle together) kicks the car into a controlled drift: the rear lets go, the nose swings in, steering sets the angle (more lock = wider, counter-steer = coming out), throttle holds it and keeps your entry speed up. Lift off, straighten up or brake hard to grip up again. Anti-spin allows the drift angle meanwhile.
+- Per-car strength (simcade.ini "BrakeToDrift": drift/tuner cars stronger, heavy cars weaker); config.ini [Simcade] BrakeToDrift=true/false and BrakeToDriftStrength.
 ## 0.20.0 (2026-11-22): per-car simcade physics
 - New Simcade system (Vehicles/Simcade.cs). Every car gets its own profile at runtime, derived from its stock handling (mass, drivetrain split, power-to-weight, grip curve), class and tags: archetype (Super, AWD, Sports, Tuner, Drift, Muscle, Classic, FWD, Street, Heavy, Rally) + per-model personality. Written to data\simcade.ini (one section per model, every value editable).
 - While you drive it, that model's handling is retuned (grip, slip angle, low-speed wheelspin, brakes, lower centre of mass; tyre compounds stack on top) and restored afterwards.
