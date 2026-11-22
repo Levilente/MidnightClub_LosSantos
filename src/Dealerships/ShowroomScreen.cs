@@ -50,6 +50,7 @@ namespace MidnightClub.Dealerships
             if (stock.Count == 0) { Notification.PostTicker(d.Name + " has nothing in stock.", true, false); return; }
             var ped = Game.Player.Character;
             var own = vehicles.Current;
+            if (Cameras.CameraSystem.Instance != null) Cameras.CameraSystem.Instance.Release();
             Screen.FadeOut(400); Script.Wait(450);
             spot = own != null && own.Exists() ? own.Position : ped.Position;
             float heading = own != null && own.Exists() ? own.Heading : ped.Heading;

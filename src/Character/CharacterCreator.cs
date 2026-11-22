@@ -22,6 +22,7 @@ namespace MidnightClub.Character
         {
             var ped = characters.MidnightPed;
             if (ped == null || !ped.Exists()) return;
+            if (Cameras.CameraSystem.Instance != null) Cameras.CameraSystem.Instance.Release();
             bool frozeHere = !ped.IsInVehicle();
             if (frozeHere) Function.Call(Hash.FREEZE_ENTITY_POSITION, ped, true);
             if (data.Drawables == null) CharacterManager.Capture(ped, data);

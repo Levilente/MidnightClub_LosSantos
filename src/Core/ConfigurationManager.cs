@@ -23,6 +23,8 @@ namespace MidnightClub.Core
         public bool PlayerInvincible = true;
         public bool ShowHud = true;
         public bool LoadOnlineMap = true;
+        public bool CustomCameras = true;
+        public float CameraGForce = 1.0f, CameraFovScale = 1.0f, CameraShake = 1.0f;
         public float HudX = 0.985f, HudY = 0.04f;
         public int AutoSaveSeconds = 120;
         public int BackupCount = 5;
@@ -57,6 +59,10 @@ namespace MidnightClub.Core
             c.TransitionFadeMs = Get(s, "Gameplay", "TransitionFadeMs", c.TransitionFadeMs);
             c.ShowHud = Get(s, "HUD", "Show", c.ShowHud);
             c.LoadOnlineMap = Get(s, "World", "LoadOnlineMap", c.LoadOnlineMap);
+            c.CustomCameras = Get(s, "Camera", "Enabled", c.CustomCameras);
+            c.CameraGForce = Get(s, "Camera", "GForceIntensity", c.CameraGForce);
+            c.CameraFovScale = Get(s, "Camera", "DynamicFovIntensity", c.CameraFovScale);
+            c.CameraShake = Get(s, "Camera", "ShakeIntensity", c.CameraShake);
             c.HudX = Get(s, "HUD", "X", c.HudX);
             c.HudY = Get(s, "HUD", "Y", c.HudY);
             c.AutoSaveSeconds = Get(s, "Save", "AutoSaveSeconds", c.AutoSaveSeconds);

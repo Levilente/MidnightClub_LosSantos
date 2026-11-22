@@ -1,4 +1,8 @@
 # Changelog
+## Unreleased: camera system
+- NFS-style driving cameras: Bumper, Hood, Cockpit, Close chase, Far chase, Action chase (+ Game default). Change View (V) cycles; choice saved per profile.
+- G-force reactive (pull-back under acceleration, outward swing and roll in corners, pitch on braking/accelerating), speed + acceleration driven FOV, speed shake, free look that springs back, look behind, wall collision pull-in.
+- `[Camera]` in config.ini: Enabled, GForceIntensity, DynamicFovIntensity, ShakeIntensity.
 ## 0.5.1 (2026-11-22)
 - Fix: garage interiors didn't load in Story Mode (interior found but never ready). Midnight Club now loads the GTA Online map state on entry (ON_ENTER_MP, reverted on exit; `[World] LoadOnlineMap`) and un-disables/un-caps the garage interior before pinning it.
 - Fix: vehicle class showed as "VEH_CLASS_6"; now localized.

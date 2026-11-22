@@ -404,6 +404,7 @@ namespace MidnightClub.Core
             var ped = Game.Player.Character;
             try
             {
+                if (Cameras.CameraSystem.Instance != null) Cameras.CameraSystem.Instance.Release();
                 Screen.FadeOut(400); Script.Wait(450);
                 var near = vehicles.Current != null && vehicles.Current.Exists() ? vehicles.Current.Position : ped.Position;
                 float heading;

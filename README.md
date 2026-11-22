@@ -13,6 +13,7 @@ On first run the mod creates `scripts\MidnightClub\` with `config.ini`, `Midnigh
 
 ## Controls (Phase 1)
 - **F7**: enter / leave Midnight Club Mode (configurable: `[General] ToggleKey`)
+- **V** (Change View): cycle Midnight Club cameras (Bumper, Hood, Cockpit, Close/Far/Action chase, Game default). Mouse/right stick looks around, Look Behind works.
 - **F6**: Midnight Club menu (`[General] MenuKey`). Arrows navigate, Left/Right change values, Enter selects, Backspace/Esc goes back.
 - **E** at a garage entrance: buy it, or drive in. Garage screen: Left/Right choose car, Enter drive out, M manage, C customise (executive garages), Backspace leave in your current car.
 - **E** at a dealership: showroom. Left/Right browse, Enter buy, T test drive, Backspace leave.

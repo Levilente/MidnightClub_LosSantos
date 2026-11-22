@@ -42,6 +42,7 @@ namespace MidnightClub
                 modes.Garages = garages; modes.Money = money;
                 garages.StarterGarageId = cfg.StarterGarage;
                 var calendar = new WorldSim.WorldCalendar(saves);
+                new Cameras.CameraSystem(saves, vehicles, cfg);
                 var dealers = new Dealerships.DealershipManager(saves, money, registry, vehicles, garages, calendar, stack, Path.Combine(dir, "data"));
                 menu = new MidnightMenu(stack, modes, saves, registry, vehicles, cfg) { Garages = garages, Dealers = dealers };
                 EventBus.Subscribe<ModeChangedEvent>(e => menu.Close());

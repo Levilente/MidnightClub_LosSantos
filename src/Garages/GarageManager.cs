@@ -225,6 +225,7 @@ namespace MidnightClub.Garages
             if (!saves.Data.Vehicles.Any(v => v.GarageId == g.Id)) { Notify("No cars stored here."); return; }
 
             IsInside = true;
+            if (Cameras.CameraSystem.Instance != null) Cameras.CameraSystem.Instance.Release();
             var ped = Game.Player.Character;
             OwnedVehicle chosen = null;
             try
