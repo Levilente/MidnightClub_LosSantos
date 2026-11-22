@@ -52,6 +52,7 @@ namespace MidnightClub
                 var rivals = new Rivals.RivalManager(saves, money, registry, races, garages, stack);
                 var clubs = new Factions.ClubManager(saves, registry, vehicles);
                 new Police.PursuitManager(saves, money, vehicles, cfg);
+                new WorldSim.WorldSimulationManager(saves, money, registry, vehicles, calendar, races, stack, cfg);
                 menu = new MidnightMenu(stack, modes, saves, registry, vehicles, cfg) { Garages = garages, Dealers = dealers, Races = races, RivalMgr = rivals, ClubMgr = clubs };
                 EventBus.Subscribe<ModeChangedEvent>(e => menu.Close());
                 hud = new MainHUD(cfg.HudX, cfg.HudY);

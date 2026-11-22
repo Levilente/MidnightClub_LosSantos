@@ -24,3 +24,4 @@
 23. Visual wheel/rim size (scaling the wheel model) and an independent visual tyre profile are not available: FiveM finds the wheel draw size by scanning the executable, and none of those patterns exist in GTA5_Enhanced.exe 1.0.1158.16. Tyre diameter changes the physical tyre (ride height, arch fill), not the wheel model.
 24. Tyre compound grip edits the model's shared handling data while you drive; traffic cars of the same model nearby get the same grip meanwhile.
 25. If camber leans the wrong way, set [Fitment] CamberSign=-1.
+26. Car-meet spot coordinates are first-pass (Vinewood Bowl and Sandy Shores airfield especially); cars are laid out in a grid around the spot and may need moving.

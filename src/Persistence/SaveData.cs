@@ -27,6 +27,9 @@ namespace MidnightClub.Persistence
         [DataMember] public int RacesStarted;
         [DataMember] public int CareerTierNotified = 1;
         [DataMember] public int Pursuits, PursuitEscapes, Busts;
+        [DataMember] public List<KeyValue> SpeedTrapRecords = new List<KeyValue>();   // trap id -> km/h
+        [DataMember] public List<string> MeetShowoffs = new List<string>();            // "meetId:day" already rewarded
+        [DataMember] public int StreetRacesWon;
         [DataMember] public List<RivalState> Rivals = new List<RivalState>();
         [DataMember] public List<KeyValue> ClubRep = new List<KeyValue>();
         [DataMember] public List<RaceResult> RaceHistory = new List<RaceResult>();

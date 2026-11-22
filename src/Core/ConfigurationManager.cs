@@ -26,6 +26,9 @@ namespace MidnightClub.Core
         public bool CustomCameras = true;
         public bool FitmentEnabled = true;
         public bool PoliceEnabled = true;
+        public float TrafficDensity = 1f, ParkedDensity = 1f;
+        public int MaxEnthusiasts = 4;
+        public bool StreetChallenges = true, CarMeets = true, SpeedTraps = true;
         public float PoliceSpeedKmh = 115f, PoliceDifficulty = 1f;
         public long TierRep2 = 1000, TierRep3 = 3500, TierRep4 = 9000, TierRep5 = 20000;
         public float CamberSign = 1f;
@@ -67,6 +70,9 @@ namespace MidnightClub.Core
             c.CustomCameras = Get(s, "Camera", "Enabled", c.CustomCameras);
             c.FitmentEnabled = Get(s, "Fitment", "Enabled", c.FitmentEnabled);
             c.PoliceEnabled = Get(s, "Police", "Enabled", c.PoliceEnabled);
+            c.TrafficDensity = Get(s, "World", "TrafficDensity", c.TrafficDensity); c.ParkedDensity = Get(s, "World", "ParkedDensity", c.ParkedDensity);
+            c.MaxEnthusiasts = Get(s, "World", "MaxEnthusiastCars", c.MaxEnthusiasts);
+            c.StreetChallenges = Get(s, "World", "StreetChallenges", c.StreetChallenges); c.CarMeets = Get(s, "World", "CarMeets", c.CarMeets); c.SpeedTraps = Get(s, "World", "SpeedTraps", c.SpeedTraps);
             c.PoliceSpeedKmh = Get(s, "Police", "SpeedTriggerKmh", c.PoliceSpeedKmh);
             c.PoliceDifficulty = Get(s, "Police", "Difficulty", c.PoliceDifficulty);
             c.TierRep2 = Get(s, "Career", "Tier2Rep", c.TierRep2); c.TierRep3 = Get(s, "Career", "Tier3Rep", c.TierRep3);

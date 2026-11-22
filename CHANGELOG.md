@@ -1,4 +1,11 @@
 # Changelog
+## 0.11.0-phase9 (2026-11-22)
+- World Simulation Manager: one scheduler and entity budget for the living world (1 Hz scheduling, per-frame only for markers/input), proximity activation, distance cleanup.
+- Car meets: 5 spots (Legion Square, Cypress Flats, LSIA, Sandy Shores airfield, Vinewood Bowl) with themes; two active per night (21:00-04:00) or all day at weekends, rotating with the calendar; tuned parked cars and hanging-out NPCs spawn when you're near. E at a meet: show off your car (REP from mods/performance, once per meet per night) or race someone from the meet.
+- Spontaneous street races: stopped in traffic, a tuned racer may pull up next to you and rev (more often at night); E within 10 s starts a head-to-head sprint to a point ahead; declining lets them drive off.
+- Enthusiast cars: tuned sports/muscle/super cars wander in traffic around you (budget [World] MaxEnthusiastCars).
+- Speed traps: 9 cameras on real roads with personal records and REP for beating them.
+- [World] TrafficDensity, ParkedDensity, CarMeets, StreetChallenges, SpeedTraps. Rain already lowers grip natively.
 ## 0.10.0-phase8 (2026-11-22)
 - Police pursuits (vehicle-only): patrol cars that see you speeding (trigger lowered by heat and during races) or that you hit start a pursuit. Units chase, box in and ram; drivers carry no weapons, drive-bys disabled; your car still can't explode.
 - 4 levels over time/heat: more units, interceptors (police2/3 etc.), helicopter with searchlight from level 3. Unit cap scales with [Police] Difficulty.

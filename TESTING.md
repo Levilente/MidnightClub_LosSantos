@@ -67,3 +67,11 @@ Tick items off or note what happened. Logs: `scripts\MidnightClub\MidnightClub.l
 - [ ] Getting boxed in while stopped for 5 s = BUSTED + fine
 - [ ] F6 > My vehicles > a car shows Police escapes and Police heat; new plate lowers heat
 - [ ] Too aggressive / too easy? (config [Police] Difficulty, SpeedTriggerKmh)
+
+## Living world (0.11.0)
+- [ ] At night (or weekends) purple car-meet blips; a notification lists tonight's meets
+- [ ] Driving to a meet spawns parked tuned cars + people; leaving despawns them; layout looks OK (not inside walls)
+- [ ] E at the meet: Show off (REP once per night), Race someone (1-on-1 sprint)
+- [ ] Waiting at a red light: sometimes a racer pulls up and revs; E accepts a street race
+- [ ] Tuned enthusiast cars appear in traffic now and then
+- [ ] Yellow camera blips = speed traps; passing one fast shows your speed and records
