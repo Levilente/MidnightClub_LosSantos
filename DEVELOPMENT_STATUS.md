@@ -62,3 +62,6 @@
 - `Cameras/CameraSystem`: 6 NFS-style cameras + game default; G-force reactions, dynamic FOV, shake, free look, look-behind, wall pull-in; profile-saved mode; other screens call Release().
 - `Workshops/WorkshopManager` + `WorkshopScreen`: workshop locations, orbit camera with per-category focus, generic mod lists with live preview/revert (Menu.OnHighlight), toggles, respray, tint, livery, repair, ECU, drift tyres; purchases via TransactionManager; capture/save after every purchase.
 - Save format: per-car toggles, tint, livery, ECU level, drift tyres, build history, spend/mod/repair counters; profile camera mode.
+
+## 0.7.0
+- `Vehicles/FitmentManager`: stance via CWheel (validated, re-applied per frame, applied to garage display cars too) and tyre-compound grip via handling data (restored when you stop driving the model). Workshop: Adjust fitment, Tyre compound, Lettered sidewalls.

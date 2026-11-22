@@ -20,3 +20,7 @@
 19. Mounted cameras use the "bonnet" bone / head bone; on some models the hood or cockpit position may need tuning.
 20. Free look reads mouse/right-stick input each frame; sensitivity untested.
 21. Workshop entrances are first-pass LS Customs door positions; the car is tuned where you stop, not inside the shop.
+22. Fitment writes wheel memory at offsets taken from FiveM (Legacy); another SHVDN mod reports they are the same on Enhanced, but this is untested here. If a wheel reads implausible values the car is left alone and the log says so.
+23. Visual wheel/rim size (scaling the wheel model) and an independent visual tyre profile are not available: FiveM finds the wheel draw size by scanning the executable, and none of those patterns exist in GTA5_Enhanced.exe 1.0.1158.16. Tyre diameter changes the physical tyre (ride height, arch fill), not the wheel model.
+24. Tyre compound grip edits the model's shared handling data while you drive; traffic cars of the same model nearby get the same grip meanwhile.
+25. If camber leans the wrong way, set [Fitment] CamberSign=-1.

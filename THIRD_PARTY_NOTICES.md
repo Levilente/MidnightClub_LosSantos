@@ -32,3 +32,7 @@ SOFTWARE.
 ## bob74_ipl (reference only)
 IPL names and interior entity-set names for the executive (CEO) office garages were looked up in
 https://github.com/Bob74/bob74_ipl. No code was copied.
+
+## FiveM (reference only)
+CWheel field offsets for stance (Y rotation 0x008/0x010, X offset 0x030, tyre radius 0x110, rim radius 0x114) were taken from
+https://github.com/citizenfx/fivem/blob/master/code/components/extra-natives-five/src/VehicleExtraNatives.cpp. No code was copied.

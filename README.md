@@ -22,6 +22,6 @@ On first run the mod creates `scripts\MidnightClub\` with `config.ini`, `Midnigh
 - `[General] DevMode=true`: catalogue can add any car for free (testing).
 
 ## Build
-`mcs -target:library -sdk:4.8 -optimize+ -r:ScriptHookVDotNet3.dll -r:System.Windows.Forms.dll -r:System.Drawing.dll -r:System.Runtime.Serialization.dll -r:System.Core.dll -out:build/MidnightClub.dll -recurse:'src/*.cs'`
+`mcs -target:library -sdk:4.8 -unsafe -optimize+ -r:ScriptHookVDotNet3.dll -r:System.Windows.Forms.dll -r:System.Drawing.dll -r:System.Runtime.Serialization.dll -r:System.Core.dll -out:build/MidnightClub.dll -recurse:'src/*.cs'`
 (or any C# compiler targeting .NET Framework 4.8 with a reference to ScriptHookVDotNet3.dll).
 Save-system tests: `tests/SaveTests.cs` (runs without the game).

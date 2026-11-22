@@ -1,4 +1,9 @@
 # Changelog
+## 0.7.0 (2026-11-22)
+- Adjust fitment (workshop): one-time kit, then free per-axle camber (-15..+5 deg), track width (-8..+15 cm per side) and tyre diameter (85-120 %), live preview; also shown on cars parked in garages.
+- Tyre compounds: Street, Sport (+5 % grip), Semi-slick (+10 %), Race slick (+16 %), Drift (low grip). Lettered sidewalls as a separate visual option.
+- Implementation: CWheel fields (0x008/0x010 Y rotation, 0x030 X offset, 0x110 tyre radius; constants from FiveM VehicleExtraNatives.cpp), validated per wheel before writing and re-applied every frame. Grip via the model handling data only while you drive it, restored afterwards.
+- [Fitment] Enabled, CamberSign (flip if camber goes the wrong way).
 ## 0.6.0 (2026-11-22)
 - Phase 5 workshops: 5 LS Customs/Beeker's + Benny's (all Benny's parts). Performance (engine, brakes, transmission, suspension, turbo, Midnight Club ECU tune +6%/stage, drift tyres), body parts, wheels by type, respray (primary/secondary/pearl/wheel), xenons, tyre smoke, tint, livery, repair, build sheet. Live preview while highlighted, reverts if not bought; real game mods with real effects; per-car spend/modification count/build history.
 - Camera system (below).
