@@ -106,3 +106,4 @@ Tick items off or note what happened. Logs: `scripts\MidnightClub\MidnightClub.l
 - [ ] Garage (Davis Lockup and an Online garage): the interior is visible and the cars are there (not the void). Send the log line "Garage room: ..." if not.
 - [ ] Bottom-right button bar shows correct glyphs on keyboard and on controller in garage, showroom, test drive, menus, phone, race results.
 - [ ] Objective pill (top centre) never covers help text / prompts.
+- [ ] 0.15.1: garage/showroom/workshop car is well lit (not blown out, not dark) and not covered by UI. If too bright/dark: [HUD] StudioLight=0.6 / 1.5.

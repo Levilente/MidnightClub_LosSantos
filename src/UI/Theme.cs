@@ -36,6 +36,15 @@ namespace MidnightClub.UI
         public static void Text(string s, float x, float y, float scale, Color c, Font f = Font.ChaletLondon, Alignment a = Alignment.Left, float wrap = 0f, bool shadow = false)
         { new TextElement(s ?? "", new PointF(x * 1280f, y * 720f), scale, c, f, a, shadow, false, wrap * 1280f).ScaledDraw(); }
 
+        public static float TextWidth(string s, float scale, Font f = Font.ChaletLondon)
+        {
+            Function.Call(Hash.BEGIN_TEXT_COMMAND_GET_SCREEN_WIDTH_OF_DISPLAY_TEXT, "STRING");
+            Function.Call(Hash.ADD_TEXT_COMPONENT_SUBSTRING_PLAYER_NAME, s ?? "");
+            Function.Call(Hash.SET_TEXT_FONT, (int)f);
+            Function.Call(Hash.SET_TEXT_SCALE, scale, scale);
+            return Function.Call<float>(Hash.END_TEXT_COMMAND_GET_SCREEN_WIDTH_OF_DISPLAY_TEXT, true);
+        }
+
         /// <summary>Panel with a soft vertical gradient and a neon accent on the left.</summary>
         public static void Card(float x, float y, float w, float h, bool accent = true)
         {

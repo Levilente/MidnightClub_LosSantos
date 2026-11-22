@@ -505,15 +505,17 @@ namespace MidnightClub.Workshops
             orbit = focus == "default" ? target % 360f : orbit + ((((target - orbit) % 360f) + 540f) % 360f - 180f) * Math.Min(1f, dt * 3f);
             double r = orbit * Math.PI / 180.0;
             var local = new Vector3((float)Math.Sin(r) * radius, (float)Math.Cos(r) * radius, height);
-            cam.Position = car.GetOffsetPosition(local);
-            cam.PointAt(car, new Vector3(0, 0, 0.2f));
+            var cp = car.GetOffsetPosition(local);
+            UI.Studio.Frame(cam, cp, car.Position + new Vector3(0, 0, 0.15f), 0.22f, 0.04f);
+            UI.Studio.Light(car, cp);
         }
 
         private void DrawHud()
         {
-            Rect(0.70f, 0.04f, 0.27f, 0.09f, Panel); Rect(0.70f, 0.04f, 0.27f, 0.004f, Orange);
-            Text(w.Name.ToUpperInvariant(), 0.96f, 0.05f, 0.36f, Orange, Font.ChaletComprimeCologne, Alignment.Right);
-            Text("$" + saves.Data.Cash.ToString("N0") + "   |   Condition " + Condition() + "%" + (rec.EcuLevel > 0 ? "   |   ECU stage " + rec.EcuLevel : ""), 0.96f, 0.088f, 0.3f, Color.White, Font.ChaletLondon, Alignment.Right);
+            UI.Studio.Fade(false, 0.16f, 150);
+            UI.Theme.Text("WORKSHOP", 0.95f, 0.04f, 0.26f, UI.Theme.Purple, Font.ChaletLondon, Alignment.Right);
+            UI.Theme.Text(w.Name.ToUpperInvariant(), 0.95f, 0.058f, 0.62f, Color.White, Font.ChaletComprimeCologne, Alignment.Right);
+            UI.Theme.Text("$" + saves.Data.Cash.ToString("N0") + "   ·   CONDITION " + Condition() + "%" + (rec.EcuLevel > 0 ? "   ·   ECU STAGE " + rec.EcuLevel : ""), 0.95f, 0.11f, 0.28f, UI.Theme.TextDim, Font.ChaletLondon, Alignment.Right);
             if (note != null && Game.GameTime < noteUntil)
             {
                 Rect(0.35f, 0.88f, 0.30f, 0.05f, Panel);

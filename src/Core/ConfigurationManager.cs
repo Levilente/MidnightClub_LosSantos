@@ -69,6 +69,7 @@ namespace MidnightClub.Core
             c.TransitionFadeMs = Get(s, "Gameplay", "TransitionFadeMs", c.TransitionFadeMs);
             c.ShowHud = Get(s, "HUD", "Show", c.ShowHud);
             c.ShowWelcome = Get(s, "HUD", "WelcomeScreen", c.ShowWelcome);
+            UI.Studio.Brightness = Get(s, "HUD", "StudioLight", 1f);
             c.LoadOnlineMap = Get(s, "World", "LoadOnlineMap", c.LoadOnlineMap);
             c.CustomCameras = Get(s, "Camera", "Enabled", c.CustomCameras);
             c.FitmentEnabled = Get(s, "Fitment", "Enabled", c.FitmentEnabled);

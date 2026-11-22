@@ -1,4 +1,9 @@
 # Changelog
+## 0.15.1 (2026-11-22): NFS-style car screens
+- Studio lighting in garage, showroom and workshop: overhead key + camera-side key spot, purple/cyan rim lights, warm front/rear fills, drawn every frame. Headlights off on display cars (no glare). [HUD] StudioLight scales it (1.0 default).
+- Shallow depth of field focused on the car.
+- Camera framing: car sits centred in the upper part of the screen (garage/showroom) or right of the menu (workshop); wider, lower shot scaled by car length.
+- New layout: no more big boxes over the car. Small title top-left over a soft fade, NFS-style bottom strip (kicker, big car name, make/class/tier, four compact stats, value/price and details on the right), native button bar.
 ## 0.15.0 (2026-11-22): UI overhaul
 - New Midnight Club UI theme (purple/cyan neon on dark glass, game menu textures): menus, garage, showroom, workshop, race results, phone.
 - All button hints now use the game's own instructional-buttons bar (bottom right) with real keyboard/controller glyphs; fixes the broken "b_196"-style text in the garage/showroom hint bars. No more ~INPUT~ tokens in drawn text.

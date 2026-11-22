@@ -112,19 +112,20 @@ namespace MidnightClub.Garages
         {
             var v = cars[index].Value;
             if (v == null || !v.Exists()) return;
-            var to = v.GetOffsetPosition(new Vector3(-2.7f, 4.3f, 0.9f));
-            lookAt = v.Position + new Vector3(0, 0, 0.25f);
+            float len = Math.Max(2.2f, v.Model.Dimensions.frontTopRight.Y);
+            var to = v.GetOffsetPosition(new Vector3(-len * 1.45f, len * 2.05f, 0.75f));
+            lookAt = v.Position + new Vector3(0, 0, 0.1f);
             if (snap) camPos = to;
             targetPos = to;
-            foreach (var kv in cars) if (kv.Value.Exists()) Function.Call(Hash.SET_VEHICLE_LIGHTS, kv.Value, kv.Value == v ? 2 : 1);
+            foreach (var kv in cars) if (kv.Value.Exists()) Function.Call(Hash.SET_VEHICLE_LIGHTS, kv.Value, 1);
         }
         private Vector3 targetPos;
 
         private void Animate()
         {
             camPos = Vector3.Lerp(camPos, targetPos, Math.Min(1f, Game.LastFrameTime * 6f));
-            cam.Position = camPos;
-            cam.PointAt(lookAt);
+            UI.Studio.Frame(cam, camPos, lookAt, 0f, 0.14f);
+            UI.Studio.Light(cars[index].Value, camPos);
         }
 
         // ------------------------------------------------------------------ menus
@@ -188,34 +189,18 @@ namespace MidnightClub.Garages
         {
             Theme.FullscreenFrame();
             var r = cars[index].Key; var info = mgr.Info(r);
-            // header
-            Theme.Card(0.03f, 0.05f, 0.34f, 0.09f);
-            Theme.Text(g.Name.ToUpperInvariant(), 0.045f, 0.055f, 0.62f, Theme.Purple, Font.Pricedown);
-            Theme.Text(g.KindLabel.ToUpperInvariant() + "   ·   " + cars.Count + " / " + g.Capacity + " CARS   ·   $" + saves.Data.Cash.ToString("N0"), 0.045f, 0.103f, 0.28f, Theme.TextDim);
-            // car card
-            float x = 0.03f, y = 0.52f, w = 0.34f, h = 0.36f;
-            Theme.Card(x, y, w, h);
-            Theme.Text((index + 1) + " / " + cars.Count, x + w - 0.012f, y + 0.012f, 0.28f, Theme.Cyan, Font.ChaletLondon, Alignment.Right);
-            Theme.Text((r.Favorite ? "* " : "") + mgr.Title(r).ToUpperInvariant(), x + 0.014f, y + 0.01f, 0.62f, Color.White, Font.ChaletComprimeCologne);
-            Theme.Text(info == null ? r.Model : (info.Make + "   ·   " + VehicleRegistry.ClassName(info.Class) + "   ·   TIER " + info.Tier), x + 0.014f, y + 0.058f, 0.3f, Theme.Cyan);
-            float by = y + 0.1f;
-            if (info != null)
-            {
-                Theme.StatBar("TOP SPEED", info.MaxSpeed / maxSpeed, x + 0.014f, by, w - 0.03f); by += 0.03f;
-                Theme.StatBar("ACCELERATION", info.Acceleration / maxAccel, x + 0.014f, by, w - 0.03f); by += 0.03f;
-                Theme.StatBar("BRAKING", info.Braking / maxBrake, x + 0.014f, by, w - 0.03f); by += 0.03f;
-                Theme.StatBar("GRIP", info.Traction / maxGrip, x + 0.014f, by, w - 0.03f); by += 0.04f;
-            }
-            Theme.Rect(x + 0.014f, by - 0.008f, w - 0.028f, 0.001f, Theme.Line);
+            Studio.Title(g.KindLabel.ToUpperInvariant() + "  ·  " + cars.Count + " / " + g.Capacity, g.Name.ToUpperInvariant(), "$" + saves.Data.Cash.ToString("N0"));
             int cond = (int)Math.Round(Math.Max(0, Math.Min(100, (r.EngineHealth + r.BodyHealth) / 20f)));
-            Theme.Text("CONDITION  " + cond + "%", x + 0.014f, by, 0.27f, Color.White);
-            Theme.Text("ODOMETER  " + r.Stats.DistanceKm.ToString("0.0") + " KM", x + 0.12f, by, 0.27f, Color.White);
-            Theme.Text("BEST  " + r.Stats.TopSpeedKmh.ToString("0") + " KM/H", x + 0.23f, by, 0.27f, Color.White);
-            Theme.Text("PLATE  " + r.Plate + "      VALUE  $" + PricingEngine.EstimatedValue(info, r.Stats.DistanceKm, r.EngineHealth, r.BodyHealth).ToString("N0"), x + 0.014f, by + 0.03f, 0.27f, Theme.TextDim);
+            float[] stats = info == null ? null : new[] { info.MaxSpeed / maxSpeed, info.Acceleration / maxAccel, info.Braking / maxBrake, info.Traction / maxGrip };
+            string sub = info == null ? r.Model : info.Make.ToUpperInvariant() + "   " + VehicleRegistry.ClassName(info.Class).ToUpperInvariant() + "   TIER " + info.Tier;
+            Studio.CarStrip(r.Favorite ? "FAVOURITE" : "MY GARAGE", mgr.Title(r).ToUpperInvariant(), sub, stats,
+                new[] { "$" + PricingEngine.EstimatedValue(info, r.Stats.DistanceKm, r.EngineHealth, r.BodyHealth).ToString("N0"), "ESTIMATED VALUE", "",
+                        "CONDITION  " + cond + "%", r.Stats.DistanceKm.ToString("0.0") + " KM  ·  BEST " + r.Stats.TopSpeedKmh.ToString("0") + " KM/H", "PLATE  " + r.Plate },
+                cars.Count > 1 ? "<  " + (index + 1) + " / " + cars.Count + "  >" : null);
             if (note != null && Game.GameTime < noteUntil)
             {
-                Theme.Card(0.36f, 0.05f, 0.28f, 0.05f);
-                Theme.Text(note, 0.5f, 0.062f, 0.3f, Color.White, Font.ChaletLondon, Alignment.Center, 0.26f);
+                Theme.Card(0.36f, 0.14f, 0.28f, 0.05f);
+                Theme.Text(note, 0.5f, 0.152f, 0.3f, Color.White, Font.ChaletLondon, Alignment.Center, 0.26f);
             }
             if (!menus.IsOpen)
             {

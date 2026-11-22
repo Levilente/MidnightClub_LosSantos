@@ -72,7 +72,7 @@ namespace MidnightClub.Dealerships
                         Game.EnableControlThisFrame(c);
                     Hud.HideComponentThisFrame(HudComponent.HelpText);
                     if (menus.IsOpen) menus.Tick(); else Input();
-                    if (shown != null && shown.Exists()) { spin = (spin + Game.LastFrameTime * 18f) % 360f; shown.Heading = spin; }
+                    if (shown != null && shown.Exists()) { spin = (spin + Game.LastFrameTime * 14f) % 360f; shown.Heading = spin; Studio.Frame(cam, cam.Position, spot + new Vector3(0, 0, 0.1f), 0f, 0.14f); Studio.Light(shown, cam.Position); }
                     DrawHud();
                     Script.Wait(0);
                 }
@@ -206,36 +206,25 @@ namespace MidnightClub.Dealerships
         {
             Theme.FullscreenFrame();
             var item = stock[index]; var v = item.Info; bool sold = mgr.IsSold(item);
-            Theme.Card(0.03f, 0.05f, 0.40f, 0.12f);
-            Theme.Text(d.Name.ToUpperInvariant(), 0.045f, 0.055f, 0.58f, Theme.Purple, Font.Pricedown);
-            Theme.Text(d.Tagline, 0.045f, 0.1f, 0.27f, Color.White);
             var promo = mgr.PromoClass(d); int days = mgr.DaysUntilRotation(d);
-            Theme.Text("NEW STOCK IN " + days + (days == 1 ? " DAY" : " DAYS") + "   ·   " + mgr.Calendar.DayName.ToUpperInvariant() + "   ·   $" + saves.Data.Cash.ToString("N0")
-                + (promo.HasValue ? "   ·   ~y~" + VehicleRegistry.ClassName(promo.Value).ToUpperInvariant() + " -15%" : ""), 0.045f, 0.13f, 0.26f, Theme.Cyan);
-
-            float x = 0.03f, y = 0.5f, w = 0.36f, h = 0.38f;
-            Theme.Card(x, y, w, h);
-            Theme.Text((index + 1) + " / " + stock.Count, x + w - 0.012f, y + 0.012f, 0.28f, Theme.Cyan, Font.ChaletLondon, Alignment.Right);
-            Theme.Text(v.Name.ToUpperInvariant(), x + 0.014f, y + 0.01f, 0.62f, Color.White, Font.ChaletComprimeCologne);
-            Theme.Text(VehicleRegistry.ClassName(v.Class).ToUpperInvariant() + "   ·   TIER " + v.Tier + (item.Badge != null ? "   ·   ~y~" + item.Badge : ""), x + 0.014f, y + 0.058f, 0.3f, Theme.Cyan);
-            float by = y + 0.1f;
-            Theme.StatBar("TOP SPEED", v.MaxSpeed / maxSpeed, x + 0.014f, by, w - 0.03f); by += 0.03f;
-            Theme.StatBar("ACCELERATION", v.Acceleration / maxAccel, x + 0.014f, by, w - 0.03f); by += 0.03f;
-            Theme.StatBar("BRAKING", v.Braking / maxBrake, x + 0.014f, by, w - 0.03f); by += 0.03f;
-            Theme.StatBar("GRIP", v.Traction / maxGrip, x + 0.014f, by, w - 0.03f); by += 0.04f;
+            Studio.Title(d.Tagline.ToUpperInvariant(), d.Name.ToUpperInvariant(), "$" + saves.Data.Cash.ToString("N0"));
+            Theme.Text("NEW STOCK IN " + days + (days == 1 ? " DAY" : " DAYS") + (promo.HasValue ? "  ·  " + VehicleRegistry.ClassName(promo.Value).ToUpperInvariant() + " -15%" : ""), 0.95f, 0.085f, 0.26f, promo.HasValue ? Theme.Gold : Theme.TextDim, Font.ChaletLondon, Alignment.Right);
+            var right = new System.Collections.Generic.List<string>();
+            right.Add(sold ? "SOLD" : "$" + item.Price.ToString("N0"));
+            right.Add(item.ListPrice > item.Price ? "WAS $" + item.ListPrice.ToString("N0") : "PRICE");
             if (d.IsUsedMarket && item.Preview != null)
             {
                 int cond = (int)Math.Round((item.Preview.EngineHealth + item.Preview.BodyHealth) / 20f);
-                Theme.Text("CONDITION " + cond + "%    ODOMETER " + item.Preview.Stats.DistanceKm.ToString("0") + " KM    " + item.Preview.Mods.Count + " MODS", x + 0.014f, by, 0.27f, Color.White);
-                Theme.Text("Seller: " + item.Seller, x + 0.014f, by + 0.027f, 0.27f, Theme.TextDim);
+                right.Add(""); right.Add("CONDITION  " + cond + "%"); right.Add(item.Preview.Stats.DistanceKm.ToString("0") + " KM  ·  " + item.Preview.Mods.Count + " MODS"); right.Add("SELLER  " + item.Seller.ToUpperInvariant());
             }
-            Theme.Rect(x + 0.014f, y + h - 0.07f, w - 0.028f, 0.001f, Theme.Line);
-            string price = sold ? "~r~SOLD" : "$" + item.Price.ToString("N0") + (item.ListPrice > item.Price ? "  ~c~$" + item.ListPrice.ToString("N0") : "");
-            Theme.Text(price, x + 0.014f, y + h - 0.062f, 0.7f, Color.White, Font.ChaletComprimeCologne);
+            Studio.CarStrip(item.Badge != null ? item.Badge.ToUpperInvariant() : "IN STOCK", v.DisplayName.ToUpperInvariant(),
+                v.Make.ToUpperInvariant() + "   " + VehicleRegistry.ClassName(v.Class).ToUpperInvariant() + "   TIER " + v.Tier,
+                new[] { v.MaxSpeed / maxSpeed, v.Acceleration / maxAccel, v.Braking / maxBrake, v.Traction / maxGrip }, right.ToArray(),
+                "<  " + (index + 1) + " / " + stock.Count + "  >");
             if (note != null && Game.GameTime < noteUntil)
             {
-                Theme.Card(0.36f, 0.2f, 0.28f, 0.05f);
-                Theme.Text(note, 0.5f, 0.212f, 0.3f, Color.White, Font.ChaletLondon, Alignment.Center, 0.26f);
+                Theme.Card(0.36f, 0.14f, 0.28f, 0.05f);
+                Theme.Text(note, 0.5f, 0.152f, 0.3f, Color.White, Font.ChaletLondon, Alignment.Center, 0.26f);
             }
             if (!menus.IsOpen) Buttons.Draw(Control.FrontendAccept, "Buy", Control.FrontendCancel, "Leave", Control.FrontendX, "Test drive", Control.FrontendRight, "", Control.FrontendLeft, "Browse");
         }
