@@ -33,7 +33,7 @@ namespace MidnightClub.Core
         public float PoliceSpeedKmh = 115f, PoliceDifficulty = 1f;
         public long TierRep2 = 1000, TierRep3 = 3500, TierRep4 = 9000, TierRep5 = 20000;
         public float CamberSign = 1f;
-        public float CameraGForce = 1.0f, CameraFovScale = 1.0f, CameraShake = 1.0f;
+        public float CameraGForce = 1.0f, CameraFovScale = 1.0f, CameraShake = 1.0f, CockpitCamHeight = -0.03f, HoodCamHeight = 0f;
         public float HudX = 0.985f, HudY = 0.04f;
         public int AutoSaveSeconds = 120;
         public int BackupCount = 5;
@@ -83,6 +83,8 @@ namespace MidnightClub.Core
             c.CameraGForce = Get(s, "Camera", "GForceIntensity", c.CameraGForce);
             c.CameraFovScale = Get(s, "Camera", "DynamicFovIntensity", c.CameraFovScale);
             c.CameraShake = Get(s, "Camera", "ShakeIntensity", c.CameraShake);
+            c.CockpitCamHeight = Get(s, "Camera", "CockpitHeight", c.CockpitCamHeight);
+            c.HoodCamHeight = Get(s, "Camera", "HoodHeight", c.HoodCamHeight);
             c.HudX = Get(s, "HUD", "X", c.HudX);
             c.HudY = Get(s, "HUD", "Y", c.HudY);
             c.AutoSaveSeconds = Get(s, "Save", "AutoSaveSeconds", c.AutoSaveSeconds);

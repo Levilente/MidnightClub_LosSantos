@@ -1,4 +1,7 @@
 # Changelog
+## 0.14.2 (2026-11-22): camera rewrite after first feedback
+- Bumper / hood / cockpit: rigidly hard-attached to the car (game camera attach, no lag or jitter), no G-force sway/tilt/roll, no shake; only dynamic FOV. Cockpit lowered ~10 cm to eye level ([Camera] CockpitHeight, HoodHeight to fine-tune).
+- Chase cameras rebuilt NFS Unbound-style: low and tight, looking slightly down (car in the lower third), critically damped heading follow (blended a little towards the direction of travel to show drift angle), slight pull-back with speed and filtered acceleration, strong speed FOV, no roll, no G-wobble, shake only with nitrous / above 220 km/h.
 ## 0.14.1 (2026-11-22): controller pass
 - Controller can enter/leave Midnight Club: hold Back/Select (Change View) 1.5 s. A tap still cycles cameras.
 - Nitrous is device-aware: Sprint on keyboard, the vehicle boost button (VEH_ROCKET_BOOST) on a controller.
