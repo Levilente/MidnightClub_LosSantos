@@ -46,6 +46,19 @@ namespace MidnightClub.Persistence
         [DataMember] public List<OwnedGarage> Garages = new List<OwnedGarage>();
         [DataMember] public List<LedgerEntry> Ledger = new List<LedgerEntry>();
         [DataMember] public List<KeyValue> Extensions = new List<KeyValue>();
+        // progression (0.18)
+        [DataMember] public long Xp;
+        [DataMember] public int LevelRewarded = 1;
+        [DataMember] public List<string> Discovered = new List<string>();
+        [DataMember] public string RoadBits;
+        [DataMember] public List<int> RoadMilestones = new List<int>();
+        [DataMember] public List<KeyValue> SkillRecords = new List<KeyValue>();   // zone id -> best value
+        [DataMember] public List<string> BarnFound = new List<string>();
+        [DataMember] public List<string> PendingCars = new List<string>();
+        [DataMember] public int DailyDay = -1;
+        [DataMember] public List<KeyValue> Daily = new List<KeyValue>();          // challenge id -> progress
+        [DataMember] public List<string> DailyDone = new List<string>();
+        [DataMember] public float KmDriven;
     }
 
     [DataContract]

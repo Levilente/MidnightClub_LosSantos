@@ -35,6 +35,7 @@ namespace MidnightClub.WorldSim
         public WorldSimulationManager(SaveManager saves, TransactionManager money, VehicleRegistry registry, VehicleManager vehicles, WorldCalendar calendar, RaceManager races, MenuStack stack, Config cfg)
         {
             this.saves = saves; this.money = money; this.registry = registry; this.vehicles = vehicles; this.calendar = calendar; this.races = races; this.stack = stack; this.cfg = cfg;
+            EventBus.Subscribe<Explore.DiscoveredEvent>(e => { if (e.Id.StartsWith("trap:")) PlaceTrapBlips(); });
             EventBus.Subscribe<MidnightTickEvent>(e => Tick());
             EventBus.Subscribe<ModeChangedEvent>(e => { if (e.To == GameMode.MIDNIGHT_CLUB) Setup(); else CleanupAll(); });
             EventBus.Subscribe<RaceFinishedEvent>(e => { if (e.Race.Id.StartsWith("street_") && e.Won) { saves.Data.StreetRacesWon++; saves.IsDirty = true; } });
@@ -361,8 +362,12 @@ namespace MidnightClub.WorldSim
 
         private void PlaceTrapBlips()
         {
+            foreach (var b0 in trapBlips) try { if (b0.Exists()) b0.Delete(); } catch { }
+            trapBlips.Clear();
             foreach (var t in traps)
             {
+                Explore.Discovery.Register("trap:" + t.Id, t.Name, "Speed trap", t.Pos, 70f);
+                if (!Explore.Discovery.Known("trap:" + t.Id)) continue;
                 var b = World.CreateBlip(t.Pos); b.Sprite = BlipSprite.Camera; b.Color = BlipColor.Yellow2; b.IsShortRange = true; b.Scale = 0.6f; b.Name = "Speed trap";
                 trapBlips.Add(b);
             }
@@ -387,7 +392,8 @@ namespace MidnightClub.WorldSim
                     saves.Data.SpeedTrapRecords.Add(new KeyValue { Key = t.Id, Value = kmh.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture) });
                     long rep = (long)Math.Max(5, (kmh - rec) / 2);
                     money.Earn(0, rep, "speedtrap", "Speed trap record " + t.Name + " " + (int)kmh + " km/h", "trap:" + t.Id + ":" + (int)kmh);
-                    Notification.PostTicker("~y~SPEED TRAP~s~ " + t.Name + ": ~g~" + (int)kmh + " km/h~s~ new record (was " + (int)rec + ").", true, false);
+                    UI.Shard.Mid("SPEED TRAP RECORD", t.Name.ToUpperInvariant() + "  ·  " + (int)kmh + " KM/H", UI.Shard.Blue, 3000);
+                    if (Career.Progression.Instance != null) { Career.Progression.Instance.Award(150 + (long)(kmh - rec), "Speed trap"); Career.Progression.Instance.Bump("trap", 1); }
                 }
                 else Notification.PostTicker("~y~SPEED TRAP~s~ " + t.Name + ": " + (int)kmh + " km/h (record " + (int)rec + ").", false, false);
             }

@@ -24,28 +24,21 @@ namespace MidnightClub.Racing
             foreach (var p in r.Points) pts.Add(new Vector3(p[0], p[1], p[2]));
             if (r.Kind == RaceType.Circuit) pts.Add(pts[0]);
 
-            var origPos = car.Position; float origHeading = car.Heading;
             var all = new List<Vector3>();
-            try
+            for (int leg = 0; leg + 1 < pts.Count; leg++)
             {
-                for (int leg = 0; leg + 1 < pts.Count; leg++)
-                {
-                    var samples = Leg(car, pts[leg], pts[leg + 1]);
-                    if (samples == null) { Log.Warn("Route leg " + leg + " of " + r.Id + " not found"); return null; }
-                    if (all.Count > 0 && samples.Count > 0) samples.RemoveAt(0);
-                    all.AddRange(samples);
-                }
-            }
-            finally
-            {
-                Function.Call(Hash.SET_WAYPOINT_OFF);
-                car.Position = origPos; car.Heading = origHeading; car.PlaceOnGround();
+                var samples = RoadGraph.Route(pts[leg], pts[leg + 1]);
+                if (samples == null) samples = Leg(car, pts[leg], pts[leg + 1]);     // fallback: in-game GPS
+                if (samples == null) { Log.Warn("Route leg " + leg + " of " + r.Id + " not found"); return null; }
+                samples.Insert(0, pts[leg]); samples.Add(pts[leg + 1]);
+                if (all.Count > 0 && samples.Count > 0) samples.RemoveAt(0);
+                all.AddRange(samples);
             }
             var cps = Thin(all, pts[pts.Count - 1]);
             if (cps.Count < 2) return null;
             cache[r.Id] = cps;
             float len = 0; for (int i = 1; i < all.Count; i++) len += all[i].DistanceTo(all[i - 1]);
-            Log.Info("Route " + r.Id + ": " + all.Count + " samples, " + cps.Count + " checkpoints, " + (len / 1000f).ToString("0.00") + " km (GPS type " + workingRouteType + ")");
+            Log.Info("Route " + r.Id + ": " + all.Count + " road nodes, " + cps.Count + " checkpoints, " + (len / 1000f).ToString("0.00") + " km");
             return cps;
         }
 
@@ -57,6 +50,13 @@ namespace MidnightClub.Racing
         }
 
         private static List<Vector3> Leg(Vehicle car, Vector3 from, Vector3 to)
+        {
+            var op = car.Position; float oh = car.Heading;
+            try { return LegGps(car, from, to); }
+            finally { Function.Call(Hash.SET_WAYPOINT_OFF); car.Position = op; car.Heading = oh; car.PlaceOnGround(); }
+        }
+
+        private static List<Vector3> LegGps(Vehicle car, Vector3 from, Vector3 to)
         {
             car.Position = from; car.PlaceOnGround();
             Function.Call(Hash.NEW_LOAD_SCENE_START_SPHERE, from.X, from.Y, from.Z, 80f, 0);

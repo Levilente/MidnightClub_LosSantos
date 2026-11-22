@@ -53,6 +53,7 @@ namespace MidnightClub.Racing
         public RaceManager(SaveManager saves, TransactionManager money, VehicleRegistry registry, VehicleManager vehicles, WorldCalendar calendar, MenuStack stack, string dataDir)
         {
             this.saves = saves; this.money = money; this.registry = registry; this.vehicles = vehicles; this.calendar = calendar; this.stack = stack; this.dataDir = dataDir;
+            EventBus.Subscribe<Explore.DiscoveredEvent>(e => { if (e.Id.StartsWith("race:")) RefreshBlips(); });
             EventBus.Subscribe<ModeChangedEvent>(e =>
             {
                 if (e.To == GameMode.MIDNIGHT_CLUB) { try { lib = RaceLibrary.Load(this.dataDir); } catch (Exception ex) { Log.Error("Race library", ex); } RefreshBlips(); }
@@ -81,6 +82,8 @@ namespace MidnightClub.Racing
             foreach (var r in lib.Races)
             {
                 if (r.Points.Count == 0) continue;
+                Explore.Discovery.Register("race:" + r.Id, r.Name, "Race", r.Start, 120f);
+                if (!Explore.Discovery.Known("race:" + r.Id)) continue;
                 var b = World.CreateBlip(r.Start);
                 bool open = Available(r);
                 b.Sprite = BlipSprite.RaceCar; b.IsShortRange = true; b.Scale = 0.8f;

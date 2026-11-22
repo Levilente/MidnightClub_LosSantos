@@ -109,7 +109,7 @@ namespace MidnightClub.Gameplay
                 saves.Data.MilestonesDone.Add(m.Id);
                 money.Earn(m.Cash, m.Rep, "milestone", "Milestone: " + m.Name, "ms:" + m.Id);
                 Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "MEDAL_GOLD", "HUD_AWARDS", true);
-                Screen.ShowSubtitle("~y~MILESTONE: " + m.Name.ToUpperInvariant() + "~s~~n~" + m.Desc + "   ~g~+$" + m.Cash.ToString("N0") + (m.Rep > 0 ? "  +" + m.Rep + " REP" : ""), 6000);
+                UI.Shard.Mid("MILESTONE  ·  " + m.Name.ToUpperInvariant(), m.Desc + "   +$" + m.Cash.ToString("N0") + (m.Rep > 0 ? "  +" + m.Rep + " REP" : ""), UI.Shard.Gold, 5000);
                 saves.IsDirty = true;
             }
         }

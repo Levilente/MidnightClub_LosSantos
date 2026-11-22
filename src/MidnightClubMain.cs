@@ -39,6 +39,7 @@ namespace MidnightClub
                 modes = new GameModeManager(cfg, saves, new CharacterManager(), vehicles, registry, Path.Combine(dir, "data"));
                 Directory.CreateDirectory(Path.Combine(dir, "data"));
                 var stack = new MenuStack();
+                new Explore.Discovery(saves);
                 var money = new Economy.TransactionManager(saves);
                 var garages = new Garages.GarageManager(saves, money, registry, vehicles, modes, stack, Path.Combine(dir, "data"));
                 modes.Garages = garages; modes.Money = money;
@@ -51,6 +52,7 @@ namespace MidnightClub
                 var dealers = new Dealerships.DealershipManager(saves, money, registry, vehicles, garages, calendar, stack, Path.Combine(dir, "data"));
                 var races = new Racing.RaceManager(saves, money, registry, vehicles, calendar, stack, Path.Combine(dir, "data"));
                 new Career.CareerManager(saves, cfg);
+                new Career.Progression(saves, money, garages, calendar);
                 var rivals = new Rivals.RivalManager(saves, money, registry, races, garages, stack);
                 var clubs = new Factions.ClubManager(saves, registry, vehicles);
                 new Police.PursuitManager(saves, money, vehicles, cfg);
@@ -111,6 +113,7 @@ namespace MidnightClub
                 }
                 else if (!modes.InMidnightClub) welcomePending = 0;
                 if (modes.InMidnightClub) menu.Tick();
+                if (modes.InMidnightClub) Shard.Tick();
                 if (modes.InMidnightClub && cfg.ShowHud && !phone.IsVisible && !menu.IsOpen) hud.Draw(saves.Data, vehicles);
             }
             catch (Exception ex)

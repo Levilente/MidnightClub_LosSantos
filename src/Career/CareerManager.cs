@@ -59,7 +59,7 @@ namespace MidnightClub.Career
             if (t <= saves.Data.CareerTierNotified) return;
             saves.Data.CareerTierNotified = t; saves.IsDirty = true;
             Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "RANK_UP", "HUD_AWARDS", true);
-            Screen.ShowSubtitle("~p~TIER " + t + ": " + TierNames[t].ToUpperInvariant() + "~s~~n~" + TierUnlocks[t], 9000);
+            UI.Shard.Big("TIER " + t + "  ·  " + TierNames[t].ToUpperInvariant(), TierUnlocks[t], UI.Shard.Purple, 7000);
             Log.Info("Career tier " + t);
             EventBus.Publish(new TierUpEvent(t));
         }

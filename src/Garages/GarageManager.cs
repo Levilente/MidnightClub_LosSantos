@@ -37,6 +37,7 @@ namespace MidnightClub.Garages
         public GarageManager(SaveManager saves, TransactionManager money, VehicleRegistry registry, VehicleManager vehicles, GameModeManager modes, MenuStack stack, string dataDir)
         {
             this.saves = saves; this.money = money; this.registry = registry; this.vehicles = vehicles; this.stack = stack; this.dataDir = dataDir;
+            EventBus.Subscribe<Explore.DiscoveredEvent>(e => { if (e.Id.StartsWith("gar:")) RefreshBlips(); });
             EventBus.Subscribe<ModeChangedEvent>(OnModeChanged);
             EventBus.Subscribe<MidnightTickEvent>(e => Tick());
         }
@@ -135,6 +136,7 @@ namespace MidnightClub.Garages
             foreach (var g in defs)
             {
                 bool owned = Owned(g.Id) != null;
+                if (!owned) { Explore.Discovery.Register("gar:" + g.Id, g.Name, "Garage for sale", g.Position); if (!Explore.Discovery.Known("gar:" + g.Id)) continue; }
                 var b = World.CreateBlip(g.Position);
                 b.Sprite = owned ? BlipSprite.Garage : BlipSprite.GarageForSale;
                 b.Color = owned ? BlipColor.Green : BlipColor.White;

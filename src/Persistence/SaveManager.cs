@@ -88,6 +88,14 @@ namespace MidnightClub.Persistence
             if (d.Ledger == null) d.Ledger = new System.Collections.Generic.List<LedgerEntry>();
             if (d.ProcessedTransactions == null) d.ProcessedTransactions = new System.Collections.Generic.List<string>();
             if (d.Extensions == null) d.Extensions = new System.Collections.Generic.List<KeyValue>();
+            if (d.Discovered == null) d.Discovered = new System.Collections.Generic.List<string>();
+            if (d.RoadMilestones == null) d.RoadMilestones = new System.Collections.Generic.List<int>();
+            if (d.SkillRecords == null) d.SkillRecords = new System.Collections.Generic.List<KeyValue>();
+            if (d.BarnFound == null) d.BarnFound = new System.Collections.Generic.List<string>();
+            if (d.PendingCars == null) d.PendingCars = new System.Collections.Generic.List<string>();
+            if (d.Daily == null) d.Daily = new System.Collections.Generic.List<KeyValue>();
+            if (d.DailyDone == null) d.DailyDone = new System.Collections.Generic.List<string>();
+            if (d.LevelRewarded < 1) d.LevelRewarded = 1;
         }
 
         /// <summary>Atomic write: serialize to .tmp, then swap in, keeping a rotating backup of the previous file.</summary>

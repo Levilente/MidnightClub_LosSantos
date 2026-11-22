@@ -107,3 +107,12 @@ Tick items off or note what happened. Logs: `scripts\MidnightClub\MidnightClub.l
 - [ ] Bottom-right button bar shows correct glyphs on keyboard and on controller in garage, showroom, test drive, menus, phone, race results.
 - [ ] Objective pill (top centre) never covers help text / prompts.
 - [ ] 0.15.1: garage/showroom/workshop car is well lit (not blown out, not dark) and not covered by UI. If too bright/dark: [HUD] StudioLight=0.6 / 1.5.
+
+## Progression & exploration (0.18.0)
+- [ ] Start a race (e.g. r01): the log shows "Route r01: N road nodes, ..." and checkpoints follow the roads. No teleport/fade before the race.
+- [ ] Log shows "Road graph: 67454 nodes ..." and "Skill zones: 17, barn finds: 6".
+- [ ] Only LSC La Mesa, PDM, the used market and races r01-r04 have blips at first; purple ? marks appear near hidden places; driving close discovers them (banner, XP, blip appears).
+- [ ] HUD top right: LV + XP bar, +XP popups. Level-up shows the big shard banner with the reward.
+- [ ] Phone > Progress and Phone > Daily work; daily challenges complete with a banner.
+- [ ] Drive into a speed zone (stopwatch blip) / drift zone (steering wheel blip) in the right direction: live HUD, result banner with stars.
+- [ ] Reach level 3: barn find rumour area on the map; find the dusty car; it is delivered to a garage.

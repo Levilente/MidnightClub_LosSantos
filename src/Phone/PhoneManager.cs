@@ -42,6 +42,8 @@ namespace MidnightClub.Phone
         {
             this.saves = saves; this.stack = stack; this.menu = menu; this.calendar = calendar; this.races = races; this.rivalsMenu = rivalsMenu; this.clubsMenu = clubsMenu;
             apps.Add(new App { Name = "Messages", Accent = Ds.Violet, Open = Inbox, Badge = () => { int n = saves.Data.Messages.Count(m => !m.Read); return n > 0 ? n + " NEW" : null; } });
+            apps.Add(new App { Name = "Progress", Accent = Ds.Violet, Open = () => Progression.Instance != null ? Progression.Instance.ProgressMenu() : null, Meta = () => Progression.Instance != null ? "LV " + Progression.Instance.Level + "  ·  " + Progression.Instance.RoadPercent.ToString("0.0") + "% ROADS" : "" });
+            apps.Add(new App { Name = "Daily", Accent = Ds.Amber, Open = () => Progression.Instance != null ? Progression.Instance.DailyMenu() : null, Meta = () => Progression.Instance == null ? "" : Progression.Instance.Today.Count(c => Progression.Instance.Done(c)) + " / " + Progression.Instance.Today.Count });
             apps.Add(new App { Name = "Races", Accent = Ds.Red, Open = () => races.RacesMenu(), Meta = () => { int n = races.Races.Count(r => races.Available(r)); return n + " OPEN"; } });
             apps.Add(new App { Name = "My garage", Accent = Ds.Cyan, Open = () => menu.MyVehicles(), Meta = () => saves.Data.Vehicles.Count + (saves.Data.Vehicles.Count == 1 ? " CAR" : " CARS") });
             apps.Add(new App { Name = "Dealerships", Accent = Ds.Amber, Open = () => menu.DealerList(), Meta = () => menu.Dealers == null ? "" : "NEW STOCK " + menu.Dealers.Definitions.Min(x => menu.Dealers.DaysUntilRotation(x)) + "D" });
@@ -72,6 +74,7 @@ namespace MidnightClub.Phone
         public void Send(string from, string subject, string body, string action)
         {
             saves.Data.Messages.Add(new PhoneMessage { From = from, Subject = subject, Body = body, Action = action ?? "", Utc = DateTime.UtcNow.ToString("o") });
+            if (action != null && action.StartsWith("race:") && Explore.Discovery.Instance != null) Explore.Discovery.Instance.Reveal(action, false);
             saves.IsDirty = true;
             Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "Text_Arrive_Tone", "Phone_SoundSet_Default", true);
             Notification.PostTicker("~p~" + from + "~s~: " + subject, false, false);
@@ -263,7 +266,7 @@ namespace MidnightClub.Phone
             if (CareerManager.Instance != null) Ds.Tag("TIER " + CareerManager.Instance.Tier, tx, ty, Ds.Surface2, Ds.Text, 0.3f, a);
             Ds.Skew(x, py + 0.203f, w, 0.003f, Ds.Px(0.001f), Ds.A(Ds.Surface2, a));
 
-            float ly = py + 0.218f, rh = 0.0285f;
+            float ly = py + 0.218f, rh = 0.0255f;
             float target = ly + sel * rh;
             listY = listY < 0 ? target : Ds.Damp(listY, target, 26f);
             var acc = apps[sel].Accent; float sl = Ds.SlantFor(rh - 0.003f);
@@ -275,17 +278,17 @@ namespace MidnightClub.Phone
                 float ent = Ds.EaseOut(Ds.Clamp01(openT * 1.6f - i * 0.03f)), ea = a * ent, ox = (1f - ent) * Ds.Px(0.02f);
                 bool onBar = s && Math.Abs(listY - target) < rh * 0.5f;
                 var dark = Ds.Bg;
-                Ds.T((i + 1).ToString("00"), x + Ds.Px(0.003f) + ox, y + 0.006f, 0.21f, Ds.A(onBar ? dark : Ds.Faint, ea), Ds.Display);
-                Ds.T(app.Name.ToUpperInvariant(), x + Ds.Px(0.022f) + ox, y - 0.0015f, 0.4f, Ds.A(onBar ? dark : Ds.Text, ea), Ds.Display);
+                Ds.T((i + 1).ToString("00"), x + Ds.Px(0.003f) + ox, y + 0.0045f, 0.21f, Ds.A(onBar ? dark : Ds.Faint, ea), Ds.Display);
+                Ds.T(app.Name.ToUpperInvariant(), x + Ds.Px(0.022f) + ox, y - 0.0025f, 0.37f, Ds.A(onBar ? dark : Ds.Text, ea), Ds.Display);
                 string badge = app.Badge != null ? app.Badge() : null;
                 string meta = badge ?? (app.Meta != null ? app.Meta() : null);
                 if (string.IsNullOrEmpty(meta)) continue;
                 if (badge != null && !onBar)
                 {
                     float bw = Ds.Width(badge, 0.24f, Ds.Display) + Ds.Px(0.014f) + Ds.SlantFor(0.024f);
-                    Ds.Tag(badge, x + w - bw + ox, y + 0.0025f, Ds.Mix(Ds.Red, Color.White, 0.25f * Ds.Pulse(1.4f)), Ds.Text, 0.24f, ea);
+                    Ds.Tag(badge, x + w - bw + ox, y + 0.001f, Ds.Mix(Ds.Red, Color.White, 0.25f * Ds.Pulse(1.4f)), Ds.Text, 0.24f, ea);
                 }
-                else Ds.T(meta, x + w - Ds.Px(0.004f) + ox, y + 0.0045f, 0.25f, Ds.A(onBar ? dark : Ds.Muted, ea), Ds.Display, GTA.UI.Alignment.Right);
+                else Ds.T(meta, x + w - Ds.Px(0.004f) + ox, y + 0.003f, 0.24f, Ds.A(onBar ? dark : Ds.Muted, ea), Ds.Display, GTA.UI.Alignment.Right);
             }
             // footer: next objective, else latest buzz
             float fy = py + PH - 0.052f;

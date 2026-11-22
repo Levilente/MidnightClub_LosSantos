@@ -25,3 +25,6 @@
 24. Tyre compound grip edits the model's shared handling data while you drive; traffic cars of the same model nearby get the same grip meanwhile.
 25. If camber leans the wrong way, set [Fitment] CamberSign=-1.
 26. Car-meet spot coordinates are first-pass (Vinewood Bowl and Sandy Shores airfield especially); cars are laid out in a grid around the spot and may need moving.
+
+- 0.18.0: shard banner colour indices (purple/gold/blue) are best guesses; if a banner is invisible or oddly coloured, report it.
+- 0.18.0: existing saves start the exploration from the starter set too (already-used workshops/dealers must be rediscovered by driving near them).

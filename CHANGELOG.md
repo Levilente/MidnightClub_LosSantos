@@ -1,4 +1,14 @@
 # Changelog
+## 0.18.0 (2026-11-22): progression, exploration, road-network routing
+- FIX: races failed with "Route leg not found" (the in-game GPS route is unreliable from scripts on Enhanced). Routes now come from the game's full road network (67,454 path nodes, embedded in the DLL) with A* routing: road-following checkpoints anywhere on the map, no teleporting behind a fade. The old GPS method remains only as a fallback.
+- Driver LEVEL (1-50) from XP for everything: races (by position), rivals, escapes, meets, upgrades, style, discoveries, skill zones, road discovery, daily challenges. Level rewards: cash every level, cars at 5/10/15/20/25/35/50 (Sultan, Elegy RH8, Jester, Banshee 900R, Comet, Zentorno, Entity XF; delivered later if garages are full), barn-find rumours at 3/7/12/17/23/30. HUD shows level + XP bar and +XP popups; level-ups use the game's own animated shard banner.
+- Exploration: workshops, dealerships, garages for sale, races and speed traps start hidden (except LSC La Mesa, PDM, the used market and the first four races). Driving near one discovers it (banner + XP) and adds its blip; purple ? marks show undiscovered places within ~450 m. Phone race invites reveal that race.
+- Road discovery %: every road node you drive counts (saved); rewards at 1/5/10/25/50/75/100%.
+- Skill zones built from the road network: 7 speed zones (average speed, 1-3 stars) and 10 drift zones (drift score), with start chevrons, live HUD, records and XP for new stars.
+- Barn finds: 6 hidden classics on remote dead-end dirt roads; a level reward gives a rumour (search area on the map); get within a few metres of the dusty car to claim it.
+- Daily challenges: 3 per Midnight Club day (win, finish races, km, top speed, style, zone star, discovery, escape, speed trap), with cash + XP.
+- Phone: new Progress (level, next rewards, roads %, locations found, zone stars, barn finds) and Daily apps.
+- Tier-ups, milestones, speed-trap records and discoveries use the game's own shard banners instead of subtitles/feed.
 ## 0.17.0 (2026-11-22): street-racing design language + garage fix
 - FIX: you could get stuck free-roaming inside a garage interior (after a script reload/crash in the garage, or a save made inside). Every second the mod now checks for this and puts you outside in your car; positions inside garage interiors are never saved, and a saved position inside one spawns you outside.
 - Design language v3: no rounded/pixel shapes or pixel icons any more. Everything is sharp and slanted: parallelogram selection bars with a light sweep, slanted tags for kickers/chips/badges, racing stripes, animated speed streaks, slanted rev-bar segments, gear badge, NOS/ability bars, objective and pursuit panels.

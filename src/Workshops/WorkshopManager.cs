@@ -46,6 +46,7 @@ namespace MidnightClub.Workshops
             this.saves = saves; this.money = money; this.registry = registry; this.vehicles = vehicles; this.stack = stack;
             EventBus.Subscribe<MidnightTickEvent>(e => Tick());
             EventBus.Subscribe<ModeChangedEvent>(e => { if (e.To == GameMode.MIDNIGHT_CLUB) PlaceBlips(); else { ClearBlips(); CloseDoors(); } });
+            EventBus.Subscribe<Explore.DiscoveredEvent>(e => { if (e.Id.StartsWith("ws:")) PlaceBlips(); });
         }
 
         // Benny's roll-up door stays shut in Story Mode; register it with the door system and hold it open.
@@ -91,6 +92,8 @@ namespace MidnightClub.Workshops
             ClearBlips();
             foreach (var w in All)
             {
+                Explore.Discovery.Register("ws:" + w.Id, w.Name, "Workshop", w.Position);
+                if (!Explore.Discovery.Known("ws:" + w.Id)) continue;
                 var b = World.CreateBlip(w.Position);
                 b.Sprite = w.Bennys ? BlipSprite.Bennys : BlipSprite.LosSantosCustoms;
                 b.Name = w.Bennys ? "Benny's workshop" : "Workshop"; b.IsShortRange = true;

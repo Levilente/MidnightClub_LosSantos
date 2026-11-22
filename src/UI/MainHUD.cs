@@ -12,7 +12,8 @@ namespace MidnightClub.UI
     {
         private readonly float hx, hy;
         private string deltaText; private Color deltaColor; private int deltaAt = -10000;
-        private float rpmShown, speedShown, cashShown = -1;
+        private float rpmShown, speedShown, cashShown = -1, xpShown;
+        private string xpText; private int xpAt = -10000; private long xpAcc;
 
         public MainHUD(float x, float y)
         {
@@ -24,6 +25,7 @@ namespace MidnightClub.UI
                 deltaColor = e.CashDelta < 0 ? Ds.Red : Ds.Lime;
                 deltaAt = Game.GameTime;
             });
+            Core.EventBus.Subscribe<Career.XpEvent>(e => { xpAcc = Game.GameTime - xpAt < 2000 ? xpAcc + e.Amount : e.Amount; xpText = "+" + xpAcc.ToString("N0") + " XP"; xpAt = Game.GameTime; });
         }
 
         public void Draw(SaveData d, VehicleManager vehicles)
@@ -46,12 +48,23 @@ namespace MidnightClub.UI
             Ds.T(tier, rx, hy + 0.092f, 0.24f, Ds.Muted, Ds.Body, Alignment.Right);
             Ds.T(d.Rep.ToString("N0") + " REP", rx - tw - Ds.Px(0.012f), hy + 0.089f, 0.27f, Ds.Violet, Ds.Display, Alignment.Right);
             Ds.Dot(rx - tw - Ds.Px(0.006f), hy + 0.1005f, 0.005f, Ds.Faint);
+            var pr = Career.Progression.Instance;
+            if (pr != null)
+            {
+                float bw = Ds.Px(0.13f), by = hy + 0.122f;
+                Ds.T("LV " + pr.Level, rx - bw - Ds.Px(0.008f), by - 0.009f, 0.27f, Ds.Text, Ds.Display, Alignment.Right);
+                xpShown = Ds.Damp(xpShown, pr.LevelProgress, 5f);
+                Ds.Skew(rx - bw, by, bw, 0.005f, Ds.Px(0.0012f), Ds.Stroke);
+                Ds.Skew(rx - bw, by, bw * Ds.Clamp01(xpShown), 0.005f, Ds.Px(0.0012f), Ds.Violet);
+                float xa = (Game.GameTime - xpAt) / 1000f;
+                if (xpText != null && xa < 2.2f) Ds.T(xpText, rx, by + 0.008f - Ds.EaseOut(Math.Min(1f, xa / 0.3f)) * 0.006f, 0.27f, Ds.A(Ds.Violet, xa > 1.6f ? (2.2f - xa) / 0.6f : 1f), Ds.Display, Alignment.Right);
+            }
             float age = (Game.GameTime - deltaAt) / 1000f;
             if (deltaText != null && age < 3.2f)
             {
                 float a = age < 0.2f ? age / 0.2f : age > 2.6f ? (3.2f - age) / 0.6f : 1f;
                 float rise = Ds.EaseOut(Math.Min(1f, age / 0.35f)) * 0.012f;
-                Ds.T(deltaText, rx, hy + 0.13f - rise, 0.34f, Ds.A(deltaColor, a), Ds.Display, Alignment.Right);
+                Ds.T(deltaText, rx, hy + 0.15f - rise, 0.34f, Ds.A(deltaColor, a), Ds.Display, Alignment.Right);
             }
             var v = vehicles.Current;
             if (v != null && v.Exists() && Game.Player.Character.IsInVehicle(v)) Speedo(v, vehicles.CurrentRecord);

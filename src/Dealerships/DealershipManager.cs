@@ -52,6 +52,7 @@ namespace MidnightClub.Dealerships
         {
             this.saves = saves; this.money = money; this.registry = registry; this.vehicles = vehicles; this.garages = garages;
             this.calendar = calendar; this.stack = stack; this.dataDir = dataDir;
+            EventBus.Subscribe<Explore.DiscoveredEvent>(e => { if (e.Id.StartsWith("dl:")) PlaceMarkers(); });
             EventBus.Subscribe<ModeChangedEvent>(OnModeChanged);
             EventBus.Subscribe<MidnightTickEvent>(e => Tick());
             EventBus.Subscribe<NewDayEvent>(e => OnNewDay(e.Day));
@@ -100,6 +101,8 @@ namespace MidnightClub.Dealerships
                 var p = World.GetNextPositionOnStreetWithHeading(d.Position, out h, false);
                 if (p == Vector3.Zero || p.DistanceTo(d.Position) > 60f) p = d.Position;
                 markers[d.Id] = p;
+                Explore.Discovery.Register("dl:" + d.Id, d.Name, "Dealership", p);
+                if (!Explore.Discovery.Known("dl:" + d.Id)) continue;
                 var b = World.CreateBlip(p);
                 b.Sprite = d.Sprite; b.Color = d.Color; b.Name = d.Name; b.IsShortRange = true; b.Scale = 0.9f;
                 blips.Add(b);
