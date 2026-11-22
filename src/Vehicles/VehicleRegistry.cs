@@ -26,6 +26,7 @@ namespace MidnightClub.Vehicles
         public bool DealershipEligible = true;
         public int RequiredCareerTier = 1;
         public VehicleSource Source;
+        public bool Bennys, Tuner, Drift;
         public string Name { get { return string.IsNullOrEmpty(Make) ? DisplayName : Make + " " + DisplayName; } }
     }
 
@@ -39,6 +40,19 @@ namespace MidnightClub.Vehicles
         public IEnumerable<VehicleInfo> All { get { return byHash.Values; } }
         public int Count { get { return byHash.Count; } }
         public bool IsBuilt { get; private set; }
+
+        // Benny's Original Motor Works conversions and the Los Santos Tuners line-up (base-game model names).
+        private static readonly HashSet<string> BennysModels = new HashSet<string>
+        {
+            "banshee2", "sultanrs", "buccaneer2", "chino2", "faction2", "faction3", "moonbeam2", "primo2", "voodoo", "minivan2",
+            "sabregt2", "slamvan3", "tornado5", "virgo2", "glendale2", "peyote3", "manana2", "elegy", "comet3", "diablous2",
+            "specter2", "nero2", "italigtb2"
+        };
+        private static readonly HashSet<string> TunerModels = new HashSet<string>
+        {
+            "calico", "comet6", "cypher", "dominator7", "dominator8", "euros", "futo2", "growler", "jester4", "previon",
+            "remus", "rt3000", "sultan3", "tailgater2", "vectre", "warrener2", "zr350"
+        };
 
         private static readonly HashSet<VehicleClass> DefaultClasses = new HashSet<VehicleClass>
         {
@@ -76,6 +90,9 @@ namespace MidnightClub.Vehicles
                     info.Braking = Function.Call<float>(Hash.GET_VEHICLE_MODEL_MAX_BRAKING, model.Hash);
                     info.Traction = Function.Call<float>(Hash.GET_VEHICLE_MODEL_MAX_TRACTION, model.Hash);
                     if (byId.ContainsKey(info.Id)) info.Id += "_" + model.Hash.ToString("X8");
+                    info.Bennys = BennysModels.Contains(info.Id);
+                    info.Tuner = TunerModels.Contains(info.Id);
+                    info.Drift = info.Id.StartsWith("drift");
                     byHash[info.Hash] = info; byId[info.Id] = info;
                 }
                 catch (Exception ex) { Log.Warn("Registry skipped " + vh + ": " + ex.Message); }

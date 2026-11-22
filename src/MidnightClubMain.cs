@@ -40,7 +40,10 @@ namespace MidnightClub
                 var money = new Economy.TransactionManager(saves);
                 var garages = new Garages.GarageManager(saves, money, registry, vehicles, modes, stack, Path.Combine(dir, "data"));
                 modes.Garages = garages; modes.Money = money;
-                menu = new MidnightMenu(stack, modes, saves, registry, vehicles, cfg) { Garages = garages };
+                garages.StarterGarageId = cfg.StarterGarage;
+                var calendar = new WorldSim.WorldCalendar(saves);
+                var dealers = new Dealerships.DealershipManager(saves, money, registry, vehicles, garages, calendar, stack, Path.Combine(dir, "data"));
+                menu = new MidnightMenu(stack, modes, saves, registry, vehicles, cfg) { Garages = garages, Dealers = dealers };
                 EventBus.Subscribe<ModeChangedEvent>(e => menu.Close());
                 hud = new MainHUD(cfg.HudX, cfg.HudY);
                 Interval = 0;

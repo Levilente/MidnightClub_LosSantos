@@ -7,7 +7,8 @@
 | 2 Character and vehicles | Partly user-tested (registry 615 cars, profile load OK); creator fix in 0.2.1 |
 | 3 Economy and garages | **Code complete, compiled, awaiting in-game test** |
 | 5 (part) Online garages | **Pulled forward at user request: code complete, awaiting in-game test** |
-| 4, 6–12 | Not started |
+| 4 Dealerships | **Code complete, compiled, awaiting in-game test** (auctions not done) |
+| 5 (rest), 6–12 | Not started |
 
 ## Phase 1 contents
 - `Core/GameModeManager`: STORY_MODE / ENTERING / MIDNIGHT_CLUB / EXITING / ERROR_RECOVERY state machine; refuses to enter during missions, cutscenes, character switches, while wanted or dead; ignores F7 during transitions.
@@ -46,3 +47,11 @@
 - `Garages/GarageManager`: blips, entrance markers, purchase, drive-in session (interior pin + IPL for executive garages, display cars per slot, slot normalisation), drive-out, entity-set customisation.
 - `Garages/GarageScreen`: blocking garage screen with camera interpolation, HUD, manage/customise menus.
 - Overrides: `data\online_garages.ini` (Name, Price, Enabled per garage).
+
+## Phase 4 contents (0.5.0)
+- `WorldSim/WorldCalendar`: MC day counter, `NewDayEvent`, weekday/night helpers.
+- `Dealerships/DealershipDefinitions`: PDM, Southern SA Super Autos, Luxury Autos, Legendary Motorsport, Benny's, LS Car Meet marketplace, Mosley's used cars; ini overrides and custom dealerships.
+- `Dealerships/RotationMath` (pure, tested): seeded permutation cycles: every eligible car appears once per cycle, deterministic per (dealer, rotation).
+- `Dealerships/DealershipManager`: pools (every eligible car covered by at least one dealership), stock cache, promotions, used listings, purchase flow per spec 7.9, special orders.
+- `Dealerships/ShowroomScreen`: showroom UI, test drive, confirm menu.
+- Tests: rotation 17/17, economy 10/10, save 14/14.

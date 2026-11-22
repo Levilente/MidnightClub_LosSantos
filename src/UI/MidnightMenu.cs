@@ -20,6 +20,7 @@ namespace MidnightClub.UI
         private readonly Config cfg;
 
         public Garages.GarageManager Garages { get; set; }
+        public Dealerships.DealershipManager Dealers { get; set; }
 
         public MidnightMenu(MenuStack stack, GameModeManager modes, SaveManager saves, VehicleRegistry registry, VehicleManager vehicles, Config cfg)
         {
@@ -42,6 +43,7 @@ namespace MidnightClub.UI
                 m.Add(new MenuItem("My vehicles", () => stack.Push(MyVehicles())) { Value = () => d.Vehicles.Count.ToString() });
                 m.Add(new MenuItem("Garages", () => stack.Push(GarageList())) { Value = () => d.Garages.Count + " owned" });
                 m.Add(new MenuItem("Finances", () => stack.Push(Finances())) { Value = () => "$" + d.Cash.ToString("N0") });
+                m.Add(new MenuItem("Dealerships", () => stack.Push(DealerList())) { Description = () => "This week's stock and GPS." });
                 m.Add(new MenuItem("Vehicle catalogue", () => stack.Push(Catalogue())) { Value = () => registry.Count.ToString(),
                     Description = () => "Every car available in your game build, with Midnight Club prices." });
                 m.Add(new MenuItem("Edit driver", () => { stack.Close(); modes.EditCharacter(); }) { Description = () => "Stop the car first." });
@@ -117,6 +119,26 @@ namespace MidnightClub.UI
             return m;
         }
 
+        private Menu DealerList()
+        {
+            var m = new Menu("Dealerships", Dealers == null ? "" : "Day " + (Dealers.Calendar.Day + 1) + ", " + Dealers.Calendar.DayName);
+            m.OnOpen = () =>
+            {
+                m.Items.Clear();
+                if (Dealers == null) return;
+                foreach (var dl in Dealers.Definitions)
+                {
+                    var def = dl;
+                    m.Add(new MenuItem(def.Name, () => { Function.Call(Hash.SET_NEW_WAYPOINT, def.Position.X, def.Position.Y); GTA.UI.Notification.PostTicker("GPS set to " + def.Name + ".", true, false); })
+                    {
+                        Value = () => Dealers.Stock(def).Count + " cars",
+                        Description = () => def.Tagline + " New stock in " + Dealers.DaysUntilRotation(def) + " day(s). Select to set GPS."
+                    });
+                }
+            };
+            return m;
+        }
+
         private Menu Finances()
         {
             var m = new Menu("Finances", "Recent transactions");
@@ -160,16 +182,37 @@ namespace MidnightClub.UI
                 foreach (var v in registry.All.Where(x => x.Enabled && x.Class == cls).OrderBy(x => x.BasePrice))
                 {
                     var info = v;
-                    m.Add(new MenuItem(info.Name, cfg.DevMode ? (Action)(() => modes.DevGiveVehicle(info)) : null)
+                    string where = null; bool looked = false;
+                    m.Add(new MenuItem(info.Name, cfg.DevMode ? (Action)(() => modes.DevGiveVehicle(info)) : () => stack.Push(OrderMenu(info)))
                     {
                         Value = () => "$" + info.BasePrice.ToString("N0"),
-                        Description = () => string.Format("Tier {0}  |  {1:0} km/h  |  Accel {2:0.00}  |  Grip {3:0.00}{4}{5}",
-                            info.Tier, info.MaxSpeed * 3.6f, info.Acceleration, info.Traction,
-                            info.Source == VehicleSource.AddOn ? "  |  newer DLC / add-on" : "",
-                            cfg.DevMode ? "" : "  |  Sold at dealerships (coming in Phase 4)")
+                        Description = () =>
+                        {
+                            if (!looked && Dealers != null) { var dd = Dealers.WhereSold(info); where = dd == null ? null : dd.Name; looked = true; }
+                            return string.Format("Tier {0}  |  {1:0} km/h  |  Accel {2:0.00}  |  Grip {3:0.00}{4}  |  {5}",
+                                info.Tier, info.MaxSpeed * 3.6f, info.Acceleration, info.Traction,
+                                info.Source == VehicleSource.AddOn ? "  |  newer DLC / add-on" : "",
+                                where != null ? "~g~In stock at " + where : "Not in stock this week, special order possible");
+                        }
                     });
                 }
             };
+            return m;
+        }
+
+        private Menu OrderMenu(VehicleInfo info)
+        {
+            var m = new Menu("Special order", info.Name);
+            var item = Dealers == null ? null : Dealers.SpecialOrderItem(info);
+            if (item == null) { m.Add(new MenuItem("Not available for order") { Enabled = false }); return m; }
+            m.Add(new MenuItem("Order for $" + item.Price.ToString("N0"), () =>
+            {
+                var err = Dealers.Purchase(item, "special order");
+                if (err != null) GTA.UI.Notification.PostTicker("~r~" + err, true, false);
+                stack.Pop();
+            }) { Description = () => "Special orders cost 35% more than the showroom price ($" + info.BasePrice.ToString("N0") + ") and are delivered to your first garage with space." });
+            m.Add(new MenuItem("Your cash") { Value = () => "$" + saves.Data.Cash.ToString("N0") });
+            m.Add(new MenuItem("Cancel", () => stack.Pop()));
             return m;
         }
 

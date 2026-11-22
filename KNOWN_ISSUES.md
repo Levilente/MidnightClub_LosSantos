@@ -11,3 +11,7 @@
 10. Executive office garages load their interior with REQUEST_IPL; if Story Mode doesn't stream them, the log says "No interior found" and they need the MP map switch (to be tested).
 11. The garage-screen camera uses a fixed offset from each car; in the 2-car garage it may clip a wall.
 12. Clubhouse, warehouse, facility and storage-bay garages from the source data are not included yet (need extra IPLs).
+13. Dealership positions are first-pass and snapped to the nearest road (Southern SA Super Autos and Legendary Motorsport have no in-game building; they're placed at plausible spots).
+14. Showroom cars are shown where you parked, not inside the showroom buildings.
+15. Auctions (spec §8) aren't implemented yet.
+16. Luxury Autos only shows 2-3 cars a week, so a full cycle takes many weeks; special orders cover the gap.

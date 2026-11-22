@@ -32,6 +32,8 @@ namespace MidnightClub.Garages
         public bool IsInside { get; private set; }
         private const float MarkerDrawDistance = 60f;
 
+        public string StarterGarageId { get; set; }
+
         public GarageManager(SaveManager saves, TransactionManager money, VehicleRegistry registry, VehicleManager vehicles, GameModeManager modes, MenuStack stack, string dataDir)
         {
             this.saves = saves; this.money = money; this.registry = registry; this.vehicles = vehicles; this.stack = stack; this.dataDir = dataDir;
@@ -102,6 +104,7 @@ namespace MidnightClub.Garages
                     defs = GarageDefinitions.Load(dataDir);
                     foreach (var v in saves.Data.Vehicles.Where(v => v.GarageId != null && Def(v.GarageId) == null)) { v.GarageId = null; v.ParkingSlot = 0; }
                     saves.Data.Garages.RemoveAll(o => Def(o.Id) == null);
+                    GrantStarterGarage();
                 }
                 catch (Exception ex) { Log.Error("Loading garages", ex); }
                 RefreshBlips();
@@ -111,6 +114,19 @@ namespace MidnightClub.Garages
                 Cleanup();
                 ClearBlips();
             }
+        }
+
+        /// <summary>Every profile gets one free small garage, once (also existing profiles from before 0.4.1).</summary>
+        private void GrantStarterGarage()
+        {
+            var g = Def(StarterGarageId ?? "");
+            if (g == null || Owned(g.Id) != null || !saves.TryBeginTransaction("starter-garage")) return;
+            saves.Data.Garages.Add(new OwnedGarage { Id = g.Id, PurchasedAtUtc = DateTime.UtcNow.ToString("o") });
+            var cur = CurrentRecord();
+            if (cur != null && cur.GarageId == null) { cur.GarageId = g.Id; cur.ParkingSlot = FreeSlot(g.Id, cur) + 1; }
+            saves.Save();
+            Notify("~p~MIDNIGHT CLUB~s~: you got a place to start: ~g~" + g.Name + "~s~ (" + g.Capacity + " cars). Find it on the map.");
+            Log.Info("Granted starter garage " + g.Id);
         }
 
         private void RefreshBlips()

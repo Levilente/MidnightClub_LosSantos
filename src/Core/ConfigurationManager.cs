@@ -15,6 +15,7 @@ namespace MidnightClub.Core
         public long MinVehiclePrice = 4000, MaxVehiclePrice = 3000000;
         public int StartingCash = 15000;
         public string StartingVehicle = "futo";
+        public string StarterGarage = "davis_lockup";
         public string CharacterModel = "mp_m_freemode_01";
         public float SpawnX = -365.4f, SpawnY = -131.8f, SpawnZ = 37.9f;
         public bool BlockVehicleExit = true;
@@ -42,6 +43,7 @@ namespace MidnightClub.Core
             c.MaxVehiclePrice = Get(s, "Economy", "MaxVehiclePrice", c.MaxVehiclePrice);
             c.StartingCash = Get(s, "Career", "StartingCash", c.StartingCash);
             c.StartingVehicle = Get(s, "Career", "StartingVehicle", c.StartingVehicle);
+            c.StarterGarage = Get(s, "Career", "StarterGarage", c.StarterGarage);
             c.CharacterModel = Get(s, "Character", "Model", c.CharacterModel);
             c.SpawnX = Get(s, "Character", "SpawnX", c.SpawnX);
             c.SpawnY = Get(s, "Character", "SpawnY", c.SpawnY);

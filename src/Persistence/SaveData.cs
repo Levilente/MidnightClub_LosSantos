@@ -20,6 +20,9 @@ namespace MidnightClub.Persistence
         [DataMember] public float PosX, PosY, PosZ, Heading;
         [DataMember] public bool HasPosition;
         [DataMember] public List<string> ProcessedTransactions = new List<string>();
+        [DataMember] public int CalendarDay;          // Midnight Club in-game days elapsed (only advances while playing MC)
+        [DataMember] public int LastClockHour = -1;
+        [DataMember] public List<string> SoldStock = new List<string>();   // "dealer:rotation:modelhash" / "used:rotation:slot"
         [DataMember] public List<OwnedGarage> Garages = new List<OwnedGarage>();
         [DataMember] public List<LedgerEntry> Ledger = new List<LedgerEntry>();
         [DataMember] public List<KeyValue> Extensions = new List<KeyValue>();

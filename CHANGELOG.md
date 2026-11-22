@@ -1,4 +1,11 @@
 # Changelog
+## 0.5.0-phase4 (2026-11-22)
+- Free starter garage (Davis Lockup, 2 cars) for every profile, including existing ones.
+- Midnight Club calendar: own day counter that only advances while playing Midnight Club; drives rotations.
+- 6 dealerships + Mosley's used cars, each with identity, map blip, entrance marker and rotating stock (data\\dealerships.ini; extra dealerships can be added with a Classes filter).
+- Showroom screen: turntable display, specs, price, promotions (-15% on one class per week), rare badges, 90 s test drive, validated purchase (funds, garage space, duplicate protection), delivery to a garage.
+- Used market: condition, odometer, existing mods, project cars, rare finds, sellers; 3-day rotation.
+- Special order from the F6 catalogue for any dealership car (+35%), so no car is ever unobtainable. Dealerships menu with stock count and GPS.
 ## 0.4.0 (2026-11-22): real GTA Online garages
 - Replaced the parking-lot garages with 42 real GTA Online garages (2-, 6- and 10-car apartment garages and the 4 executive office garages) at their Online entrances.
 - Drive in: the interior loads with every car you keep there parked in its slot; Midnight Club garage screen with camera, car card (stats bars, condition, odometer, value) and controls bar.
