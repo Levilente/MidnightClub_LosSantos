@@ -94,7 +94,9 @@ namespace MidnightClub.Core
                 var data = saves.Data;
 
                 Vector3 pos; float heading;
-                if (data.HasPosition) { pos = new Vector3(data.PosX, data.PosY, data.PosZ); heading = data.Heading; }
+                var gi = Garages != null && data.HasPosition ? Garages.InteriorAt(new Vector3(data.PosX, data.PosY, data.PosZ)) : null;
+                if (gi != null) { pos = gi.SpawnOut.Position; heading = gi.SpawnOut.Heading; Log.Info("Saved position was inside " + gi.Id + "; spawning outside"); }
+                else if (data.HasPosition) { pos = new Vector3(data.PosX, data.PosY, data.PosZ); heading = data.Heading; }
                 else
                 {
                     pos = World.GetNextPositionOnStreetWithHeading(new Vector3(cfg.SpawnX, cfg.SpawnY, cfg.SpawnZ), out heading, false);
@@ -201,6 +203,8 @@ namespace MidnightClub.Core
             if (p != null && p.Exists() && p == characters.MidnightPed)
             {
                 var pos = p.Position;
+                var inside = Garages != null ? Garages.InteriorAt(pos) : null;
+                if (inside != null) pos = inside.SpawnOut.Position;   // never save a position inside a garage interior
                 d.PosX = pos.X; d.PosY = pos.Y; d.PosZ = pos.Z; d.Heading = p.Heading; d.HasPosition = true;
                 CharacterManager.Capture(p, d.Character);
             }

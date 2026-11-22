@@ -156,6 +156,7 @@ namespace MidnightClub.Garages
             if (IsInside) return;
             if (Racing.RaceManager.IsRacing) return;
             var pos = Game.Player.Character.Position;
+            if (Game.GameTime > nextRescueCheck) { nextRescueCheck = Game.GameTime + 1000; if (RescueIfInside(pos)) return; }
             nearby = null;
             foreach (var g in defs)
             {
@@ -177,6 +178,47 @@ namespace MidnightClub.Garages
                 if (own) Enter(nearby);
                 else stack.Open(BuyMenu(nearby));
             }
+        }
+
+        private int nextRescueCheck;
+
+        /// <summary>True if this position is inside one of the garage interiors (they have no physical exit when free-roaming).</summary>
+        public GarageDefinition InteriorAt(Vector3 pos)
+        {
+            var cur = saves.Data != null ? CurrentRecord() : null;
+            foreach (var g in defs.OrderBy(x => cur != null && x.Id == cur.GarageId ? 0 : Owned(x.Id) != null ? 1 : 2))
+            {
+                if (pos.DistanceTo(g.SpawnIn.Position) < 30f && pos.DistanceTo(g.Position) > 40f) return g;
+                foreach (var sl in g.Slots) if (pos.DistanceTo(sl.Position) < 12f && pos.DistanceTo(g.Position) > 40f) return g;
+            }
+            return null;
+        }
+
+        /// <summary>Free-roaming inside a garage interior (after a crash, a reload or a save made in there): put the player outside in their car.</summary>
+        private bool RescueIfInside(Vector3 pos)
+        {
+            var g = InteriorAt(pos);
+            if (g == null) return false;
+            Log.Warn("Player was free-roaming inside " + g.Id + "; moving outside");
+            Screen.FadeOut(300); Script.Wait(350);
+            var ped = Game.Player.Character;
+            Function.Call(Hash.CLEAR_ROOM_FOR_ENTITY, ped);
+            Function.Call(Hash.CLEAR_ROOM_FOR_GAME_VIEWPORT);
+            Function.Call(Hash.CLEAR_FOCUS);
+            Function.Call(Hash.FREEZE_ENTITY_POSITION, ped, false);
+            Function.Call(Hash.SET_ENTITY_VISIBLE, ped, true, false);
+            var car = vehicles.Current;
+            if (car != null && car.Exists())
+            {
+                if (!ped.IsInVehicle(car)) ped.SetIntoVehicle(car, VehicleSeat.Driver);
+                Function.Call(Hash.CLEAR_ROOM_FOR_ENTITY, car);
+                car.Position = g.SpawnOut.Position; car.Heading = g.SpawnOut.Heading; car.Velocity = Vector3.Zero;
+                Function.Call(Hash.SET_VEHICLE_ON_GROUND_PROPERLY, car, 5f);
+            }
+            else { ped.Position = g.SpawnOut.Position; ped.Heading = g.SpawnOut.Heading; }
+            Script.Wait(500);
+            Screen.FadeIn(500);
+            return true;
         }
 
         private Menu BuyMenu(GarageDefinition g)
