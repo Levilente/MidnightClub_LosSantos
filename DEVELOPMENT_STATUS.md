@@ -3,7 +3,7 @@
 | Phase | Status |
 |---|---|
 | 0 Technical research | Done (TECHNICAL_NOTES.md) |
-| 1 Core framework | **Code complete, compiled, NOT tested in-game** (Script Hook V doesn't support game build 1.0.1158.16) |
+| 1 Core framework | **Code complete, compiled, awaiting first in-game test** |
 | 2–12 | Not started |
 
 ## Phase 1 contents
@@ -20,4 +20,4 @@
 ## Tests performed
 - Compiles against the installed ScriptHookVDotNet3.dll (SHVDNE 1.1.0.6) with zero warnings.
 - Save system: 14/14 automated tests pass (round trip, backup pruning, corruption recovery, invalid-data refusal, duplicate transactions).
-- In-game: **none** (blocked, see KNOWN_ISSUES.md).
+- In-game: none yet.

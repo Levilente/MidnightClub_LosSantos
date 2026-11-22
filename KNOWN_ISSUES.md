@@ -1,5 +1,5 @@
 # Known issues
-1. **BLOCKER: game build 1.0.1158.16 is newer than Script Hook V** (latest SHV v3889.0/1158.13, 15 Jul 2026). No script mods load until dev-c.com releases an update. Phase 1 is untested in-game until then.
+1. Game build 1.0.1158.16 is not in Script Hook V's supported list (v3889.0/1158.13), but the user reports mods load fine on it. Phase 1 still awaits its first in-game test.
 2. Run Story Mode with BattlEye disabled (Rockstar launcher setting); scripts don't run with BattlEye on.
 3. Story Mode autosave while in Midnight Club Mode: missions are blocked so mission autosaves shouldn't happen, but untested. Don't save Story Mode from inside Midnight Club.
 4. Story scripts that expect Michael/Franklin/Trevor as the player may misbehave while the Midnight Club ped is active; the mode exits automatically if the game takes the player ped back.
