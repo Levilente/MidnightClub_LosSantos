@@ -24,6 +24,8 @@ namespace MidnightClub.Core
         public bool ShowHud = true;
         public bool LoadOnlineMap = true;
         public bool CustomCameras = true;
+        public bool FitmentEnabled = true;
+        public float CamberSign = 1f;
         public float CameraGForce = 1.0f, CameraFovScale = 1.0f, CameraShake = 1.0f;
         public float HudX = 0.985f, HudY = 0.04f;
         public int AutoSaveSeconds = 120;
@@ -60,6 +62,8 @@ namespace MidnightClub.Core
             c.ShowHud = Get(s, "HUD", "Show", c.ShowHud);
             c.LoadOnlineMap = Get(s, "World", "LoadOnlineMap", c.LoadOnlineMap);
             c.CustomCameras = Get(s, "Camera", "Enabled", c.CustomCameras);
+            c.FitmentEnabled = Get(s, "Fitment", "Enabled", c.FitmentEnabled);
+            c.CamberSign = Get(s, "Fitment", "CamberSign", c.CamberSign);
             c.CameraGForce = Get(s, "Camera", "GForceIntensity", c.CameraGForce);
             c.CameraFovScale = Get(s, "Camera", "DynamicFovIntensity", c.CameraFovScale);
             c.CameraShake = Get(s, "Camera", "ShakeIntensity", c.CameraShake);

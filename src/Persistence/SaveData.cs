@@ -55,6 +55,12 @@ namespace MidnightClub.Persistence
         [DataMember] public int WindowTint = -1, Livery = -1;
         [DataMember] public int EcuLevel;                            // Midnight Club ECU tune (extra power)
         [DataMember] public bool DriftTyres;
+        [DataMember] public bool FitKit;                             // adjustable fitment kit bought
+        [DataMember] public float CamberF, CamberR;                  // degrees, negative = top of wheel in
+        [DataMember] public float TrackF, TrackR;                    // cm wider (+) / narrower (-) per side
+        [DataMember] public float TyreF, TyreR;                      // tyre diameter multiplier, 0 = stock (1.0)
+        [DataMember] public int TyreCompound;                        // 0 street, 1 sport, 2 semi-slick, 3 race slick, 4 drift
+        [DataMember] public bool LetteredTyres;                      // custom-tyre sidewall variation
         [DataMember] public List<string> BuildHistory = new List<string>();
         [DataMember] public float EngineHealth = 1000f, BodyHealth = 1000f;
         [DataMember] public long PurchasePrice;

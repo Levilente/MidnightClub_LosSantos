@@ -69,6 +69,7 @@ namespace MidnightClub.Workshops
                         Game.EnableControlThisFrame(c);
                     Hud.HideComponentThisFrame(HudComponent.HelpText);
                     if (!menus.IsOpen) done = true; else menus.Tick();
+                    if (FitmentManager.Instance != null) FitmentManager.Instance.Tick();
                     Orbit();
                     DrawHud();
                     Script.Wait(0);
@@ -96,7 +97,9 @@ namespace MidnightClub.Workshops
                 m.Add(new MenuItem("Repair", () => Repair()) { Value = () => Condition() >= 99 ? "~g~DONE" : "$" + RepairCost().ToString("N0"), Description = () => "Condition " + Condition() + "%." });
             m.Add(new MenuItem("Performance", () => menus.Push(Performance())) { Description = () => "Engine, brakes, gearbox, suspension, turbo, ECU tune, drift tyres." });
             m.Add(new MenuItem("Body", () => menus.Push(Body())));
-            m.Add(new MenuItem("Wheels", () => menus.Push(Wheels())));
+            m.Add(new MenuItem("Wheels & tyres", () => menus.Push(Wheels())));
+            m.Add(new MenuItem("Adjust fitment", () => menus.Push(Fitment())) { Value = () => rec.FitKit ? "" : "$" + FitKitPrice().ToString("N0"),
+                Description = () => "Camber, track width and tyre diameter per axle (stance). One-time kit, then adjust for free." });
             m.Add(new MenuItem("Respray", () => menus.Push(Respray())));
             m.Add(Toggle("Xenon headlights", 22, 1200));
             m.Add(new MenuItem("Window tint", () => menus.Push(Tint())));
@@ -108,6 +111,7 @@ namespace MidnightClub.Workshops
         private Menu Performance()
         {
             var m = new Menu("Performance", Title());
+            m.Add(new MenuItem("Tyre compound", () => menus.Push(Compounds())) { Value = () => FitmentManager.CompoundNames[rec.TyreCompound] });
             m.OnOpen = () => focus = "default";
             AddModMenu(m, "Engine", 11, 0.06, "front");
             AddModMenu(m, "Brakes", 12, 0.03, "side");
@@ -116,12 +120,6 @@ namespace MidnightClub.Workshops
             m.Add(Toggle("Turbo", 18, 2500 + bp * 8 / 100));
             m.Add(new MenuItem("ECU tune (Midnight Club)", () => menus.Push(Ecu())) { Value = () => rec.EcuLevel == 0 ? "Stock" : "Stage " + rec.EcuLevel,
                 Description = () => "Remapped engine management: +6% power per stage on top of the engine upgrade." });
-            m.Add(new MenuItem("Drift tyres", () =>
-            {
-                if (rec.DriftTyres) { Function.Call(Hash.SET_DRIFT_TYRES, car, false); rec.DriftTyres = false; Bought("Removed drift tyres", 0); return; }
-                if (!Pay(3000, "drift tyres")) return;
-                Function.Call(Hash.SET_DRIFT_TYRES, car, true); rec.DriftTyres = true; Bought("Drift tyres", 3000);
-            }) { Value = () => rec.DriftTyres ? "~g~FITTED" : "$3,000", Description = () => "Low-grip compound for drifting. Select again to remove (free)." });
             return m;
         }
 
@@ -174,8 +172,88 @@ namespace MidnightClub.Workshops
                 var type = wt;
                 m.Add(new MenuItem(car.Mods.GetLocalizedWheelTypeName(type), () => menus.Push(WheelList(type))) { Value = () => car.Mods.WheelType == type ? "~g~CURRENT" : "" });
             }
+            m.Add(new MenuItem("Tyre compound", () => menus.Push(Compounds())) { Value = () => FitmentManager.CompoundNames[rec.TyreCompound] });
+            m.Add(new MenuItem("Lettered sidewalls", () =>
+            {
+                bool on = !rec.LetteredTyres;
+                if (on && !Pay(750, "lettered sidewalls")) return;
+                rec.LetteredTyres = on;
+                int idx = Function.Call<int>(Hash.GET_VEHICLE_MOD, car, 23);
+                Function.Call(Hash.SET_VEHICLE_MOD, car, 23, idx, on);
+                Bought(on ? "Lettered sidewalls" : "Plain sidewalls", on ? 750 : 0);
+            }) { Value = () => rec.LetteredTyres ? "~g~FITTED" : "$750", Description = () => "Custom tyres with lettered / styled sidewalls (look depends on the wheel). Select again to remove (free)." });
             m.Add(Toggle("Tyre smoke", 20, 1000));
             return m;
+        }
+
+        private Menu Compounds()
+        {
+            var m = new Menu("Tyre compound", Title());
+            m.OnOpen = () => focus = "side";
+            long[] prices = { 0, PricingEngine.Round(1500 + bp * 0.01), PricingEngine.Round(3000 + bp * 0.02), PricingEngine.Round(6000 + bp * 0.035), 3000 };
+            string[] desc = { "Everyday road tyres. Stock grip.", "Sticky road tyres: +5% grip.", "Track-day rubber: +10% grip.", "Full race slicks: +16% grip.", "Hard low-grip compound for drifting." };
+            for (int i = 0; i < FitmentManager.CompoundNames.Length; i++)
+            {
+                int c = i;
+                m.Add(new MenuItem(FitmentManager.CompoundNames[c], () =>
+                {
+                    if (rec.TyreCompound == c) return;
+                    if (!Pay(prices[c], FitmentManager.CompoundNames[c] + " tyres")) return;
+                    rec.TyreCompound = c;
+                    Function.Call(Hash.SET_DRIFT_TYRES, car, c == 4);
+                    Bought(FitmentManager.CompoundNames[c] + " tyres", prices[c]);
+                }) { Value = () => rec.TyreCompound == c ? "~g~FITTED" : (prices[c] == 0 ? "Free" : "$" + prices[c].ToString("N0")), Description = () => desc[c] });
+            }
+            return m;
+        }
+
+        private long FitKitPrice() { return PricingEngine.Round(2500 + bp * 0.01); }
+
+        private Menu Fitment()
+        {
+            var m = new Menu("Adjust fitment", Title());
+            m.OnOpen = () =>
+            {
+                focus = "front";
+                m.Items.Clear();
+                if (!rec.FitKit)
+                {
+                    m.Add(new MenuItem("Install adjustable fitment kit", () =>
+                    {
+                        if (!Pay(FitKitPrice(), "fitment kit")) return;
+                        rec.FitKit = true; Bought("Adjustable fitment kit", FitKitPrice());
+                        m.OnOpen(); m.ResetHighlight();
+                    }) { Value = () => "$" + FitKitPrice().ToString("N0"), Description = () => "Coilover tops, adjustable arms and hub spacers. After this, every adjustment is free." });
+                    return;
+                }
+                m.Add(Adjust("Front camber", () => rec.CamberF, v => rec.CamberF = v, -15f, 5f, 0.5f, "0.0 deg", "front"));
+                m.Add(Adjust("Rear camber", () => rec.CamberR, v => rec.CamberR = v, -15f, 5f, 0.5f, "0.0 deg", "rear"));
+                m.Add(Adjust("Front track width", () => rec.TrackF, v => rec.TrackF = v, -8f, 15f, 0.5f, "+0.0 cm;-0.0 cm;0 cm", "front"));
+                m.Add(Adjust("Rear track width", () => rec.TrackR, v => rec.TrackR = v, -8f, 15f, 0.5f, "+0.0 cm;-0.0 cm;0 cm", "rear"));
+                m.Add(Adjust("Front tyre diameter", () => rec.TyreF <= 0 ? 1f : rec.TyreF, v => rec.TyreF = v, 0.85f, 1.2f, 0.01f, "0%", "front", percent: true));
+                m.Add(Adjust("Rear tyre diameter", () => rec.TyreR <= 0 ? 1f : rec.TyreR, v => rec.TyreR = v, 0.85f, 1.2f, 0.01f, "0%", "rear", percent: true));
+                m.Add(new MenuItem("Reset to stock", () =>
+                {
+                    rec.CamberF = rec.CamberR = rec.TrackF = rec.TrackR = 0f; rec.TyreF = rec.TyreR = 0f;
+                    saves.IsDirty = true; Flash("Fitment reset to stock.");
+                }));
+            };
+            return m;
+        }
+
+        private MenuItem Adjust(string label, Func<float> get, Action<float> set, float min, float max, float step, string fmt, string camFocus, bool percent = false)
+        {
+            return new MenuItem(label)
+            {
+                Value = () => percent ? (get() * 100f).ToString("0") + "%" : get().ToString(fmt),
+                OnAdjust = dir =>
+                {
+                    float v = (float)Math.Round((get() + dir * step) / step) * step;
+                    set(Math.Max(min, Math.Min(max, v)));
+                    saves.IsDirty = true; focus = camFocus;
+                },
+                Description = () => "LEFT/RIGHT to adjust (free). Changes show live."
+            };
         }
 
         private Menu WheelList(VehicleWheelType type)
@@ -187,8 +265,8 @@ namespace MidnightClub.Workshops
             var m = new Menu(car.Mods.GetLocalizedWheelTypeName(type), Title());
             long price = PricingEngine.Round(500 + bp * 0.008);
             var opts = Enumerable.Range(-1, count + 1).ToList();
-            m.OnHighlight = i => { car.Mods.WheelType = type; Function.Call(Hash.SET_VEHICLE_MOD, car, 23, opts[i], false); };
-            m.OnBack = () => { car.Mods.WheelType = origType; Function.Call(Hash.SET_VEHICLE_MOD, car, 23, origIdx, false); menus.Pop(); };
+            m.OnHighlight = i => { car.Mods.WheelType = type; Function.Call(Hash.SET_VEHICLE_MOD, car, 23, opts[i], rec.LetteredTyres); };
+            m.OnBack = () => { car.Mods.WheelType = origType; Function.Call(Hash.SET_VEHICLE_MOD, car, 23, origIdx, rec.LetteredTyres); menus.Pop(); };
             foreach (var idx in opts)
             {
                 int i = idx;

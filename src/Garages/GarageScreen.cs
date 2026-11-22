@@ -68,6 +68,7 @@ namespace MidnightClub.Garages
                         Game.EnableControlThisFrame(c);
                     Hud.HideComponentThisFrame(HudComponent.HelpText);
                     if (menus.IsOpen) menus.Tick(); else Input();
+                    if (Vehicles.FitmentManager.Instance != null) foreach (var kv in cars) Vehicles.FitmentManager.Instance.ApplyTo(kv.Value, kv.Key);
                     Animate();
                     DrawHud();
                     Script.Wait(0);

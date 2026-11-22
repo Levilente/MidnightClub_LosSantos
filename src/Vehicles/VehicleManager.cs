@@ -83,7 +83,7 @@ namespace MidnightClub.Vehicles
         {
             v.Mods.InstallModKit();
             if (r.WheelType >= 0) v.Mods.WheelType = (VehicleWheelType)r.WheelType;
-            foreach (var m in r.Mods) Function.Call(Hash.SET_VEHICLE_MOD, v, m.Type, m.Index, false);
+            foreach (var m in r.Mods) Function.Call(Hash.SET_VEHICLE_MOD, v, m.Type, m.Index, (m.Type == 23 || m.Type == 24) && r.LetteredTyres);
             if (r.PrimaryColor >= 0) v.Mods.PrimaryColor = (VehicleColor)r.PrimaryColor;
             if (r.SecondaryColor >= 0) v.Mods.SecondaryColor = (VehicleColor)r.SecondaryColor;
             if (r.PearlColor >= 0) v.Mods.PearlescentColor = (VehicleColor)r.PearlColor;
@@ -92,7 +92,7 @@ namespace MidnightClub.Vehicles
             if (r.Toggles != null) foreach (var t in r.Toggles) Function.Call(Hash.TOGGLE_VEHICLE_MOD, v, t, true);
             if (r.WindowTint >= 0) Function.Call(Hash.SET_VEHICLE_WINDOW_TINT, v, r.WindowTint);
             if (r.Livery >= 0) Function.Call(Hash.SET_VEHICLE_LIVERY, v, r.Livery);
-            if (r.DriftTyres) Function.Call(Hash.SET_DRIFT_TYRES, v, true);
+            if (r.DriftTyres || r.TyreCompound == 4) Function.Call(Hash.SET_DRIFT_TYRES, v, true);
             v.EngineHealth = Math.Max(r.EngineHealth, 300f);
             v.BodyHealth = Math.Max(r.BodyHealth, 300f);
         }
@@ -116,7 +116,7 @@ namespace MidnightClub.Vehicles
             foreach (int t in new[] { 18, 20, 22 }) if (Function.Call<bool>(Hash.IS_TOGGLE_MOD_ON, v, t)) r.Toggles.Add(t);
             r.WindowTint = Function.Call<int>(Hash.GET_VEHICLE_WINDOW_TINT, v);
             r.Livery = Function.Call<int>(Hash.GET_VEHICLE_LIVERY_COUNT, v) > 0 ? Function.Call<int>(Hash.GET_VEHICLE_LIVERY, v) : -1;
-            r.DriftTyres = Function.Call<bool>(Hash.GET_DRIFT_TYRES_SET, v);
+            r.LetteredTyres = Function.Call<bool>(Hash.GET_VEHICLE_MOD_VARIATION, v, 23);
             r.EngineHealth = v.EngineHealth; r.BodyHealth = v.BodyHealth;
         }
 
