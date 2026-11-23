@@ -149,3 +149,16 @@ Tick items off or note what happened. Logs: `scripts\MidnightClub\MidnightClub.l
 - [ ] Settings changes apply live and survive a restart (MidnightClub.ini).
 - [ ] EXIT → Exit to Story Mode / Quit game work; welcome screen EXIT opens the same confirmation.
 - [ ] Bike dealer (Two Wheel Fury, Del Perro) lists motorcycles; buying + riding works.
+
+## 0.27.0
+- [ ] Hold R / B while driving: rewind effect, car goes back, carries on with old speed on release. In a race the opponents and the clock rewind too.
+- [ ] Hub > Garage > Photo mode: orbit with mouse/right stick, W/S zoom, filters, DOF, time of day; Enter/A shoots; Esc/B exits and the normal camera returns.
+- [ ] Race countdown: start lights + rev gauge; green zone at GO gives "PERFECT LAUNCH".
+- [ ] Following an opponent closely: SLIPSTREAM tag and speed gain.
+- [ ] Standings tower on the left with gaps; finish cinematic; new results screen.
+- [ ] Solo race twice: second run shows the ghost car and split deltas.
+- [ ] Beaten rival > PINK SLIP RACE (needs 2+ cars): win gives their car, losing removes yours and puts you in another car.
+- [ ] District toast when driving into a new district; winning a race there raises control; Hub > Career > Turf war.
+- [ ] Hub > Races > Route creator: horn drops checkpoints, holding the horn opens the save menu, "Save and race now" works.
+- [ ] Workshop > Performance > Engine swap: hovering changes the engine note, Back restores it.
+- [ ] Pursuit level 2+: roadblock ahead; level 3+: spike strip; bounty on the HUD, paid on escape.

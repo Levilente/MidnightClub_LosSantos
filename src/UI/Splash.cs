@@ -18,7 +18,15 @@ namespace MidnightClub.UI
             "Stopped at a light? Someone might want to race. Press E when they rev.",
             "Every car in the game comes round at a dealership eventually. Or special-order it from the phone.",
             "Drive into a garage you own and the car you arrived in parks there.",
-            "Rivals hand over their car after you beat them three times.",
+            "Rivals hand over their car after you beat them three times. Then it's pink slips.",
+            "Crashed? Hold R (controller B) to rewind the last few seconds.",
+            "Win races that start in a district to take it from its crew. Your turf pays every night.",
+            "Hold the revs in the green during the countdown for a perfect launch.",
+            "Tuck in behind an opponent to catch their slipstream.",
+            "Build your own races: Midnight Hub > Races > Route creator.",
+            "Beat your best time and it becomes the ghost you race next time.",
+            "Escape the police to cash in your bounty. Get busted and it's gone.",
+            "Every car levels up as you drive it. Higher mastery, bigger race winnings.",
             "Nitrous: Sprint on keyboard, the boost button on a controller, once a workshop has fitted a kit. On a controller, hold Back/Select to enter or leave Midnight Club."
         };
 

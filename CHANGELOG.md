@@ -1,4 +1,19 @@
 # Changelog
+## 0.27.0 (2026-11-23): the big one
+- Shop names no longer reference Vice City / GTA VI: La Mesa Auto Works, Rockford Motorwerks, Runway Tuning LSIA, Southside Speed Lab, Paleto Muscle Garage, Senora Off-Road, Strawberry Lowriders.
+- **Rewind**: hold R (controller B) to scrub back up to 12 s; in races opponents, checkpoints and the clock rewind too. Hard crashes show a rewind prompt. Toggle in Settings.
+- **Photo mode** (Hub > Garage): orbit camera, FOV, roll, depth of field, 10 filters, time of day, lights, hide driver, shutter that hides the UI for Steam F12 screenshots.
+- **Race feel**: start lights, launch control (keep the revs in the green for a perfect launch), slipstream boost behind opponents, new race HUD with standings tower and live gaps, slow-motion finish cinematic, new results screen (count-up rewards, personal best, rewinds used).
+- **Ghosts**: your best run on every solo race is saved and raced as a see-through car with live checkpoint splits.
+- **Pink slips**: race beaten rivals for their car, with your car on the line.
+- **Turf war**: nine districts run by crews. Race wins take control, owned districts pay every night, crews strike back. District toasts when you drive in, map overlay, Hub > Career > Turf war.
+- **Route creator** (Hub > Races): drive a route, tap the horn for checkpoints, hold to finish, save as sprint / circuit / time trial / drift and race it.
+- **Engine swaps** (workshops, Performance): 11 engine notes with preview.
+- **Car mastery**: every car levels 1-10 as you drive and race it; each level pays a bonus and +3 % race winnings in that car.
+- **Police**: roadblocks from level 2, spike strips from level 3, NFS-style bounty (time, disabled units, dodged roadblocks) paid on escape, lost when busted. Gas stations fix burst tyres.
+- **Endgame**: "The President", leader of the Midnight Club, unlocks at the top tier. Beat him three times to join the club.
+- Speed traps have rival street records worth a bonus. Bikes score wheelies and stoppies.
+
 ## 0.25.0 (2026-11-23): Midnight Hub
 - The bloated phone is replaced by the **Midnight Hub**: a full-screen icon main menu (Races, Garage, Dealers, Career, Social, Explore, Daily, Settings + EXIT). The world slows down and blurs behind it.
 - Big vector-icon cards with accent colours, spring selection, shine, live info lines (next race, current car, cash, unread messages) and badges; level ring, cash and REP/tier in the top bar; next objective / daily challenge strip.
