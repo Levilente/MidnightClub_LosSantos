@@ -70,6 +70,18 @@ namespace MidnightClub
                 EventBus.Subscribe<ModeChangedEvent>(e => { menu.Close(); if (e.To == GameMode.MIDNIGHT_CLUB && cfg.ShowWelcome) welcomePending = Game.GameTime + 1500; });
                 welcomeCalendar = calendar;
                 hud = new MainHUD(cfg.HudX, cfg.HudY);
+                // Launcher: "Play Midnight Club" writes autostart.flag -> boot straight into Midnight Club
+                try
+                {
+                    var flag = Path.Combine(dir, "autostart.flag");
+                    if (File.Exists(flag))
+                    {
+                        bool fresh = (DateTime.UtcNow - File.GetLastWriteTimeUtc(flag)).TotalMinutes < 20;
+                        File.Delete(flag);
+                        if (fresh) { autostart = true; autostartSince = -1; Log.Info("Autostart requested by the launcher"); }
+                    }
+                }
+                catch (Exception ex) { Log.Error("Autostart flag", ex); }
                 Interval = 0;
                 Tick += OnTick;
                 KeyDown += OnKeyDown;
@@ -80,6 +92,29 @@ namespace MidnightClub
             {
                 Log.Error("Initialization failed", ex);
             }
+        }
+
+        private bool autostart; private int autostartSince = -1;
+
+        /// <summary>Keeps Story Mode hidden (black screen + title) until the game is ready, then enters Midnight Club.</summary>
+        private void AutostartTick()
+        {
+            GTA.UI.Screen.FadeOut(0);
+            GTA.Native.Function.Call(GTA.Native.Hash.HIDE_HUD_AND_RADAR_THIS_FRAME);
+            GTA.Native.Function.Call(GTA.Native.Hash.THEFEED_HIDE_THIS_FRAME);
+            UI.Ds.Rect(0f, 0f, 1f, 1f, UI.Ds.Bg);
+            UI.Ds.Logo(0.5f, 0.4f, 2.2f, 1f, GTA.UI.Alignment.Center, true);
+            UI.Ds.T("STARTING", 0.5f, 0.6f, 0.3f, UI.Ds.Muted, UI.Ds.Display, GTA.UI.Alignment.Center);
+            var p = Game.Player.Character;
+            bool ready = p != null && p.Exists() && !p.IsDead && !GTA.Native.Function.Call<bool>(GTA.Native.Hash.GET_IS_LOADING_SCREEN_ACTIVE)
+                         && !GTA.Native.Function.Call<bool>(GTA.Native.Hash.IS_PLAYER_SWITCH_IN_PROGRESS) && !Game.IsCutsceneActive;
+            if (!ready) { autostartSince = -1; return; }
+            if (autostartSince < 0) autostartSince = Game.GameTime;
+            if (Game.GameTime - autostartSince < 1500) return;
+            autostart = false;
+            Log.Info("Autostart: entering Midnight Club");
+            modes.Enter();
+            if (!modes.InMidnightClub) GTA.UI.Screen.FadeIn(500);
         }
 
         private int welcomePending;
@@ -97,6 +132,7 @@ namespace MidnightClub
             if (!initialized) return;
             try
             {
+                if (autostart) { AutostartTick(); return; }
                 if (togglePressed) { togglePressed = false; modes.Toggle(); }
                 if (menuPressed) { menuPressed = false; if (modes.InMidnightClub) phone.Toggle(); }
                 // Controller: hold Back/Select (Change View) for 1.5 s to enter/leave Midnight Club.

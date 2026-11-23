@@ -1,4 +1,7 @@
 # Changelog
+## 0.24.0 (2026-11-23): launcher
+- New MidnightClubLauncher.exe (goes in the GTA V Enhanced folder): dark neon launcher window with PLAY MIDNIGHT CLUB, STORY MODE, SETTINGS (opens config.ini) and MOD FOLDER. Play writes scripts\MidnightClub\autostart.flag and starts the game through Steam (app 3240220; falls back to PlayGTAV.exe).
+- Autostart: when the mod finds a fresh autostart.flag on load, it keeps Story Mode hidden (black screen with the Midnight Club title) until the game is ready, then enters Midnight Club directly. The flag is deleted immediately, so normal launches still go to Story Mode.
 ## 0.23.0 (2026-11-23)
 - Vanilla blips: hidden blips are now re-hidden every second (display off + alpha 0), because the game's own scripts keep showing their mission/shop blips again. Restored exactly on leaving.
 - Mod shop: everything previews. Pro Builds, toggles (turbo, xenons, tyre smoke), tyre compounds, ECU and nitrous now show on the car / in the stats while highlighted (body parts, wheels and paint already did). The stat card compares against what is actually installed (green/red delta) and only moves after you buy. Leaving a list, switching tabs or exiting puts the car back to its installed state.
