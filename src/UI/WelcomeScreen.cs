@@ -16,13 +16,13 @@ namespace MidnightClub.UI
     {
         public enum Choice { Streets, Menu, Phone, Story }
 
-        private static readonly string[] Items = { "HIT THE STREETS", "CAREER & GARAGE", "PHONE & MESSAGES", "BACK TO STORY MODE" };
+        private static readonly string[] Items = { "HIT THE STREETS", "CAREER & GARAGE", "MIDNIGHT HUB", "EXIT" };
         private static readonly string[] Hints =
         {
             "Drive. Races, rivals, meets and the police are out there.",
             "Career, your cars, garages, dealerships, finances and settings.",
-            "Messages, news, rivals, clubs, special orders and your ability.",
-            "Save and return to Story Mode."
+            "Races, garage, dealers, career, social, daily challenges and settings.",
+            "Exit to Story Mode or quit the game. Progress is saved."
         };
 
         public static Choice Show(SaveData d, string dayName)

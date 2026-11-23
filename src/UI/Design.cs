@@ -71,6 +71,8 @@ namespace MidnightClub.UI
             if (w > 200 && h > 200) { resW = w; resH = h; }
         }
 
+        public static void Resolution(out int w, out int h) { Res(); w = resW; h = resH; }
+
         /// <summary>Rectangle snapped to whole screen pixels, so neighbouring strips (gradients, slanted rows)
         /// meet exactly: no overlapping seams (visible lines) and no gaps.</summary>
         public static void Rect(float x, float y, float w, float h, Color c)

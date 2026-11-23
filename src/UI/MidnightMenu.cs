@@ -59,7 +59,7 @@ namespace MidnightClub.UI
                     Description = () => "Every car available in your game build, with Midnight Club prices." });
                 m.Add(new MenuItem("Edit driver", () => { stack.Close(); modes.EditCharacter(); }) { Description = () => "Stop the car first." });
                 m.Add(new MenuItem("Save", () => { modes.SaveNow(); }));
-                m.Add(new MenuItem("Return to Story Mode", () => { stack.Close(); modes.Exit(); }));
+                m.Add(new MenuItem("Exit to Story Mode", () => { stack.Close(); modes.Exit(); }));
             };
             return m;
         }

@@ -1,4 +1,13 @@
 # Changelog
+## 0.25.0 (2026-11-23): Midnight Hub
+- The bloated phone is replaced by the **Midnight Hub**: a full-screen icon main menu (Races, Garage, Dealers, Career, Social, Explore, Daily, Settings + EXIT). The world slows down and blurs behind it.
+- Big vector-icon cards with accent colours, spring selection, shine, live info lines (next race, current car, cash, unread messages) and badges; level ring, cash and REP/tier in the top bar; next objective / daily challenge strip.
+- All sub-screens share the same full-screen style (category watermark, breadcrumb, animated selection bar, scrollbar, descriptions).
+- New in-game **Settings**: camera, simcade physics, HUD, world and police options adjustable live and saved to the ini.
+- **EXIT** replaces "Back to Story Mode" (welcome screen and hub): Exit to Story Mode, Quit game, Cancel.
+- Fixed double input in every menu (one action per press).
+- **Motorcycles**: new Two Wheel Fury Motorsport bike dealer; bikes keep their own physics and camera.
+
 ## 0.24.0 (2026-11-23): launcher
 - New MidnightClubLauncher.exe (goes in the GTA V Enhanced folder): dark neon launcher window with PLAY MIDNIGHT CLUB, STORY MODE, SETTINGS (opens config.ini) and MOD FOLDER. Play writes scripts\MidnightClub\autostart.flag and starts the game through Steam (app 3240220; falls back to PlayGTAV.exe).
 - Autostart: when the mod finds a fresh autostart.flag on load, it keeps Story Mode hidden (black screen with the Midnight Club title) until the game is ready, then enters Midnight Club directly. The flag is deleted immediately, so normal launches still go to Story Mode.

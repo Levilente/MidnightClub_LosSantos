@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Windows.Forms;
 using GTA;
@@ -43,11 +44,25 @@ namespace MidnightClub.Core
         public int RecoveryCost = 500;
         public int TransitionFadeMs = 800;
 
+        public static string FilePath;
+        public static Config Current;
+        /// <summary>Writes one setting back to config.ini (used by the in-game Settings menu).</summary>
+        public static void Save(string section, string key, object value)
+        {
+            try
+            {
+                var s = ScriptSettings.Load(FilePath);
+                s.SetValue(section, key, value is float ? ((float)value).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture) : value.ToString());
+                s.Save();
+            }
+            catch (Exception ex) { Log.Error("Saving setting " + section + "/" + key, ex); }
+        }
+
         public static Config Load(string dir)
         {
-            var file = Path.Combine(dir, "config.ini");
+            var file = Path.Combine(dir, "config.ini"); FilePath = file;
             var s = ScriptSettings.Load(file);
-            var c = new Config();
+            var c = new Config(); Current = c;
             c.ToggleKey = Get(s, "General", "ToggleKey", c.ToggleKey);
             c.MenuKey = Get(s, "General", "MenuKey", c.MenuKey);
             c.DevMode = Get(s, "General", "DevMode", c.DevMode);

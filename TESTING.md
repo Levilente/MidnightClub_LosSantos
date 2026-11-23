@@ -141,3 +141,11 @@ Tick items off or note what happened. Logs: `scripts\MidnightClub\MidnightClub.l
 - [ ] Drive through a gas station with a damaged car: "REPAIRED".
 - [ ] After escaping/being busted, police cars stop chasing and switch off sirens.
 - [ ] Chase cams feel fast (FOV, swing, squat/stretch, vibration). Too much? [Camera] GForceIntensity / ShakeIntensity / DynamicFovIntensity.
+
+## Midnight Hub (0.25.0)
+- [ ] Phone button (Up arrow / D-pad up) opens the hub; world slows + blurs; closing restores normal speed.
+- [ ] Arrow navigation across the 4x2 grid and to EXIT; one move per press (no double input anywhere).
+- [ ] Each card opens its sub-screen; Back returns to the hub; Back again closes it.
+- [ ] Settings changes apply live and survive a restart (MidnightClub.ini).
+- [ ] EXIT → Exit to Story Mode / Quit game work; welcome screen EXIT opens the same confirmation.
+- [ ] Bike dealer (Two Wheel Fury, Del Perro) lists motorcycles; buying + riding works.

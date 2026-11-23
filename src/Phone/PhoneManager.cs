@@ -34,6 +34,61 @@ namespace MidnightClub.Phone
         private readonly Random rnd = new Random();
 
         private sealed class App { public string Name, Icon; public Color Accent; public Func<Menu> Open; public Func<string> Badge, Meta; }
+
+        private static KeyValuePair<string, KeyValuePair<Func<Menu>, Func<string>>> Sub(string name, Func<Menu> open, Func<string> meta)
+        { return new KeyValuePair<string, KeyValuePair<Func<Menu>, Func<string>>>(name, new KeyValuePair<Func<Menu>, Func<string>>(open, meta)); }
+
+        private Menu Category(string title, string icon, KeyValuePair<string, KeyValuePair<Func<Menu>, Func<string>>>[] subs)
+        {
+            var m = new Menu(title, "");
+            foreach (var sb in subs)
+            {
+                var s = sb;
+                m.Add(new MenuItem(s.Key, () => { var x = s.Value.Key(); if (x != null) stack.Push(x); }) { Value = s.Value.Value });
+            }
+            return m;
+        }
+
+        private string CurrentCarName()
+        {
+            var r = saves.Data.Vehicles.FirstOrDefault(v => v.Id == saves.Data.CurrentVehicleId);
+            if (r == null) return "";
+            return "  ·  " + (string.IsNullOrEmpty(r.Nickname) ? r.Model : r.Nickname).ToUpperInvariant();
+        }
+
+        private Menu ExitMenu()
+        {
+            var m = new Menu("Exit", "Your progress is saved");
+            m.Add(new MenuItem("Exit to Story Mode", () => { stack.Close(); IsOpen = false; menu.Modes.Exit(); }) { Description = () => "Back to Franklin, Michael and Trevor. Midnight Club keeps your progress." });
+            m.Add(new MenuItem("Quit game", () => { menu.Modes.SaveNow(); Script.Wait(300); Function.Call(Hash.QUIT_GAME); }) { Description = () => "Saves and closes GTA V." });
+            m.Add(new MenuItem("Cancel", () => stack.Pop()));
+            return m;
+        }
+
+        // ------------------------------------------------------------------ settings (live, saved to config.ini)
+        private Menu SettingsMenu()
+        {
+            var cfg = Config.Current;
+            var m = new Menu("Game settings", "Saved instantly");
+            Func<string, string, Func<float>, Action<float>, float, float, float, string, MenuItem> num = (label, key, get, set, min, max, step, sec) =>
+                new MenuItem(label) { Value = () => get().ToString("0.0#"), OnAdjust = d => { float v = (float)Math.Round(Math.Max(min, Math.Min(max, get() + d * step)) / step) * step; set(v); Config.Save(sec, key, v); } };
+            Func<string, string, Func<bool>, Action<bool>, string, MenuItem> flag = (label, key, get, set, sec) =>
+                new MenuItem(label, () => { set(!get()); Config.Save(sec, key, get()); }) { Value = () => get() ? "On" : "Off", OnAdjust = d => { set(!get()); Config.Save(sec, key, get()); } };
+            m.Add(flag("Midnight Club cameras", "Enabled", () => cfg.CustomCameras, v => cfg.CustomCameras = v, "Camera"));
+            m.Add(num("Camera motion (G)", "GForceIntensity", () => cfg.CameraGForce, v => cfg.CameraGForce = v, 0f, 2f, 0.1f, "Camera"));
+            m.Add(num("Speed FOV", "DynamicFovIntensity", () => cfg.CameraFovScale, v => cfg.CameraFovScale = v, 0f, 2f, 0.1f, "Camera"));
+            m.Add(num("Camera shake", "ShakeIntensity", () => cfg.CameraShake, v => cfg.CameraShake = v, 0f, 2f, 0.1f, "Camera"));
+            m.Add(flag("Simcade handling", "Enabled", () => cfg.SimcadeEnabled, v => cfg.SimcadeEnabled = v, "Simcade"));
+            m.Add(num("Handling intensity", "Intensity", () => cfg.SimcadeIntensity, v => cfg.SimcadeIntensity = v, 0f, 1.5f, 0.1f, "Simcade"));
+            m.Add(num("Car weight feel", "Weight", () => cfg.SimcadeWeight, v => cfg.SimcadeWeight = v, 0f, 1.5f, 0.1f, "Simcade"));
+            m.Add(num("Steering assist", "SteeringAssist", () => cfg.SimcadeSteerAssist, v => cfg.SimcadeSteerAssist = v, 0f, 1.5f, 0.1f, "Simcade"));
+            m.Add(num("Stability assist", "StabilityAssist", () => cfg.SimcadeStability, v => cfg.SimcadeStability = v, 0f, 1.5f, 0.1f, "Simcade"));
+            m.Add(flag("HUD", "Show", () => cfg.ShowHud, v => cfg.ShowHud = v, "HUD"));
+            m.Add(flag("Welcome screen", "WelcomeScreen", () => cfg.ShowWelcome, v => cfg.ShowWelcome = v, "HUD"));
+            m.Add(flag("Always night", "AlwaysNight", () => cfg.AlwaysNight, v => cfg.AlwaysNight = v, "World"));
+            m.Add(flag("Police", "Enabled", () => cfg.PoliceEnabled, v => cfg.PoliceEnabled = v, "Police"));
+            return m;
+        }
         private readonly List<App> apps = new List<App>();
 
         public Func<Menu> MilestonesMenu, AbilityMenu;
@@ -41,28 +96,47 @@ namespace MidnightClub.Phone
         public PhoneManager(SaveManager saves, MenuStack stack, MidnightMenu menu, WorldCalendar calendar, RaceManager races, Func<Menu> rivalsMenu, Func<Menu> clubsMenu)
         {
             this.saves = saves; this.stack = stack; this.menu = menu; this.calendar = calendar; this.races = races; this.rivalsMenu = rivalsMenu; this.clubsMenu = clubsMenu;
-            apps.Add(new App { Name = "Messages", Accent = Ds.Violet, Open = Inbox, Badge = () => { int n = saves.Data.Messages.Count(m => !m.Read); return n > 0 ? n + " NEW" : null; } });
-            apps.Add(new App { Name = "Progress", Accent = Ds.Violet, Open = () => Progression.Instance != null ? Progression.Instance.ProgressMenu() : null, Meta = () => Progression.Instance != null ? "LV " + Progression.Instance.Level + "  ·  " + Progression.Instance.RoadPercent.ToString("0.0") + "% ROADS" : "" });
-            apps.Add(new App { Name = "Daily", Accent = Ds.Amber, Open = () => Progression.Instance != null ? Progression.Instance.DailyMenu() : null, Meta = () => Progression.Instance == null ? "" : Progression.Instance.Today.Count(c => Progression.Instance.Done(c)) + " / " + Progression.Instance.Today.Count });
-            apps.Add(new App { Name = "Races", Accent = Ds.Red, Open = () => races.RacesMenu(), Meta = () => { int n = races.Races.Count(r => races.Available(r)); return n + " OPEN"; } });
-            apps.Add(new App { Name = "My garage", Accent = Ds.Cyan, Open = () => menu.MyVehicles(), Meta = () => saves.Data.Vehicles.Count + (saves.Data.Vehicles.Count == 1 ? " CAR" : " CARS") });
-            apps.Add(new App { Name = "Dealerships", Accent = Ds.Amber, Open = () => menu.DealerList(), Meta = () => menu.Dealers == null ? "" : "NEW STOCK " + menu.Dealers.Definitions.Min(x => menu.Dealers.DaysUntilRotation(x)) + "D" });
-            apps.Add(new App { Name = "Rivals", Accent = Ds.Pink, Open = () => this.rivalsMenu(), Meta = () => saves.Data.Rivals.Count(r => r.Defeated) + " / 6 BEATEN" });
-            apps.Add(new App { Name = "Clubs", Accent = Ds.Blue, Open = () => this.clubsMenu() });
-            apps.Add(new App { Name = "Career", Accent = Ds.Amber, Open = () => menu.CareerMenu(), Meta = () => CareerManager.Instance != null ? "TIER " + CareerManager.Instance.Tier : "" });
-            apps.Add(new App { Name = "Rankings", Accent = Ds.Lime, Open = Rankings, Meta = () => "#" + MyRank() });
-            apps.Add(new App { Name = "Street buzz", Accent = Ds.Pink, Open = NewsApp, Meta = () => saves.Data.News.Count > 0 ? "DAY " + (saves.Data.News.Last().Day + 1) : "" });
-            apps.Add(new App { Name = "Calendar", Accent = Ds.Cyan, Open = CalendarApp, Meta = () => calendar.DayName.Substring(0, 3).ToUpperInvariant() });
-            apps.Add(new App { Name = "Bank", Accent = Ds.Lime, Open = () => menu.Finances(), Meta = () => "$" + saves.Data.Cash.ToString("N0") });
-            apps.Add(new App { Name = "Property", Accent = Ds.Blue, Open = () => menu.GarageList(), Meta = () => saves.Data.Garages.Count + " OWNED" });
-            apps.Add(new App { Name = "Catalogue", Accent = Ds.Violet, Open = () => menu.Catalogue() });
-            apps.Add(new App { Name = "Goals", Accent = Ds.Red, Open = () => MilestonesMenu != null ? MilestonesMenu() : null, Meta = () => saves.Data.MilestonesDone.Count + " / 13" });
-            apps.Add(new App { Name = "Ability", Accent = Ds.Amber, Open = () => AbilityMenu != null ? AbilityMenu() : null, Meta = () => Gameplay.Abilities.Instance != null && Gameplay.Abilities.Instance.Selected != null ? Gameplay.Abilities.Instance.Selected.ToUpperInvariant() : "" });
-            apps.Add(new App { Name = "Settings", Accent = Ds.Muted, Open = () => menu.MainMenu() });
+            apps.Add(new App { Name = "Races", Icon = "races", Accent = Ds.Red, Open = () => Category("Races", "races", new[] {
+                    Sub("Race events", () => races.RacesMenu(), () => races.Races.Count(r => races.Available(r)) + " open"),
+                    Sub("Rivals", () => this.rivalsMenu(), () => saves.Data.Rivals.Count(r => r.Defeated) + " / 6 beaten"),
+                    Sub("Rankings", Rankings, () => "#" + MyRank()) }),
+                Meta = () => races.Races.Count(r => races.Available(r)) + " OPEN  ·  " + races.Championships.Count() + " CHAMPIONSHIPS" });
+            apps.Add(new App { Name = "Garage", Icon = "garage", Accent = Ds.Cyan, Open = () => Category("Garage", "garage", new[] {
+                    Sub("My vehicles", () => menu.MyVehicles(), () => saves.Data.Vehicles.Count.ToString()),
+                    Sub("Properties", () => menu.GarageList(), () => saves.Data.Garages.Count + " owned"),
+                    Sub("Vehicle catalogue", () => menu.Catalogue(), null) }),
+                Meta = () => saves.Data.Vehicles.Count + (saves.Data.Vehicles.Count == 1 ? " CAR" : " CARS") + CurrentCarName() });
+            apps.Add(new App { Name = "Dealers", Icon = "dealers", Accent = Ds.Amber, Open = () => menu.DealerList(),
+                Meta = () => menu.Dealers == null ? "" : "NEW STOCK IN " + menu.Dealers.Definitions.Min(x => menu.Dealers.DaysUntilRotation(x)) + " DAYS" });
+            apps.Add(new App { Name = "Career", Icon = "career", Accent = Ds.Amber, Open = () => Category("Career", "career", new[] {
+                    Sub("Career", () => menu.CareerMenu(), () => CareerManager.Instance != null ? "Tier " + CareerManager.Instance.Tier : ""),
+                    Sub("Progress", () => Progression.Instance != null ? Progression.Instance.ProgressMenu() : null, () => Progression.Instance != null ? "Level " + Progression.Instance.Level : ""),
+                    Sub("Goals", () => MilestonesMenu != null ? MilestonesMenu() : null, () => saves.Data.MilestonesDone.Count + " / 13"),
+                    Sub("Special ability", () => AbilityMenu != null ? AbilityMenu() : null, () => Gameplay.Abilities.Instance != null && Gameplay.Abilities.Instance.Selected != null ? Gameplay.Abilities.Instance.Selected : ""),
+                    Sub("Bank", () => menu.Finances(), () => "$" + saves.Data.Cash.ToString("N0")) }),
+                Meta = () => (CareerManager.Instance != null ? "TIER " + CareerManager.Instance.Tier : "") + (Progression.Instance != null ? "  ·  LEVEL " + Progression.Instance.Level : "") });
+            apps.Add(new App { Name = "Social", Icon = "social", Accent = Ds.Violet, Open = () => Category("Social", "social", new[] {
+                    Sub("Messages", Inbox, () => saves.Data.Messages.Count(m => !m.Read) + " unread"),
+                    Sub("Street buzz", NewsApp, null),
+                    Sub("Clubs", () => this.clubsMenu(), null) }),
+                Badge = () => { int n = saves.Data.Messages.Count(m => !m.Read); return n > 0 ? n.ToString() : null; },
+                Meta = () => { int n = saves.Data.Messages.Count(m => !m.Read); return n > 0 ? n + " UNREAD" : "MESSAGES  ·  CLUBS  ·  NEWS"; } });
+            apps.Add(new App { Name = "Explore", Icon = "explore", Accent = Ds.Lime, Open = () => Category("Explore", "explore", new[] {
+                    Sub("Exploration", () => Progression.Instance != null ? Progression.Instance.ProgressMenu() : null, () => Progression.Instance != null ? Progression.Instance.RoadPercent.ToString("0.0") + "% roads" : ""),
+                    Sub("Calendar", CalendarApp, () => calendar.DayName) }),
+                Meta = () => (Progression.Instance != null ? Progression.Instance.RoadPercent.ToString("0.0") + "% ROADS" : "") + (Explore.Discovery.Instance != null ? "  ·  " + Explore.Discovery.Instance.KnownCount + " / " + Explore.Discovery.Instance.TotalCount + " FOUND" : "") });
+            apps.Add(new App { Name = "Daily", Icon = "daily", Accent = Ds.Pink, Open = () => Progression.Instance != null ? Progression.Instance.DailyMenu() : null,
+                Meta = () => Progression.Instance == null ? "" : Progression.Instance.Today.Count(c => Progression.Instance.Done(c)) + " / " + Progression.Instance.Today.Count + " DONE" });
+            apps.Add(new App { Name = "Settings", Icon = "settings", Accent = Ds.Muted, Open = () => Category("Settings", "settings", new[] {
+                    Sub("Game settings", SettingsMenu, null),
+                    Sub("Edit driver", () => { stack.Close(); IsOpen = false; menu.Modes.EditCharacter(); return null; }, null),
+                    Sub("Save game", () => { menu.Modes.SaveNow(); UI.Shard.Mid("SAVED", "", UI.Shard.Green, 1500); return null; }, null) }),
+                Meta = () => "CAMERA  ·  HANDLING  ·  HUD" });
+            apps.Add(new App { Name = "Exit", Icon = "exit", Accent = Ds.Red, Open = ExitMenu });
             MenuStack.PhoneRenderer = DrawApp;
 
             EventBus.Subscribe<MidnightTickEvent>(e => Tick());
-            EventBus.Subscribe<ModeChangedEvent>(e => { IsOpen = false; if (e.To == GameMode.MIDNIGHT_CLUB) Welcome(); });
+            EventBus.Subscribe<ModeChangedEvent>(e => { IsOpen = false; openT = 0f; Effects(false); if (e.To == GameMode.MIDNIGHT_CLUB) Welcome(); });
             EventBus.Subscribe<TierUpEvent>(e => { Send("Midnight Club", "Promotion: " + CareerManager.TierNames[e.Tier], "You're now " + CareerManager.TierNames[e.Tier] + ". " + CareerManager.TierUnlocks[e.Tier], ""); News("New name on the scene", "Word is a " + CareerManager.TierNames[e.Tier].ToLowerInvariant() + " has been tearing up the streets of Los Santos."); });
             EventBus.Subscribe<RaceFinishedEvent>(OnRace);
             EventBus.Subscribe<RivalDefeatedEvent>(e => { var p = RivalManager.Profiles.FirstOrDefault(x => x.Id == e.Id); if (p != null) News(p.Name + " dethroned", p.Name + ", the city's " + p.Archetype.ToLowerInvariant() + ", lost a third straight duel and handed over the keys."); });
@@ -185,14 +259,17 @@ namespace MidnightClub.Phone
             return m;
         }
 
-        // ------------------------------------------------------------------ UI
-        private float openT;                 // 0 hidden .. 1 fully up (animated)
-        private float listY = -1f;
-        private Menu lastMenu; private float screenT = 1f, appSel = -1f;
+        // ------------------------------------------------------------------ UI: the Midnight Hub
+        // Full-screen main menu: the world slows down and blurs, eight big icon cards (live info, badges, accent
+        // colours, spring selection, shine) plus EXIT and the next objective. Every sub-screen (any Menu) is shown in
+        // the same full-screen style with the category icon as a huge watermark.
+        private float openT;
+        private Menu lastMenu; private float screenT = 1f, listSel = -1f;
         private App current;
-        private bool appActive;
+        private bool appActive, fxOn;
+        private readonly float[] cardK = new float[16];
 
-        /// <summary>True while any part of the phone is on screen (including the slide-out).</summary>
+        /// <summary>True while any part of the hub is on screen (including the fade-out).</summary>
         public bool IsVisible { get { return openT > 0.001f; } }
 
         public void Toggle()
@@ -201,182 +278,224 @@ namespace MidnightClub.Phone
             if (stack.IsOpen) stack.Close();
             Open();
         }
-        private void Open() { IsOpen = true; listY = -1f; Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "Pull_Out", "Phone_SoundSet_Default", true); }
-        private void Close() { IsOpen = false; if (stack.PhoneStyle) stack.Close(); Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "Put_Away", "Phone_SoundSet_Default", true); }
+        /// <summary>Opens the hub straight on the EXIT confirmation (welcome screen, pause shortcut).</summary>
+        public void OpenExit()
+        {
+            if (stack.IsOpen) stack.Close();
+            IsOpen = true; sel = apps.Count - 1; current = apps[sel];
+            stack.Open(ExitMenu()); stack.PhoneStyle = true; lastMenu = null;
+        }
+
+        /// <summary>Restores time scale and screen effects (script abort / emergency).</summary>
+        public static void ResetEffects()
+        {
+            try { Function.Call(Hash.ANIMPOSTFX_STOP, "MenuMGIn"); Function.Call(Hash.SET_TIME_SCALE, 1f); } catch { }
+        }
+
+        private void Open() { IsOpen = true; Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "SELECT", "HUD_FRONTEND_DEFAULT_SOUNDSET", true); }
+        private void Close() { IsOpen = false; if (stack.PhoneStyle) stack.Close(); Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "BACK", "HUD_FRONTEND_DEFAULT_SOUNDSET", true); }
+
+        private void Effects(bool on)
+        {
+            if (on == fxOn) return; fxOn = on;
+            try
+            {
+                if (on) { Function.Call(Hash.ANIMPOSTFX_PLAY, "MenuMGIn", 0, true); Function.Call(Hash.SET_TIME_SCALE, 0.15f); }
+                else { Function.Call(Hash.ANIMPOSTFX_STOP, "MenuMGIn"); Function.Call(Hash.SET_TIME_SCALE, 1f); }
+            }
+            catch { }
+        }
 
         private void Tick()
         {
-            Game.DisableControlThisFrame(Control.Phone);   // our phone replaces the game's in Midnight Club
+            Game.DisableControlThisFrame(Control.Phone);
             if (!stack.IsOpen && !IsOpen && !RaceManager.IsRacing && UI.Input.JustPressed(Control.Phone)) { Open(); return; }
-            if (IsOpen && stack.IsOpen && !stack.PhoneStyle) IsOpen = false;   // a full-screen menu took over
+            if (IsOpen && stack.IsOpen && !stack.PhoneStyle) IsOpen = false;
             if (appActive && !stack.IsOpen) { appActive = false; if (!stack.ClosedByBack) { IsOpen = false; openT = 0f; } }
             if (stack.IsOpen && stack.PhoneStyle) appActive = true;
-            openT = Ds.Step(openT, IsOpen ? 1f : 0f, IsOpen ? 4.5f : 6f);
+            Effects(IsOpen && !RaceManager.IsRacing);
+            openT = Ds.Step(openT, IsOpen ? 1f : 0f, IsOpen ? 5f : 7f);
             if (!IsVisible) return;
-            if (IsOpen && stack.IsOpen) return;                      // app screen: drawn by DrawApp via the menu stack
+            if (IsOpen && stack.IsOpen) return;   // sub-screen: drawn by DrawApp through the menu stack
             if (IsOpen)
             {
                 foreach (var c in new[] { Control.Phone, Control.VehicleRadioWheel, Control.VehicleCinCam, Control.VehicleHeadlight, Control.FrontendPauseAlternate, Control.VehicleDuck, Control.VehicleSelectNextWeapon }) Game.DisableControlThisFrame(c);
-                int old = sel;
-                if (UI.Input.JustPressed(Control.FrontendDown)) sel = (sel + 1) % apps.Count;
-                if (UI.Input.JustPressed(Control.FrontendUp)) sel = (sel - 1 + apps.Count) % apps.Count;
-                if (sel != old) Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "Menu_Navigate", "Phone_SoundSet_Default", true);
-                if (UI.Input.JustPressed(Control.FrontendCancel)) { Close(); }
+                int old = sel, n = apps.Count - 1;   // last app = EXIT (bottom row)
+                if (sel == n)
+                {
+                    if (UI.Input.JustPressed(Control.FrontendUp)) sel = 4;
+                    if (UI.Input.JustPressed(Control.FrontendDown)) sel = 0;
+                }
+                else
+                {
+                    int r = sel / 4, c = sel % 4;
+                    if (UI.Input.JustPressed(Control.FrontendRight)) sel = r * 4 + (c + 1) % 4;
+                    if (UI.Input.JustPressed(Control.FrontendLeft)) sel = r * 4 + (c + 3) % 4;
+                    if (UI.Input.JustPressed(Control.FrontendDown)) sel = r == 0 ? sel + 4 : n;
+                    if (UI.Input.JustPressed(Control.FrontendUp)) sel = r == 0 ? n : sel - 4;
+                }
+                if (sel != old) Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "NAV_LEFT_RIGHT", "HUD_FRONTEND_DEFAULT_SOUNDSET", true);
+                if (UI.Input.JustPressed(Control.FrontendCancel)) Close();
                 else if (UI.Input.JustPressed(Control.FrontendAccept))
                 {
                     var app = apps[sel]; var m = app.Open();
                     if (m != null) { current = app; stack.Open(m); stack.PhoneStyle = true; lastMenu = null; }
-                    Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "Menu_Accept", "Phone_SoundSet_Default", true);
+                    Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "SELECT", "HUD_FRONTEND_DEFAULT_SOUNDSET", true);
                 }
             }
-            DrawHome();
+            DrawHub();
         }
 
-        // ---------------------------------------------------------------- frame
-        private const float PH = 0.74f;
-        private float px, py, pw, alpha, pad;
+        // ---------------------------------------------------------------- shared backdrop + top bar
+        private const float CW = 0.2f, CH = 0.25f, GX = 0.015f, GY = 0.025f;
+        private static float X0 { get { return (1f - (4 * CW + 3 * GX)) / 2f; } }
+        private static float XR { get { return X0 + 4 * CW + 3 * GX; } }
 
-        private void Frame()
+        private float Backdrop()
         {
             Theme.FullscreenFrame();
-            float e = Ds.EaseOut(openT);
-            alpha = Ds.Clamp01(openT * 1.5f);
-            pw = Ds.Px(PH * 0.46f); px = 0.972f - pw + (1f - e) * 0.02f; py = 0.175f + (1f - e) * 0.85f;
-            pad = Ds.Px(0.02f);
-            Ds.Rect(px - Ds.Px(0.004f), py - 0.004f, pw + Ds.Px(0.008f), PH + 0.008f, Ds.A(Color.Black, 0.45f * alpha));
-            Ds.Rect(px, py, pw, PH, Ds.A(Color.FromArgb(250, 12, 11, 19), alpha));
-            Ds.Streaks(px, py + 0.02f, pw, 0.17f, Ds.Violet, 0.35f * alpha, 9, 0.35f);
-            Ds.Rect(px, py, Ds.Px(0.0025f), PH, Ds.A(Ds.Violet, alpha));
-            Ds.Skew(px, py, pw * 0.35f, 0.003f, Ds.Px(0.0008f), Ds.A(Ds.Violet, alpha));
-            Ds.Skew(px + pw * 0.37f, py, pw * 0.06f, 0.003f, Ds.Px(0.0008f), Ds.A(Ds.Cyan, alpha));
-            Ds.T("MIDNIGHT", px + pad, py + 0.012f, 0.26f, Ds.A(Ds.Muted, alpha), Ds.Display);
-            Ds.T(World.CurrentTimeOfDay.ToString(@"hh\:mm"), px + pw - pad, py + 0.012f, 0.26f, Ds.A(Ds.Muted, alpha), Ds.Display, GTA.UI.Alignment.Right);
+            Function.Call(Hash.HIDE_HUD_AND_RADAR_THIS_FRAME);
+            float a = Ds.EaseOut(openT);
+            Ds.HGrad(0f, 0f, 1f, 1f, Ds.A(Color.FromArgb(255, 9, 8, 14), 0.92f * a), Ds.A(Color.FromArgb(255, 9, 8, 14), 0.55f * a), 32);
+            Ds.VGrad(0f, 0.82f, 1f, 0.18f, Ds.A(Ds.Bg, 0f), Ds.A(Ds.Bg, 0.8f * a), 12);
+            Ds.Streaks(0f, 0.15f, 1f, 0.7f, Ds.Violet, 0.25f * a, 18, 0.25f);
+            // top bar
+            float ty = 0.05f - (1f - a) * 0.02f;
+            Ds.Logo(X0, ty, 0.95f, a, GTA.UI.Alignment.Left, true);
+            var d = saves.Data;
+            float ringX = XR - Ds.Px(0.042f), ringY = ty + 0.035f;
+            if (Progression.Instance != null)
+            {
+                VectorIcons.Ring(ringX, ringY, 0.084f, 0.008f, 1f, Ds.A(Ds.Stroke, a));
+                VectorIcons.Ring(ringX, ringY, 0.084f, 0.008f, Progression.Instance.LevelProgress, Ds.A(Ds.Violet, a));
+                Ds.T(Progression.Instance.Level.ToString(), ringX, ringY - 0.032f, 0.72f, Ds.A(Ds.Text, a), Ds.Display, GTA.UI.Alignment.Center);
+                Ds.T("LEVEL", ringX, ringY + 0.012f, 0.2f, Ds.A(Ds.Muted, a), Ds.Display, GTA.UI.Alignment.Center);
+            }
+            float rx = XR - Ds.Px(0.1f);
+            Ds.T("$" + d.Cash.ToString("N0"), rx, ty - 0.006f, 0.75f, Ds.A(Ds.Text, a), Ds.Display, GTA.UI.Alignment.Right);
+            Ds.T(d.Rep.ToString("N0") + " REP" + (CareerManager.Instance != null ? "  ·  " + CareerManager.Instance.TierName.ToUpperInvariant() : ""), rx, ty + 0.055f, 0.3f, Ds.A(Ds.Muted, a), Ds.Display, GTA.UI.Alignment.Right);
+            return a;
         }
 
-        // ---------------------------------------------------------------- home
-        private void DrawHome()
+        // ---------------------------------------------------------------- hub grid
+        private void DrawHub()
         {
-            Frame();
-            var d = saves.Data; float a = alpha, x = px + pad, w = pw - 2 * pad;
-            Ds.T(World.CurrentTimeOfDay.ToString(@"hh\:mm"), x - Ds.Px(0.002f), py + 0.036f, 1.35f, Ds.A(Ds.Text, a), Ds.Display);
-            Ds.T(calendar.DayName.ToUpperInvariant() + "  /  DAY " + (calendar.Day + 1) + (calendar.IsNight ? "  /  NIGHT" : ""), x, py + 0.124f, 0.27f, Ds.A(Ds.Muted, a), Ds.Display);
-            float tx = x, ty = py + 0.158f;
-            tx += Ds.Tag("$" + d.Cash.ToString("N0"), tx, ty, Ds.Lime, Ds.Bg, 0.3f, a) + Ds.Px(0.004f);
-            tx += Ds.Tag(d.Rep.ToString("N0") + " REP", tx, ty, Ds.Violet, Ds.Text, 0.3f, a) + Ds.Px(0.004f);
-            if (CareerManager.Instance != null) Ds.Tag("TIER " + CareerManager.Instance.Tier, tx, ty, Ds.Surface2, Ds.Text, 0.3f, a);
-            Ds.Skew(x, py + 0.203f, w, 0.003f, Ds.Px(0.001f), Ds.A(Ds.Surface2, a));
-
-            float ly = py + 0.218f, rh = 0.0255f;
-            float target = ly + sel * rh;
-            listY = listY < 0 ? target : Ds.Damp(listY, target, 26f);
-            var acc = apps[sel].Accent; float sl = Ds.SlantFor(rh - 0.003f);
-            Ds.Skew(x - Ds.Px(0.009f), listY, w + Ds.Px(0.013f), rh - 0.003f, sl, Ds.A(acc, a));
-            Ds.Shine(x - Ds.Px(0.009f), listY, w + Ds.Px(0.013f), rh - 0.003f, sl, 2.4f, a);
-            for (int i = 0; i < apps.Count; i++)
+            float a = Backdrop();
+            int n = apps.Count - 1;
+            for (int i = 0; i < n && i < 8; i++)
             {
-                var app = apps[i]; bool s = i == sel; float y = ly + i * rh;
-                float ent = Ds.EaseOut(Ds.Clamp01(openT * 1.6f - i * 0.03f)), ea = a * ent, ox = (1f - ent) * Ds.Px(0.02f);
-                bool onBar = s && Math.Abs(listY - target) < rh * 0.5f;
-                var dark = Ds.Bg;
-                Ds.T((i + 1).ToString("00"), x + Ds.Px(0.003f) + ox, y + 0.0045f, 0.21f, Ds.A(onBar ? dark : Ds.Faint, ea), Ds.Display);
-                Ds.T(app.Name.ToUpperInvariant(), x + Ds.Px(0.022f) + ox, y - 0.0025f, 0.37f, Ds.A(onBar ? dark : Ds.Text, ea), Ds.Display);
-                string badge = app.Badge != null ? app.Badge() : null;
-                string meta = badge ?? (app.Meta != null ? app.Meta() : null);
-                if (string.IsNullOrEmpty(meta)) continue;
-                if (badge != null && !onBar)
+                var app = apps[i]; int r = i / 4, c = i % 4;
+                cardK[i] = Ds.Damp(cardK[i], i == sel ? 1f : 0f, 14f);
+                float k = cardK[i], ent = Ds.EaseOut(Ds.Clamp01(openT * 1.5f - i * 0.05f)), ea = a * ent;
+                float g = 0.007f * k, x = X0 + c * (CW + GX) - Ds.Px(g), y = 0.2f + r * (CH + GY) - g + (1f - ent) * 0.03f, w = CW + Ds.Px(2 * g), h = CH + 2 * g;
+                if (k > 0.02f) Ds.Rect(x - Ds.Px(0.003f), y - 0.003f, w + Ds.Px(0.006f), h + 0.006f, Ds.A(app.Accent, 0.35f * k * ea));
+                Ds.Rect(x, y, w, h, Ds.A(Color.FromArgb(235, 19, 17, 28), ea));
+                if (k > 0.01f) Ds.VGrad(x, y, w, h, Ds.A(app.Accent, k * ea), Ds.A(Ds.Mix(app.Accent, Color.FromArgb(255, 20, 10, 30), 0.55f), k * ea), 20);
+                if (k > 0.5f) Ds.Shine(x, y, w, h, 0f, 3f, ea);
+                Ds.Rect(x, y + h - 0.004f, w, 0.004f, Ds.A(app.Accent, (1f - k) * 0.9f * ea));
+                VectorIcons.Draw(app.Icon, x + Ds.Px(0.065f), y + 0.075f, 0.075f + 0.01f * k, Ds.A(Ds.Mix(app.Accent, Color.White, k), ea));
+                Ds.T(app.Name.ToUpperInvariant(), x + Ds.Px(0.03f), y + h - 0.1f - 0.004f * k, 0.72f + 0.08f * k, Ds.A(Color.White, ea), Ds.Display);
+                string meta = app.Meta != null ? app.Meta() : "";
+                Ds.T(Ds.Fit(meta, 0.26f, w - Ds.Px(0.05f), Ds.Display), x + Ds.Px(0.03f), y + h - 0.045f, 0.26f, Ds.A(k > 0.5f ? Color.FromArgb(230, 255, 255, 255) : Ds.Muted, ea), Ds.Display);
+                string b = app.Badge != null ? app.Badge() : null;
+                if (b != null)
                 {
-                    float bw = Ds.Width(badge, 0.24f, Ds.Display) + Ds.Px(0.014f) + Ds.SlantFor(0.024f);
-                    Ds.Tag(badge, x + w - bw + ox, y + 0.001f, Ds.Mix(Ds.Red, Color.White, 0.25f * Ds.Pulse(1.4f)), Ds.Text, 0.24f, ea);
+                    float bw = Ds.Px(0.034f);
+                    Ds.Rect(x + w - bw - Ds.Px(0.016f), y + 0.015f, bw, 0.034f, Ds.A(Ds.Mix(Ds.Red, Color.White, 0.2f * Ds.Pulse(1.4f)), ea));
+                    Ds.T(b, x + w - bw / 2 - Ds.Px(0.016f), y + 0.012f, 0.42f, Ds.A(Color.White, ea), Ds.Display, GTA.UI.Alignment.Center);
                 }
-                else Ds.T(meta, x + w - Ds.Px(0.004f) + ox, y + 0.003f, 0.24f, Ds.A(onBar ? dark : Ds.Muted, ea), Ds.Display, GTA.UI.Alignment.Right);
             }
-            // footer: next objective, else latest buzz
-            float fy = py + PH - 0.052f;
+            // bottom row: EXIT + next objective
+            var ex = apps[n]; cardK[n] = Ds.Damp(cardK[n], sel == n ? 1f : 0f, 14f);
+            float ek = cardK[n], yb = 0.2f + 2 * (CH + GY) + 0.005f;
+            Ds.Rect(X0, yb, CW, 0.085f, Ds.A(Color.FromArgb(235, 19, 17, 28), a));
+            if (ek > 0.01f) Ds.HGrad(X0, yb, CW, 0.085f, Ds.A(Ds.Red, ek * a), Ds.A(Ds.Mix(Ds.Red, Color.Black, 0.5f), ek * a), 16);
+            VectorIcons.Draw("exit", X0 + Ds.Px(0.04f), yb + 0.0425f, 0.045f, Ds.A(Ds.Mix(Ds.Muted, Color.White, ek), a));
+            Ds.T("EXIT", X0 + Ds.Px(0.075f), yb + 0.014f, 0.72f, Ds.A(Color.White, a), Ds.Display);
+            float ox = X0 + CW + GX, ow = 3 * CW + 2 * GX;
+            Ds.Rect(ox, yb, ow, 0.085f, Ds.A(Color.FromArgb(235, 19, 17, 28), a));
             string head = null, line = null; Color hc = Ds.Violet;
             if (Gameplay.Objectives.CurrentText != null) { head = "NEXT OBJECTIVE"; line = Gameplay.Objectives.CurrentText; }
-            else if (d.News.Count > 0) { head = "STREET BUZZ"; line = d.News.Last().Headline; hc = Ds.Pink; }
+            else if (Progression.Instance != null && Progression.Instance.Today.Any(c => !Progression.Instance.Done(c))) { var dc = Progression.Instance.Today.First(c => !Progression.Instance.Done(c)); head = "DAILY CHALLENGE"; line = dc.Text; hc = Ds.Pink; }
+            else if (saves.Data.News.Count > 0) { head = "STREET BUZZ"; line = saves.Data.News.Last().Headline; hc = Ds.Pink; }
             if (line != null)
             {
-                Ds.Rect(x, fy, w, 0.0015f, Ds.A(Ds.Surface2, a));
-                Ds.T(head, x, fy + 0.007f, 0.22f, Ds.A(hc, a), Ds.Display);
-                Ds.T(Ds.Fit(line, 0.28f, w), x, fy + 0.023f, 0.28f, Ds.A(Ds.Text, a));
+                Ds.Rect(ox, yb, Ds.Px(0.004f), 0.085f, Ds.A(hc, a));
+                Ds.T(head, ox + Ds.Px(0.02f), yb + 0.012f, 0.26f, Ds.A(hc, a), Ds.Display);
+                Ds.T(Ds.Fit(line, 0.42f, ow - Ds.Px(0.04f)), ox + Ds.Px(0.02f), yb + 0.034f, 0.42f, Ds.A(Ds.Text, a));
             }
-            if (IsOpen) Buttons.Draw(Control.FrontendAccept, "Open", Control.FrontendCancel, "Close", Control.FrontendDown, "Select");
+            if (IsOpen) Buttons.Draw(Control.FrontendAccept, "Select", Control.FrontendCancel, "Close", Control.FrontendDown, "Navigate");
         }
 
-        // ---------------------------------------------------------------- app screen (any Menu, drawn inside the phone)
+        // ---------------------------------------------------------------- sub-screens (any Menu)
         private void DrawApp(Menu m)
         {
-            openT = Ds.Step(openT, 1f, 4.5f);
-            if (m != lastMenu) { bool deeper = lastMenu != null; lastMenu = m; screenT = deeper ? 0f : 0.3f; appSel = -1f; }
-            screenT = Ds.Damp(screenT, 1f, 14f);
-            Frame();
-            m.VisibleRows = 13; m.Clamp();
-            float a = alpha * Ds.Clamp01(screenT * 1.3f), off = (1f - screenT) * Ds.Px(0.04f);
-            float x = px + pad + off, w = pw - 2 * pad;
+            openT = Ds.Step(openT, 1f, 5f);
+            if (m != lastMenu) { lastMenu = m; screenT = 0f; listSel = -1f; }
+            screenT = Ds.Damp(screenT, 1f, 12f);
+            float a = Backdrop() * Ds.Clamp01(screenT * 1.4f), off = (1f - Ds.EaseOut(screenT)) * Ds.Px(0.03f);
+            m.VisibleRows = 10; m.Clamp();
             var acc = current != null ? current.Accent : Ds.Violet;
-            // header: app tag, big title, subtitle
-            Ds.Tag((current != null ? current.Name : "Midnight Club").ToUpperInvariant(), x, py + 0.045f, acc, Ds.Bg, 0.26f, a);
-            Ds.T(Ds.Fit((m.Title ?? "").ToUpperInvariant(), 0.78f, w, Ds.Display), x - Ds.Px(0.002f), py + 0.072f, 0.78f, Ds.A(Ds.Text, a), Ds.Display);
-            if (!string.IsNullOrEmpty(m.Subtitle)) Ds.T(Ds.Fit(Clean(m.Subtitle).ToUpperInvariant(), 0.26f, w * 0.75f), x, py + 0.13f, 0.26f, Ds.A(Ds.Muted, a), Ds.Display);
-            if (m.Items.Count > 0) Ds.T((m.Selected + 1) + " / " + m.Items.Count, x + w, py + 0.13f, 0.26f, Ds.A(Ds.Faint, a), Ds.Display, GTA.UI.Alignment.Right);
-            Ds.Stripes(x, py + 0.16f, w, acc, Ds.Cyan, a);
-            // list
-            float ly = py + 0.185f, rh = 0.034f;
+            string icon = current != null ? current.Icon : "settings";
+            // watermark icon
+            VectorIcons.Draw(icon, 0.74f, 0.55f, 0.55f, Ds.A(acc, 0.07f * a));
+            float x = X0 + off, w = 0.42f, y = 0.19f;
+            VectorIcons.Draw(icon, x + Ds.Px(0.024f), y + 0.028f, 0.05f, Ds.A(acc, a));
+            Ds.T((current != null ? current.Name : "").ToUpperInvariant() + (m.Title != null && current != null && !string.Equals(m.Title, current.Name, StringComparison.OrdinalIgnoreCase) ? "  /" : ""), x + Ds.Px(0.06f), y - 0.004f, 0.3f, Ds.A(acc, a), Ds.Display);
+            Ds.T(Ds.Fit((m.Title ?? "").ToUpperInvariant(), 0.95f, w, Ds.Display), x + Ds.Px(0.058f), y + 0.012f, 0.95f, Ds.A(Ds.Text, a), Ds.Display);
+            if (!string.IsNullOrEmpty(m.Subtitle)) Ds.T(Ds.Fit(Clean(m.Subtitle).ToUpperInvariant(), 0.28f, w), x, y + 0.085f, 0.28f, Ds.A(Ds.Muted, a), Ds.Display);
+            if (m.Items.Count > 0) Ds.T((m.Selected + 1) + " / " + m.Items.Count, x + w, y + 0.085f, 0.28f, Ds.A(Ds.Faint, a), Ds.Display, GTA.UI.Alignment.Right);
+            float ly = y + 0.125f, rh = 0.05f;
             int first = m.Scroll, n = Math.Min(m.VisibleRows, m.Items.Count - first);
-            if (m.Items.Count == 0) Ds.T("NOTHING HERE YET", x, ly + 0.01f, 0.3f, Ds.A(Ds.Faint, a), Ds.Display);
+            if (m.Items.Count == 0) Ds.T("NOTHING HERE YET", x, ly + 0.01f, 0.4f, Ds.A(Ds.Faint, a), Ds.Display);
             float target = ly + (m.Selected - first) * rh;
-            appSel = appSel < 0 ? target : Ds.Damp(appSel, target, 26f);
-            float sl = Ds.SlantFor(rh - 0.004f);
+            listSel = listSel < 0 ? target : Ds.Damp(listSel, target, 26f);
+            for (int i = 0; i < n; i++) Ds.Rect(x, ly + i * rh, w, rh - 0.004f, Ds.A(Color.FromArgb(200, 19, 17, 28), a));
             if (m.Items.Count > 0)
             {
-                Ds.Skew(x - Ds.Px(0.009f), appSel, w + Ds.Px(0.013f), rh - 0.004f, sl, Ds.A(acc, a));
-                Ds.Shine(x - Ds.Px(0.009f), appSel, w + Ds.Px(0.013f), rh - 0.004f, sl, 2.4f, a);
+                Ds.HGrad(x, listSel, w, rh - 0.004f, Ds.A(acc, a), Ds.A(Ds.Mix(acc, Color.FromArgb(255, 20, 10, 30), 0.5f), a), 16);
+                Ds.Shine(x, listSel, w, rh - 0.004f, 0f, 3f, a);
             }
             for (int i = 0; i < n; i++)
             {
-                var it = m.Items[first + i]; bool s = first + i == m.Selected; float y = ly + i * rh;
-                bool onBar = s && Math.Abs(appSel - target) < rh * 0.5f;
+                var it = m.Items[first + i]; bool s = first + i == m.Selected; float yy = ly + i * rh;
+                bool onBar = s && Math.Abs(listSel - target) < rh * 0.5f;
                 string v = it.Value != null ? Clean(it.Value()) : null;
-                float vw = string.IsNullOrEmpty(v) ? 0 : Math.Min(w * 0.45f, Ds.Width(v, 0.27f) + (s && it.OnAdjust != null ? Ds.Px(0.024f) : 0));
-                var lc = onBar ? Ds.Bg : !it.Enabled ? Ds.Faint : Color.FromArgb(255, 222, 218, 236);
-                Ds.T(Ds.Fit(Clean(it.Label), 0.31f, w - vw - Ds.Px(0.02f)), x + Ds.Px(0.006f), y + 0.006f, 0.31f, Ds.A(lc, a));
+                float vw = string.IsNullOrEmpty(v) ? 0 : Math.Min(w * 0.45f, Ds.Width(v, 0.32f, Ds.Display) + (s && it.OnAdjust != null ? Ds.Px(0.03f) : 0));
+                var lc = !it.Enabled ? Ds.Faint : onBar ? Color.White : Color.FromArgb(255, 222, 218, 236);
+                Ds.T(Ds.Fit(Clean(it.Label), 0.36f, w - vw - Ds.Px(0.03f)), x + Ds.Px(0.014f), yy + 0.01f, 0.36f, Ds.A(lc, a));
                 if (!string.IsNullOrEmpty(v))
                 {
-                    float vx = x + w - Ds.Px(0.004f);
+                    float vx = x + w - Ds.Px(0.012f);
                     if (s && it.OnAdjust != null && it.Enabled)
                     {
-                        Arrow(false, vx - Ds.Px(0.024f) - Math.Min(w * 0.4f, Ds.Width(v, 0.27f)), y + 0.009f, Ds.A(Ds.Bg, a));
-                        Arrow(true, vx - Ds.Px(0.009f), y + 0.009f, Ds.A(Ds.Bg, a));
-                        Ds.T(Ds.Fit(v, 0.27f, w * 0.4f), vx - Ds.Px(0.012f), y + 0.007f, 0.27f, Ds.A(Ds.Bg, a), Ds.Body, GTA.UI.Alignment.Right);
+                        Theme.Sprite("commonmenu", "arrowright", vx - Ds.Px(0.012f), yy + 0.015f, Ds.Px(0.016f), 0.016f, Ds.A(Color.White, a));
+                        Theme.Sprite("commonmenu", "arrowleft", vx - Ds.Px(0.03f) - Math.Min(w * 0.4f, Ds.Width(v, 0.32f, Ds.Display)), yy + 0.015f, Ds.Px(0.016f), 0.016f, Ds.A(Color.White, a));
+                        Ds.T(Ds.Fit(v, 0.32f, w * 0.4f, Ds.Display), vx - Ds.Px(0.016f), yy + 0.011f, 0.32f, Ds.A(Color.White, a), Ds.Display, GTA.UI.Alignment.Right);
                     }
-                    else Ds.T(Ds.Fit(v, 0.27f, w * 0.45f), vx, y + 0.007f, 0.27f, Ds.A(onBar ? Ds.Bg : Ds.Muted, a), Ds.Body, GTA.UI.Alignment.Right);
+                    else Ds.T(Ds.Fit(v, 0.32f, w * 0.45f, Ds.Display), vx, yy + 0.011f, 0.32f, Ds.A(onBar ? Color.White : Ds.Muted, a), Ds.Display, GTA.UI.Alignment.Right);
                 }
             }
             if (m.Items.Count > m.VisibleRows)
             {
-                float th = rh * m.VisibleRows, bh = th * m.VisibleRows / m.Items.Count, by = ly + th * first / m.Items.Count;
-                Ds.Rect(px + pw - Ds.Px(0.007f), ly, Ds.Px(0.002f), th, Ds.A(Ds.Surface2, a));
-                Ds.Rect(px + pw - Ds.Px(0.007f), by, Ds.Px(0.002f), bh, Ds.A(acc, a));
+                float th = rh * m.VisibleRows - 0.004f, bh = th * m.VisibleRows / m.Items.Count, by = ly + th * first / m.Items.Count;
+                Ds.Rect(x + w + Ds.Px(0.008f), ly, Ds.Px(0.003f), th, Ds.A(Ds.Stroke, a));
+                Ds.Rect(x + w + Ds.Px(0.008f), by, Ds.Px(0.003f), bh, Ds.A(acc, a));
             }
-            // description
             if (m.Items.Count > 0 && m.Items[m.Selected].Description != null)
             {
                 var desc = m.Items[m.Selected].Description();
                 if (!string.IsNullOrEmpty(desc))
                 {
-                    float dy = py + PH - 0.098f;
-                    Ds.Rect(x, dy, w, 0.0015f, Ds.A(Ds.Surface2, a));
-                    Ds.T(Clean(desc), x, dy + 0.009f, 0.26f, Ds.A(Ds.Muted, a), Ds.Body, GTA.UI.Alignment.Left, w);
+                    float dy = ly + n * rh + 0.015f;
+                    Ds.Rect(x, dy, Ds.Px(0.004f), 0.07f, Ds.A(acc, a));
+                    Ds.T(Clean(desc), x + Ds.Px(0.016f), dy + 0.006f, 0.3f, Ds.A(Ds.Muted, a), Ds.Body, GTA.UI.Alignment.Left, w - Ds.Px(0.02f));
                 }
             }
             var cur = m.Items.Count > 0 ? m.Items[m.Selected] : null;
-            if (cur != null && cur.Enabled && cur.OnAdjust != null) Buttons.Draw(Control.FrontendAccept, "Select", Control.FrontendCancel, "Back", Control.FrontendRight, "Change", Control.FrontendLeft, "");
-            else Buttons.Draw(Control.FrontendAccept, "Select", Control.FrontendCancel, "Back", Control.FrontendDown, "Scroll");
+            if (cur != null && cur.Enabled && cur.OnAdjust != null) Buttons.Draw(Control.FrontendAccept, "Select", Control.FrontendCancel, "Back", Control.FrontendRight, "", Control.FrontendLeft, "Change");
+            else Buttons.Draw(Control.FrontendAccept, "Select", Control.FrontendCancel, "Back", Control.FrontendDown, "Navigate");
         }
-
-        private static void Arrow(bool right, float x, float y, Color c)
-        { Theme.Sprite("commonmenu", right ? "arrowright" : "arrowleft", x, y, Ds.Px(0.016f), 0.016f, c); }
 
         /// <summary>Strips GTA colour tokens (~p~ etc.) that would clash with the phone palette.</summary>
         private static string Clean(string s)

@@ -149,7 +149,7 @@ namespace MidnightClub
                     var c = WelcomeScreen.Show(saves.Data, welcomeCalendar.DayName);
                     if (c == WelcomeScreen.Choice.Menu) menu.Toggle();
                     else if (c == WelcomeScreen.Choice.Phone) phone.Toggle();
-                    else if (c == WelcomeScreen.Choice.Story) modes.Exit();
+                    else if (c == WelcomeScreen.Choice.Story) phone.OpenExit();
                 }
                 else if (!modes.InMidnightClub) welcomePending = 0;
                 if (modes.InMidnightClub) menu.Tick();
@@ -167,6 +167,7 @@ namespace MidnightClub
         {
             if (!initialized) return;
             Log.Info("Script aborted (reload or game exit)");
+            Phone.PhoneManager.ResetEffects();
             modes.EmergencyShutdown();
             EventBus.Clear();
         }
