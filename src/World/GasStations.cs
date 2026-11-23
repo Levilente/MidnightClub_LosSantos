@@ -64,6 +64,7 @@ namespace MidnightClub.WorldSim
                 if (pos.DistanceTo2D(stations[i]) > 14f || Math.Abs(pos.Z - stations[i].Z) > 6f) continue;
                 int until; if (cooldown.TryGetValue(i, out until) && Game.GameTime < until) return;
                 bool damaged = car.EngineHealth < 990f || car.BodyHealth < 990f || car.DirtLevel > 3f;
+                for (int t = 0; t < 8 && !damaged; t++) if (Function.Call<bool>(Hash.IS_VEHICLE_TYRE_BURST, car, t, false)) damaged = true;
                 cooldown[i] = Game.GameTime + 45000;
                 if (!damaged) return;
                 Function.Call(Hash.SET_VEHICLE_FIXED, car); Function.Call(Hash.SET_VEHICLE_DEFORMATION_FIXED, car);
