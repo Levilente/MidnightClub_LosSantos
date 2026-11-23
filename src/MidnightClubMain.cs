@@ -58,6 +58,7 @@ namespace MidnightClub
                 var races = new Racing.RaceManager(saves, money, registry, vehicles, calendar, stack, Path.Combine(dir, "data"));
                 new Career.CareerManager(saves, cfg);
                 new Career.Progression(saves, money, garages, calendar);
+                new Racing.RouteCreator(races, stack);
                 var rivals = new Rivals.RivalManager(saves, money, registry, races, garages, stack);
                 var clubs = new Factions.ClubManager(saves, registry, vehicles);
                 new Police.PursuitManager(saves, money, vehicles, cfg);

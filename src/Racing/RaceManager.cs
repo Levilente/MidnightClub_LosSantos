@@ -56,7 +56,7 @@ namespace MidnightClub.Racing
             EventBus.Subscribe<Explore.DiscoveredEvent>(e => { if (e.Id.StartsWith("race:")) RefreshBlips(); });
             EventBus.Subscribe<ModeChangedEvent>(e =>
             {
-                if (e.To == GameMode.MIDNIGHT_CLUB) { try { lib = RaceLibrary.Load(this.dataDir); SeparateFromLocations(); } catch (Exception ex) { Log.Error("Race library", ex); } RefreshBlips(); }
+                if (e.To == GameMode.MIDNIGHT_CLUB) { try { lib = RaceLibrary.Load(this.dataDir); lib.Races.RemoveAll(x => x.Id.StartsWith("custom_")); lib.Races.AddRange(RouteCreator.LoadAll(this.dataDir)); SeparateFromLocations(); } catch (Exception ex) { Log.Error("Race library", ex); } RefreshBlips(); }
                 else { EndSession(true); ClearBlips(); }
             });
             EventBus.Subscribe<MidnightTickEvent>(e => Tick());
@@ -65,6 +65,10 @@ namespace MidnightClub.Racing
         public IEnumerable<RaceDefinition> Races { get { return lib.Races; } }
         public IEnumerable<ChampionshipDefinition> Championships { get { return lib.Championships; } }
         public RaceDefinition Race(string id) { return lib.Races.FirstOrDefault(r => r.Id == id); }
+        public string DataDir { get { return dataDir; } }
+        public void AddCustom(RaceDefinition r) { lib.Races.RemoveAll(x => x.Id == r.Id); lib.Races.Add(r); RefreshBlips(); }
+        public void RemoveCustom(string id) { lib.Races.RemoveAll(x => x.Id == id); RefreshBlips(); }
+        public void StartNow(RaceDefinition r) { if (session == null) StartRace(r, null); }
 
         public bool Available(RaceDefinition r) { return saves.Data.Rep >= r.RequiredRep && (!r.NightOnly || calendar.IsNight); }
 
