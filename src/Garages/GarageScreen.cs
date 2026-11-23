@@ -86,17 +86,17 @@ namespace MidnightClub.Garages
         // ------------------------------------------------------------------ input
         private void Input()
         {
-            if (Game.IsControlJustPressed(Control.FrontendLeft) || Game.IsControlJustPressed(Control.FrontendUp)) Move(-1);
-            if (Game.IsControlJustPressed(Control.FrontendRight) || Game.IsControlJustPressed(Control.FrontendDown)) Move(+1);
-            if (Game.IsControlJustPressed(Control.FrontendAccept)) { Sound("SELECT"); result = cars[index].Key; done = true; }
-            if (Game.IsControlJustPressed(Control.FrontendCancel))
+            if (UI.Input.JustPressed(Control.FrontendLeft) || UI.Input.JustPressed(Control.FrontendUp)) Move(-1);
+            if (UI.Input.JustPressed(Control.FrontendRight) || UI.Input.JustPressed(Control.FrontendDown)) Move(+1);
+            if (UI.Input.JustPressed(Control.FrontendAccept)) { Sound("SELECT"); result = cars[index].Key; done = true; }
+            if (UI.Input.JustPressed(Control.FrontendCancel))
             {
                 var back = cars.FirstOrDefault(kv => kv.Key == arrivedIn).Key;
                 result = back ?? cars[index].Key; Sound("BACK"); done = true;
             }
             bool m = Game.IsKeyPressed(Keys.M), c = Game.IsKeyPressed(Keys.C);
-            if ((m && !prevM) || Game.IsControlJustPressed(Control.FrontendX)) menus.Open(ManageMenu(cars[index].Key));
-            if (g.Customizable && ((c && !prevC) || Game.IsControlJustPressed(Control.FrontendY))) menus.Open(CustomizeMenu());
+            if ((m && !prevM) || UI.Input.JustPressed(Control.FrontendX)) menus.Open(ManageMenu(cars[index].Key));
+            if (g.Customizable && ((c && !prevC) || UI.Input.JustPressed(Control.FrontendY))) menus.Open(CustomizeMenu());
             prevM = m; prevC = c;
         }
 

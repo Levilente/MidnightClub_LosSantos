@@ -141,7 +141,7 @@ namespace MidnightClub.Racing
             var car = vehicles.Current;
             if (car == null || !car.Exists() || car.Speed > 3f) return;
             Screen.ShowHelpTextThisFrame("~INPUT_CONTEXT~ " + nearby.Name);
-            if (Game.IsControlJustPressed(Control.Context)) stack.Open(RaceMenu(nearby, null));
+            if (UI.Input.JustPressed(Control.Context)) stack.Open(RaceMenu(nearby, null));
         }
 
         // ------------------------------------------------------------------ menus
@@ -443,7 +443,7 @@ namespace MidnightClub.Racing
                 T("~g~+$" + res.Cash.ToString("N0") + "~s~    ~b~+" + res.Rep + " REP", 0.5f, y, 0.45f, Color.White, Font.ChaletComprimeCologne); y += 0.045f;
                 if (champLine != null) T(champLine, 0.5f, y, 0.34f, Color.White, Font.ChaletLondon);
                 UI.Buttons.Draw(Control.FrontendAccept, "Continue");
-                if (Game.IsControlJustPressed(Control.FrontendAccept) || Game.IsControlJustPressed(Control.FrontendCancel)) break;
+                if (UI.Input.JustPressed(Control.FrontendAccept) || UI.Input.JustPressed(Control.FrontendCancel)) break;
                 Script.Wait(0);
             }
         }

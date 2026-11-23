@@ -63,10 +63,10 @@ namespace MidnightClub.UI
             Game.DisableControlThisFrame(Control.VehicleHeadlight);
             Game.DisableControlThisFrame(Control.VehicleDuck);
             Game.DisableControlThisFrame(Control.VehicleSelectNextWeapon);
-            if (Items.Count == 0) return !Game.IsControlJustPressed(Control.FrontendCancel);
+            if (Items.Count == 0) return !UI.Input.JustPressed(Control.FrontendCancel);
 
-            if (Game.IsControlJustPressed(Control.FrontendUp)) { Selected = (Selected - 1 + Items.Count) % Items.Count; Sound("NAV_UP_DOWN"); }
-            if (Game.IsControlJustPressed(Control.FrontendDown)) { Selected = (Selected + 1) % Items.Count; Sound("NAV_UP_DOWN"); }
+            if (UI.Input.JustPressed(Control.FrontendUp)) { Selected = (Selected - 1 + Items.Count) % Items.Count; Sound("NAV_UP_DOWN"); }
+            if (UI.Input.JustPressed(Control.FrontendDown)) { Selected = (Selected + 1) % Items.Count; Sound("NAV_UP_DOWN"); }
             Clamp();
             if (Selected != lastHighlight)
             {
@@ -78,15 +78,15 @@ namespace MidnightClub.UI
             var it = Items[Selected];
             if (it.Enabled && it.OnAdjust != null)
             {
-                if (Game.IsControlJustPressed(Control.FrontendLeft)) { it.OnAdjust(-1); Sound("NAV_LEFT_RIGHT"); }
-                if (Game.IsControlJustPressed(Control.FrontendRight)) { it.OnAdjust(+1); Sound("NAV_LEFT_RIGHT"); }
+                if (UI.Input.JustPressed(Control.FrontendLeft)) { it.OnAdjust(-1); Sound("NAV_LEFT_RIGHT"); }
+                if (UI.Input.JustPressed(Control.FrontendRight)) { it.OnAdjust(+1); Sound("NAV_LEFT_RIGHT"); }
             }
-            if (Game.IsControlJustPressed(Control.FrontendAccept))
+            if (UI.Input.JustPressed(Control.FrontendAccept))
             {
                 if (it.Enabled && it.OnSelect != null) { Sound("SELECT"); if (it.OnUnpreview != null && it.OnPreview != null) it.OnUnpreview(); it.OnSelect(); lastHighlight = -1; }
                 else Sound("ERROR");
             }
-            if (Game.IsControlJustPressed(Control.FrontendCancel)) { Sound("BACK"); if (it.OnUnpreview != null) it.OnUnpreview(); lastHighlight = -1; return false; }
+            if (UI.Input.JustPressed(Control.FrontendCancel)) { Sound("BACK"); if (it.OnUnpreview != null) it.OnUnpreview(); lastHighlight = -1; return false; }
             return true;
         }
 

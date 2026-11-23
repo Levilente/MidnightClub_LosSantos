@@ -141,7 +141,7 @@ namespace MidnightClub.Dealerships
             var car = vehicles.Current;
             if (car != null && car.Exists() && car.Speed > 3f) return;
             Screen.ShowHelpTextThisFrame("~INPUT_CONTEXT~ Browse " + nearby.Name);
-            if (Game.IsControlJustPressed(Control.Context)) OpenShowroom(nearby);
+            if (UI.Input.JustPressed(Control.Context)) OpenShowroom(nearby);
         }
 
         private void OpenShowroom(DealershipDefinition d)

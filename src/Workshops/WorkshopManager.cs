@@ -131,7 +131,7 @@ namespace MidnightClub.Workshops
             if (nearby == null || stack.IsOpen || car == null || !car.Exists() || !Game.Player.Character.IsInVehicle(car)) { stoppedSince = -1; return; }
             if (car.Speed > 0.8f) { stoppedSince = -1; Screen.ShowHelpTextThisFrame("Stop in the bay to open " + nearby.Name + "."); return; }
             if (stoppedSince < 0) stoppedSince = Game.GameTime;
-            if (Game.GameTime - stoppedSince > 600 || Game.IsControlJustPressed(Control.Context)) { stoppedSince = -1; Enter(nearby); }
+            if (Game.GameTime - stoppedSince > 600 || UI.Input.JustPressed(Control.Context)) { stoppedSince = -1; Enter(nearby); }
         }
         private int stoppedSince = -1;
 

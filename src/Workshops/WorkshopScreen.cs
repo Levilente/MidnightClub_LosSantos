@@ -139,8 +139,8 @@ namespace MidnightClub.Workshops
         {
             if (menus.Depth != 1) return;
             bool q = Game.IsKeyPressed(Keys.Q), e = Game.IsKeyPressed(Keys.E);
-            if (Game.IsControlJustPressed(Control.FrontendLb) || (q && !prevQ)) { OpenTab(curTab - 1); Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "NAV_LEFT_RIGHT", "HUD_FRONTEND_DEFAULT_SOUNDSET", true); }
-            if (Game.IsControlJustPressed(Control.FrontendRb) || (e && !prevE)) { OpenTab(curTab + 1); Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "NAV_LEFT_RIGHT", "HUD_FRONTEND_DEFAULT_SOUNDSET", true); }
+            if (UI.Input.JustPressed(Control.FrontendLb) || (q && !prevQ)) { OpenTab(curTab - 1); Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "NAV_LEFT_RIGHT", "HUD_FRONTEND_DEFAULT_SOUNDSET", true); }
+            if (UI.Input.JustPressed(Control.FrontendRb) || (e && !prevE)) { OpenTab(curTab + 1); Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "NAV_LEFT_RIGHT", "HUD_FRONTEND_DEFAULT_SOUNDSET", true); }
             prevQ = q; prevE = e;
         }
         private bool prevQ, prevE;

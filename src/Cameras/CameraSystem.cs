@@ -98,8 +98,8 @@ namespace MidnightClub.Cameras
             time += dt;
 
             Game.DisableControlThisFrame(Control.NextCamera);
-            if (Game.IsControlJustPressed(Control.NextCamera)) viewPressedAt = Game.GameTime;
-            if (Game.IsControlJustReleased(Control.NextCamera) && Game.GameTime - viewPressedAt < 450) Cycle();
+            if (UI.Input.JustPressed(Control.NextCamera)) viewPressedAt = Game.GameTime;
+            if (UI.Input.JustReleased(Control.NextCamera) && Game.GameTime - viewPressedAt < 450) Cycle();
             if (Game.GameTime < labelUntil) DrawLabel();
 
             if (mode == CameraMode.GameDefault || !cfg.CustomCameras || car == null || !car.Exists() || !ped.IsInVehicle(car) || Game.IsCutsceneActive)
@@ -107,6 +107,7 @@ namespace MidnightClub.Cameras
 
             if (cam == null || !cam.Exists()) { cam = Camera.Create(ScriptedCameraNameHash.DefaultScriptedCamera, car.Position, Vector3.Zero, 60f, false, EulerRotationOrder.YXZ); attached = false; }
             var p = Profiles[(int)mode];
+            if (!p.Chase && car.Model.IsBike) p = Profiles[(int)CameraMode.CloseChase];   // bikes: no bumper/hood/cockpit mounts
             if (!active)
             {
                 cam.IsActive = true;
@@ -125,7 +126,7 @@ namespace MidnightClub.Cameras
             if (Math.Abs(yawRate) > 6f) yawRate = 0f;
             latG += (Clamp(speed * yawRate / 9.81f, -1.5f, 1.5f) - latG) * Math.Min(1f, dt * 4f);
 
-            if (mode != CameraMode.Cockpit) ShowDriver(ped);
+            if (mode != CameraMode.Cockpit || p.Chase) ShowDriver(ped);
             if (p.Chase) { if (attached && lastMounted) { Function.Call(Hash.DETACH_CAM, cam); attached = false; } lastMounted = false; Chase(car, p, speed, dt); }
             else { if (attached && !lastMounted) { Function.Call(Hash.STOP_CAM_POINTING, cam); Function.Call(Hash.DETACH_CAM, cam); attached = false; } lastMounted = true; Mounted(car, ped, p, speed, dt); }
             BoostFov = 0f; BoostShake = 0f;

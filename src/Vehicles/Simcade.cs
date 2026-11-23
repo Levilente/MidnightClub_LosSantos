@@ -210,7 +210,7 @@ namespace MidnightClub.Vehicles
         private void Tick()
         {
             var car = vehicles.Current; var rec = vehicles.CurrentRecord; var ped = Game.Player.Character;
-            if (!cfg.SimcadeEnabled || car == null || !car.Exists() || rec == null || !ped.IsInVehicle(car) || car.Driver != ped) { Restore(); Current = null; return; }
+            if (!cfg.SimcadeEnabled || car == null || !car.Exists() || rec == null || !ped.IsInVehicle(car) || car.Driver != ped || car.Model.IsBike || car.Model.IsBicycle) { Restore(); Current = null; return; }
             try
             {
                 var p = For(car); Current = p;

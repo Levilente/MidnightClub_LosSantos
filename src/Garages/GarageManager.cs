@@ -175,7 +175,7 @@ namespace MidnightClub.Garages
             if (car != null && car.Exists() && car.Speed > 3f) return;
             bool own = Owned(nearby.Id) != null;
             Screen.ShowHelpTextThisFrame("~INPUT_CONTEXT~ " + (own ? "Enter " + nearby.Name : nearby.Name + " – for sale"));
-            if (Game.IsControlJustPressed(Control.Context))
+            if (UI.Input.JustPressed(Control.Context))
             {
                 if (own) Enter(nearby);
                 else stack.Open(BuyMenu(nearby));

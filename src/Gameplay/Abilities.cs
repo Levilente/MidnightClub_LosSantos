@@ -112,7 +112,7 @@ namespace MidnightClub.Gameplay
         {
             var style = StyleSystem.Instance; if (style == null) return;
             string sel = Selected;
-            bool press = Game.IsControlJustPressed(Control.SpecialAbilityPC) || Game.IsControlJustPressed(Control.SpecialAbility);
+            bool press = UI.Input.JustPressed(Control.SpecialAbilityPC) || UI.Input.JustPressed(Control.SpecialAbility);
             if (active == null && press && sel != null)
             {
                 if (style.Meter < 0.999f) { Notification.PostTicker(sel + " isn't charged yet: drive with style.", false, false); }

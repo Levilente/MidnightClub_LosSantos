@@ -207,17 +207,17 @@ namespace MidnightClub.Dealerships
 
         private void Input()
         {
-            if (Game.IsControlJustPressed(Control.FrontendLeft) || Game.IsControlJustPressed(Control.FrontendUp)) Move(-1);
-            if (Game.IsControlJustPressed(Control.FrontendRight) || Game.IsControlJustPressed(Control.FrontendDown)) Move(+1);
-            if (Game.IsControlJustPressed(Control.FrontendCancel)) { done = true; return; }
+            if (UI.Input.JustPressed(Control.FrontendLeft) || UI.Input.JustPressed(Control.FrontendUp)) Move(-1);
+            if (UI.Input.JustPressed(Control.FrontendRight) || UI.Input.JustPressed(Control.FrontendDown)) Move(+1);
+            if (UI.Input.JustPressed(Control.FrontendCancel)) { done = true; return; }
             var item = stock[index];
-            if (Game.IsControlJustPressed(Control.FrontendAccept))
+            if (UI.Input.JustPressed(Control.FrontendAccept))
             {
                 if (mgr.IsSold(item)) { Flash("Already sold."); return; }
                 menus.Open(ConfirmMenu(item));
             }
             bool t = Game.IsKeyPressed(Keys.T);
-            if ((t && !prevT) || Game.IsControlJustPressed(Control.FrontendX)) TestDrive(item);
+            if ((t && !prevT) || UI.Input.JustPressed(Control.FrontendX)) TestDrive(item);
             prevT = t;
         }
 
@@ -267,7 +267,7 @@ namespace MidnightClub.Dealerships
                 while (Game.GameTime < end && car.Exists() && !car.IsDead)
                 {
                     Game.DisableControlThisFrame(Control.VehicleExit);
-                    if (Game.IsControlJustPressed(Control.FrontendCancel) || Game.IsKeyPressed(Keys.Back)) break;
+                    if (UI.Input.JustPressed(Control.FrontendCancel) || Game.IsKeyPressed(Keys.Back)) break;
                     if (!ped.IsInVehicle(car)) ped.SetIntoVehicle(car, VehicleSeat.Driver);
                     int s = (end - Game.GameTime) / 1000;
                     Rect(0.4f, 0.04f, 0.2f, 0.07f, Panel);

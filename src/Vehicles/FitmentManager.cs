@@ -48,7 +48,7 @@ namespace MidnightClub.Vehicles
         /// <summary>Writes the record's stance onto any spawned car (driven or parked in a garage).</summary>
         public void ApplyTo(Vehicle car, OwnedVehicle rec)
         {
-            if (!cfg.FitmentEnabled || car == null || !car.Exists() || rec == null) return;
+            if (!cfg.FitmentEnabled || car == null || !car.Exists() || rec == null || car.Model.IsBike) return;
             var wheels = Stock(car);
             if (wheels == null) return;
             bool stockOnly = !rec.FitKit || (rec.CamberF == 0 && rec.CamberR == 0 && rec.TrackF == 0 && rec.TrackR == 0 && Mult(rec.TyreF) == 1f && Mult(rec.TyreR) == 1f);

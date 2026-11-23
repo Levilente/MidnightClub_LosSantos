@@ -207,7 +207,7 @@ namespace MidnightClub.Phone
         private void Tick()
         {
             Game.DisableControlThisFrame(Control.Phone);   // our phone replaces the game's in Midnight Club
-            if (!stack.IsOpen && !IsOpen && !RaceManager.IsRacing && Game.IsControlJustPressed(Control.Phone)) { Open(); return; }
+            if (!stack.IsOpen && !IsOpen && !RaceManager.IsRacing && UI.Input.JustPressed(Control.Phone)) { Open(); return; }
             if (IsOpen && stack.IsOpen && !stack.PhoneStyle) IsOpen = false;   // a full-screen menu took over
             if (appActive && !stack.IsOpen) { appActive = false; if (!stack.ClosedByBack) { IsOpen = false; openT = 0f; } }
             if (stack.IsOpen && stack.PhoneStyle) appActive = true;
@@ -218,11 +218,11 @@ namespace MidnightClub.Phone
             {
                 foreach (var c in new[] { Control.Phone, Control.VehicleRadioWheel, Control.VehicleCinCam, Control.VehicleHeadlight, Control.FrontendPauseAlternate, Control.VehicleDuck, Control.VehicleSelectNextWeapon }) Game.DisableControlThisFrame(c);
                 int old = sel;
-                if (Game.IsControlJustPressed(Control.FrontendDown)) sel = (sel + 1) % apps.Count;
-                if (Game.IsControlJustPressed(Control.FrontendUp)) sel = (sel - 1 + apps.Count) % apps.Count;
+                if (UI.Input.JustPressed(Control.FrontendDown)) sel = (sel + 1) % apps.Count;
+                if (UI.Input.JustPressed(Control.FrontendUp)) sel = (sel - 1 + apps.Count) % apps.Count;
                 if (sel != old) Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "Menu_Navigate", "Phone_SoundSet_Default", true);
-                if (Game.IsControlJustPressed(Control.FrontendCancel)) { Close(); }
-                else if (Game.IsControlJustPressed(Control.FrontendAccept))
+                if (UI.Input.JustPressed(Control.FrontendCancel)) { Close(); }
+                else if (UI.Input.JustPressed(Control.FrontendAccept))
                 {
                     var app = apps[sel]; var m = app.Open();
                     if (m != null) { current = app; stack.Open(m); stack.PhoneStyle = true; lastMenu = null; }

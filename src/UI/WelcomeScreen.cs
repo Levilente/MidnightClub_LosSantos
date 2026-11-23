@@ -115,10 +115,10 @@ namespace MidnightClub.UI
 
                     Buttons.Draw(Control.FrontendAccept, "Select", Control.FrontendCancel, "Hit the streets", Control.FrontendDown, "Navigate");
 
-                    if (Game.IsControlJustPressed(Control.FrontendDown)) { sel = (sel + 1) % Items.Length; Sound("NAV_UP_DOWN"); }
-                    if (Game.IsControlJustPressed(Control.FrontendUp)) { sel = (sel + Items.Length - 1) % Items.Length; Sound("NAV_UP_DOWN"); }
-                    if (Game.IsControlJustPressed(Control.FrontendCancel)) { Sound("BACK"); return Choice.Streets; }
-                    if (Game.IsControlJustPressed(Control.FrontendAccept)) { Sound("SELECT"); return (Choice)sel; }
+                    if (UI.Input.JustPressed(Control.FrontendDown)) { sel = (sel + 1) % Items.Length; Sound("NAV_UP_DOWN"); }
+                    if (UI.Input.JustPressed(Control.FrontendUp)) { sel = (sel + Items.Length - 1) % Items.Length; Sound("NAV_UP_DOWN"); }
+                    if (UI.Input.JustPressed(Control.FrontendCancel)) { Sound("BACK"); return Choice.Streets; }
+                    if (UI.Input.JustPressed(Control.FrontendAccept)) { Sound("SELECT"); return (Choice)sel; }
                     Script.Wait(0);
                 }
             }
