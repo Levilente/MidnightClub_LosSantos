@@ -375,6 +375,14 @@ namespace MidnightClub.WorldSim
 
         public float Record(string id) { var kv = saves.Data.SpeedTrapRecords.FirstOrDefault(x => x.Key == id); float v; return kv != null && float.TryParse(kv.Value, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out v) ? v : 0f; }
 
+        /// <summary>Each trap has a street record held by one of the rivals; beating it pays a bonus once.</summary>
+        private static void StreetRecord(string id, out string holder, out float kmh)
+        {
+            int h = 17; foreach (char c in id) h = h * 31 + c; h &= 0x7fffffff;
+            var names = RaceManager.DriverNames; holder = names[h % names.Length];
+            kmh = 165f + (h / 7 % 90);
+        }
+
         private void TrapFrame(Vehicle car)
         {
             foreach (var t in traps)
@@ -386,6 +394,12 @@ namespace MidnightClub.WorldSim
                 float kmh = t.Peak; t.Peak = 0;
                 if (kmh < 60f) continue;
                 float rec = Record(t.Id);
+                string holder; float street; StreetRecord(t.Id, out holder, out street);
+                if (kmh > street && rec <= street)
+                {
+                    money.Earn(2500, 150, "speedtrap", "Beat " + holder + "'s street record at " + t.Name, "trap-street:" + t.Id);
+                    UI.Shard.Big("STREET RECORD", "You beat " + holder + "'s " + (int)street + " km/h at " + t.Name + ".  +$2,500", UI.Shard.Gold, 4000);
+                }
                 if (kmh > rec)
                 {
                     saves.Data.SpeedTrapRecords.RemoveAll(x => x.Key == t.Id);
@@ -395,7 +409,7 @@ namespace MidnightClub.WorldSim
                     UI.Shard.Mid("SPEED TRAP RECORD", t.Name.ToUpperInvariant() + "  ·  " + (int)kmh + " KM/H", UI.Shard.Blue, 3000);
                     if (Career.Progression.Instance != null) { Career.Progression.Instance.Award(150 + (long)(kmh - rec), "Speed trap"); Career.Progression.Instance.Bump("trap", 1); }
                 }
-                else Notification.PostTicker("~y~SPEED TRAP~s~ " + t.Name + ": " + (int)kmh + " km/h (record " + (int)rec + ").", false, false);
+                else Notification.PostTicker("~y~SPEED TRAP~s~ " + t.Name + ": " + (int)kmh + " km/h (your record " + (int)rec + ", street record " + (int)street + " by " + holder + ").", false, false);
             }
         }
     }
