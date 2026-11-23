@@ -67,7 +67,7 @@ namespace MidnightClub
                 phone = new Phone.PhoneManager(saves, stack, menu, calendar, races, rivals.RivalsMenu, clubs.ClubsMenu);
                 new Gameplay.StyleSystem(saves, money, vehicles);
                 var abilities = new Gameplay.Abilities(saves, vehicles);
-                new Gameplay.Rewind(vehicles, cfg) { Blocked = () => stack.IsOpen || phone.IsVisible };
+                new Gameplay.Rewind(vehicles, cfg) { Blocked = () => stack.IsOpen || phone.IsVisible || Gameplay.PhotoMode.Running || (Racing.RaceSession.Active != null && (Racing.RaceSession.Active.Player.Finished || !Racing.RaceSession.Active.Running)) };
                 var objectives = new Gameplay.Objectives(saves, money) { stackOpen = () => stack.IsOpen || phone.IsOpen };
                 phone.MilestonesMenu = objectives.MilestonesMenu; phone.AbilityMenu = abilities.AbilityMenu;
                 EventBus.Subscribe<ModeChangedEvent>(e => { menu.Close(); if (e.To == GameMode.MIDNIGHT_CLUB && cfg.ShowWelcome) welcomePending = Game.GameTime + 1500; });

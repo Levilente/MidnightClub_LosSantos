@@ -379,7 +379,7 @@ namespace MidnightClub.Racing
             rival = null;
             Log.Info("Race " + r.Id + " finished: P" + pos + " time " + res.TimeMs + " score " + res.Score + " cash " + res.Cash + " rep " + res.Rep);
 
-            var lines = order.Select((x, i) => (x.IsPlayer ? "\u0001" : "") + x.Name + "\t" + (x.Finished ? RaceSession.FormatTime(x.FinishTime) : "DNF")).ToList();
+            var lines = order.Select((x, i) => (x.IsPlayer ? "\u0001" : "") + x.Name + "\t" + (x.Finished ? RaceSession.FormatTime(x.FinishTime) : x.IsPlayer || s.Aborted ? "DNF" : "--:--.--")).ToList();
             EndSession(false);
             ShowResults(r, res, r.HasOpponents ? lines : null, champLine);
         }
