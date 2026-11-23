@@ -296,6 +296,7 @@ namespace MidnightClub.Workshops
             AddModMenu(m, "Suspension", 15, 0.03, "side");
             m.Add(Toggle("Turbo", 18, Disc(2500 + bp * 8 / 100, 3)));
             m.Add(new MenuItem("Nitrous kit", () => menus.Push(Nitrous())) { Value = () => rec.NosLevel == 0 ? "None" : "Stage " + rec.NosLevel, Description = () => "Hold Sprint (keyboard) or the boost button (controller) to fire. Bigger stages: more power, longer burn, faster refill." });
+            m.Add(new MenuItem("Engine swap (sound)", () => menus.Push(EngineSwap())) { Value = () => SwapName(rec.EngineSound), Description = () => "Swap in a different engine note. Preview revs it in the bay before you buy." });
             m.Add(new MenuItem("ECU tune (Midnight Club)", () => menus.Push(Ecu())) { Value = () => rec.EcuLevel == 0 ? "Stock" : "Stage " + rec.EcuLevel,
                 Description = () => "Remapped engine management: +6% power per stage on top of the engine upgrade." });
             return m;
@@ -318,6 +319,42 @@ namespace MidnightClub.Workshops
                     if (upgrade && !Pay(price, "nitrous stage " + l)) return;
                     rec.NosLevel = l; Bought(l == 0 ? "Nitrous removed" : "Nitrous stage " + l, upgrade ? price : 0);
                 }) { Value = () => rec.NosLevel == l ? "~g~INSTALLED" : (l < rec.NosLevel ? "Free" : "$" + price.ToString("N0")) });
+            }
+            return m;
+        }
+
+        private static readonly string[] SwapIds = { null, "sultan", "elegy2", "zr350", "comet2", "dominator", "sabregt", "banshee2", "zentorno", "openwheel1", "sandking", "voltic" };
+        private static readonly string[] SwapNames = { "Stock", "Turbo inline-4", "JDM inline-6", "Rotary", "Flat-6 boxer", "American V8", "Old-school V8", "Race V8", "V12 supercar", "Formula V10", "Big-block truck", "Electric" };
+        private static string SwapName(string id) { int i = Array.IndexOf(SwapIds, id); return i <= 0 ? "Stock" : SwapNames[i]; }
+        private void Sound(string id)
+        {
+            try
+            {
+                Function.Call(Hash.FORCE_USE_AUDIO_GAME_OBJECT, car, id ?? rec.Model);
+                car.IsEngineRunning = true;
+                Function.Call(Hash.SET_VEHICLE_ENGINE_ON, car, true, true, false);
+                Function.Call(Hash.PLAY_SOUND_FROM_ENTITY, -1, "Engine_Revs", car, "DLC_Tuner_Car_Meet_Test_Area_Events_Sounds", false, 0);
+            }
+            catch { }
+        }
+
+        private Menu EngineSwap()
+        {
+            var m = new Menu("Engine swap", Title()) { IsShopList = true };
+            m.OnHighlight = i => Sound(SwapIds[i]);
+            m.OnBack = () => { Sound(rec.EngineSound); menus.Pop(); };
+            m.OnOpen = () => focus = "front";
+            for (int k = 0; k < SwapIds.Length; k++)
+            {
+                int i = k;
+                long price = i == 0 ? 0 : Disc(PricingEngine.Round(6000 + bp * 0.02), 3);
+                m.Add(new MenuItem(SwapNames[i], () =>
+                {
+                    if (rec.EngineSound == SwapIds[i]) return;
+                    if (i > 0 && !Pay(price, "engine swap " + SwapNames[i])) return;
+                    rec.EngineSound = SwapIds[i]; Sound(rec.EngineSound);
+                    Bought(i == 0 ? "Stock engine note" : "Engine swap: " + SwapNames[i], price);
+                }) { Value = () => rec.EngineSound == SwapIds[i] ? "~g~INSTALLED" : i == 0 ? "Free" : "$" + price.ToString("N0") });
             }
             return m;
         }

@@ -86,7 +86,8 @@ namespace MidnightClub.Persistence
         [DataMember] public List<ModEntry> Mods = new List<ModEntry>();
         [DataMember] public List<int> Toggles = new List<int>();      // turbo 18, tyre smoke 20, xenon 22
         [DataMember] public int WindowTint = -1, Livery = -1;
-        [DataMember] public int EcuLevel;                            // Midnight Club ECU tune (extra power)
+        [DataMember] public int EcuLevel;
+        [DataMember] public string EngineSound;                       // engine swap: audio game object name (null = stock)
         [DataMember] public bool DriftTyres;
         [DataMember] public bool FitKit;                             // adjustable fitment kit bought
         [DataMember] public float CamberF, CamberR;                  // degrees, negative = top of wheel in
