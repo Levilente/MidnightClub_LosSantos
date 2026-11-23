@@ -49,6 +49,7 @@ namespace MidnightClub.Rivals
         {
             this.saves = saves; this.money = money; this.registry = registry; this.races = races; this.garages = garages; this.stack = stack;
             EventBus.Subscribe<RaceFinishedEvent>(OnRaceFinished);
+            EventBus.Subscribe<MidnightTickEvent>(e => PinkTick());
             EventBus.Subscribe<TierUpEvent>(e =>
             {
                 foreach (var p in Profiles.Where(p => p.UnlockTier == e.Tier))
@@ -113,7 +114,7 @@ namespace MidnightClub.Rivals
                 m.Items.Clear();
                 var st = State(p.Id);
                 m.Add(new MenuItem("Record vs you") { Value = () => st.Wins + " W / " + st.Losses + " L", Enabled = false });
-                if (st.Defeated) { m.Add(new MenuItem("Beaten. Respect earned.") { Enabled = false }); return; }
+                if (st.Defeated) { m.Add(new MenuItem("Beaten. Respect earned.") { Enabled = false }); PinkSlipItems(m, p); return; }
                 var car = CarFor(p, st.Stage); var race = RaceFor(p, st.Stage);
                 m.Add(new MenuItem("Their car") { Value = () => car == null ? "?" : car.Name + " (" + car.Tier + ")", Enabled = false });
                 if (race == null) { m.Add(new MenuItem("No suitable race unlocked yet") { Enabled = false }); return; }
@@ -151,9 +152,109 @@ namespace MidnightClub.Rivals
             return t[Math.Min(stage, t.Length - 1)];
         }
 
+        // ------------------------------------------------------------------ pink slips
+        private string pinkRival, pinkWager; private VehicleInfo pinkCar; private bool pinkLost; private int pinkLostAt;
+
+        private VehicleInfo PinkCar(RivalProfile p) { return CarFor(p, Stages + Wins(p) % 2); }
+        private int Wins(RivalProfile p) { return State(p.Id).Wins; }
+
+        private void PinkSlipItems(Menu m, RivalProfile p)
+        {
+            var their = PinkCar(p); var mine = Vehicles.VehicleManager.Instance != null ? Vehicles.VehicleManager.Instance.CurrentRecord : null;
+            var race = RaceFor(p, Wins(p));
+            if (their == null || race == null) return;
+            var myInfo = mine == null ? null : registry.Get(mine.ModelHash);
+            bool ok = mine != null && saves.Data.Vehicles.Count >= 2;
+            m.Add(new MenuItem("PINK SLIP RACE", ok ? (Action)(() => stack.Push(PinkConfirm(p, race, their, mine))) : null)
+            {
+                Enabled = ok,
+                Value = () => "Win their " + their.DisplayName,
+                Description = () => !ok ? "You need at least two cars and to be driving one of your own. Put your keys on the line against theirs." : "Your " + (mine.Nickname ?? (myInfo != null ? myInfo.Name : mine.Model)) + " (" + (myInfo != null ? "$" + myInfo.BasePrice.ToString("N0") : "?") + ") against their " + their.Name + " ($" + their.BasePrice.ToString("N0") + "). Winner drives home in both."
+            });
+        }
+
+        private Menu PinkConfirm(RivalProfile p, RaceDefinition race, VehicleInfo their, OwnedVehicle mine)
+        {
+            var m = new Menu("Pink slips", p.Name + " · " + TypeName(p.Style));
+            m.Add(new MenuItem("You put up") { Value = () => mine.Nickname ?? mine.Model, Enabled = false });
+            m.Add(new MenuItem("They put up") { Value = () => their.Name + " (" + their.Tier + ")", Enabled = false });
+            m.Add(new MenuItem("Race") { Value = () => race.Name, Enabled = false });
+            m.Add(new MenuItem("SHAKE ON IT", () =>
+            {
+                stack.Close();
+                pinkRival = p.Id; pinkWager = mine.Id; pinkCar = their;
+                Shard.Big("PINK SLIPS", "Your " + (mine.Nickname ?? mine.Model) + " vs their " + their.DisplayName + ". Winner takes the keys.", Shard.Red, 3500);
+                Script.Wait(200);
+                ChallengePink(p, race, their);
+            }) { Description = () => "Lose or quit and your car is gone for good." });
+            m.Add(new MenuItem("Walk away", () => stack.Pop()));
+            return m;
+        }
+
+        private void ChallengePink(RivalProfile p, RaceDefinition race, VehicleInfo car)
+        {
+            var my = Game.Player.Character.CurrentVehicle;
+            if (my == null || !my.Exists()) { pinkRival = null; return; }
+            GTA.UI.Screen.FadeOut(400); Script.Wait(450);
+            my.Position = race.Start; my.PlaceOnGround();
+            Script.Wait(300);
+            GTA.UI.Screen.FadeIn(300);
+            var spec = new RivalSpec { Id = p.Id, Name = p.Name, Car = car, Skill = 1.12f + 0.03f * p.BaseCarTier, PinkSlip = true };
+            if (p.Style == RaceType.Drift) spec.DriftTarget = 14000f;
+            races.StartRivalRace(race, spec);
+            if (!RaceManager.IsRacing) pinkRival = null;
+        }
+
+        private void OnPinkFinished(RivalProfile p, RaceFinishedEvent e)
+        {
+            var st = State(p.Id);
+            if (e.Won)
+            {
+                st.Wins++;
+                var rec = VehicleManager.CreateRecord(pinkCar, 0);
+                rec.Nickname = "Pink slip " + pinkCar.DisplayName;
+                rec.Mods.AddRange(new[] { new ModEntry(11, 3), new ModEntry(12, 2), new ModEntry(13, 2), new ModEntry(15, 3) });
+                rec.Toggles.Add(18); rec.EcuLevel = 1;
+                if (garages.AssignToFreeGarage(rec)) { saves.Data.Vehicles.Add(rec); Shard.Big("PINK SLIP WON", p.Name + "'s " + pinkCar.Name + " is yours. It's waiting in " + garages.GarageName(rec.GarageId) + ".", Shard.Purple, 6000); }
+                else { money.Earn(pinkCar.BasePrice, 0, "rival", "Pink slip " + pinkCar.Name + " (no garage space, sold)", "pink:" + p.Id + ":" + st.Wins); Shard.Big("PINK SLIP WON", "No garage space, so " + pinkCar.DisplayName + " was sold for $" + pinkCar.BasePrice.ToString("N0") + ".", Shard.Purple, 6000); }
+                if (Career.Progression.Instance != null) Career.Progression.Instance.Award(1500, "Pink slip win");
+                pinkRival = null;
+            }
+            else { st.Losses++; pinkLost = true; pinkLostAt = Game.GameTime + 500; }
+            saves.Save();
+        }
+
+        /// <summary>After a lost pink slip (once the results screen is gone): hand over the car and put the player in another one.</summary>
+        private void PinkTick()
+        {
+            if (!pinkLost || RaceManager.IsRacing || Game.GameTime < pinkLostAt) return;
+            pinkLost = false;
+            var p = Profiles.FirstOrDefault(x => x.Id == pinkRival); pinkRival = null;
+            var vm = Vehicles.VehicleManager.Instance; var rec = saves.Data.Vehicles.FirstOrDefault(v => v.Id == pinkWager);
+            if (rec == null || vm == null) return;
+            var ped = Game.Player.Character; var pos = ped.Position; float h = ped.Heading;
+            var next = saves.Data.Vehicles.Where(v => v.Id != rec.Id).OrderByDescending(v => v.Stats.LastUsedUtc ?? "").FirstOrDefault();
+            GTA.UI.Screen.FadeOut(400); Script.Wait(450);
+            try
+            {
+                if (vm.CurrentRecord == rec) vm.Despawn(false);
+                saves.Data.Vehicles.Remove(rec);
+                if (next != null)
+                {
+                    var car = vm.Spawn(next, pos + ped.RightVector * 3.5f, h);
+                    if (car != null && car.Exists()) ped.SetIntoVehicle(car, VehicleSeat.Driver);
+                }
+            }
+            catch (Exception ex) { Log.Error("Pink slip handover", ex); }
+            saves.Save();
+            GTA.UI.Screen.FadeIn(400);
+            Shard.Big("PINK SLIP LOST", (p != null ? p.Name : "Your rival") + " drives off in your " + (rec.Nickname ?? rec.Model) + ".", Shard.Red, 6000);
+        }
+
         private void OnRaceFinished(RaceFinishedEvent e)
         {
             if (e.RivalId == null) return;
+            if (pinkRival != null && e.RivalId == pinkRival) { var pp = Profiles.FirstOrDefault(x => x.Id == pinkRival); if (pp != null) { OnPinkFinished(pp, e); return; } }
             var p = Profiles.FirstOrDefault(x => x.Id == e.RivalId); if (p == null) return;
             var st = State(p.Id);
             if (!e.Won) { st.Losses++; saves.IsDirty = true; Notification.PostTicker("~p~" + p.Name + "~s~: Better luck next time.", true, false); return; }

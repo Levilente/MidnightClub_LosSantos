@@ -23,7 +23,7 @@ namespace MidnightClub.Racing
     }
 
     /// <summary>Opponent override for rival challenges.</summary>
-    public sealed class RivalSpec { public string Id, Name; public VehicleInfo Car; public float Skill = 1.05f; public float DriftTarget; }
+    public sealed class RivalSpec { public string Id, Name; public VehicleInfo Car; public float Skill = 1.05f; public float DriftTarget; public bool PinkSlip; }
 
     /// <summary>Race starts on the map, race menus, the race lifecycle, rewards, history and championships.</summary>
     public sealed class RaceManager
