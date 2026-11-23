@@ -20,9 +20,19 @@ namespace MidnightClub.Racing
         private static bool loaded, failed;
         public static int Count { get { return xs == null ? 0 : xs.Length; } }
 
+        private static readonly object gate = new object();
+
+        /// <summary>Starts loading on a worker thread (pure managed code, no natives) so entering Midnight Club never waits for it.</summary>
+        public static void PreloadAsync() { System.Threading.ThreadPool.QueueUserWorkItem(_ => EnsureLoaded()); }
+
         public static bool EnsureLoaded()
         {
             if (loaded) return true; if (failed) return false;
+            lock (gate) { if (loaded) return true; if (failed) return false; return LoadNow(); }
+        }
+
+        private static bool LoadNow()
+        {
             try
             {
                 var t0 = DateTime.Now;

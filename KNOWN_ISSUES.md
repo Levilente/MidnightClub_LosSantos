@@ -30,3 +30,5 @@
 - 0.18.0: existing saves start the exploration from the starter set too (already-used workshops/dealers must be rediscovered by driving near them).
 
 - 0.20.0: GTA shares handling per model, so traffic cars of the same model as yours drive with your car's simcade handling while you are in it (restored when you leave it).
+
+- ON_ENTER_MP (LoadOnlineMap) can take 4-6 s in one native call; with SHVDN's default ScriptTimeoutThreshold=5000 the script may be aborted on entry. Raise ScriptTimeoutThreshold (ScriptHookVDotNet.ini) to 20000, or set LoadOnlineMap=false.

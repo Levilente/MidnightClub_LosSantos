@@ -39,6 +39,7 @@ namespace MidnightClub
                 modes = new GameModeManager(cfg, saves, new CharacterManager(), vehicles, registry, Path.Combine(dir, "data"));
                 Directory.CreateDirectory(Path.Combine(dir, "data"));
                 var stack = new MenuStack();
+                Racing.RoadGraph.PreloadAsync();
                 new Explore.Discovery(saves);
                 UI.BlipRegistry.Init();
                 var money = new Economy.TransactionManager(saves);

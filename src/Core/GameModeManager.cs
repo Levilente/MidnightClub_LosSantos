@@ -79,16 +79,23 @@ namespace MidnightClub.Core
 
                 if (cfg.LoadOnlineMap && !onlineMap)
                 {   // GTA Online map state (MP interiors, Online-only world changes); reverted when leaving.
+                    // ON_ENTER_MP loads every MP map at once and can block the game thread for several seconds;
+                    // yield right before and after so nothing else is added to that tick (SHVDN's script watchdog).
+                    Script.Wait(0);
+                    var tMp = DateTime.Now;
                     Function.Call(Hash.ON_ENTER_MP);
+                    Script.Wait(0);
                     Function.Call(Hash.SET_INSTANCE_PRIORITY_MODE, 1);
                     onlineMap = true;
-                    Log.Info("Online map state loaded");
+                    Log.Info("Online map state loaded in " + (int)(DateTime.Now - tMp).TotalMilliseconds + " ms");
                 }
-                if (!registry.IsBuilt) registry.Build(dataDir, cfg);
+                Script.Wait(0);
+                if (!registry.IsBuilt) { registry.Build(dataDir, cfg); Script.Wait(0); }
                 story = characters.CaptureStory();
                 storyHour = GTA.Chrono.GameClock.Hour; storyMinute = GTA.Chrono.GameClock.Minute;
                 Log.Info("Story snapshot: ped " + story.StoryPed.Handle + " at " + story.Position + (story.StoryVehicle != null ? " in vehicle " + story.StoryVehicle.Handle : ""));
 
+                Script.Wait(0);
                 bool isNew = !saves.Load();
                 if (isNew) saves.CreateNew(NewProfile());
                 var data = saves.Data;

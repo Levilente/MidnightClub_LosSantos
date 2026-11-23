@@ -1,4 +1,7 @@
 # Changelog
+## 0.22.2 (2026-11-23): fix "Blocking script" abort when entering
+- Entering Midnight Club could get the script killed by SHVDN's watchdog ("Blocking script ... caused the game to freeze too long"): ON_ENTER_MP (GTA Online map state) blocks the game thread for 4-6 s and the default per-tick limit is 5 s. The mod now yields right before/after it and after every heavy step, logs how long it took, and the road network loads on a worker thread at startup instead of on entry.
+- The user's ScriptHookVDotNet.ini ScriptTimeoutThreshold was raised from 5000 to 20000 ms (backup: ScriptHookVDotNet.ini.bak_mc), because the ON_ENTER_MP call alone can exceed 5 s. Alternative: config.ini [World] LoadOnlineMap=false.
 ## 0.22.1 (2026-11-23): drive into the mod shops for real
 - No more teleport: the shop doors are opened. Door props between the street and the bay are found automatically; known roller-door models are opened through the game's door system (animated, held open); any door that doesn't move, or an unknown gate-shaped prop, is made passable (hidden, no collision) while you're nearby, and restored when you leave the area or Midnight Club.
 - Drive into the bay and stop: the shop opens by itself after a moment (or press Context). After closing it you drive out yourself; it won't reopen until you've left the bay.
