@@ -1,4 +1,11 @@
 # Changelog
+## 0.23.0 (2026-11-23)
+- Vanilla blips: hidden blips are now re-hidden every second (display off + alpha 0), because the game's own scripts keep showing their mission/shop blips again. Restored exactly on leaving.
+- Mod shop: everything previews. Pro Builds, toggles (turbo, xenons, tyre smoke), tyre compounds, ECU and nitrous now show on the car / in the stats while highlighted (body parts, wheels and paint already did). The stat card compares against what is actually installed (green/red delta) and only moves after you buy. Leaving a list, switching tabs or exiting puts the car back to its installed state.
+- UI: fixed the stripes/seams in gradients, panels and slanted bars (rectangles are now snapped to whole screen pixels, no overlapping strips).
+- Cockpit cam: driver model is really hidden now (made invisible while in cockpit view, restored when switching or leaving).
+- Chase cams rebuilt again, Driveclub-style: the camera is attached to the car (offset in car space, pointed at the car) so it moves in the same physics step: no jitter at speed. Tighter yaw follow with a little drift angle, capped swing, subtle stretch/squat with throttle/brake, lower and wider with speed, level horizon, very fine high-speed tremor; the road-vibration shake and the roll were removed.
+- Fixed "Collection was modified" errors from discoveries revealing places during the scan.
 ## 0.22.2 (2026-11-23): fix "Blocking script" abort when entering
 - Entering Midnight Club could get the script killed by SHVDN's watchdog ("Blocking script ... caused the game to freeze too long"): ON_ENTER_MP (GTA Online map state) blocks the game thread for 4-6 s and the default per-tick limit is 5 s. The mod now yields right before/after it and after every heavy step, logs how long it took, and the road network loads on a worker thread at startup instead of on entry.
 - The user's ScriptHookVDotNet.ini ScriptTimeoutThreshold was raised from 5000 to 20000 ms (backup: ScriptHookVDotNet.ini.bak_mc), because the ON_ENTER_MP call alone can exceed 5 s. Alternative: config.ini [World] LoadOnlineMap=false.

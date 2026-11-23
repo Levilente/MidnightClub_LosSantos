@@ -68,7 +68,7 @@ namespace MidnightClub.UI
                 float t = (i + 0.5f) / steps;                     // 0 at the edge of the screen
                 int a = (int)(maxAlpha * Math.Pow(1f - t, 1.6));
                 float h = height / steps, y = bottom ? 1f - (i + 1) * h : i * h;
-                Theme.Rect(0f, y, 1f, h + 0.0005f, Color.FromArgb(a, 4, 3, 10));
+                Ds.Rect(0f, y, 1f, h, Color.FromArgb(a, 4, 3, 10));
             }
         }
 

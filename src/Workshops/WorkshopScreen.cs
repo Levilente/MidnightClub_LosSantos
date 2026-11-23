@@ -57,6 +57,7 @@ namespace MidnightClub.Workshops
             cam = Camera.Create(ScriptedCameraNameHash.DefaultScriptedCamera, car.Position, Vector3.Zero, 50f, true, EulerRotationOrder.YXZ);
             Function.Call(Hash.RENDER_SCRIPT_CAMS, true, false, 0, true, false, 0);
             Function.Call(Hash.DISPLAY_RADAR, false);
+            TakeSnapshot();
             BuildTabs();
             menus.CustomRenderer = DrawShop;
             OpenTab(w.Specialty != null && w.Id == "lsc_lamesa" ? 0 : Math.Max(0, Math.Min(5, 1)));
@@ -80,7 +81,7 @@ namespace MidnightClub.Workshops
             finally
             {
                 Screen.FadeOut(300); Script.Wait(350);
-                if (car.Exists()) { vehicles.Capture(); Function.Call(Hash.FREEZE_ENTITY_POSITION, car, false); }
+                if (car.Exists()) { try { RestoreSnapshot(); } catch { } vehicles.Capture(); Function.Call(Hash.FREEZE_ENTITY_POSITION, car, false); }
                 saves.Save();
                 Function.Call(Hash.RENDER_SCRIPT_CAMS, false, false, 0, true, false, 0);
                 Function.Call(Hash.DISPLAY_RADAR, true);
@@ -90,6 +91,32 @@ namespace MidnightClub.Workshops
         }
 
         // ------------------------------------------------------------------ menus
+        // ------------------------------------------------------------------ installed snapshot & previews
+        // Everything you highlight is shown on the car (and in the stat card as green/red against what is fitted);
+        // only buying makes it stick. The snapshot is what is actually installed.
+        private readonly Dictionary<int, int> instMods = new Dictionary<int, int>();
+        private readonly HashSet<int> instToggles = new HashSet<int>();
+        private VehicleWheelType instWheelType; private int instTint;
+        private int pvCompound = -1, pvEcu = -1, pvNos = -1;
+
+        private void TakeSnapshot()
+        {
+            instMods.Clear(); instToggles.Clear();
+            for (int t = 0; t <= 48; t++) if (t < 17 || t > 22) instMods[t] = Function.Call<int>(Hash.GET_VEHICLE_MOD, car, t);
+            foreach (int t in new[] { 18, 20, 22 }) if (Function.Call<bool>(Hash.IS_TOGGLE_MOD_ON, car, t)) instToggles.Add(t);
+            instWheelType = car.Mods.WheelType; instTint = Function.Call<int>(Hash.GET_VEHICLE_WINDOW_TINT, car);
+        }
+
+        private void RestoreSnapshot()
+        {
+            car.Mods.WheelType = instWheelType;
+            foreach (var kv in instMods) if (Function.Call<int>(Hash.GET_VEHICLE_MOD, car, kv.Key) != kv.Value) Function.Call(Hash.SET_VEHICLE_MOD, car, kv.Key, kv.Value, kv.Key == 23 && rec.LetteredTyres);
+            foreach (int t in new[] { 18, 20, 22 }) Function.Call(Hash.TOGGLE_VEHICLE_MOD, car, t, instToggles.Contains(t));
+            Function.Call(Hash.SET_VEHICLE_WINDOW_TINT, car, instTint);
+            Function.Call(Hash.SET_DRIFT_TYRES, car, rec.TyreCompound == 4);
+            pvCompound = pvEcu = pvNos = -1;
+        }
+
         // ------------------------------------------------------------------ tabs (GTA VI mod shop layout)
         private static readonly string[] TabNames = { "PRO BUILDS", "COSMETICS", "BODYWORK", "PERFORMANCE", "WHEELS", "INTERIOR" };
         private Menu[] tabs; private int curTab; private int shopCardUntil;
@@ -102,6 +129,7 @@ namespace MidnightClub.Workshops
 
         private void OpenTab(int t)
         {
+            RestoreSnapshot();
             curTab = (t + tabs.Length) % tabs.Length;
             menus.Open(tabs[curTab]);
             menus.CustomRenderer = DrawShop;
@@ -216,24 +244,39 @@ namespace MidnightClub.Workshops
                 m.Add(new MenuItem(bb.Name, () =>
                 {
                     long price = BuildPrice(bb);
+                    RestoreSnapshot();
                     if (!Pay(price, bb.Name)) return;
-                    ApplyBuild(bb);
+                    ApplyBuild(bb, false);
                     Bought(bb.Name, price);
-                }) { Value = () => "$" + BuildPrice(bb).ToString("N0"), Description = () => bb.Desc + " 10% cheaper than buying the parts one by one." });
+                })
+                {
+                    Value = () => "$" + BuildPrice(bb).ToString("N0"), Description = () => bb.Desc + " 10% cheaper than buying the parts one by one.",
+                    OnPreview = () => { RestoreSnapshot(); ApplyBuild(bb, true); },
+                    OnUnpreview = () => RestoreSnapshot()
+                });
             }
             return m;
         }
 
-        private void ApplyBuild(Build b)
+        private void ApplyBuild(Build b, bool preview)
         {
             Action<int, int> mod = (type, lv) => { if (lv <= 0) return; int n = Function.Call<int>(Hash.GET_NUM_VEHICLE_MODS, car, type); if (n > 0) Function.Call(Hash.SET_VEHICLE_MOD, car, type, Math.Min(n - 1, lv - 1), false); };
             mod(11, b.Engine); mod(12, b.Brakes); mod(13, b.Gearbox); mod(15, b.Susp);
             if (b.Turbo) Function.Call(Hash.TOGGLE_VEHICLE_MOD, car, 18, true);
             if (b.Xenon) Function.Call(Hash.TOGGLE_VEHICLE_MOD, car, 22, true);
             if (b.Tint >= 0) Function.Call(Hash.SET_VEHICLE_WINDOW_TINT, car, b.Tint);
-            if (b.Ecu > rec.EcuLevel) { rec.EcuLevel = b.Ecu; Function.Call(Hash.SET_VEHICLE_CHEAT_POWER_INCREASE, car, 1f + 0.06f * b.Ecu); }
-            if (b.Nos > rec.NosLevel) rec.NosLevel = b.Nos;
-            if (b.Compound >= 0) { rec.TyreCompound = b.Compound; Function.Call(Hash.SET_DRIFT_TYRES, car, b.Compound == 4); }
+            if (preview)
+            {
+                if (b.Ecu > rec.EcuLevel) pvEcu = b.Ecu;
+                if (b.Nos > rec.NosLevel) pvNos = b.Nos;
+                if (b.Compound >= 0) { pvCompound = b.Compound; Function.Call(Hash.SET_DRIFT_TYRES, car, b.Compound == 4); }
+            }
+            else
+            {
+                if (b.Ecu > rec.EcuLevel) { rec.EcuLevel = b.Ecu; Function.Call(Hash.SET_VEHICLE_CHEAT_POWER_INCREASE, car, 1f + 0.06f * b.Ecu); }
+                if (b.Nos > rec.NosLevel) rec.NosLevel = b.Nos;
+                if (b.Compound >= 0) { rec.TyreCompound = b.Compound; Function.Call(Hash.SET_DRIFT_TYRES, car, b.Compound == 4); }
+            }
             if (b.Wheels.HasValue && car.Mods.AllowedWheelTypes.Contains(b.Wheels.Value))
             {
                 car.Mods.WheelType = b.Wheels.Value;
@@ -261,6 +304,8 @@ namespace MidnightClub.Workshops
         private Menu Nitrous()
         {
             var m = new Menu("Nitrous", Title()) { IsShopList = true };
+            m.OnHighlight = i => pvNos = i;
+            m.OnBack = () => { pvNos = -1; menus.Pop(); };
             m.OnOpen = () => focus = "rear";
             for (int lvl = 0; lvl <= 3; lvl++)
             {
@@ -280,6 +325,8 @@ namespace MidnightClub.Workshops
         private Menu Ecu()
         {
             var m = new Menu("ECU tune", Title()) { IsShopList = true };
+            m.OnHighlight = i => pvEcu = i;
+            m.OnBack = () => { pvEcu = -1; menus.Pop(); };
             for (int lvl = 0; lvl <= 3; lvl++)
             {
                 int l = lvl;
@@ -347,6 +394,8 @@ namespace MidnightClub.Workshops
         {
             var m = new Menu("Tyre compound", Title()) { IsShopList = true };
             m.OnOpen = () => focus = "side";
+            m.OnHighlight = i => { pvCompound = i; Function.Call(Hash.SET_DRIFT_TYRES, car, i == 4); };
+            m.OnBack = () => { pvCompound = -1; Function.Call(Hash.SET_DRIFT_TYRES, car, rec.TyreCompound == 4); menus.Pop(); };
             long[] prices = { 0, Disc(PricingEngine.Round(1500 + bp * 0.01), 4), Disc(PricingEngine.Round(3000 + bp * 0.02), 4), Disc(PricingEngine.Round(6000 + bp * 0.035), 4), Disc(3000, 4) };
             string[] desc = { "Everyday road tyres. Stock grip.", "Sticky road tyres: +5% grip.", "Track-day rubber: +10% grip.", "Full race slicks: +16% grip.", "Hard low-grip compound for drifting." };
             for (int i = 0; i < FitmentManager.CompoundNames.Length; i++)
@@ -558,13 +607,18 @@ namespace MidnightClub.Workshops
 
         private MenuItem Toggle(string label, int type, long price)
         {
+            Func<bool> inst = () => instToggles.Contains(type);
             return new MenuItem(label, () =>
             {
-                bool on = Function.Call<bool>(Hash.IS_TOGGLE_MOD_ON, car, type);
-                if (on) { Function.Call(Hash.TOGGLE_VEHICLE_MOD, car, type, false); Bought("Removed " + label, 0); return; }
-                if (!Pay(price, label)) return;
+                if (inst()) { Function.Call(Hash.TOGGLE_VEHICLE_MOD, car, type, false); Bought("Removed " + label, 0); return; }
+                if (!Pay(price, label)) { Function.Call(Hash.TOGGLE_VEHICLE_MOD, car, type, false); return; }
                 Function.Call(Hash.TOGGLE_VEHICLE_MOD, car, type, true); Bought(label, price);
-            }) { Value = () => Function.Call<bool>(Hash.IS_TOGGLE_MOD_ON, car, type) ? "~g~FITTED" : "$" + price.ToString("N0"), Description = () => "Select again to remove (free)." };
+            })
+            {
+                Value = () => inst() ? "~g~FITTED" : "$" + price.ToString("N0"), Description = () => "Select again to remove (free).",
+                OnPreview = () => { if (!inst()) Function.Call(Hash.TOGGLE_VEHICLE_MOD, car, type, true); },
+                OnUnpreview = () => Function.Call(Hash.TOGGLE_VEHICLE_MOD, car, type, inst())
+            };
         }
 
         // ------------------------------------------------------------------ repair / money
@@ -592,6 +646,8 @@ namespace MidnightClub.Workshops
 
         private void Bought(string what, long price, bool countAsMod = true)
         {
+            pvCompound = pvEcu = pvNos = -1;
+            TakeSnapshot();
             if (countAsMod) rec.Stats.ModificationCount++;
             rec.Stats.CustomizationSpent += price;
             rec.BuildHistory.Add(DateTime.Now.ToString("MM-dd") + "  " + what + (price > 0 ? "  $" + price.ToString("N0") : ""));
@@ -784,19 +840,21 @@ namespace MidnightClub.Workshops
         }
 
         // ---------- stats (0-10), computed live from the car's current parts, so highlighting a part previews it
-        private float[] Stats()
+        private float[] Stats() { return Stats(false); }
+        private float[] Stats(bool installed)
         {
             float spd0 = info != null ? info.MaxSpeed : 45f, acc0 = info != null ? info.Acceleration : 0.25f, brk0 = info != null ? info.Braking : 0.6f, trc0 = info != null ? info.Traction : 2.2f;
-            Func<int, int> lv = t => Function.Call<int>(Hash.GET_VEHICLE_MOD, car, t) + 1;
-            bool turbo = Function.Call<bool>(Hash.IS_TOGGLE_MOD_ON, car, 18);
+            Func<int, int> lv = t => { int v; return installed ? (instMods.TryGetValue(t, out v) ? v + 1 : 0) : Function.Call<int>(Hash.GET_VEHICLE_MOD, car, t) + 1; };
+            bool turbo = installed ? instToggles.Contains(18) : Function.Call<bool>(Hash.IS_TOGGLE_MOD_ON, car, 18);
+            int ecu = installed || pvEcu < 0 ? rec.EcuLevel : pvEcu, nos = installed || pvNos < 0 ? rec.NosLevel : pvNos, cmp = installed || pvCompound < 0 ? rec.TyreCompound : pvCompound;
             int eng = lv(11), brk = lv(12), box = lv(13), sus = lv(15), arm = lv(16);
-            float speed = Scale(spd0, 35f, 95f) + eng * 0.12f + (turbo ? 0.2f : 0) + rec.EcuLevel * 0.1f + box * 0.05f;
-            float accel = Scale(acc0, 0.12f, 0.55f) + eng * 0.22f + box * 0.15f + (turbo ? 0.3f : 0) + rec.EcuLevel * 0.12f + rec.NosLevel * 0.2f;
-            float comp = FitmentManager.CompoundGrip[Math.Max(0, Math.Min(4, rec.TyreCompound))];
-            float asphalt = Scale(trc0 * comp, 1.5f, 3.4f) * 0.75f + Scale(brk0, 0.3f, 1.6f) * 0.25f + brk * 0.1f + sus * 0.12f - (rec.TyreCompound == 4 ? 0.6f : 0);
+            float speed = Scale(spd0, 35f, 95f) + eng * 0.12f + (turbo ? 0.2f : 0) + ecu * 0.1f + box * 0.05f;
+            float accel = Scale(acc0, 0.12f, 0.55f) + eng * 0.22f + box * 0.15f + (turbo ? 0.3f : 0) + ecu * 0.12f + nos * 0.2f;
+            float comp = FitmentManager.CompoundGrip[Math.Max(0, Math.Min(4, cmp))];
+            float asphalt = Scale(trc0 * comp, 1.5f, 3.4f) * 0.75f + Scale(brk0, 0.3f, 1.6f) * 0.25f + brk * 0.1f + sus * 0.12f - (cmp == 4 ? 0.6f : 0);
             var cls = info != null ? info.Class : VehicleClass.Sedans;
-            bool offWheels = car.Mods.WheelType == VehicleWheelType.Offroad;
-            float offroad = (cls == VehicleClass.OffRoad ? 7.5f : cls == VehicleClass.SUVs ? 6f : cls == VehicleClass.Vans || cls == VehicleClass.Utility ? 4.5f : 3f) + (offWheels ? 1.2f : 0) - sus * 0.25f - (rec.TyreCompound >= 2 ? 0.8f : 0);
+            bool offWheels = (installed ? instWheelType : car.Mods.WheelType) == VehicleWheelType.Offroad;
+            float offroad = (cls == VehicleClass.OffRoad ? 7.5f : cls == VehicleClass.SUVs ? 6f : cls == VehicleClass.Vans || cls == VehicleClass.Utility ? 4.5f : 3f) + (offWheels ? 1.2f : 0) - sus * 0.25f - (cmp >= 2 ? 0.8f : 0);
             float mass = 1500f; try { mass = car.HandlingData.Mass; } catch { }
             float strength = Scale(mass, 900f, 3500f) * 0.7f + 1.2f + arm * 0.35f;
             return new[] { Clamp10(speed), Clamp10(accel), Clamp10(asphalt), Clamp10(offroad), Clamp10(strength) };
@@ -806,8 +864,8 @@ namespace MidnightClub.Workshops
 
         private void DrawStatCard(Menu m)
         {
-            var st = Stats();
-            if (statsFor != m) { statsFor = m; baseStats = st; }
+            var st = Stats(false);
+            baseStats = Stats(true);
             float cw = 0.25f, cx = 0.955f - cw, cy = 0.56f, ch = 0.33f;
             UI.Ds.Rect(cx, cy, cw, ch, Color.FromArgb(225, 22, 24, 34));
             float px = cx + UI.Ds.Px(0.012f), pw = cw - UI.Ds.Px(0.024f);

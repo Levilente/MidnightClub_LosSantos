@@ -79,7 +79,7 @@ namespace MidnightClub.Explore
             BarnTick(ped);
             if (Game.GameTime < nextScan) return;
             nextScan = Game.GameTime + 500;
-            foreach (var p in pois.Values)
+            foreach (var p in pois.Values.ToList())
             {
                 if (Known(p.Id)) continue;
                 float d = pos.DistanceTo(p.Pos);

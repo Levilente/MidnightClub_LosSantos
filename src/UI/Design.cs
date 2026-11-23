@@ -61,8 +61,27 @@ namespace MidnightClub.UI
         public static float Pulse(float hz) { return 0.5f + 0.5f * (float)Math.Sin(Game.GameTime / 1000f * hz * Math.PI * 2); }
 
         // ---------------------------------------------------------------- shapes
+        private static int resW = 1920, resH = 1080, resFrame = -1;
+        private static void Res()
+        {
+            int f = Game.FrameCount; if (f == resFrame) return; resFrame = f;
+            var ow = new OutputArgument(); var oh = new OutputArgument();
+            Function.Call(Hash.GET_ACTUAL_SCREEN_RESOLUTION, ow, oh);
+            int w = ow.GetResult<int>(), h = oh.GetResult<int>();
+            if (w > 200 && h > 200) { resW = w; resH = h; }
+        }
+
+        /// <summary>Rectangle snapped to whole screen pixels, so neighbouring strips (gradients, slanted rows)
+        /// meet exactly: no overlapping seams (visible lines) and no gaps.</summary>
         public static void Rect(float x, float y, float w, float h, Color c)
-        { if (c.A > 0 && w > 0 && h > 0) Function.Call(Hash.DRAW_RECT, x + w / 2f, y + h / 2f, w, h, (int)c.R, (int)c.G, (int)c.B, (int)c.A, false); }
+        {
+            if (c.A <= 0 || w <= 0 || h <= 0) return;
+            Res();
+            float x0 = (float)Math.Round(x * resW), x1 = (float)Math.Round((x + w) * resW), y0 = (float)Math.Round(y * resH), y1 = (float)Math.Round((y + h) * resH);
+            if (x1 <= x0) x1 = x0 + 1; if (y1 <= y0) y1 = y0 + 1;
+            float cx = (x0 + x1) / 2f / resW, cy = (y0 + y1) / 2f / resH, ww = (x1 - x0) / resW, hh = (y1 - y0) / resH;
+            Function.Call(Hash.DRAW_RECT, cx, cy, ww, hh, (int)c.R, (int)c.G, (int)c.B, (int)c.A, false);
+        }
 
         /// <summary>Sharp panel (the design is deliberately corner-free; kept for call-site compatibility).</summary>
         public static void Round(float x, float y, float w, float h, float r, Color c) { Rect(x, y, w, h, c); }
@@ -78,7 +97,7 @@ namespace MidnightClub.UI
             for (int i = 0; i < rows; i++)
             {
                 float off = slant * (1f - (i + 0.5f) / rows);
-                Function.Call(Hash.DRAW_RECT, x + off + w / 2f, y + i * rh + rh / 2f, w, rh + 0.0002f, (int)c.R, (int)c.G, (int)c.B, (int)c.A, false);
+                Rect(x + off, y + i * rh, w, rh, c);
             }
         }
         public static void Dot(float cx, float cy, float d, Color c) { Skew(cx - Px(d) / 2f, cy - d / 2f, Px(d) * 0.8f, d, Px(d * 0.3f), c); }
@@ -129,13 +148,13 @@ namespace MidnightClub.UI
         public static void VGrad(float x, float y, float w, float h, Color top, Color bottom, int steps = 16)
         {
             float sh = h / steps;
-            for (int i = 0; i < steps; i++) Rect(x, y + i * sh, w, sh + 0.0004f, Mix(top, bottom, (i + 0.5f) / steps));
+            for (int i = 0; i < steps; i++) Rect(x, y + i * sh, w, sh, Mix(top, bottom, (i + 0.5f) / steps));
         }
 
         public static void HGrad(float x, float y, float w, float h, Color left, Color right, int steps = 16)
         {
             float sw = w / steps;
-            for (int i = 0; i < steps; i++) Rect(x + i * sw, y, sw + 0.0004f, h, Mix(left, right, (i + 0.5f) / steps));
+            for (int i = 0; i < steps; i++) Rect(x + i * sw, y, sw, h, Mix(left, right, (i + 0.5f) / steps));
         }
 
         // ---------------------------------------------------------------- type

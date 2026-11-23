@@ -51,9 +51,9 @@ namespace MidnightClub.Cameras
             new CameraProfile { Name = "Bumper",       Chase = false, BaseFov = 60, SpeedFov = 18, AccelFov = 3 },
             new CameraProfile { Name = "Hood",         Chase = false, BaseFov = 58, SpeedFov = 16, AccelFov = 3 },
             new CameraProfile { Name = "Cockpit",      Chase = false, BaseFov = 62, SpeedFov = 10, AccelFov = 2 },
-            new CameraProfile { Name = "Close chase",  Chase = true, Distance = 4.6f, Height = 1.30f, LookAhead = 2.6f, LookHeight = 0.72f, YawSmooth = 0.17f, DriftShow = 0.42f, BaseFov = 57, SpeedFov = 24, AccelFov = 6 },
-            new CameraProfile { Name = "Far chase",    Chase = true, Distance = 6.9f, Height = 1.95f, LookAhead = 3.6f, LookHeight = 0.95f, YawSmooth = 0.22f, DriftShow = 0.36f, BaseFov = 54, SpeedFov = 19, AccelFov = 4 },
-            new CameraProfile { Name = "Action chase", Chase = true, Distance = 3.7f, Height = 0.98f, LookAhead = 4.6f, LookHeight = 0.55f, YawSmooth = 0.12f, DriftShow = 0.50f, BaseFov = 63, SpeedFov = 28, AccelFov = 8 },
+            new CameraProfile { Name = "Close chase",  Chase = true, Distance = 4.5f, Height = 1.18f, LookAhead = 2.2f, LookHeight = 0.62f, YawSmooth = 0.10f, DriftShow = 0.25f, BaseFov = 54, SpeedFov = 17, AccelFov = 4 },
+            new CameraProfile { Name = "Far chase",    Chase = true, Distance = 6.4f, Height = 1.70f, LookAhead = 2.8f, LookHeight = 0.80f, YawSmooth = 0.13f, DriftShow = 0.22f, BaseFov = 52, SpeedFov = 14, AccelFov = 3 },
+            new CameraProfile { Name = "Action chase", Chase = true, Distance = 3.5f, Height = 0.86f, LookAhead = 3.4f, LookHeight = 0.48f, YawSmooth = 0.07f, DriftShow = 0.32f, BaseFov = 60, SpeedFov = 22, AccelFov = 6 },
         };
 
         public CameraSystem(SaveManager saves, VehicleManager vehicles, Config cfg)
@@ -71,6 +71,7 @@ namespace MidnightClub.Cameras
 
         public void Release()
         {
+            ShowDriver(null);
             if (shaking && cam != null) { try { Function.Call(Hash.STOP_CAM_SHAKING, cam, true); } catch { } shaking = false; }
             if (cam != null && active)
             {
@@ -78,6 +79,14 @@ namespace MidnightClub.Cameras
                 cam.IsActive = false; Function.Call(Hash.RENDER_SCRIPT_CAMS, false, false, 0, true, false, 0);
             }
             active = false;
+        }
+
+        private bool driverHidden, lastMounted; private int hiddenPed;
+        private void ShowDriver(Ped ped)
+        {
+            if (!driverHidden) return;
+            driverHidden = false;
+            try { if (Function.Call<bool>(Hash.DOES_ENTITY_EXIST, hiddenPed)) Function.Call(Hash.SET_ENTITY_VISIBLE, hiddenPed, true, false); } catch { }
         }
 
         private void Destroy() { Release(); if (cam != null) { try { cam.Delete(); } catch { } cam = null; } }
@@ -116,8 +125,9 @@ namespace MidnightClub.Cameras
             if (Math.Abs(yawRate) > 6f) yawRate = 0f;
             latG += (Clamp(speed * yawRate / 9.81f, -1.5f, 1.5f) - latG) * Math.Min(1f, dt * 4f);
 
-            if (p.Chase) { if (attached) { Function.Call(Hash.DETACH_CAM, cam); attached = false; } Chase(car, p, speed, dt); }
-            else Mounted(car, ped, p, speed, dt);
+            if (mode != CameraMode.Cockpit) ShowDriver(ped);
+            if (p.Chase) { if (attached && lastMounted) { Function.Call(Hash.DETACH_CAM, cam); attached = false; } lastMounted = false; Chase(car, p, speed, dt); }
+            else { if (attached && !lastMounted) { Function.Call(Hash.STOP_CAM_POINTING, cam); Function.Call(Hash.DETACH_CAM, cam); attached = false; } lastMounted = true; Mounted(car, ped, p, speed, dt); }
             BoostFov = 0f; BoostShake = 0f;
         }
 
@@ -164,59 +174,64 @@ namespace MidnightClub.Cameras
         }
 
         // ---------------------------------------------------------------- chase
-        // Driveclub + NFS Unbound: the camera is positionally tight but rotationally lazy, so the car visibly
-        // swings and slides on screen; it squats closer under braking and stretches back under acceleration;
-        // lowers and widens with speed (strong FOV curve), leans gently into corners, pitches with braking,
-        // and picks up a fine road-vibration shake at speed (stronger with nitrous).
-        private float latOff, latOffVel, roll, rollVel, pitchOff, pitchOffVel; private bool shaking;
+        // Driveclub-style: the camera is ATTACHED to the car (offset in car space, pointed at the car), so the engine
+        // moves it in the same physics step as the car: no jitter at any speed. On top: a slightly lagging yaw (the
+        // car rotates a touch on screen and shows a little drift angle), stretch under acceleration and squat under
+        // braking, lower and wider with speed, and a very fine high-speed tremor. Horizon stays level.
+        private float latOff, latOffVel, pitchOff, pitchOffVel; private bool shaking;
 
         private void Chase(Vehicle car, CameraProfile p, float speed, float dt)
         {
-            float kmh = speed * 3.6f, sp = Clamp(kmh / 280f, 0f, 1f);
+            float kmh = speed * 3.6f, sp = Clamp(kmh / 260f, 0f, 1f);
             var vel = car.Velocity;
             float target = car.Heading;
             if (speed > 4f && Vector3.Dot(vel, car.ForwardVector) > 0f)
             {
                 float velYaw = (float)(Math.Atan2(-vel.X, vel.Y) * 180.0 / Math.PI);
-                target = LerpAngle(car.Heading, velYaw, p.DriftShow);   // show the drift angle
+                target = LerpAngle(car.Heading, velYaw, p.DriftShow);
             }
-            yaw = SmoothDampAngle(yaw, target, ref yawVel, p.YawSmooth * (1f + sp * 0.35f), dt);
+            yaw = SmoothDampAngle(yaw, target, ref yawVel, p.YawSmooth, dt);
+            // never let the camera fall far around the side
+            float rel = DeltaAngle(car.Heading, yaw);
+            if (Math.Abs(rel) > 35f) { yaw = car.Heading + Math.Sign(rel) * 35f; rel = Math.Sign(rel) * 35f; }
 
             bool behind = Game.IsControlPressed(Control.VehicleLookBehind);
-            float viewYaw = yaw + (behind ? 180f : lookYaw);
+            float relView = behind ? 180f : rel + lookYaw;
             float g = cfg.CameraGForce;
             float brake = Clamp(-accelPull, 0f, 1f), thr = Clamp(accelPull, 0f, 1f);
-            float targetDist = p.Distance + sp * 0.9f + thr * 0.65f * g - brake * 0.45f * g;
-            dist = SmoothDamp(dist, targetDist, ref distVel, 0.32f, dt);
-            float height = p.Height - sp * 0.2f + brake * 0.08f * g;
-            // lateral swing: the camera slides to the outside of the corner
-            latOff = SmoothDamp(latOff, Clamp(-latG * 0.38f * g, -0.7f, 0.7f), ref latOffVel, 0.25f, dt);
+            float targetDist = p.Distance + sp * 0.55f + thr * 0.45f * g - brake * 0.35f * g;
+            dist = SmoothDamp(dist, targetDist, ref distVel, 0.45f, dt);
+            float height = p.Height - sp * 0.12f;
+            latOff = SmoothDamp(latOff, Clamp(-latG * 0.12f * g, -0.3f, 0.3f), ref latOffVel, 0.3f, dt);
 
-            var right = Dir(viewYaw - 90f) * -1f;
-            var anchor = car.Position + new Vector3(0, 0, 0.3f);
-            var desired = car.Position - Dir(viewYaw) * dist + right * latOff + new Vector3(0, 0, height);
-            var hit = World.Raycast(anchor, desired, IntersectFlags.Map, car);
-            float allowed = hit.DidHit ? Math.Max(1.4f, hit.HitPosition.DistanceTo(anchor) - 0.3f) : 99f;
-            collide = allowed < collide ? allowed : SmoothDamp(collide, allowed, ref collideVel, 0.4f, dt);
-            var toCam = desired - anchor; float len = toCam.Length();
-            if (len > collide && len > 0.01f) desired = anchor + toCam * (collide / len);
+            // collision: shorten the arm if the map is in the way
+            var worldBack = car.GetOffsetPosition(LocalArm(relView, dist, latOff, height));
+            var anchor = car.Position + new Vector3(0, 0, 0.4f);
+            var hit = World.Raycast(anchor, worldBack, IntersectFlags.Map, car);
+            float allowed = hit.DidHit ? Math.Max(1.5f, hit.HitPosition.DistanceTo(anchor) - 0.35f) : 99f;
+            collide = allowed < collide ? allowed : SmoothDamp(collide, allowed, ref collideVel, 0.45f, dt);
+            float armDist = Math.Min(dist, collide);
 
-            // look slightly ahead along the velocity so fast corners are anticipated
-            var lead = speed > 3f ? Vector3.Normalize(new Vector3(vel.X, vel.Y, 0)) * Math.Min(2.5f, speed * 0.04f) : Vector3.Zero;
-            var look = car.Position + Dir(behind ? yaw + 180f : yaw + lookYaw * 0.5f) * p.LookAhead + lead + new Vector3(0, 0, p.LookHeight);
-            var rot = LookRotation(desired, look);
-            pitchOff = SmoothDamp(pitchOff, (-brake * 1.6f + thr * 0.8f) * g, ref pitchOffVel, 0.3f, dt);
-            roll = SmoothDamp(roll, Clamp(latG * 2.4f * g, -4f, 4f), ref rollVel, 0.3f, dt);
-            rot.X += lookPitch + pitchOff; rot.Y = roll;
-            float micro = (BoostShake * 0.5f + Clamp((kmh - 160f) / 180f, 0f, 1f) * 0.12f) * cfg.CameraShake;
-            if (micro > 0f) { rot.X += Noise(31f) * micro; rot.Z += Noise(23f) * micro * 0.7f; }
-            // native road vibration on top (subtle)
-            float amp = (Clamp((kmh - 60f) / 240f, 0f, 1f) * 0.35f + BoostShake * 0.8f) * cfg.CameraShake;
-            if (!shaking && amp > 0.02f) { Function.Call(Hash.SHAKE_CAM, cam, "ROAD_VIBRATION_SHAKE", amp); shaking = true; }
-            if (shaking) { Function.Call(Hash.SET_CAM_SHAKE_AMPLITUDE, cam, amp); if (amp <= 0.02f) { Function.Call(Hash.STOP_CAM_SHAKING, cam, true); shaking = false; } }
+            var off = LocalArm(relView, armDist, latOff, height);
+            pitchOff = SmoothDamp(pitchOff, (-brake * 0.22f + thr * 0.12f) * g, ref pitchOffVel, 0.35f, dt);
+            float rl = behind ? 180f : rel * 0.6f + lookYaw * 0.5f;
+            double rr = rl * Math.PI / 180.0;
+            var look = new Vector3((float)(-Math.Sin(rr) * p.LookAhead), (float)(Math.Cos(rr) * p.LookAhead), p.LookHeight + pitchOff - lookPitch * 0.05f);
+            float trem = Clamp((kmh - 180f) / 160f, 0f, 1f) * 0.012f * cfg.CameraShake + BoostShake * 0.02f;
+            if (trem > 0f) { look.X += Noise(37f) * trem; look.Z += Noise(29f) * trem; }
 
-            fov = SmoothDamp(fov, TargetFov(p, speed), ref fovVel, 0.4f, dt);
-            cam.Position = desired; cam.Rotation = rot; cam.FieldOfView = fov;
+            Function.Call(Hash.ATTACH_CAM_TO_ENTITY, cam, car, off.X, off.Y, off.Z, true);
+            Function.Call(Hash.POINT_CAM_AT_ENTITY, cam, car, look.X, look.Y, look.Z, true);
+            attached = true;
+            fov = SmoothDamp(fov, TargetFov(p, speed), ref fovVel, 0.5f, dt);
+            cam.FieldOfView = fov;
+        }
+
+        /// <summary>Camera position in car space for a view angle rel (deg, + = left of the car's heading).</summary>
+        private static Vector3 LocalArm(float rel, float dist, float lat, float height)
+        {
+            double r = rel * Math.PI / 180.0; float s = (float)Math.Sin(r), c = (float)Math.Cos(r);
+            return new Vector3(dist * s - lat * c, -dist * c - lat * s, height);
         }
 
         // ---------------------------------------------------------------- mounted
@@ -232,7 +247,8 @@ namespace MidnightClub.Cameras
             float pitch = lookPitch * 0.6f, roll = 0f;
             if (mode == CameraMode.Cockpit)
             {
-                // Driver's head: hide the driver model (local only) and let the head move against the load.
+                // Driver's head: hide the driver model and let the head move against the load.
+                if (!driverHidden) { Function.Call(Hash.SET_ENTITY_VISIBLE, ped, false, false); driverHidden = true; hiddenPed = ped.Handle; }
                 Function.Call(Hash.SET_ENTITY_LOCALLY_INVISIBLE, ped);
                 float g = cfg.CameraGForce;
                 headPitch += (-accelPull * 2.2f * g - headPitch) * Math.Min(1f, dt * 5f);     // brake: nose down, throttle: head back

@@ -15,6 +15,7 @@ namespace MidnightClub.UI
         public Action OnSelect;
         public Action<int> OnAdjust;        // -1 / +1 for left/right
         public bool Enabled = true;
+        public Action OnPreview, OnUnpreview;   // live preview while highlighted (mod shop)
         public MenuItem(string label, Action onSelect = null) { Label = label; OnSelect = onSelect; }
     }
 
@@ -67,7 +68,13 @@ namespace MidnightClub.UI
             if (Game.IsControlJustPressed(Control.FrontendUp)) { Selected = (Selected - 1 + Items.Count) % Items.Count; Sound("NAV_UP_DOWN"); }
             if (Game.IsControlJustPressed(Control.FrontendDown)) { Selected = (Selected + 1) % Items.Count; Sound("NAV_UP_DOWN"); }
             Clamp();
-            if (Selected != lastHighlight) { lastHighlight = Selected; if (OnHighlight != null) OnHighlight(Selected); }
+            if (Selected != lastHighlight)
+            {
+                if (lastHighlight >= 0 && lastHighlight < Items.Count && Items[lastHighlight].OnUnpreview != null) Items[lastHighlight].OnUnpreview();
+                lastHighlight = Selected;
+                if (OnHighlight != null) OnHighlight(Selected);
+                if (Items[Selected].OnPreview != null) Items[Selected].OnPreview();
+            }
             var it = Items[Selected];
             if (it.Enabled && it.OnAdjust != null)
             {
@@ -76,10 +83,10 @@ namespace MidnightClub.UI
             }
             if (Game.IsControlJustPressed(Control.FrontendAccept))
             {
-                if (it.Enabled && it.OnSelect != null) { Sound("SELECT"); it.OnSelect(); }
+                if (it.Enabled && it.OnSelect != null) { Sound("SELECT"); if (it.OnUnpreview != null && it.OnPreview != null) it.OnUnpreview(); it.OnSelect(); lastHighlight = -1; }
                 else Sound("ERROR");
             }
-            if (Game.IsControlJustPressed(Control.FrontendCancel)) { Sound("BACK"); return false; }
+            if (Game.IsControlJustPressed(Control.FrontendCancel)) { Sound("BACK"); if (it.OnUnpreview != null) it.OnUnpreview(); lastHighlight = -1; return false; }
             return true;
         }
 

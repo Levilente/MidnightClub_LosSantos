@@ -23,7 +23,7 @@ namespace MidnightClub.UI
         private static bool texturesRequested;
 
         public static void Rect(float x, float y, float w, float h, Color c)
-        { Function.Call(Hash.DRAW_RECT, x + w / 2f, y + h / 2f, w, h, c.R, c.G, c.B, c.A, false); }
+        { Ds.Rect(x, y, w, h, c); }
 
         /// <summary>Game texture (e.g. commonmenu/gradient_bgd). Falls back to a plain rect until streamed in.</summary>
         public static void Sprite(string dict, string name, float x, float y, float w, float h, Color c, float rot = 0f)

@@ -12,6 +12,7 @@ namespace MidnightClub.UI
     {
         private static readonly HashSet<int> ours = new HashSet<int>();
         private static readonly Dictionary<int, BlipDisplayType> hidden = new Dictionary<int, BlipDisplayType>();
+        private static readonly Dictionary<int, int> alphas = new Dictionary<int, int>();
         private static int next; private static bool active;
 
         public static Blip Own(Blip b) { if (b != null) ours.Add(b.Handle); return b; }
@@ -32,13 +33,13 @@ namespace MidnightClub.UI
                 {
                     if (b == null || !b.Exists()) continue;
                     int h = b.Handle;
-                    if (ours.Contains(h) || hidden.ContainsKey(h)) continue;
+                    if (ours.Contains(h)) continue;
                     var s = b.Sprite;
                     if (s == BlipSprite.Waypoint || s == BlipSprite.Player || s == BlipSprite.North || s == BlipSprite.PoliceOfficer || s == BlipSprite.PoliceCar || s == BlipSprite.PoliceHelicopterAnimated) continue;
-                    var d = b.DisplayType;
-                    if (d == BlipDisplayType.NoDisplay) continue;
-                    hidden[h] = d;
-                    b.DisplayType = BlipDisplayType.NoDisplay;
+                    // the game's scripts keep re-showing their blips, so this is re-applied every second
+                    if (!hidden.ContainsKey(h)) { hidden[h] = b.DisplayType; alphas[h] = b.Alpha; }
+                    if (b.DisplayType != BlipDisplayType.NoDisplay) b.DisplayType = BlipDisplayType.NoDisplay;
+                    if (b.Alpha != 0) b.Alpha = 0;
                 }
             }
             catch (Exception ex) { Log.Error("Blip hiding", ex); active = false; }
@@ -48,8 +49,8 @@ namespace MidnightClub.UI
         {
             active = false;
             foreach (var kv in hidden)
-                try { var b = new Blip(kv.Key); if (b.Exists()) b.DisplayType = kv.Value; } catch { }
-            hidden.Clear();
+                try { var b = new Blip(kv.Key); if (b.Exists()) { b.DisplayType = kv.Value; int a; if (alphas.TryGetValue(kv.Key, out a)) b.Alpha = a; } } catch { }
+            hidden.Clear(); alphas.Clear();
         }
     }
 }
