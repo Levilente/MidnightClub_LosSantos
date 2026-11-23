@@ -103,7 +103,19 @@ namespace MidnightClub.Police
             if (Heat >= 3.5f) target = Math.Min(4, target + 1);
             if (target > Level) { Level = target; Notification.PostTicker("~r~Pursuit level " + Level + "~s~" + (Level == 3 ? ": helicopter inbound." : Level == 4 ? ": citywide pursuit." : "."), true, false); }
 
-            units.RemoveAll(u => !u.Car.Exists() || u.Driver == null || !u.Driver.Exists() || u.Car.IsDead || u.Car.Position.DistanceTo(car.Position) > 900f && Dismiss(u));
+            // bounty: time under pursuit, disabled units
+            bounty += Game.LastFrameTime * 12f * Level;
+            foreach (var u in units)
+            {
+                if (u.Heli || !u.Car.Exists() || disabled.Contains(u.Car.Handle)) continue;
+                if (u.Car.IsDead || u.Car.EngineHealth < 150f || u.Car.IsUpsideDown || (u.Driver != null && u.Driver.Exists() && !u.Driver.IsInVehicle(u.Car)))
+                {
+                    disabled.Add(u.Car.Handle); bounty += 1500 + 500 * Level;
+                    UI.Shard.Mid("UNIT DISABLED", "+$" + (1500 + 500 * Level).ToString("N0") + " BOUNTY", UI.Shard.Orange, 1800);
+                    try { if (u.Blip != null && u.Blip.Exists()) u.Blip.Delete(); } catch { }
+                }
+            }
+            units.RemoveAll(u => !u.Car.Exists() || disabled.Contains(u.Car.Handle) && Dismiss(u) || u.Driver == null || !u.Driver.Exists() || u.Car.IsDead || u.Car.Position.DistanceTo(car.Position) > 900f && Dismiss(u));
             int wantCars = (int)Math.Round(new[] { 0, 2, 4, 6, 8 }[Level] * diff);
             if (units.Count(u => !u.Heli) < wantCars && now - lastSpawn > 3500) { lastSpawn = now; SpawnCar(car, Level >= 3); }
             if (Level >= 3 && !units.Any(u => u.Heli) && now - lastSpawn > 2000) { lastSpawn = now; SpawnHeli(car); }
@@ -138,6 +150,7 @@ namespace MidnightClub.Police
         private sealed class Block { public List<Vehicle> Cars = new List<Vehicle>(); public List<Ped> Peds = new List<Ped>(); public Prop Spikes; public Vector3 Pos, Dir; public int Born; public bool Passed, Hit; public Blip Blip; }
         private readonly List<Block> blocks = new List<Block>();
         private int lastBlock;
+        private float bounty; private readonly HashSet<int> disabled = new HashSet<int>();
 
         private void Roadblocks(Vehicle car, int now)
         {
@@ -155,7 +168,7 @@ namespace MidnightClub.Police
                 {
                     b.Passed = true;
                     bool touched = b.Cars.Any(c => c.Exists() && Function.Call<bool>(Hash.IS_ENTITY_TOUCHING_ENTITY, car, c));
-                    if (!touched && !b.Hit) { money.Earn(0, 100 + 50 * Level, "police", "Roadblock dodged", null); UI.Shard.Mid("ROADBLOCK DODGED", "+" + (100 + 50 * Level) + " REP", UI.Shard.Purple, 2000); }
+                    if (!touched && !b.Hit) { bounty += 1000; money.Earn(0, 100 + 50 * Level, "police", "Roadblock dodged", null); UI.Shard.Mid("ROADBLOCK DODGED", "+" + (100 + 50 * Level) + " REP", UI.Shard.Purple, 2000); }
                 }
                 if ((b.Passed && d > 160f) || now - b.Born > 60000 || d > 700f) { RemoveBlock(b); blocks.Remove(b); }
             }
@@ -325,6 +338,7 @@ namespace MidnightClub.Police
             if (!Active) return;
             int lvl = Level;
             Active = false; Level = 0;
+            float bountyWas = bounty; bounty = 0f; disabled.Clear();
             foreach (var u in units) Dismiss(u);
             try { Game.Player.WantedLevel = 0; Function.Call(Hash.CLEAR_PLAYER_WANTED_LEVEL, Game.Player); } catch { }
             units.Clear();
@@ -335,16 +349,17 @@ namespace MidnightClub.Police
             {
                 saves.Data.PursuitEscapes++;
                 if (rec != null) rec.Stats.PoliceEscapes++;
-                money.Earn(0, 40 * lvl, "police", "Escaped the police (level " + lvl + ")", "escape:" + saves.Data.Pursuits);
+                long cash = (long)bountyWas;
+                money.Earn(cash, 40 * lvl, "police", "Escaped the police (level " + lvl + "), bounty", "escape:" + saves.Data.Pursuits);
                 Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "Mission_Pass_Notify", "DLC_HEISTS_GENERAL_FRONTEND_SOUNDS", true);
-                Notification.PostTicker("~g~You lost the police.~s~ +" + (40 * lvl) + " REP", true, false);
+                UI.Shard.Big("ESCAPED", "Bounty cashed in: $" + cash.ToString("N0") + "  ·  +" + (40 * lvl) + " REP", UI.Shard.Green, 4500);
             }
             else
             {
                 saves.Data.Busts++;
                 if (rec != null) rec.Heat = Math.Min(5f, rec.Heat + 0.5f);
                 long fine = money.ChargeUpTo(750L * lvl, "police", "Busted: fine (level " + lvl + ")");
-                Notification.PostTicker("~r~BUSTED.~s~ Fine: $" + fine.ToString("N0"), true, false);
+                UI.Shard.Big("BUSTED", "Fine: $" + fine.ToString("N0") + "  ·  Bounty lost: $" + ((long)bountyWas).ToString("N0"), UI.Shard.Red, 4500);
             }
             saves.IsDirty = true;
             EventBus.Publish(new PursuitEndedEvent(escaped, lvl));
@@ -358,6 +373,7 @@ namespace MidnightClub.Police
             UI.Ds.Skew(x, y, w, 0.078f, UI.Ds.SlantFor(0.078f) * 0.5f, UI.Ds.A(UI.Ds.Surface, 0.94f));
             UI.Ds.Tag("PURSUIT", x + UI.Ds.Px(0.022f), y + 0.012f, (Game.GameTime / 250) % 2 == 0 ? UI.Ds.Red : UI.Ds.Blue, UI.Ds.Text, 0.26f);
             UI.Ds.T("LEVEL " + Level, x + UI.Ds.Px(0.02f), y + 0.032f, 0.5f, UI.Ds.Text, UI.Ds.Display);
+            UI.Ds.T("BOUNTY  $" + ((long)bounty).ToString("N0"), x + w - UI.Ds.Px(0.014f), y + 0.01f, 0.3f, UI.Ds.Amber, UI.Ds.Display, Alignment.Right);
             UI.Ds.T(units.Count + " UNITS" + (covered ? "  ·  UNDER COVER" : ""), x + w - UI.Ds.Px(0.014f), y + 0.034f, 0.25f, covered ? UI.Ds.Cyan : UI.Ds.Muted, UI.Ds.Body, Alignment.Right);
             float fr = Math.Min(1f, evade / need), bx = x + UI.Ds.Px(0.018f), bw = w - UI.Ds.Px(0.036f);
             UI.Ds.Skew(bx, y + 0.064f, bw, 0.005f, UI.Ds.Px(0.0012f), UI.Ds.Stroke);
