@@ -30,6 +30,7 @@ namespace MidnightClub
             try
             {
                 var dir = Path.Combine(BaseDirectory, "MidnightClub");
+                Racing.Ghost.Dir = Path.Combine(dir, "ghosts");
                 Log.Init(dir);
                 Log.Info("Game file version " + Game.FileVersion + ", Enhanced=" + Game.isEnhanced);
                 cfg = Config.Load(dir);

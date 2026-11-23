@@ -26,6 +26,9 @@ namespace MidnightClub.Racing
     public sealed class RaceSession : Gameplay.IRewindable
     {
         public static RaceSession Active;
+        /// <summary>Best-run ghost to race against (solo races) and this run's recording.</summary>
+        public Ghost Rival; public readonly Ghost Recording = new Ghost();
+        private int splitShownAt = -10000, splitDelta; private bool splitValid;
         public int Rewinds { get { return Gameplay.Rewind.UsedThisRace; } }
 
         // ---------------------------------------------------------------- rewind support
@@ -165,6 +168,9 @@ namespace MidnightClub.Racing
             if (now - StartTime < 900) Countdown(now - StartTime > 0 ? -(now - StartTime) : 0);
             LaunchBoost(now);
             Slipstream();
+            if (!Player.Finished && Player.Car != null && Player.Car.Exists()) { Recording.Model = Player.Car.Model.Hash; Recording.Record(Player.Car, now - StartTime); }
+            if (Rival != null) Rival.Play(now - StartTime);
+            DrawSplit(now);
             if (Gameplay.Rewind.Active) { DrawHud(); return; }
 
             // player
@@ -207,6 +213,11 @@ namespace MidnightClub.Racing
 
         private void Advance(Racer r, int now)
         {
+            if (r.IsPlayer)
+            {
+                int t = now - StartTime; Recording.Split(r.Cp, t);
+                if (Rival != null && r.Cp < Rival.Splits.Count) { splitDelta = t - Rival.Splits[r.Cp]; splitValid = true; splitShownAt = now; }
+            }
             r.Cp++;
             if (r.IsPlayer) Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "CHECKPOINT_NORMAL", "HUD_MINI_GAME_SOUNDSET", true);
             if (r.Cp >= Cps.Count)
@@ -302,6 +313,19 @@ namespace MidnightClub.Racing
         public List<Racer> Standings()
         {
             return Racers.OrderByDescending(r => r.Finished ? 2e9f - r.FinishTime : r.Progress).ToList();
+        }
+
+        private void DrawSplit(int now)
+        {
+            if (!splitValid || now - splitShownAt > 2600) return;
+            float a = Math.Min(1f, (2600 - (now - splitShownAt)) / 400f);
+            bool ahead = splitDelta <= 0;
+            string s = (ahead ? "-" : "+") + (Math.Abs(splitDelta) / 1000f).ToString("0.00");
+            float w = UI.Ds.Px(0.13f), x = 0.5f - w / 2f, y = 0.2f;
+            UI.Ds.Rect(x, y, w, 0.05f, UI.Ds.A(UI.Ds.Bg, 0.8f * a));
+            UI.Ds.Rect(x, y + 0.046f, w, 0.004f, UI.Ds.A(ahead ? UI.Ds.Lime : UI.Ds.Red, a));
+            UI.Ds.T("GHOST", x + UI.Ds.Px(0.01f), y + 0.006f, 0.22f, UI.Ds.A(UI.Ds.Muted, a), UI.Ds.Display);
+            UI.Ds.T(s, x + w - UI.Ds.Px(0.01f), y + 0.004f, 0.55f, UI.Ds.A(ahead ? UI.Ds.Lime : UI.Ds.Red, a), UI.Ds.Display, Alignment.Right);
         }
 
         // ------------------------------------------------------------------ finish cinematic
@@ -506,6 +530,7 @@ namespace MidnightClub.Racing
         // ------------------------------------------------------------------ cleanup
         public void Cleanup()
         {
+            if (Rival != null) Rival.Delete();
             if (finStart >= 0) EndCinematic();
             Gameplay.Rewind.Participants.Remove(this); if (Active == this) Active = null;
             if (Gameplay.Rewind.Instance != null) Gameplay.Rewind.Instance.Clear();

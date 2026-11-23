@@ -304,6 +304,7 @@ namespace MidnightClub.Racing
                 var names = champ != null ? Roster(lib.Championships.First(c => c.Id == champ)).Take(n).ToList() : DriverNames.OrderBy(x => Guid.NewGuid()).Take(n).ToList();
                 session.SpawnOpponents(names, PickCars(car, n, r), r.Start, heading, saves.Data.RacesStarted);
             }
+            if (!r.HasOpponents && r.Kind != RaceType.Drift) { var g = Ghost.Load(r.Id); if (g != null) { session.Rival = g; g.Spawn(); } }
             IsRacing = true;
             Function.Call(Hash.SET_GAMEPLAY_CAM_RELATIVE_HEADING, 0f);
             Screen.FadeIn(500);
@@ -368,6 +369,7 @@ namespace MidnightClub.Racing
             {
                 long best = BestTime(r.Id);
                 lastRecord = best > 0 && res.TimeMs < best;
+                if ((best == 0 || res.TimeMs < best) && !r.HasOpponents) { s.Recording.TotalMs = (int)res.TimeMs; s.Recording.Save(r.Id); }
                 if (best == 0 || res.TimeMs < best) { saves.Data.BestTimes.RemoveAll(x => x.Key == r.Id); saves.Data.BestTimes.Add(new KeyValue { Key = r.Id, Value = res.TimeMs.ToString() }); }
             }
             saves.Data.RaceHistory.Add(res);
