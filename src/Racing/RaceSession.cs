@@ -182,6 +182,8 @@ namespace MidnightClub.Racing
                 if (Def.Kind == RaceType.Drift) Drift(p.Car);
             }
 
+            Takedowns(now);
+
             // opponents
             foreach (var r in Racers)
             {
@@ -326,6 +328,33 @@ namespace MidnightClub.Racing
             UI.Ds.Rect(x, y + 0.046f, w, 0.004f, UI.Ds.A(ahead ? UI.Ds.Lime : UI.Ds.Red, a));
             UI.Ds.T("GHOST", x + UI.Ds.Px(0.01f), y + 0.006f, 0.22f, UI.Ds.A(UI.Ds.Muted, a), UI.Ds.Display);
             UI.Ds.T(s, x + w - UI.Ds.Px(0.01f), y + 0.004f, 0.55f, UI.Ds.A(ahead ? UI.Ds.Lime : UI.Ds.Red, a), UI.Ds.Display, Alignment.Right);
+        }
+
+        // ------------------------------------------------------------------ takedowns (Burnout-style)
+        public int TakedownCount;
+        private readonly Dictionary<int, int> contact = new Dictionary<int, int>();
+        private readonly Dictionary<int, float> contactSpeed = new Dictionary<int, float>();
+        private readonly HashSet<int> wrecked = new HashSet<int>();
+        private void Takedowns(int now)
+        {
+            var car = Player.Car; if (car == null || !car.Exists()) return;
+            foreach (var r in Racers)
+            {
+                if (r.IsPlayer || r.Car == null || !r.Car.Exists() || r.Finished) continue;
+                int h = r.Car.Handle;
+                if (Function.Call<bool>(Hash.IS_ENTITY_TOUCHING_ENTITY, car, r.Car)) { if (!contact.ContainsKey(h) || now - contact[h] > 2500) contactSpeed[h] = r.Car.Speed; contact[h] = now; }
+                int t; if (!contact.TryGetValue(h, out t) || now - t > 2500) { if (wrecked.Contains(h) && r.Car.Speed > 12f && !r.Car.IsUpsideDown) wrecked.Remove(h); continue; }
+                if (wrecked.Contains(h)) continue;
+                float before; contactSpeed.TryGetValue(h, out before);
+                bool spun = Vector3.Dot(Vector3.Normalize(r.Car.ForwardVector), Player.Car.ForwardVector) < -0.2f && r.Car.Speed < 8f;
+                if (before > 18f && (r.Car.IsUpsideDown || r.Car.Speed < before * 0.25f || spun) && car.Speed > 12f)
+                {
+                    wrecked.Add(h); TakedownCount++;
+                    Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "CHECKPOINT_PERFECT", "HUD_MINI_GAME_SOUNDSET", true);
+                    UI.Shard.Mid("TAKEDOWN", r.Name.ToUpperInvariant() + (TakedownCount > 1 ? "  ·  x" + TakedownCount : ""), UI.Shard.Orange, 1800);
+                    r.StuckSince = now - 2000;   // help them get going again a bit sooner
+                }
+            }
         }
 
         // ------------------------------------------------------------------ finish cinematic

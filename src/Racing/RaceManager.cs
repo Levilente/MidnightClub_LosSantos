@@ -366,6 +366,8 @@ namespace MidnightClub.Racing
                 }
             }
             res.Cash = (long)(r.CashReward * cashF * Career.Mastery.CashMult(vehicles.CurrentRecord)); res.Rep = (long)(r.RepReward * repF);
+            if (pos > 0 && s.TakedownCount > 0) { res.Cash += 750L * s.TakedownCount; res.Rep += 25L * s.TakedownCount; }
+            lastTakedowns = s.TakedownCount;
             if (res.Cash > 0 || res.Rep > 0) money.Earn(res.Cash, res.Rep, "race", r.Name + (pos > 0 ? " (P" + pos + ")" : ""), "race-reward:" + r.Id + ":" + saves.Data.RacesStarted);
             if (rec != null) { rec.Stats.RacesEntered++; if (pos == 1 && r.HasOpponents) rec.Stats.RacesWon++; }
             lastRecord = false;
@@ -433,7 +435,7 @@ namespace MidnightClub.Racing
             Function.Call(Hash.SET_WAYPOINT_OFF);
         }
 
-        private bool lastRecord;
+        private bool lastRecord; private int lastTakedowns;
         private void ShowResults(RaceDefinition r, RaceResult res, List<string> lines, string champLine)
         {
             int start = Game.GameTime, rewinds = Gameplay.Rewind.UsedThisRace;
@@ -463,6 +465,7 @@ namespace MidnightClub.Racing
                 UI.Ds.T("+$" + ((long)(res.Cash * k)).ToString("N0"), x, ty, 0.9f, UI.Ds.A(UI.Ds.Lime, a), UI.Ds.Display);
                 UI.Ds.T("+" + ((long)(res.Rep * k)).ToString("N0") + " REP", x + UI.Ds.Px(0.2f), ty + 0.014f, 0.62f, UI.Ds.A(UI.Ds.Cyan, a), UI.Ds.Display);
                 ty += 0.08f;
+                if (lastTakedowns > 0) { UI.Ds.T("TAKEDOWNS  " + lastTakedowns + "   ·   +$" + (750 * lastTakedowns).ToString("N0"), x, ty, 0.28f, UI.Ds.A(UI.Ds.Amber, a), UI.Ds.Display); ty += 0.03f; }
                 UI.Ds.T("REWINDS  " + rewinds + (rewinds == 0 && !dnf ? "   ·   CLEAN RUN" : ""), x, ty, 0.28f, UI.Ds.A(UI.Ds.Muted, a), UI.Ds.Display); ty += 0.03f;
                 if (res.Car != null) { UI.Ds.T("CAR  " + res.Car.ToUpperInvariant(), x, ty, 0.28f, UI.Ds.A(UI.Ds.Muted, a), UI.Ds.Display); ty += 0.03f; }
                 if (champLine != null) UI.Ds.T(UI.Ds.Fit(champLine.Replace("~g~", "").Replace("~s~", ""), 0.34f, 0.4f), x, ty + 0.01f, 0.34f, UI.Ds.A(UI.Ds.Text, a));
