@@ -57,6 +57,7 @@ namespace MidnightClub.Gameplay
             combo = 0; mult = 1f;
         }
 
+        private int wheelieStart = -1; private bool stoppie;
         private void Tick()
         {
             var car = vehicles.Current;
@@ -69,6 +70,15 @@ namespace MidnightClub.Gameplay
             // airtime
             if (car.IsInAir && kmh > 30f) { if (airStart < 0) airStart = now; }
             else if (airStart >= 0) { int ms = now - airStart; airStart = -1; if (ms > 700) Add(ms > 2000 ? "BIG AIR" : "AIR", ms / 4); }
+
+            // bikes: wheelies and stoppies
+            if (car.Model.IsBike && kmh > 25f)
+            {
+                float pitch = car.Rotation.X; bool wheels = Function.Call<bool>(Hash.IS_VEHICLE_ON_ALL_WHEELS, car);
+                if (!wheels && !car.IsInAir && Math.Abs(pitch) > 9f) { if (wheelieStart < 0) { wheelieStart = now; stoppie = pitch < 0; } }
+                else if (wheelieStart >= 0) { int ms = now - wheelieStart; wheelieStart = -1; if (ms > 800) Add(stoppie ? "STOPPIE" : ms > 3000 ? "LONG WHEELIE" : "WHEELIE", ms / 5); }
+            }
+            else wheelieStart = -1;
 
             // drift
             var v = car.Velocity; v.Z = 0; var f = car.ForwardVector; f.Z = 0;

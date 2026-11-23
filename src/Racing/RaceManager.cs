@@ -360,7 +360,7 @@ namespace MidnightClub.Racing
                     repF = pos == 1 ? 1 : pos == 2 ? 0.6 : pos == 3 ? 0.4 : 0.2;
                 }
             }
-            res.Cash = (long)(r.CashReward * cashF); res.Rep = (long)(r.RepReward * repF);
+            res.Cash = (long)(r.CashReward * cashF * Career.Mastery.CashMult(vehicles.CurrentRecord)); res.Rep = (long)(r.RepReward * repF);
             if (res.Cash > 0 || res.Rep > 0) money.Earn(res.Cash, res.Rep, "race", r.Name + (pos > 0 ? " (P" + pos + ")" : ""), "race-reward:" + r.Id + ":" + saves.Data.RacesStarted);
             if (rec != null) { rec.Stats.RacesEntered++; if (pos == 1 && r.HasOpponents) rec.Stats.RacesWon++; }
             lastRecord = false;
