@@ -103,7 +103,7 @@ namespace MidnightClub.Dealerships
                 markers[d.Id] = p;
                 Explore.Discovery.Register("dl:" + d.Id, d.Name, "Dealership", p);
                 if (!Explore.Discovery.Known("dl:" + d.Id)) continue;
-                var b = World.CreateBlip(p);
+                var b = UI.BlipRegistry.Own(World.CreateBlip(p));
                 b.Sprite = d.Sprite; b.Color = d.Color; b.Name = d.Name; b.IsShortRange = true; b.Scale = 0.9f;
                 blips.Add(b);
             }

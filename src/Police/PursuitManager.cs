@@ -133,7 +133,32 @@ namespace MidnightClub.Police
             DrawHud(need, nearest, covered);
         }
 
-        private bool Dismiss(Unit u) { try { if (u.Blip != null && u.Blip.Exists()) u.Blip.Delete(); u.Driver.MarkAsNoLongerNeeded(); u.Car.MarkAsNoLongerNeeded(); } catch { } return true; }
+        /// <summary>Stand a unit down: blip off, sirens off, the officer forgets you and drives away; deleted if unseen.</summary>
+        private bool Dismiss(Unit u)
+        {
+            try
+            {
+                if (u.Blip != null && u.Blip.Exists()) u.Blip.Delete();
+                if (u.Car != null && u.Car.Exists())
+                {
+                    Function.Call(Hash.SET_VEHICLE_SIREN, u.Car, false);
+                    Function.Call(Hash.SET_VEHICLE_HAS_MUTED_SIRENS, u.Car, true);
+                }
+                if (u.Driver != null && u.Driver.Exists())
+                {
+                    Function.Call(Hash.CLEAR_PED_TASKS, u.Driver);
+                    Function.Call(Hash.SET_PED_KEEP_TASK, u.Driver, false);
+                    Function.Call(Hash.SET_BLOCKING_OF_NON_TEMPORARY_EVENTS, u.Driver, true);
+                    if (u.Car != null && u.Car.Exists() && u.Driver.IsInVehicle(u.Car))
+                        Function.Call(Hash.TASK_VEHICLE_DRIVE_WANDER, u.Driver, u.Car, 14f, 786603);
+                }
+                bool seen = u.Car != null && u.Car.Exists() && (u.Car.IsOnScreen || u.Car.Position.DistanceTo(Game.Player.Character.Position) < 60f);
+                if (!seen) { if (u.Driver != null && u.Driver.Exists()) u.Driver.Delete(); if (u.Car != null && u.Car.Exists()) u.Car.Delete(); }
+                else { u.Driver.MarkAsNoLongerNeeded(); u.Car.MarkAsNoLongerNeeded(); }
+            }
+            catch { }
+            return true;
+        }
 
         /// <summary>Something solid above the car (tunnel, bridge, parking structure) hides it from the helicopter.</summary>
         private static bool UnderCover(Vehicle car)
@@ -207,7 +232,7 @@ namespace MidnightClub.Police
                 Function.Call(Hash.SET_TASK_VEHICLE_CHASE_IDEAL_PURSUIT_DISTANCE, drv, 0f);
                 Function.Call(Hash.SET_VEHICLE_CHEAT_POWER_INCREASE, car, 1f + 0.08f * Level);
             }
-            var b = car.AddBlip(); b.Sprite = heli ? BlipSprite.PoliceHelicopterAnimated : BlipSprite.PoliceCar; b.Color = BlipColor.Red; b.Scale = 0.75f;
+            var b = UI.BlipRegistry.Own(car.AddBlip()); b.Sprite = heli ? BlipSprite.PoliceHelicopterAnimated : BlipSprite.PoliceCar; b.Color = BlipColor.Red; b.Scale = 0.75f;
             units.Add(new Unit { Car = car, Driver = drv, Heli = heli, Blip = b });
         }
 
@@ -218,6 +243,7 @@ namespace MidnightClub.Police
             int lvl = Level;
             Active = false; Level = 0;
             foreach (var u in units) Dismiss(u);
+            try { Game.Player.WantedLevel = 0; Function.Call(Hash.CLEAR_PLAYER_WANTED_LEVEL, Game.Player); } catch { }
             units.Clear();
             cooldownUntil = Game.GameTime + 60000;
             if (silent) return;

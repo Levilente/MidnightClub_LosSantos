@@ -110,7 +110,7 @@ namespace MidnightClub.Racing
                 if (r.Points.Count == 0) continue;
                 Explore.Discovery.Register("race:" + r.Id, r.Name, "Race", r.Start, 120f);
                 if (!Explore.Discovery.Known("race:" + r.Id)) continue;
-                var b = World.CreateBlip(r.Start);
+                var b = UI.BlipRegistry.Own(World.CreateBlip(r.Start));
                 bool open = Available(r);
                 b.Sprite = BlipSprite.RaceCar; b.IsShortRange = true; b.Scale = 0.8f;
                 b.Color = !open ? BlipColor.White : r.Kind == RaceType.Drift ? BlipColor.Yellow2 : r.Kind == RaceType.TimeTrial ? BlipColor.Blue : BlipColor.Red;

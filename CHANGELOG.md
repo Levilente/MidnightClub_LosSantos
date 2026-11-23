@@ -1,4 +1,10 @@
 # Changelog
+## 0.22.0 (2026-11-23): fixes + AAA chase cameras
+- FIX: mod shops in LS Customs buildings could not be entered (Story Mode keeps their doors shut without the vanilla shop scripts). The marker is now on the driveway in front of the door; entering moves the car inside behind a fade and brings it back out (nose out) afterwards.
+- FIX: vanilla map blips (Story missions, LS Customs, shops...) are hidden in Midnight Club and restored when you leave; every Midnight Club blip is registered and stays.
+- NEW: drive through a gas station to repair and clean your car (Midnight Club classic). 27 stations plus any fuel blips the game has; per-station cooldown.
+- FIX: after a pursuit ends, police units stand down for real: blips off, sirens off, tasks cleared, they drive away (deleted if out of sight); wanted level cleared.
+- Cameras: chase cams reworked Driveclub + NFS Unbound style: rotationally lazy but positionally tight follow (the car swings and slides on screen), camera slides to the outside in corners, squats closer under braking and stretches back under acceleration, lowers and widens with speed (stronger FOV curve), gentle lean into corners and pitch under braking, velocity look-ahead, fine micro-shake plus the game's road-vibration shake at speed (stronger with nitrous). Mounted cams unchanged (FOV only).
 ## 0.21.0 (2026-11-22): GTA VI-style physics and mod shops
 - Brake-to-drift removed.
 - Simcade retuned towards GTA VI (GTA IV weight + GTA V accessibility, leaning realistic): softer springs and dampers, more suspension travel, more body roll (anti-roll and roll centres), more rotational inertia, less sticky tyres with a wider, more progressive slip angle, more wheelspin on RWD/muscle cars, longer braking with nose dive; arcade helpers cut back (light anti-spin, little drift sustain, downforce only on supercars). Muscle and classic cars wallow, modern supercars stay tight. New per-model values Spring, Damping, Travel, AntiRoll, Inertia in simcade.ini; [Simcade] Weight in config.ini scales the weight layer. simcade.ini is reset once (old file kept as simcade.ini.v1.bak).

@@ -98,7 +98,7 @@ namespace MidnightClub.Workshops
             {
                 Explore.Discovery.Register("ws:" + w.Id, w.Name, "Workshop", w.Position);
                 if (!Explore.Discovery.Known("ws:" + w.Id)) continue;
-                var b = World.CreateBlip(w.Position);
+                var b = UI.BlipRegistry.Own(World.CreateBlip(w.Position));
                 b.Sprite = w.Bennys ? BlipSprite.Bennys : BlipSprite.LosSantosCustoms;
                 b.Name = w.Bennys ? "Benny's workshop" : "Workshop"; b.IsShortRange = true;
                 blips.Add(b);
@@ -116,22 +116,76 @@ namespace MidnightClub.Workshops
             nearby = null;
             foreach (var w in All)
             {
-                float d = pos.DistanceTo(w.Position);
+                var ent = Entrance(w);
+                float d = Math.Min(pos.DistanceTo(ent), pos.DistanceTo(w.Position));
                 if (d > 90f) continue;
                 if (!Explore.Discovery.Known("ws:" + w.Id)) continue;
-                UI.WorldMarker.Draw(w.Position, 3f, Color.FromArgb(255, 251, 191, 36), MarkerType.Boxes, w.Name, d < 4.5f ? "Press to enter" : "Workshop", d, d < 4.5f);
-                if (d < 4.5f) nearby = w;
+                bool inRange = d < 6f;
+                UI.WorldMarker.Draw(ent, 3f, Color.FromArgb(255, 251, 191, 36), MarkerType.Boxes, w.Name, inRange ? "Press to enter" : (w.Specialty ?? "Mod shop") + " mod shop", pos.DistanceTo(ent), inRange);
+                if (inRange) nearby = w;
             }
             if (nearby == null || stack.IsOpen) return;
             var car = vehicles.Current;
             if (car == null || !car.Exists() || car.Speed > 3f) return;
             Screen.ShowHelpTextThisFrame("~INPUT_CONTEXT~ Enter " + nearby.Name);
-            if (Game.IsControlJustPressed(Control.Context))
+            if (Game.IsControlJustPressed(Control.Context)) Enter(nearby, car);
+        }
+
+        // ------------------------------------------------------------------ entering
+        // Story Mode's shop doors stay shut without the vanilla shop scripts, so the shop is entered from the
+        // driveway marker: the car is moved inside behind a fade and brought back out afterwards.
+        private readonly Dictionary<string, Vector3> entrances = new Dictionary<string, Vector3>();
+
+        private Vector3 Entrance(WorkshopDefinition w)
+        {
+            Vector3 e;
+            if (entrances.TryGetValue(w.Id, out e)) return e;
+            float h;
+            e = Racing.RoadGraph.ClearSpot(w.Position, new List<Vector3> { w.Position }, new List<Vector3>(), 13f, out h);
+            if (e == Vector3.Zero || e.DistanceTo(w.Position) > 45f) e = w.Position;
+            entrances[w.Id] = e;
+            return e;
+        }
+
+        private void Enter(WorkshopDefinition w, Vehicle car)
+        {
+            IsBusy = true;
+            var outPos = car.Position; float outHeading = car.Heading;
+            var ent = Entrance(w);
+            try
             {
-                IsBusy = true;
-                try { new WorkshopScreen(nearby, vehicles, registry, saves, money).Run(); }
-                catch (Exception ex) { Log.Error("Workshop failed", ex); }
-                finally { IsBusy = false; }
+                if (car.Position.DistanceTo(w.Position) > 4f)
+                {
+                    Screen.FadeOut(400); Script.Wait(450);
+                    var dir = w.Position - ent; dir.Z = 0;
+                    float inHeading = dir.Length() > 0.5f ? (float)(Math.Atan2(-dir.X, dir.Y) * 180.0 / Math.PI) + 180f : car.Heading;   // nose out
+                    Function.Call(Hash.SET_FOCUS_POS_AND_VEL, w.Position.X, w.Position.Y, w.Position.Z, 0f, 0f, 0f);
+                    car.Position = w.Position; car.Heading = inHeading; car.Velocity = Vector3.Zero;
+                    Function.Call(Hash.SET_VEHICLE_ON_GROUND_PROPERLY, car, 5f);
+                    int t0 = Game.GameTime;
+                    while (Function.Call<int>(Hash.GET_INTERIOR_FROM_ENTITY, car) == 0 && Game.GameTime - t0 < 1500) Script.Wait(50);
+                    Function.Call(Hash.CLEAR_FOCUS);
+                }
+                new WorkshopScreen(w, vehicles, registry, saves, money).Run();
+            }
+            catch (Exception ex) { Log.Error("Workshop failed", ex); }
+            finally
+            {
+                try
+                {
+                    var c = vehicles.Current;
+                    if (c != null && c.Exists() && c.Position.DistanceTo(w.Position) < 8f && ent.DistanceTo(w.Position) > 4f)
+                    {
+                        Screen.FadeOut(250); Script.Wait(300);
+                        var dir = ent - w.Position; dir.Z = 0;
+                        c.Position = ent; c.Heading = dir.Length() > 0.5f ? (float)(Math.Atan2(-dir.X, dir.Y) * 180.0 / Math.PI) : outHeading;
+                        c.Velocity = Vector3.Zero; Function.Call(Hash.SET_VEHICLE_ON_GROUND_PROPERLY, c, 5f);
+                        Function.Call(Hash.SET_GAMEPLAY_CAM_RELATIVE_HEADING, 0f);
+                        Script.Wait(200); Screen.FadeIn(400);
+                    }
+                }
+                catch (Exception ex) { Log.Error("Workshop exit", ex); }
+                IsBusy = false;
             }
         }
     }

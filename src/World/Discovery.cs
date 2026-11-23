@@ -88,7 +88,7 @@ namespace MidnightClub.Explore
                 Blip h; bool has = hints.TryGetValue(p.Id, out h);
                 if (near && !has)
                 {
-                    try { var b = World.CreateBlip(p.Pos); b.Sprite = BlipSprite.Random; b.Color = BlipColor.Purple; b.Scale = 0.7f; b.IsShortRange = true; b.Name = "Undiscovered"; hints[p.Id] = b; } catch { }
+                    try { var b = UI.BlipRegistry.Own(World.CreateBlip(p.Pos)); b.Sprite = BlipSprite.Random; b.Color = BlipColor.Purple; b.Scale = 0.7f; b.IsShortRange = true; b.Name = "Undiscovered"; hints[p.Id] = b; } catch { }
                 }
                 else if (!near && has) { try { if (h.Exists()) h.Delete(); } catch { } hints.Remove(p.Id); }
             }
@@ -137,7 +137,7 @@ namespace MidnightClub.Explore
                 bool known = Known(z.Id);
                 if (known && (z.Blip == null || !z.Blip.Exists()))
                 {
-                    z.Blip = World.CreateBlip(z.Pts[0]); z.Blip.Sprite = z.Drift ? BlipSprite.SteeringWheel : BlipSprite.Stopwatch;
+                    z.Blip = UI.BlipRegistry.Own(World.CreateBlip(z.Pts[0])); z.Blip.Sprite = z.Drift ? BlipSprite.SteeringWheel : BlipSprite.Stopwatch;
                     z.Blip.Color = z.Drift ? BlipColor.Orange : BlipColor.BlueLight; z.Blip.Scale = 0.75f; z.Blip.IsShortRange = true;
                     z.Blip.Name = (z.Drift ? "Drift zone: " : "Speed zone: ") + z.Name;
                 }
@@ -256,7 +256,7 @@ namespace MidnightClub.Explore
                 {
                     var r = new Random(i * 31 + 7); double a = r.NextDouble() * Math.PI * 2; float off = 60f + (float)r.NextDouble() * 120f;
                     var c = barns[i] + new Vector3((float)Math.Cos(a) * off, (float)Math.Sin(a) * off, 0);
-                    b = World.CreateBlip(c, 260f); b.Color = BlipColor.Orange; b.Alpha = 110; b.Name = "Barn find rumour"; rumourBlips[i] = b;
+                    b = UI.BlipRegistry.Own(World.CreateBlip(c, 260f)); b.Color = BlipColor.Orange; b.Alpha = 110; b.Name = "Barn find rumour"; rumourBlips[i] = b;
                 }
                 else if (!show && has) { b.Delete(); rumourBlips.Remove(i); }
             }

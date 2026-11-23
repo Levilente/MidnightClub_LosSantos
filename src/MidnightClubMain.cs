@@ -40,6 +40,7 @@ namespace MidnightClub
                 Directory.CreateDirectory(Path.Combine(dir, "data"));
                 var stack = new MenuStack();
                 new Explore.Discovery(saves);
+                UI.BlipRegistry.Init();
                 var money = new Economy.TransactionManager(saves);
                 var garages = new Garages.GarageManager(saves, money, registry, vehicles, modes, stack, Path.Combine(dir, "data"));
                 modes.Garages = garages; modes.Money = money;
@@ -48,6 +49,7 @@ namespace MidnightClub
                 new Cameras.CameraSystem(saves, vehicles, cfg);
                 new Workshops.WorkshopManager(saves, money, registry, vehicles, stack);
                 new FitmentManager(vehicles, cfg);
+                new WorldSim.GasStations(vehicles, saves);
                 new Simcade(vehicles, registry, cfg, Path.Combine(dir, "data"));
                 new WheelLab(vehicles, cfg);
                 var dealers = new Dealerships.DealershipManager(saves, money, registry, vehicles, garages, calendar, stack, Path.Combine(dir, "data"));

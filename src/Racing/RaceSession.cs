@@ -87,7 +87,7 @@ namespace MidnightClub.Racing
                     Function.Call(Hash.SET_PED_CAN_BE_KNOCKED_OFF_VEHICLE, ped, 1);
                     car.IsInvincible = false;
                     Function.Call(Hash.SET_VEHICLE_EXPLODES_ON_HIGH_EXPLOSION_DAMAGE, car, false);
-                    var b = car.AddBlip(); b.Color = BlipColor.Red; b.Scale = 0.7f; b.Name = names[i]; b.IsShortRange = false;
+                    var b = UI.BlipRegistry.Own(car.AddBlip()); b.Color = BlipColor.Red; b.Scale = 0.7f; b.Name = names[i]; b.IsShortRange = false;
                     Racers.Add(new Racer { Name = names[i], Ped = ped, Car = car, Blip = b, Skill = 0.92f + (float)rnd.NextDouble() * 0.16f });
                 }
                 catch (Exception ex) { Log.Error("Spawning opponent", ex); }
@@ -241,8 +241,8 @@ namespace MidnightClub.Racing
             var next = last ? c : Cps[p.Cp + 1];
             cpHandle = Function.Call<int>(Hash.CREATE_CHECKPOINT, last ? 4 : 0, c.X, c.Y, c.Z - 1f, next.X, next.Y, next.Z, 11f, 170, 90, 255, 150, 0);
             Function.Call(Hash.SET_CHECKPOINT_CYLINDER_HEIGHT, cpHandle, 6f, 6f, 11f);
-            cpBlip = World.CreateBlip(c); cpBlip.Color = BlipColor.Yellow2; cpBlip.ShowRoute = true; cpBlip.Name = last ? "Finish" : "Checkpoint";
-            if (!last) { cpBlipNext = World.CreateBlip(next); cpBlipNext.Color = BlipColor.Yellow2; cpBlipNext.Scale = 0.6f; }
+            cpBlip = UI.BlipRegistry.Own(World.CreateBlip(c)); cpBlip.Color = BlipColor.Yellow2; cpBlip.ShowRoute = true; cpBlip.Name = last ? "Finish" : "Checkpoint";
+            if (!last) { cpBlipNext = UI.BlipRegistry.Own(World.CreateBlip(next)); cpBlipNext.Color = BlipColor.Yellow2; cpBlipNext.Scale = 0.6f; }
         }
 
         private void ClearCheckpoint()

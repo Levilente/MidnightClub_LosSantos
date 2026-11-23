@@ -137,7 +137,7 @@ namespace MidnightClub.Garages
             {
                 bool owned = Owned(g.Id) != null;
                 if (!owned) { Explore.Discovery.Register("gar:" + g.Id, g.Name, "Garage for sale", g.Position); if (!Explore.Discovery.Known("gar:" + g.Id)) continue; }
-                var b = World.CreateBlip(g.Position);
+                var b = UI.BlipRegistry.Own(World.CreateBlip(g.Position));
                 b.Sprite = owned ? BlipSprite.Garage : BlipSprite.GarageForSale;
                 b.Color = owned ? BlipColor.Green : BlipColor.White;
                 b.IsShortRange = !owned;

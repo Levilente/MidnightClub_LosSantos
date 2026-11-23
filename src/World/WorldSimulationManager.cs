@@ -154,7 +154,7 @@ namespace MidnightClub.WorldSim
                 meetBlips.Clear();
                 foreach (var s in tonight)
                 {
-                    var b = World.CreateBlip(s.Pos); b.Sprite = BlipSprite.CarMeetOrganizer; b.Color = BlipColor.Purple; b.Name = "Car meet: " + s.Name; b.IsShortRange = false;
+                    var b = UI.BlipRegistry.Own(World.CreateBlip(s.Pos)); b.Sprite = BlipSprite.CarMeetOrganizer; b.Color = BlipColor.Purple; b.Name = "Car meet: " + s.Name; b.IsShortRange = false;
                     meetBlips.Add(b);
                 }
                 if (tonight.Count > 0) Notification.PostTicker("~p~Car meets tonight:~s~ " + string.Join(", ", tonight.Select(s => s.Name)) + ".", false, false);
@@ -368,7 +368,7 @@ namespace MidnightClub.WorldSim
             {
                 Explore.Discovery.Register("trap:" + t.Id, t.Name, "Speed trap", t.Pos, 70f);
                 if (!Explore.Discovery.Known("trap:" + t.Id)) continue;
-                var b = World.CreateBlip(t.Pos); b.Sprite = BlipSprite.Camera; b.Color = BlipColor.Yellow2; b.IsShortRange = true; b.Scale = 0.6f; b.Name = "Speed trap";
+                var b = UI.BlipRegistry.Own(World.CreateBlip(t.Pos)); b.Sprite = BlipSprite.Camera; b.Color = BlipColor.Yellow2; b.IsShortRange = true; b.Scale = 0.6f; b.Name = "Speed trap";
                 trapBlips.Add(b);
             }
         }
