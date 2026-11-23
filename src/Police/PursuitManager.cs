@@ -130,7 +130,89 @@ namespace MidnightClub.Police
             }
             else bustSince = -1;
 
+            Roadblocks(car, now);
             DrawHud(need, nearest, covered);
+        }
+
+        // ------------------------------------------------------------------ roadblocks + spike strips
+        private sealed class Block { public List<Vehicle> Cars = new List<Vehicle>(); public List<Ped> Peds = new List<Ped>(); public Prop Spikes; public Vector3 Pos, Dir; public int Born; public bool Passed, Hit; public Blip Blip; }
+        private readonly List<Block> blocks = new List<Block>();
+        private int lastBlock;
+
+        private void Roadblocks(Vehicle car, int now)
+        {
+            if (Level >= 2 && car.Speed > 22f && now - lastBlock > (Level >= 4 ? 22000 : 35000) && blocks.Count < 2) { lastBlock = now; TrySpawnBlock(car, now); }
+            foreach (var b in blocks.ToList())
+            {
+                var rel = car.Position - b.Pos; float along = Vector3.Dot(rel, b.Dir), d = rel.Length();
+                if (!b.Hit && b.Spikes != null && b.Spikes.Exists() && car.Position.DistanceTo(b.Spikes.Position) < 3.2f)
+                {
+                    b.Hit = true;
+                    if (Function.Call<bool>(Hash.GET_VEHICLE_TYRES_CAN_BURST, car)) for (int i = 0; i < 8; i++) Function.Call(Hash.SET_VEHICLE_TYRE_BURST, car, i, false, 1000f);
+                    Notification.PostTicker("~r~Spike strip!~s~ Gas stations fix your tyres.", true, false);
+                }
+                if (!b.Passed && along > 15f && d < 60f)
+                {
+                    b.Passed = true;
+                    bool touched = b.Cars.Any(c => c.Exists() && Function.Call<bool>(Hash.IS_ENTITY_TOUCHING_ENTITY, car, c));
+                    if (!touched && !b.Hit) { money.Earn(0, 100 + 50 * Level, "police", "Roadblock dodged", null); UI.Shard.Mid("ROADBLOCK DODGED", "+" + (100 + 50 * Level) + " REP", UI.Shard.Purple, 2000); }
+                }
+                if ((b.Passed && d > 160f) || now - b.Born > 60000 || d > 700f) { RemoveBlock(b); blocks.Remove(b); }
+            }
+        }
+
+        private void TrySpawnBlock(Vehicle car, int now)
+        {
+            try
+            {
+                var fwd = car.Velocity; fwd.Z = 0; if (fwd.Length() < 1f) return; fwd.Normalize();
+                float h; var pos = World.GetNextPositionOnStreetWithHeading(car.Position + fwd * 280f, out h, false);
+                if (pos == Vector3.Zero) return;
+                var to = pos - car.Position; to.Z = 0; float dist = to.Length();
+                if (dist < 180f || dist > 380f || Vector3.Dot(Vector3.Normalize(to), fwd) < 0.8f || Screen.IsSphereVisible(pos, 6f)) return;
+                double hr = h * Math.PI / 180.0;
+                var roadDir = new Vector3((float)-Math.Sin(hr), (float)Math.Cos(hr), 0f);
+                if (Vector3.Dot(roadDir, fwd) < 0) roadDir = -roadDir;
+                var right = new Vector3(roadDir.Y, -roadDir.X, 0f);
+                var b = new Block { Pos = pos, Dir = roadDir, Born = now };
+                var m = new Model(Level >= 4 ? "police3" : "police2"); if (!m.Request(3000)) return;
+                var pm = new Model("s_m_y_cop_01"); pm.Request(3000);
+                float carHeading = h + 90f;
+                foreach (float side in new[] { -2.8f, 2.8f })
+                {
+                    var cpos = pos + right * side;
+                    var c = World.CreateVehicle(m, cpos, carHeading + (side > 0 ? 18f : -18f)); if (c == null) continue;
+                    c.PlaceOnGround(); c.IsPersistent = true;
+                    Function.Call(Hash.SET_VEHICLE_SIREN, c, true);
+                    Function.Call(Hash.SET_VEHICLE_HAS_MUTED_SIRENS, c, false);
+                    b.Cars.Add(c);
+                    var cop = World.CreatePed(pm, cpos - roadDir * 3f + right * side * 0.4f, h + 180f);
+                    if (cop != null) { cop.IsPersistent = true; cop.Weapons.RemoveAll(); Function.Call(Hash.SET_BLOCKING_OF_NON_TEMPORARY_EVENTS, cop, true); Function.Call(Hash.TASK_START_SCENARIO_IN_PLACE, cop, "WORLD_HUMAN_COP_IDLES", 0, true); b.Peds.Add(cop); }
+                }
+                m.MarkAsNoLongerNeeded(); pm.MarkAsNoLongerNeeded();
+                if (Level >= 3)
+                {
+                    var sm = new Model("p_ld_stinger_s");
+                    if (sm.IsValid && sm.Request(2000))
+                    {
+                        var sp = World.CreateProp(sm, pos - roadDir * 12f, false, true);
+                        if (sp != null) { sp.Heading = h + 90f; sp.IsPersistent = true; Function.Call(Hash.FREEZE_ENTITY_POSITION, sp, true); b.Spikes = sp; }
+                        sm.MarkAsNoLongerNeeded();
+                    }
+                }
+                b.Blip = UI.BlipRegistry.Own(World.CreateBlip(pos)); b.Blip.Sprite = BlipSprite.PoliceStation; b.Blip.Color = BlipColor.Red; b.Blip.Name = "Roadblock";
+                blocks.Add(b);
+                Notification.PostTicker("~r~Roadblock ahead!~s~ Find a way around.", true, false);
+            }
+            catch (Exception ex) { Log.Error("Roadblock", ex); }
+        }
+
+        private static void RemoveBlock(Block b)
+        {
+            try { if (b.Blip != null && b.Blip.Exists()) b.Blip.Delete(); } catch { }
+            foreach (var p in b.Peds) try { if (p.Exists()) { if (p.IsOnScreen) p.MarkAsNoLongerNeeded(); else p.Delete(); } } catch { }
+            foreach (var c in b.Cars) try { if (c.Exists()) { Function.Call(Hash.SET_VEHICLE_SIREN, c, false); if (c.IsOnScreen) c.MarkAsNoLongerNeeded(); else c.Delete(); } } catch { }
+            try { if (b.Spikes != null && b.Spikes.Exists()) b.Spikes.Delete(); } catch { }
         }
 
         /// <summary>Stand a unit down: blip off, sirens off, the officer forgets you and drives away; deleted if unseen.</summary>
@@ -239,6 +321,7 @@ namespace MidnightClub.Police
         // ------------------------------------------------------------------ end
         private void End(bool escaped, bool silent = false)
         {
+            foreach (var bl in blocks) RemoveBlock(bl); blocks.Clear();
             if (!Active) return;
             int lvl = Level;
             Active = false; Level = 0;
