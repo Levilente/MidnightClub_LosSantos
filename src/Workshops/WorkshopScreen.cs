@@ -334,7 +334,7 @@ namespace MidnightClub.Workshops
                 m.Add(new MenuItem(l == 0 ? "Stock map" : "Stage " + l + (l == 3 ? "  [EXCLUSIVE]" : ""), () =>
                 {
                     if (rec.EcuLevel == l) return;
-                    if (l == 3 && w.Specialty != "Racing" && rec.EcuLevel < 3) { Flash("Stage 3 maps: Whisler Motorsport only."); return; }
+                    if (l == 3 && w.Specialty != "Racing" && rec.EcuLevel < 3) { Flash("Stage 3 maps: Southside Speed Lab only."); return; }
                     bool upgrade = l > rec.EcuLevel;
                     if (upgrade && !Pay(price, "ECU stage " + l)) return;
                     rec.EcuLevel = l; Function.Call(Hash.SET_VEHICLE_CHEAT_POWER_INCREASE, car, 1f + 0.06f * l);
@@ -405,7 +405,7 @@ namespace MidnightClub.Workshops
                 m.Add(new MenuItem(FitmentManager.CompoundNames[c] + (locked ? "" : (c >= 3 ? "  [EXCLUSIVE]" : "")), () =>
                 {
                     if (rec.TyreCompound == c) return;
-                    if (locked) { Flash(c == 3 ? "Race slicks: Whisler Motorsport only." : "Drift compound: Vice Auto Customs or Whisler Motorsport."); return; }
+                    if (locked) { Flash(c == 3 ? "Race slicks: Southside Speed Lab only." : "Drift compound: Runway Tuning LSIA or Southside Speed Lab."); return; }
                     if (!Pay(prices[c], FitmentManager.CompoundNames[c] + " tyres")) return;
                     rec.TyreCompound = c;
                     Function.Call(Hash.SET_DRIFT_TYRES, car, c == 4);

@@ -133,10 +133,10 @@ Tick items off or note what happened. Logs: `scripts\MidnightClub\MidnightClub.l
 ## GTA VI physics & mod shops (0.21.0)
 - [ ] Driving: cars feel heavier, roll and pitch more, brake longer; muscle/classics wallow, supercars stay planted. Too much? [Simcade] Weight=0.6. Log line "simcade.ini reset ..." appears once.
 - [ ] Mod shop: tabs switch with LB/RB (Q/E); stat card shows green/red preview while browsing parts; Pro Builds apply; interior tab camera looks at the dash.
-- [ ] New shop Whisler Motorsport at Hayes Autos (Strawberry): marker on the driveway, reachable by car.
+- [ ] New shop Southside Speed Lab at Hayes Autos (Strawberry): marker on the driveway, reachable by car.
 
 ## 0.22.0
-- [ ] Coastal Auto Care / Euroform / Vice Auto Customs: marker on the driveway, entering works, you come out facing the street.
+- [ ] La Mesa Auto Works / Euroform / Runway Tuning LSIA: marker on the driveway, entering works, you come out facing the street.
 - [ ] Map: no Franklin/Michael/Trevor mission blips or vanilla LSC blips in Midnight Club; they come back in Story Mode.
 - [ ] Drive through a gas station with a damaged car: "REPAIRED".
 - [ ] After escaping/being busted, police cars stop chasing and switch off sirens.

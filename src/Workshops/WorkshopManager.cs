@@ -36,13 +36,13 @@ namespace MidnightClub.Workshops
         public static readonly WorkshopDefinition[] All =
         {
             // Tabs: 0 Pro builds, 1 Cosmetics, 2 Bodywork, 3 Performance, 4 Wheels, 5 Interior. DiscountTab = specialty (-15 %).
-            new WorkshopDefinition("lsc_lamesa", "Coastal Auto Care", 731.81f, -1088.82f, 22.17f) { Specialty = "Retro", DiscountTab = 4, Description = "Family-run shop. Custom parts and retro cosmetics for anything with a little history." },
-            new WorkshopDefinition("lsc_burton", "Euroform Automotive", -337.38f, -136.92f, 39.01f) { Specialty = "Luxury", DiscountTab = 1, Description = "Custom parts and high-end cosmetics for European and luxury cars." },
-            new WorkshopDefinition("lsc_lsia", "Vice Auto Customs", -1155.53f, -2007.18f, 13.18f) { Specialty = "Tuner", DiscountTab = 2, Description = "Custom parts and street-racing cosmetics. Stance, aero and drift setups." },
-            new WorkshopDefinition("hayes", "Whisler Motorsport", 483.0f, -1316.0f, 29.2f) { Specialty = "Racing", DiscountTab = 3, Description = "Race shop. Custom parts and track-racing setups, race slicks and full ECU maps." },
-            new WorkshopDefinition("beekers", "Capri Classic", 110.99f, 6626.39f, 31.89f) { Specialty = "Muscle", DiscountTab = 3, Description = "Custom parts and American muscle car cosmetics. Big engines, loud exhausts." },
-            new WorkshopDefinition("lsc_harmony", "Wasteland Off-Road", 1175.04f, 2640.21f, 37.75f) { Specialty = "Off-road", DiscountTab = 4, Description = "Custom parts and all-terrain cosmetics. Lift, armour and off-road rubber." },
-            new WorkshopDefinition("bennys_ws", "Lowballers Customs", -211.5f, -1324.0f, 30.9f, true) { Specialty = "Lowrider", DiscountTab = 5, Description = "Custom rims and interiors for classic and antique sedans. Full custom bodywork." },
+            new WorkshopDefinition("lsc_lamesa", "La Mesa Auto Works", 731.81f, -1088.82f, 22.17f) { Specialty = "Retro", DiscountTab = 4, Description = "Family-run shop. Custom parts and retro cosmetics for anything with a little history." },
+            new WorkshopDefinition("lsc_burton", "Rockford Motorwerks", -337.38f, -136.92f, 39.01f) { Specialty = "Luxury", DiscountTab = 1, Description = "Custom parts and high-end cosmetics for European and luxury cars." },
+            new WorkshopDefinition("lsc_lsia", "Runway Tuning LSIA", -1155.53f, -2007.18f, 13.18f) { Specialty = "Tuner", DiscountTab = 2, Description = "Custom parts and street-racing cosmetics. Stance, aero and drift setups." },
+            new WorkshopDefinition("hayes", "Southside Speed Lab", 483.0f, -1316.0f, 29.2f) { Specialty = "Racing", DiscountTab = 3, Description = "Race shop. Custom parts and track-racing setups, race slicks and full ECU maps." },
+            new WorkshopDefinition("beekers", "Paleto Muscle Garage", 110.99f, 6626.39f, 31.89f) { Specialty = "Muscle", DiscountTab = 3, Description = "Custom parts and American muscle car cosmetics. Big engines, loud exhausts." },
+            new WorkshopDefinition("lsc_harmony", "Senora Off-Road", 1175.04f, 2640.21f, 37.75f) { Specialty = "Off-road", DiscountTab = 4, Description = "Custom parts and all-terrain cosmetics. Lift, armour and off-road rubber." },
+            new WorkshopDefinition("bennys_ws", "Strawberry Lowriders", -211.5f, -1324.0f, 30.9f, true) { Specialty = "Lowrider", DiscountTab = 5, Description = "Custom rims and interiors for classic and antique sedans. Full custom bodywork." },
         };
 
         public WorkshopManager(SaveManager saves, TransactionManager money, VehicleRegistry registry, VehicleManager vehicles, MenuStack stack)
