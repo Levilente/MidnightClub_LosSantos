@@ -67,6 +67,29 @@ namespace MidnightClub.Phone
         }
 
         // ------------------------------------------------------------------ settings (live, saved to config.ini)
+        private Menu Records()
+        {
+            var d = saves.Data; var m = new Menu("Records", "Your career in numbers");
+            Action<string, Func<string>> row = (l, v) => m.Add(new MenuItem(l) { Value = v, Enabled = true });
+            row("Races entered", () => d.RacesStarted.ToString("N0"));
+            row("Race wins", () => d.RaceHistory.Count(r => r.Position == 1).ToString("N0"));
+            row("Podiums", () => d.RaceHistory.Count(r => r.Position >= 1 && r.Position <= 3).ToString("N0"));
+            row("Gold medals", () => d.RaceHistory.Count(r => r.Medal == "Gold").ToString("N0"));
+            row("Street races won", () => d.StreetRacesWon.ToString("N0"));
+            row("Rivals beaten", () => d.Rivals.Count(r => r.Defeated) + " / " + RivalManager.Profiles.Count);
+            row("Districts owned", () => Explore.Turf.Instance != null ? Explore.Turf.Instance.Owned + " / " + Explore.Turf.Districts.Length : "-");
+            row("Top speed", () => ((int)d.BestSpeedKmh) + " km/h");
+            row("Distance driven", () => d.Vehicles.Sum(v => v.Stats != null ? v.Stats.DistanceKm : 0).ToString("N0") + " km");
+            row("Style points", () => d.StylePointsTotal.ToString("N0"));
+            row("Police escapes", () => d.PursuitEscapes + " of " + d.Pursuits + "  ·  " + d.Busts + " busts");
+            row("Cars owned", () => d.Vehicles.Count.ToString());
+            row("Cars mastered", () => d.Vehicles.Count(v => Career.Mastery.Level(v) >= Career.Mastery.MaxLevel).ToString());
+            row("Places discovered", () => Explore.Discovery.Instance != null ? Explore.Discovery.Instance.KnownCount + " / " + Explore.Discovery.Instance.TotalCount : "-");
+            row("Photos taken", () => d.PhotosTaken.ToString());
+            row("Midnight Club", () => d.ClubMember ? "MEMBER" : "Not yet");
+            return m;
+        }
+
         private Menu SettingsMenu()
         {
             var cfg = Config.Current;
@@ -118,6 +141,7 @@ namespace MidnightClub.Phone
                     Sub("Progress", () => Progression.Instance != null ? Progression.Instance.ProgressMenu() : null, () => Progression.Instance != null ? "Level " + Progression.Instance.Level : ""),
                     Sub("Goals", () => MilestonesMenu != null ? MilestonesMenu() : null, () => saves.Data.MilestonesDone.Count + " / 13"),
                     Sub("Special ability", () => AbilityMenu != null ? AbilityMenu() : null, () => Gameplay.Abilities.Instance != null && Gameplay.Abilities.Instance.Selected != null ? Gameplay.Abilities.Instance.Selected : ""),
+                    Sub("Records", Records, () => saves.Data.RaceHistory.Count(r => r.Position == 1) + " wins"),
                     Sub("Turf war", () => Explore.Turf.Instance != null ? Explore.Turf.Instance.TurfMenu() : null, () => Explore.Turf.Instance != null ? Explore.Turf.Instance.Owned + " / " + Explore.Turf.Districts.Length + " districts" : ""),
                     Sub("Bank", () => menu.Finances(), () => "$" + saves.Data.Cash.ToString("N0")) }),
                 Meta = () => (CareerManager.Instance != null ? "TIER " + CareerManager.Instance.Tier : "") + (Progression.Instance != null ? "  ·  LEVEL " + Progression.Instance.Level : "") });
