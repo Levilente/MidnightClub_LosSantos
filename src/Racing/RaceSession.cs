@@ -150,17 +150,21 @@ namespace MidnightClub.Racing
                 int left = CountdownEnd - now;
                 int sec = (int)Math.Ceiling(left / 1000.0);
                 if (sec != lastBeep && sec >= 1 && sec <= 3) { lastBeep = sec; Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "3_2_1", "HUD_MINI_GAME_SOUNDSET", true); }
-                BigText(left > 0 ? Math.Max(1, sec).ToString() : "GO!");
+                LaunchTick(left);
+                Countdown(left);
                 if (left <= 0)
                 {
                     Running = true; StartTime = now; Freeze(false);
                     Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "GO", "HUD_MINI_GAME_SOUNDSET", true);
                     foreach (var r in Racers) if (!r.IsPlayer) Task(r);
+                    Launch();
                 }
                 DrawHud();
                 return;
             }
-            if (now - StartTime < 1200) BigText("GO!");
+            if (now - StartTime < 900) Countdown(now - StartTime > 0 ? -(now - StartTime) : 0);
+            LaunchBoost(now);
+            Slipstream();
             if (Gameplay.Rewind.Active) { DrawHud(); return; }
 
             // player
@@ -299,27 +303,158 @@ namespace MidnightClub.Racing
             return Racers.OrderByDescending(r => r.Finished ? 2e9f - r.FinishTime : r.Progress).ToList();
         }
 
+        // ------------------------------------------------------------------ launch control
+        private float rev, revVel; private int launchUntil; private float launchPower; private string launchGrade;
+        private const float GreenLo = 0.66f, GreenHi = 0.82f;
+        private void LaunchTick(int left)
+        {
+            var car = Player.Car; if (car == null || !car.Exists()) return;
+            float thr = Function.Call<float>(Hash.GET_CONTROL_NORMAL, 0, (int)Control.VehicleAccelerate);
+            float target = thr > 0.05f ? 0.18f + thr * 0.9f + 0.05f * (float)Math.Sin(Game.GameTime / 90.0) : 0.12f;
+            rev = UI.Ds.Damp(rev, Math.Min(1.05f, target), thr > 0.05f ? 3.2f : 5f);
+            try { car.CurrentRPM = Math.Min(1f, rev); } catch { }
+            if (left > 3000) return;
+            // rev gauge
+            float w = UI.Ds.Px(0.3f), x = 0.5f - w / 2f, y = 0.62f, h = 0.014f;
+            UI.Ds.Rect(x - UI.Ds.Px(0.004f), y - 0.004f, w + UI.Ds.Px(0.008f), h + 0.008f, UI.Ds.A(UI.Ds.Bg, 0.85f));
+            UI.Ds.Rect(x + w * GreenLo, y, w * (GreenHi - GreenLo), h, UI.Ds.A(UI.Ds.Lime, 0.35f));
+            UI.Ds.Rect(x + w * 0.92f, y, w * 0.08f, h, UI.Ds.A(UI.Ds.Red, 0.35f));
+            bool green = rev >= GreenLo && rev <= GreenHi;
+            UI.Ds.HGrad(x, y, w * Math.Min(1f, rev), h, UI.Ds.Violet, green ? UI.Ds.Lime : rev > 0.92f ? UI.Ds.Red : UI.Ds.Cyan, 12);
+            UI.Ds.T("LAUNCH  ·  HOLD THE REVS IN THE GREEN", 0.5f, y + 0.022f, 0.26f, UI.Ds.A(green ? UI.Ds.Lime : UI.Ds.Muted, 1f), UI.Ds.Display, Alignment.Center);
+        }
+        private void Launch()
+        {
+            if (rev >= GreenLo && rev <= GreenHi) { float c = 1f - Math.Abs(rev - (GreenLo + GreenHi) / 2f) / ((GreenHi - GreenLo) / 2f); launchGrade = c > 0.55f ? "PERFECT LAUNCH" : "GREAT LAUNCH"; launchPower = c > 0.55f ? 5.5f : 3.5f; }
+            else if (rev > 0.92f) { launchGrade = "WHEELSPIN"; launchPower = 0f; }
+            else if (rev > 0.45f) { launchGrade = "GOOD LAUNCH"; launchPower = 1.8f; }
+            else { launchGrade = null; launchPower = 0f; }
+            launchUntil = Game.GameTime + 1400;
+            if (launchPower >= 5f) Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "MEDAL_UP", "HUD_MINI_GAME_SOUNDSET", true);
+        }
+        private void LaunchBoost(int now)
+        {
+            if (now > launchUntil) return;
+            var car = Player.Car; if (car == null || !car.Exists()) return;
+            if (launchPower > 0 && car.Speed < 45f) car.Velocity += car.ForwardVector * launchPower * UI.Ds.Dt;
+            if (launchGrade != null)
+            {
+                float a = Math.Min(1f, (launchUntil - now) / 400f);
+                var c = launchPower >= 5f ? UI.Ds.Lime : launchPower > 0 ? UI.Ds.Cyan : UI.Ds.Red;
+                UI.Ds.T(launchGrade, 0.5f, 0.6f, 0.62f, UI.Ds.A(c, a), UI.Ds.Display, Alignment.Center);
+            }
+        }
+
+        // ------------------------------------------------------------------ slipstream
+        private float draft, draftFx;
+        private void Slipstream()
+        {
+            var car = Player.Car; if (car == null || !car.Exists() || Player.Finished) return;
+            float best = 0f;
+            if (car.Speed > 18f)
+            {
+                var f = car.ForwardVector;
+                foreach (var r in Racers)
+                {
+                    if (r.IsPlayer || r.Car == null || !r.Car.Exists()) continue;
+                    var d = r.Car.Position - car.Position; float dist = d.Length();
+                    if (dist < 3f || dist > 32f) continue;
+                    float along = Vector3.Dot(d, f); if (along < 3f) continue;
+                    float lateral = (d - f * along).Length();
+                    if (lateral > 2.2f + dist * 0.04f) continue;
+                    if (Vector3.Dot(Vector3.Normalize(r.Car.Velocity), f) < 0.85f) continue;
+                    best = Math.Max(best, 1f - dist / 32f);
+                }
+            }
+            draft = UI.Ds.Step(draft, best > 0 ? 1f : 0f, best > 0 ? 0.9f : 2.5f);
+            if (draft > 0.25f && best > 0) car.Velocity += car.ForwardVector * (1.2f + 1.6f * best) * draft * UI.Ds.Dt;
+            draftFx = UI.Ds.Damp(draftFx, draft > 0.25f && best > 0 ? 1f : 0f, 6f);
+            if (draftFx > 0.02f)
+            {
+                UI.Ds.Streaks(0f, 0.1f, 1f, 0.8f, UI.Ds.Cyan, 0.35f * draftFx, 22, 2.2f);
+                float w = UI.Ds.Px(0.16f), x = 0.5f - w / 2f, y = 0.86f;
+                UI.Ds.Tag("SLIPSTREAM", x, y, UI.Ds.Cyan, UI.Ds.Bg, 0.26f, draftFx);
+                UI.Ds.Rect(x, y + 0.03f, w, 0.005f, UI.Ds.A(UI.Ds.Stroke, draftFx));
+                UI.Ds.Rect(x, y + 0.03f, w * draft, 0.005f, UI.Ds.A(UI.Ds.Cyan, draftFx));
+            }
+        }
+
+        // ------------------------------------------------------------------ countdown + HUD
+        private void Countdown(int left)
+        {
+            string s; float k; Color c;
+            if (left > 0) { int sec = Math.Max(1, (int)Math.Ceiling(left / 1000.0)); if (sec > 3) return; s = sec.ToString(); k = 1f - (left % 1000) / 1000f; c = sec == 1 ? UI.Ds.Amber : UI.Ds.Text; }
+            else { s = "GO"; k = Math.Min(1f, -left / 900f); c = UI.Ds.Lime; }
+            float a = left > 0 ? Math.Min(1f, (1f - k) * 4f) * (k > 0.85f ? (1f - k) / 0.15f : 1f) : 1f - k;
+            float sc = 2.6f + 0.8f * (1f - UI.Ds.EaseOut(Math.Min(1f, k * 3f)));
+            UI.Ds.T(s, 0.5f, 0.24f, sc, UI.Ds.A(c, a), UI.Ds.Display, Alignment.Center);
+            // start lights
+            float lw = UI.Ds.Px(0.03f), gap = UI.Ds.Px(0.012f), total = 5 * lw + 4 * gap, lx = 0.5f - total / 2f;
+            int lit = left > 0 ? Math.Min(5, 5 - (int)Math.Ceiling(left / 700.0) + 1) : 0;
+            for (int i = 0; i < 5; i++)
+            {
+                var col = left <= 0 ? UI.Ds.A(UI.Ds.Lime, 1f - k) : i < lit ? UI.Ds.Red : UI.Ds.A(UI.Ds.Stroke, 0.9f);
+                UI.Ds.Rect(lx + i * (lw + gap), 0.17f, lw, 0.03f, col);
+            }
+        }
+
         private void DrawHud()
         {
             var order = Standings();
             int pos = order.IndexOf(Player) + 1;
             int t = Running ? Game.GameTime - StartTime : 0;
             if (Player.Finished) t = Player.FinishTime;
-            Rect(0.80f, 0.30f, 0.18f, Def.HasOpponents ? 0.22f : 0.17f, Panel);
-            float y = 0.305f;
-            if (Def.HasOpponents) { Text(pos + "/" + Racers.Count, 0.97f, y, 1.0f, Color.White, Font.ChaletComprimeCologne, Alignment.Right); y += 0.075f; }
-            Text(Def.Name.ToUpperInvariant(), 0.97f, y, 0.3f, Purple, Font.ChaletLondon, Alignment.Right); y += 0.025f;
-            if (Def.Kind == RaceType.Circuit) { Text("LAP " + Math.Min(Def.Laps, LapOf(Player)) + "/" + Def.Laps, 0.97f, y, 0.42f, Color.White, Font.ChaletComprimeCologne, Alignment.Right); y += 0.035f; }
-            Text("TIME " + FormatTime(t), 0.97f, y, 0.42f, Color.White, Font.ChaletComprimeCologne, Alignment.Right); y += 0.035f;
-            Text("CHECKPOINT " + Math.Min(Player.Cp + 1, Cps.Count) + "/" + Cps.Count, 0.97f, y, 0.32f, Color.FromArgb(220, 200, 200, 210), Font.ChaletLondon, Alignment.Right); y += 0.028f;
+            float xr = 0.965f, y = 0.05f;
+            // position block
+            if (Def.HasOpponents)
+            {
+                UI.Ds.T(pos.ToString(), xr - UI.Ds.Px(0.055f), y - 0.01f, 1.5f, UI.Ds.Text, UI.Ds.Display, Alignment.Right);
+                UI.Ds.T(Ord(pos), xr - UI.Ds.Px(0.052f), y + 0.012f, 0.42f, UI.Ds.Violet, UI.Ds.Display);
+                UI.Ds.T("/" + Racers.Count, xr, y + 0.05f, 0.42f, UI.Ds.Muted, UI.Ds.Display, Alignment.Right);
+                y += 0.12f;
+            }
+            UI.Ds.T(Def.Name.ToUpperInvariant(), xr, y, 0.26f, UI.Ds.Violet, UI.Ds.Display, Alignment.Right); y += 0.026f;
+            if (Def.Kind == RaceType.Circuit) { UI.Ds.T("LAP  " + Math.Min(Def.Laps, LapOf(Player)) + " / " + Def.Laps, xr, y, 0.44f, UI.Ds.Text, UI.Ds.Display, Alignment.Right); y += 0.036f; }
+            UI.Ds.T(FormatTime(t), xr, y, 0.5f, UI.Ds.Text, UI.Ds.Display, Alignment.Right); y += 0.04f;
+            UI.Ds.T("CHECKPOINT  " + Math.Min(Player.Cp + 1, Cps.Count) + " / " + Cps.Count, xr, y, 0.26f, UI.Ds.Muted, UI.Ds.Display, Alignment.Right); y += 0.03f;
             if (Def.Kind == RaceType.Drift)
-                Text("DRIFT " + ((long)DriftScore).ToString("N0") + (driftChain > 0 ? "  ~y~+" + ((long)PendingDrift).ToString("N0") + " x" + DriftCombo.ToString("0.0") : ""), 0.97f, y, 0.42f, Color.White, Font.ChaletComprimeCologne, Alignment.Right);
+            {
+                UI.Ds.T(((long)DriftScore).ToString("N0"), xr, y, 0.6f, UI.Ds.Amber, UI.Ds.Display, Alignment.Right); y += 0.045f;
+                if (driftChain > 0) UI.Ds.T("+" + ((long)PendingDrift).ToString("N0") + "  x" + DriftCombo.ToString("0.0"), xr, y, 0.36f, UI.Ds.Text, UI.Ds.Display, Alignment.Right);
+            }
+            // standings tower (left)
+            if (Def.HasOpponents && Racers.Count > 1)
+            {
+                float x = 0.03f, ty = 0.28f, w = UI.Ds.Px(0.19f), rh = 0.03f;
+                for (int i = 0; i < order.Count && i < 8; i++)
+                {
+                    var r = order[i]; bool me = r.IsPlayer;
+                    UI.Ds.Rect(x, ty + i * rh, w, rh - 0.003f, me ? UI.Ds.A(UI.Ds.Violet, 0.92f) : UI.Ds.A(UI.Ds.Bg, 0.72f));
+                    UI.Ds.Rect(x, ty + i * rh, UI.Ds.Px(0.026f), rh - 0.003f, me ? UI.Ds.A(Color.White, 0.18f) : UI.Ds.A(UI.Ds.Surface2, 0.9f));
+                    UI.Ds.T((i + 1).ToString(), x + UI.Ds.Px(0.013f), ty + i * rh + 0.004f, 0.3f, Color.White, UI.Ds.Display, Alignment.Center);
+                    UI.Ds.T(UI.Ds.Fit((me ? "YOU" : r.Name).ToUpperInvariant(), 0.28f, w - UI.Ds.Px(0.09f), UI.Ds.Display), x + UI.Ds.Px(0.034f), ty + i * rh + 0.005f, 0.28f, me ? Color.White : UI.Ds.Text, UI.Ds.Display);
+                    string gap = r.Finished ? "FIN" : me ? "" : Gap(r);
+                    if (gap != "") UI.Ds.T(gap, x + w - UI.Ds.Px(0.008f), ty + i * rh + 0.005f, 0.26f, me ? Color.White : UI.Ds.Muted, UI.Ds.Display, Alignment.Right);
+                }
+            }
             if (quitHeld > 0) Screen.ShowHelpTextThisFrame("Keep holding ~INPUT_FRONTEND_CANCEL~ to quit the race.");
         }
 
+        private float seg = -1f;
+        private string Gap(Racer r)
+        {
+            var p = Player;
+            if (p.Car == null || !p.Car.Exists() || r.Car == null || !r.Car.Exists()) return "";
+            if (seg < 0) { float L = 0; for (int i = 1; i < Lap.Count; i++) L += Lap[i].DistanceTo(Lap[i - 1]); seg = Math.Max(40f, L / Math.Max(1, Lap.Count - 1)); }
+            float dp = p.Car.Position.DistanceTo(Cps[Math.Min(p.Cp, Cps.Count - 1)]), dr = r.Car.Position.DistanceTo(Cps[Math.Min(r.Cp, Cps.Count - 1)]);
+            float d = (r.Cp - p.Cp) * seg + (dp - dr);   // > 0: opponent ahead
+            float sec = -d / Math.Max(12f, p.Car.Speed);
+            return (sec >= 0 ? "+" : "-") + Math.Abs(sec).ToString("0.0");
+        }
+        private static string Ord(int n) { return n == 1 ? "ST" : n == 2 ? "ND" : n == 3 ? "RD" : "TH"; }
+
         public static string FormatTime(int ms) { if (ms < 0) ms = 0; return (ms / 60000) + ":" + (ms / 1000 % 60).ToString("00") + "." + (ms % 1000 / 10).ToString("00"); }
 
-        private static void BigText(string s) { Text(s, 0.5f, 0.3f, 2.6f, Color.White, Font.ChaletComprimeCologne, Alignment.Center); }
         private static void Rect(float x, float y, float w, float h, Color c) { Function.Call(Hash.DRAW_RECT, x + w / 2f, y + h / 2f, w, h, c.R, c.G, c.B, c.A, false); }
         private static void Text(string s, float x, float y, float scale, Color c, Font f, Alignment a = Alignment.Left)
         { new TextElement(s, new PointF(x * 1280f, y * 720f), scale, c, f, a, true, true).ScaledDraw(); }

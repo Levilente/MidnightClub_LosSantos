@@ -363,9 +363,11 @@ namespace MidnightClub.Racing
             res.Cash = (long)(r.CashReward * cashF); res.Rep = (long)(r.RepReward * repF);
             if (res.Cash > 0 || res.Rep > 0) money.Earn(res.Cash, res.Rep, "race", r.Name + (pos > 0 ? " (P" + pos + ")" : ""), "race-reward:" + r.Id + ":" + saves.Data.RacesStarted);
             if (rec != null) { rec.Stats.RacesEntered++; if (pos == 1 && r.HasOpponents) rec.Stats.RacesWon++; }
+            lastRecord = false;
             if (pos > 0 && res.TimeMs > 0 && r.Kind != RaceType.Drift)
             {
                 long best = BestTime(r.Id);
+                lastRecord = best > 0 && res.TimeMs < best;
                 if (best == 0 || res.TimeMs < best) { saves.Data.BestTimes.RemoveAll(x => x.Key == r.Id); saves.Data.BestTimes.Add(new KeyValue { Key = r.Id, Value = res.TimeMs.ToString() }); }
             }
             saves.Data.RaceHistory.Add(res);
@@ -377,7 +379,7 @@ namespace MidnightClub.Racing
             rival = null;
             Log.Info("Race " + r.Id + " finished: P" + pos + " time " + res.TimeMs + " score " + res.Score + " cash " + res.Cash + " rep " + res.Rep);
 
-            var lines = order.Select((x, i) => (i + 1) + ".  " + x.Name + "   " + (x.Finished ? RaceSession.FormatTime(x.FinishTime) : "DNF")).ToList();
+            var lines = order.Select((x, i) => (x.IsPlayer ? "\u0001" : "") + x.Name + "\t" + (x.Finished ? RaceSession.FormatTime(x.FinishTime) : "DNF")).ToList();
             EndSession(false);
             ShowResults(r, res, r.HasOpponents ? lines : null, champLine);
         }
@@ -425,27 +427,65 @@ namespace MidnightClub.Racing
             Function.Call(Hash.SET_WAYPOINT_OFF);
         }
 
+        private bool lastRecord;
         private void ShowResults(RaceDefinition r, RaceResult res, List<string> lines, string champLine)
         {
-            int until = Game.GameTime + 12000;
-            while (Game.GameTime < until)
+            int start = Game.GameTime, rewinds = Gameplay.Rewind.UsedThisRace;
+            bool win = res.Position == 1 && r.HasOpponents, dnf = res.Position == 0;
+            var acc = dnf ? UI.Ds.Red : res.Medal == "Gold" || win ? UI.Ds.Amber : res.Medal == "Silver" ? Color.FromArgb(255, 200, 205, 220) : res.Medal == "Bronze" ? Color.FromArgb(255, 205, 127, 70) : UI.Ds.Violet;
+            if (win || res.Medal == "Gold") Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "RACE_PLACED", "HUD_AWARDS", true);
+            try { Function.Call(Hash.ANIMPOSTFX_PLAY, win ? "SuccessNeutral" : dnf ? "DeathFailNeutralIn" : "MinigameEndNeutral", 0, false); } catch { }
+            while (true)
             {
+                float el = (Game.GameTime - start) / 1000f, a = UI.Ds.EaseOut(el * 2.5f);
                 UI.Theme.FullscreenFrame();
                 Game.DisableAllControlsThisFrame();
-                UI.Theme.Card(0.29f, 0.17f, 0.42f, 0.54f);
-                UI.Theme.Rect(0.29f, 0.17f, 0.42f, 0.003f, UI.Theme.Cyan);
-                T(r.Name.ToUpperInvariant(), 0.5f, 0.19f, 0.7f, UI.Ds.Violet, Font.ChaletComprimeCologne);
-                string head = res.Position == 0 ? "DID NOT FINISH" : res.Medal != null ? res.Medal.ToUpperInvariant() + (r.Kind == RaceType.Drift ? "   " + res.Score.ToString("N0") + " pts" : "   " + RaceSession.FormatTime((int)res.TimeMs)) : "POSITION " + res.Position + "/" + res.Of + "   " + RaceSession.FormatTime((int)res.TimeMs);
-                T(head, 0.5f, 0.25f, 0.55f, Color.White, Font.ChaletComprimeCologne);
-                float y = 0.31f;
-                if (lines != null) foreach (var l in lines.Take(8)) { T(l, 0.5f, y, 0.34f, Color.White, Font.ChaletLondon); y += 0.03f; }
-                y += 0.01f;
-                T("~g~+$" + res.Cash.ToString("N0") + "~s~    ~b~+" + res.Rep + " REP", 0.5f, y, 0.45f, Color.White, Font.ChaletComprimeCologne); y += 0.045f;
-                if (champLine != null) T(champLine, 0.5f, y, 0.34f, Color.White, Font.ChaletLondon);
-                UI.Buttons.Draw(Control.FrontendAccept, "Continue");
-                if (UI.Input.JustPressed(Control.FrontendAccept) || UI.Input.JustPressed(Control.FrontendCancel)) break;
+                Function.Call(Hash.HIDE_HUD_AND_RADAR_THIS_FRAME);
+                UI.Ds.HGrad(0f, 0f, 1f, 1f, UI.Ds.A(UI.Ds.Bg, 0.94f * a), UI.Ds.A(UI.Ds.Bg, 0.55f * a), 24);
+                UI.Ds.Streaks(0f, 0.1f, 1f, 0.8f, acc, 0.22f * a, 16, 0.4f);
+                float x = 0.08f + (1f - a) * -0.03f;
+                UI.Ds.T(r.Kind.ToString().ToUpperInvariant() + "  ·  " + r.Name.ToUpperInvariant(), x, 0.12f, 0.3f, UI.Ds.A(acc, a), UI.Ds.Display);
+                string big = dnf ? "DNF" : res.Medal != null ? res.Medal.ToUpperInvariant() : res.Position + (res.Position == 1 ? "ST" : res.Position == 2 ? "ND" : res.Position == 3 ? "RD" : "TH");
+                float bs = 2.6f + 0.6f * (1f - UI.Ds.EaseBack(Math.Min(1f, el * 2.2f)));
+                UI.Ds.T(big, x, 0.13f, bs, UI.Ds.A(UI.Ds.Text, a), UI.Ds.Display);
+                string sub = dnf ? "DID NOT FINISH" : r.Kind == RaceType.Drift ? res.Score.ToString("N0") + " PTS" : RaceSession.FormatTime((int)res.TimeMs) + (r.HasOpponents ? "   ·   P" + res.Position + " OF " + res.Of : "");
+                UI.Ds.T(sub, x, 0.36f, 0.62f, UI.Ds.A(acc, a), UI.Ds.Display);
+                float ty = 0.43f;
+                if (lastRecord) { UI.Ds.Tag("NEW PERSONAL BEST", x, ty, UI.Ds.Lime, UI.Ds.Bg, 0.28f, a * (0.75f + 0.25f * UI.Ds.Pulse(1.2f))); ty += 0.045f; }
+                // rewards count up
+                float k = UI.Ds.EaseOut(Math.Max(0f, el - 0.5f) / 1.2f);
+                UI.Ds.T("+$" + ((long)(res.Cash * k)).ToString("N0"), x, ty, 0.9f, UI.Ds.A(UI.Ds.Lime, a), UI.Ds.Display);
+                UI.Ds.T("+" + ((long)(res.Rep * k)).ToString("N0") + " REP", x + UI.Ds.Px(0.2f), ty + 0.014f, 0.62f, UI.Ds.A(UI.Ds.Cyan, a), UI.Ds.Display);
+                ty += 0.08f;
+                UI.Ds.T("REWINDS  " + rewinds + (rewinds == 0 && !dnf ? "   ·   CLEAN RUN" : ""), x, ty, 0.28f, UI.Ds.A(UI.Ds.Muted, a), UI.Ds.Display); ty += 0.03f;
+                if (res.Car != null) { UI.Ds.T("CAR  " + res.Car.ToUpperInvariant(), x, ty, 0.28f, UI.Ds.A(UI.Ds.Muted, a), UI.Ds.Display); ty += 0.03f; }
+                if (champLine != null) UI.Ds.T(UI.Ds.Fit(champLine.Replace("~g~", "").Replace("~s~", ""), 0.34f, 0.4f), x, ty + 0.01f, 0.34f, UI.Ds.A(UI.Ds.Text, a));
+                // standings
+                if (lines != null)
+                {
+                    float sx = 0.58f, sw = UI.Ds.Px(0.5f), sy = 0.2f, rh = 0.052f;
+                    UI.Ds.T("FINAL STANDINGS", sx, sy - 0.04f, 0.28f, UI.Ds.A(UI.Ds.Muted, a), UI.Ds.Display);
+                    for (int i = 0; i < lines.Count && i < 8; i++)
+                    {
+                        float ra = UI.Ds.EaseOut((el - 0.25f - i * 0.07f) * 4f) * a; if (ra <= 0) continue;
+                        bool me = lines[i].StartsWith("\u0001"); var parts = lines[i].TrimStart('\u0001').Split('\t');
+                        float yy = sy + i * rh, ox = (1f - ra) * UI.Ds.Px(0.04f);
+                        UI.Ds.Rect(sx + ox, yy, sw, rh - 0.006f, me ? UI.Ds.A(acc, 0.95f * ra) : UI.Ds.A(UI.Ds.Surface, 0.9f * ra));
+                        UI.Ds.Rect(sx + ox, yy, UI.Ds.Px(0.045f), rh - 0.006f, UI.Ds.A(me ? Color.White : UI.Ds.Surface2, (me ? 0.2f : 1f) * ra));
+                        UI.Ds.T((i + 1).ToString(), sx + ox + UI.Ds.Px(0.0225f), yy + 0.008f, 0.46f, UI.Ds.A(me ? Color.White : UI.Ds.Text, ra), UI.Ds.Display, Alignment.Center);
+                        UI.Ds.T((me ? "YOU" : parts[0]).ToUpperInvariant(), sx + ox + UI.Ds.Px(0.06f), yy + 0.01f, 0.4f, UI.Ds.A(me ? UI.Ds.Bg : UI.Ds.Text, ra), UI.Ds.Display);
+                        UI.Ds.T(parts.Length > 1 ? parts[1] : "", sx + ox + sw - UI.Ds.Px(0.015f), yy + 0.01f, 0.4f, UI.Ds.A(me ? UI.Ds.Bg : UI.Ds.Muted, ra), UI.Ds.Display, Alignment.Right);
+                    }
+                }
+                if (el > 1.2f)
+                {
+                    UI.Buttons.Draw(Control.FrontendAccept, "Continue");
+                    if (UI.Input.JustPressed(Control.FrontendAccept) || UI.Input.JustPressed(Control.FrontendCancel)) break;
+                }
+                if (el > 25f) break;
                 Script.Wait(0);
             }
+            try { Function.Call(Hash.ANIMPOSTFX_STOP_ALL); } catch { }
         }
 
         private static void T(string s, float x, float y, float scale, Color c, Font f)
