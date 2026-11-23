@@ -49,7 +49,7 @@ namespace MidnightClub.Workshops
         {
             this.saves = saves; this.money = money; this.registry = registry; this.vehicles = vehicles; this.stack = stack;
             EventBus.Subscribe<MidnightTickEvent>(e => Tick());
-            EventBus.Subscribe<ModeChangedEvent>(e => { if (e.To == GameMode.MIDNIGHT_CLUB) PlaceBlips(); else { ClearBlips(); CloseDoors(); } });
+            EventBus.Subscribe<ModeChangedEvent>(e => { if (e.To == GameMode.MIDNIGHT_CLUB) PlaceBlips(); else { ClearBlips(); CloseDoors(); CloseAllGates(); } });
             EventBus.Subscribe<Explore.DiscoveredEvent>(e => { if (e.Id.StartsWith("ws:")) PlaceBlips(); });
         }
 
@@ -116,26 +116,43 @@ namespace MidnightClub.Workshops
             nearby = null;
             foreach (var w in All)
             {
-                var ent = Entrance(w);
-                float d = Math.Min(pos.DistanceTo(ent), pos.DistanceTo(w.Position));
+                float d = pos.DistanceTo(w.Position);
+                if (d < 90f) OpenGates(w);
+                else if (d > 140f) CloseGates(w);
                 if (d > 90f) continue;
                 if (!Explore.Discovery.Known("ws:" + w.Id)) continue;
-                bool inRange = d < 6f;
-                UI.WorldMarker.Draw(ent, 3f, Color.FromArgb(255, 251, 191, 36), MarkerType.Boxes, w.Name, inRange ? "Press to enter" : (w.Specialty ?? "Mod shop") + " mod shop", pos.DistanceTo(ent), inRange);
-                if (inRange) nearby = w;
+                var ent = Entrance(w);
+                bool inside = d < 5f;
+                // marker outside the door says "drive in"; inside the bay the shop opens once you stop
+                UI.WorldMarker.Draw(inside ? w.Position : ent, 3f, Color.FromArgb(255, 251, 191, 36), MarkerType.Boxes, w.Name, inside ? "Stop to open the shop" : "Drive in  ·  " + (w.Specialty ?? "Mod") + " mod shop", pos.DistanceTo(inside ? w.Position : ent), inside);
+                if (inside) nearby = w;
             }
-            if (nearby == null || stack.IsOpen) return;
             var car = vehicles.Current;
-            if (car == null || !car.Exists() || car.Speed > 3f) return;
-            Screen.ShowHelpTextThisFrame("~INPUT_CONTEXT~ Enter " + nearby.Name);
-            if (Game.IsControlJustPressed(Control.Context)) Enter(nearby, car);
+            if (nearby == null || stack.IsOpen || car == null || !car.Exists() || !Game.Player.Character.IsInVehicle(car)) { stoppedSince = -1; return; }
+            if (car.Speed > 0.8f) { stoppedSince = -1; Screen.ShowHelpTextThisFrame("Stop in the bay to open " + nearby.Name + "."); return; }
+            if (stoppedSince < 0) stoppedSince = Game.GameTime;
+            if (Game.GameTime - stoppedSince > 600 || Game.IsControlJustPressed(Control.Context)) { stoppedSince = -1; Enter(nearby); }
         }
+        private int stoppedSince = -1;
 
-        // ------------------------------------------------------------------ entering
-        // Story Mode's shop doors stay shut without the vanilla shop scripts, so the shop is entered from the
-        // driveway marker: the car is moved inside behind a fade and brought back out afterwards.
+        private void Enter(WorkshopDefinition w)
+        {
+            IsBusy = true;
+            try { new WorkshopScreen(w, vehicles, registry, saves, money).Run(); }
+            catch (Exception ex) { Log.Error("Workshop failed", ex); }
+            finally { IsBusy = false; leaveBlockUntil = Game.GameTime; }
+            // don't reopen until the car has left the bay
+            while (vehicles.Current != null && vehicles.Current.Exists() && vehicles.Current.Position.DistanceTo(w.Position) < 6f && Game.GameTime - leaveBlockUntil < 30000)
+            {
+                Screen.ShowHelpTextThisFrame("Drive out to leave " + w.Name + ".");
+                UI.Shard.Tick();
+                Script.Wait(0);
+                if (Racing.RaceManager.IsRacing) break;
+            }
+        }
+        private int leaveBlockUntil;
+
         private readonly Dictionary<string, Vector3> entrances = new Dictionary<string, Vector3>();
-
         private Vector3 Entrance(WorkshopDefinition w)
         {
             Vector3 e;
@@ -147,46 +164,107 @@ namespace MidnightClub.Workshops
             return e;
         }
 
-        private void Enter(WorkshopDefinition w, Vehicle car)
+        // ------------------------------------------------------------------ gates
+        // Story Mode keeps the shop roller doors shut without the vanilla shop scripts. Find the door props between
+        // the street and the bay: known door models are opened through the game's door system (animated); if one
+        // doesn't move (or the model isn't known) it is made passable (hidden, no collision) while you're nearby.
+        private static readonly int[] DoorModels =
         {
-            IsBusy = true;
-            var outPos = car.Position; float outHeading = car.Heading;
-            var ent = Entrance(w);
-            try
+            new Model("prop_com_ls_door_01").Hash, new Model("prop_id2_11_gdoor").Hash, new Model("prop_com_gar_door_01").Hash,
+            new Model("lr_prop_supermod_door_01").Hash, new Model("v_ilev_carmod3door").Hash, new Model("prop_sc1_21_g_door_01").Hash,
+            new Model("prop_bkr_door_01").Hash, new Model("prop_gar_door_01").Hash, new Model("prop_gar_door_02").Hash,
+            new Model("prop_gar_door_03").Hash, new Model("prop_gar_door_04").Hash, new Model("prop_gar_door_05").Hash,
+        };
+        private sealed class Gate { public Prop P; public int DoorId; public Vector3 Rot0, Pos0; public int CheckAt; public bool Hidden; }
+        private readonly Dictionary<string, List<Gate>> gates = new Dictionary<string, List<Gate>>();
+        private readonly Dictionary<string, int> gateRescan = new Dictionary<string, int>();
+        private readonly HashSet<string> loggedNone = new HashSet<string>();
+
+        private void OpenGates(WorkshopDefinition w)
+        {
+            List<Gate> list;
+            int rescan; gateRescan.TryGetValue(w.Id, out rescan);
+            if ((!gates.TryGetValue(w.Id, out list) || list.Count == 0) && Game.GameTime >= rescan)
             {
-                if (car.Position.DistanceTo(w.Position) > 4f)
-                {
-                    Screen.FadeOut(400); Script.Wait(450);
-                    var dir = w.Position - ent; dir.Z = 0;
-                    float inHeading = dir.Length() > 0.5f ? (float)(Math.Atan2(-dir.X, dir.Y) * 180.0 / Math.PI) + 180f : car.Heading;   // nose out
-                    Function.Call(Hash.SET_FOCUS_POS_AND_VEL, w.Position.X, w.Position.Y, w.Position.Z, 0f, 0f, 0f);
-                    car.Position = w.Position; car.Heading = inHeading; car.Velocity = Vector3.Zero;
-                    Function.Call(Hash.SET_VEHICLE_ON_GROUND_PROPERLY, car, 5f);
-                    int t0 = Game.GameTime;
-                    while (Function.Call<int>(Hash.GET_INTERIOR_FROM_ENTITY, car) == 0 && Game.GameTime - t0 < 1500) Script.Wait(50);
-                    Function.Call(Hash.CLEAR_FOCUS);
-                }
-                new WorkshopScreen(w, vehicles, registry, saves, money).Run();
-            }
-            catch (Exception ex) { Log.Error("Workshop failed", ex); }
-            finally
-            {
+                gateRescan[w.Id] = Game.GameTime + 3000;
+                list = new List<Gate>(); gates[w.Id] = list;
+                var ent = Entrance(w); var mid = (ent + w.Position) * 0.5f;
                 try
                 {
-                    var c = vehicles.Current;
-                    if (c != null && c.Exists() && c.Position.DistanceTo(w.Position) < 8f && ent.DistanceTo(w.Position) > 4f)
+                    foreach (var p in World.GetNearbyProps(mid, 18f))
                     {
-                        Screen.FadeOut(250); Script.Wait(300);
-                        var dir = ent - w.Position; dir.Z = 0;
-                        c.Position = ent; c.Heading = dir.Length() > 0.5f ? (float)(Math.Atan2(-dir.X, dir.Y) * 180.0 / Math.PI) : outHeading;
-                        c.Velocity = Vector3.Zero; Function.Call(Hash.SET_VEHICLE_ON_GROUND_PROPERLY, c, 5f);
-                        Function.Call(Hash.SET_GAMEPLAY_CAM_RELATIVE_HEADING, 0f);
-                        Script.Wait(200); Screen.FadeIn(400);
+                        if (p == null || !p.Exists()) continue;
+                        int hash = p.Model.Hash; bool known = Array.IndexOf(DoorModels, hash) >= 0;
+                        Vector3 mn, mx; p.Model.GetDimensions(out mn, out mx); var size = mx - mn;
+                        float wide = Math.Max(size.X, size.Y), thin = Math.Min(size.X, size.Y);
+                        bool gateShape = wide >= 2.8f && thin <= 0.9f && size.Z >= 2.0f && size.Z <= 7f;
+                        if (!known && !gateShape) continue;
+                        // must sit between the street and the bay
+                        if (DistToSegment(p.Position, ent, w.Position) > 6f) continue;
+                        var g = new Gate { P = p, Rot0 = p.Rotation, Pos0 = p.Position, CheckAt = Game.GameTime + 1500 };
+                        if (known)
+                        {
+                            g.DoorId = unchecked((int)(0x4D430000 ^ p.Handle));
+                            var dp = p.Position;
+                            Function.Call(Hash.ADD_DOOR_TO_SYSTEM, g.DoorId, hash, dp.X, dp.Y, dp.Z, false, false, false);
+                            Function.Call(Hash.DOOR_SYSTEM_SET_DOOR_STATE, g.DoorId, 0, false, true);
+                            Function.Call(Hash.DOOR_SYSTEM_SET_HOLD_OPEN, g.DoorId, true);
+                            Function.Call(Hash.DOOR_SYSTEM_SET_OPEN_RATIO, g.DoorId, 1f, false, true);
+                        }
+                        else Hide(g);
+                        list.Add(g);
+                        Log.Info("Shop gate at " + w.Id + ": model " + hash + (known ? " (door system)" : " (made passable)") + " size " + size);
                     }
                 }
-                catch (Exception ex) { Log.Error("Workshop exit", ex); }
-                IsBusy = false;
+                catch (Exception ex) { Log.Error("Shop gates " + w.Id, ex); }
+                if (list.Count == 0 && !loggedNone.Contains(w.Id)) { loggedNone.Add(w.Id); Log.Info("Shop gate at " + w.Id + ": none found yet"); }
             }
+            if (list == null) return;
+            foreach (var g in list)
+            {
+                if (g.P == null || !g.P.Exists()) continue;
+                if (g.DoorId != 0 && !g.Hidden)
+                {
+                    Function.Call(Hash.DOOR_SYSTEM_SET_OPEN_RATIO, g.DoorId, 1f, false, true);
+                    if (g.CheckAt > 0 && Game.GameTime > g.CheckAt)
+                    {
+                        g.CheckAt = 0;
+                        bool moved = (g.P.Rotation - g.Rot0).Length() > 5f || g.P.Position.DistanceTo(g.Pos0) > 0.5f;
+                        if (!moved) { Hide(g); Log.Info("Shop gate at " + w.Id + " did not open through the door system; made passable"); }
+                    }
+                }
+                if (g.Hidden) Function.Call(Hash.SET_ENTITY_LOCALLY_INVISIBLE, g.P);
+            }
+        }
+
+        private static void Hide(Gate g)
+        {
+            g.Hidden = true;
+            Function.Call(Hash.SET_ENTITY_COLLISION, g.P, false, false);
+            Function.Call(Hash.SET_ENTITY_VISIBLE, g.P, false, false);
+        }
+
+        private void CloseGates(WorkshopDefinition w)
+        {
+            List<Gate> list; if (!gates.TryGetValue(w.Id, out list)) return;
+            foreach (var g in list)
+                try
+                {
+                    if (g.DoorId != 0) { Function.Call(Hash.DOOR_SYSTEM_SET_HOLD_OPEN, g.DoorId, false); Function.Call(Hash.REMOVE_DOOR_FROM_SYSTEM, g.DoorId); }
+                    if (g.Hidden && g.P != null && g.P.Exists()) { Function.Call(Hash.SET_ENTITY_COLLISION, g.P, true, true); Function.Call(Hash.SET_ENTITY_VISIBLE, g.P, true, false); }
+                }
+                catch { }
+            gates.Remove(w.Id);
+        }
+
+        public void CloseAllGates() { foreach (var w in All) CloseGates(w); }
+
+        private static float DistToSegment(Vector3 p, Vector3 a, Vector3 b)
+        {
+            var ab = b - a; ab.Z = 0; var ap = p - a; ap.Z = 0;
+            float l2 = ab.LengthSquared(); if (l2 < 0.01f) return ap.Length();
+            float t = Math.Max(0f, Math.Min(1f, Vector3.Dot(ap, ab) / l2));
+            return (ap - ab * t).Length();
         }
     }
 }

@@ -1,4 +1,8 @@
 # Changelog
+## 0.22.1 (2026-11-23): drive into the mod shops for real
+- No more teleport: the shop doors are opened. Door props between the street and the bay are found automatically; known roller-door models are opened through the game's door system (animated, held open); any door that doesn't move, or an unknown gate-shaped prop, is made passable (hidden, no collision) while you're nearby, and restored when you leave the area or Midnight Club.
+- Drive into the bay and stop: the shop opens by itself after a moment (or press Context). After closing it you drive out yourself; it won't reopen until you've left the bay.
+- Log lines "Shop gate at <shop>: ..." show what was found per shop.
 ## 0.22.0 (2026-11-23): fixes + AAA chase cameras
 - FIX: mod shops in LS Customs buildings could not be entered (Story Mode keeps their doors shut without the vanilla shop scripts). The marker is now on the driveway in front of the door; entering moves the car inside behind a fade and brings it back out (nose out) afterwards.
 - FIX: vanilla map blips (Story missions, LS Customs, shops...) are hidden in Midnight Club and restored when you leave; every Midnight Club blip is registered and stays.
