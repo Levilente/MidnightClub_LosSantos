@@ -50,7 +50,8 @@ namespace MidnightClub.UI
         public static Color Mix(Color a, Color b, float t) { t = t < 0 ? 0 : t > 1 ? 1 : t; return Color.FromArgb((int)(a.A + (b.A - a.A) * t), (int)(a.R + (b.R - a.R) * t), (int)(a.G + (b.G - a.G) * t), (int)(a.B + (b.B - a.B) * t)); }
 
         // ---------------------------------------------------------------- motion
-        public static float Dt { get { return Math.Min(0.1f, Game.LastFrameTime); } }
+        /// <summary>Real (unscaled) frame time, so UI animations keep their speed in slow motion.</summary>
+        public static float Dt { get { float ts = Game.TimeScale; return Math.Min(0.1f, ts > 0.05f ? Game.LastFrameTime / ts : 1f / 60f); } }
         /// <summary>Frame-rate independent exponential approach.</summary>
         public static float Damp(float cur, float target, float speed) { return cur + (target - cur) * (1f - (float)Math.Exp(-speed * Dt)); }
         public static float Step(float cur, float target, float perSecond) { float d = perSecond * Dt; return cur < target ? Math.Min(target, cur + d) : Math.Max(target, cur - d); }

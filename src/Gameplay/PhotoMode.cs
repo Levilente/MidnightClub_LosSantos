@@ -30,7 +30,7 @@ namespace MidnightClub.Gameplay
             bool lightsWere = car.AreLightsOn;
             float yaw = car.Heading + 145f, pitch = 8f, dist = 6.5f, fov = 42f, roll = 0f, dof = 0.6f, fstr = 1f, hour = h0 + m0 / 60f;
             int filter = 1, sel = 0; bool lights = lightsWere, driver = true, ui = true;
-            int shotAt = -100000, enter = Game.GameTime;
+            int shotAt = -100000, enter = Environment.TickCount;
             var cam = World.CreateCamera(car.Position, Vector3.Zero, fov);
             cam.IsActive = true; Function.Call(Hash.RENDER_SCRIPT_CAMS, true, true, 600, true, false, 0);
             Function.Call(Hash.SET_TIME_SCALE, 0f);
@@ -72,8 +72,8 @@ namespace MidnightClub.Gameplay
                     Function.Call(Hash.SET_ENTITY_VISIBLE, ped, driver, false);
 
                     // ---- input
-                    bool shooting = Game.GameTime - shotAt < 650;
-                    if (!shooting && Game.GameTime - enter > 300)
+                    bool shooting = Environment.TickCount - shotAt < 650;
+                    if (!shooting && Environment.TickCount - enter > 300)
                     {
                         if (Input.JustPressed(Control.FrontendY) || Input.JustPressed(Control.Jump)) ui = !ui;
                         if (ui)
@@ -98,14 +98,14 @@ namespace MidnightClub.Gameplay
                         bool accept = Input.JustPressed(Control.FrontendAccept);
                         if ((accept && ui && sel == 8) || Input.JustPressed(Control.FrontendX) || (!ui && accept))
                         {
-                            shotAt = Game.GameTime; saves.Data.PhotosTaken++; saves.IsDirty = true;
+                            shotAt = Environment.TickCount; saves.Data.PhotosTaken++; saves.IsDirty = true;
                             Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "Camera_Shoot", "Phone_SoundSet_Michael", true);
                             if (saves.Data.PhotosTaken == 1 && Career.Progression.Instance != null) Career.Progression.Instance.Award(250, "First photo");
                         }
                         if ((accept && ui && sel == 9) || Input.JustPressed(Control.FrontendCancel)) break;
                     }
                     // ---- UI
-                    float flash = 1f - Math.Min(1f, (Game.GameTime - shotAt) / 350f);
+                    float flash = 1f - Math.Min(1f, (Environment.TickCount - shotAt) / 350f);
                     if (flash > 0) Ds.Rect(0f, 0f, 1f, 1f, Ds.A(Color.White, flash * 0.85f));
                     if (ui && !shooting) Panel(sel, fov, roll, dof, FilterNames[filter], fstr, hour, lights, driver, saves.Data.PhotosTaken);
                     else if (!ui && !shooting) Ds.T("PHOTO MODE  ·  SPACE / Y  SHOW CONTROLS  ·  ENTER / A  SHOOT", 0.5f, 0.95f, 0.26f, Ds.A(Color.White, 0.55f), Ds.Display, GTA.UI.Alignment.Center);

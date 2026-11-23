@@ -329,7 +329,7 @@ namespace MidnightClub.Racing
         }
 
         // ------------------------------------------------------------------ finish cinematic
-        private Camera finCam; private int finStart = -1; private float finYaw;
+        private Camera finCam; private int finStart = -1, finReal; private float finYaw;
         /// <summary>Slow-motion orbit around the car for ~2.6 s after crossing the line. True while running.</summary>
         private bool FinishCinematic(int now)
         {
@@ -337,17 +337,17 @@ namespace MidnightClub.Racing
             if (finStart == -2) return false;
             if (finStart < 0)
             {
-                finStart = now; finYaw = car.Heading + 120f;
+                finStart = now; finReal = Environment.TickCount; finYaw = car.Heading + 120f;
                 if (Cameras.CameraSystem.Instance != null) Cameras.CameraSystem.Instance.Release();
                 finCam = World.CreateCamera(car.Position, Vector3.Zero, 38f);
                 finCam.IsActive = true; Function.Call(Hash.RENDER_SCRIPT_CAMS, true, true, 250, true, false, 0);
                 Function.Call(Hash.SET_TIME_SCALE, 0.35f);
                 try { Function.Call(Hash.ANIMPOSTFX_PLAY, "MinigameEndNeutral", 0, false); } catch { }
             }
-            float el = (now - finStart) / 1000f;   // game time runs slow too
+            float el = (Environment.TickCount - finReal) / 1000f;   // real seconds
             Game.DisableAllControlsThisFrame();
             Function.Call(Hash.HIDE_HUD_AND_RADAR_THIS_FRAME);
-            finYaw += 18f * Game.LastFrameTime / Math.Max(0.05f, Game.TimeScale) * 0.35f;
+            finYaw += 14f * UI.Ds.Dt;
             float yr = finYaw * (float)Math.PI / 180f;
             var tgt = car.Position + new Vector3(0, 0, 0.5f);
             finCam.Position = tgt + new Vector3(-(float)Math.Sin(yr) * 6.5f, (float)Math.Cos(yr) * 6.5f, 1.1f);
@@ -357,7 +357,7 @@ namespace MidnightClub.Racing
             float a = Math.Min(1f, el * 3f);
             UI.Ds.T(big, 0.5f, 0.68f, 2.4f, UI.Ds.A(pos == 1 || !Def.HasOpponents ? UI.Ds.Amber : UI.Ds.Text, a), UI.Ds.Display, Alignment.Center);
             UI.Ds.T(FormatTime(Player.FinishTime), 0.5f, 0.86f, 0.62f, UI.Ds.A(UI.Ds.Text, a), UI.Ds.Display, Alignment.Center);
-            if (el < 0.95f) return true;   // ~2.7 s real time at 0.35x
+            if (el < 2.7f) return true;
             EndCinematic();
             return false;
         }
