@@ -101,7 +101,7 @@ namespace MidnightClub.Phone
             this.saves = saves; this.stack = stack; this.menu = menu; this.calendar = calendar; this.races = races; this.rivalsMenu = rivalsMenu; this.clubsMenu = clubsMenu;
             apps.Add(new App { Name = "Races", Icon = "races", Accent = Ds.Red, Open = () => Category("Races", "races", new[] {
                     Sub("Race events", () => races.RacesMenu(), () => races.Races.Count(r => races.Available(r)) + " open"),
-                    Sub("Rivals", () => this.rivalsMenu(), () => saves.Data.Rivals.Count(r => r.Defeated) + " / 6 beaten"),
+                    Sub("Rivals", () => this.rivalsMenu(), () => saves.Data.Rivals.Count(r => r.Defeated) + " / " + RivalManager.Profiles.Count + " beaten"),
                     Sub("Rankings", Rankings, () => "#" + MyRank()) }),
                 Meta = () => races.Races.Count(r => races.Available(r)) + " OPEN  ·  " + races.Championships.Count() + " CHAMPIONSHIPS" });
             apps.Add(new App { Name = "Garage", Icon = "garage", Accent = Ds.Cyan, Open = () => Category("Garage", "garage", new[] {
@@ -378,7 +378,7 @@ namespace MidnightClub.Phone
             }
             float rx = XR - Ds.Px(0.1f);
             Ds.T("$" + d.Cash.ToString("N0"), rx, ty - 0.006f, 0.75f, Ds.A(Ds.Text, a), Ds.Display, GTA.UI.Alignment.Right);
-            Ds.T(d.Rep.ToString("N0") + " REP" + (CareerManager.Instance != null ? "  ·  " + CareerManager.Instance.TierName.ToUpperInvariant() : ""), rx, ty + 0.055f, 0.3f, Ds.A(Ds.Muted, a), Ds.Display, GTA.UI.Alignment.Right);
+            Ds.T((d.ClubMember ? "MIDNIGHT CLUB MEMBER  ·  " : "") + d.Rep.ToString("N0") + " REP" + (CareerManager.Instance != null ? "  ·  " + CareerManager.Instance.TierName.ToUpperInvariant() : ""), rx, ty + 0.055f, 0.3f, Ds.A(Ds.Muted, a), Ds.Display, GTA.UI.Alignment.Right);
             return a;
         }
 

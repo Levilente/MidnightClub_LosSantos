@@ -43,6 +43,7 @@ namespace MidnightClub.Rivals
             new RivalProfile { Id = "nikki", Name = "Nikki Sato", Archetype = "Drift specialist", Bio = "Scores before style? Not in her book.", Likes = v => v.Drift || v.Tuner, Style = RaceType.Drift, UnlockTier = 2, BaseCarTier = 3 },
             new RivalProfile { Id = "vance", Name = "Vance Holloway", Archetype = "Highway racer", Bio = "Lives at 300 km/h on the freeway at 3 a.m.", Likes = v => v.Class == VehicleClass.Sports || v.Class == VehicleClass.Super, Style = RaceType.Sprint, UnlockTier = 3, BaseCarTier = 4 },
             new RivalProfile { Id = "volkov", Name = "Dmitri Volkov", Archetype = "Supercar specialist", Bio = "Money buys speed. He has plenty of both.", Likes = v => v.Class == VehicleClass.Super, Style = RaceType.Circuit, UnlockTier = 4, BaseCarTier = 5 },
+            new RivalProfile { Id = "president", Name = "\"The President\"", Archetype = "Leader of the Midnight Club", Bio = "Nobody knows his real name. Beat him three times and the Midnight Club is yours.", Likes = v => v.Class == VehicleClass.Super, Style = RaceType.Sprint, UnlockTier = 5, BaseCarTier = 6 },
         };
 
         public RivalManager(SaveManager saves, TransactionManager money, VehicleRegistry registry, RaceManager races, GarageManager garages, MenuStack stack)
@@ -275,6 +276,12 @@ namespace MidnightClub.Rivals
                     else { money.Earn(car.BasePrice / 2, 0, "rival", p.Name + "'s car (no garage space, sold)", "rival-car:" + p.Id); Notification.PostTicker("No garage space for " + p.Name + "'s car, so it was sold for you.", true, false); }
                 }
                 EventBus.Publish(new RivalDefeatedEvent(p.Id));
+                if (p.Id == "president")
+                {
+                    saves.Data.ClubMember = true;
+                    Shard.Big("WELCOME TO THE MIDNIGHT CLUB", "You beat the President. Los Santos after dark belongs to you.", Shard.Gold, 9000);
+                    money.Earn(250000, 5000, "rival", "Midnight Club membership", "president-final");
+                }
             }
             saves.Save();
         }
