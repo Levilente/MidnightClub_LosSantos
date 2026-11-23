@@ -29,6 +29,7 @@ namespace MidnightClub.Phone
         private readonly WorldCalendar calendar;
         private readonly RaceManager races;
         private readonly Func<Menu> rivalsMenu, clubsMenu;
+        public static PhoneManager Instance { get; private set; }
         public bool IsOpen { get; private set; }
         private int sel;
         private readonly Random rnd = new Random();
@@ -96,6 +97,7 @@ namespace MidnightClub.Phone
 
         public PhoneManager(SaveManager saves, MenuStack stack, MidnightMenu menu, WorldCalendar calendar, RaceManager races, Func<Menu> rivalsMenu, Func<Menu> clubsMenu)
         {
+            Instance = this;
             this.saves = saves; this.stack = stack; this.menu = menu; this.calendar = calendar; this.races = races; this.rivalsMenu = rivalsMenu; this.clubsMenu = clubsMenu;
             apps.Add(new App { Name = "Races", Icon = "races", Accent = Ds.Red, Open = () => Category("Races", "races", new[] {
                     Sub("Race events", () => races.RacesMenu(), () => races.Races.Count(r => races.Available(r)) + " open"),
@@ -115,6 +117,7 @@ namespace MidnightClub.Phone
                     Sub("Progress", () => Progression.Instance != null ? Progression.Instance.ProgressMenu() : null, () => Progression.Instance != null ? "Level " + Progression.Instance.Level : ""),
                     Sub("Goals", () => MilestonesMenu != null ? MilestonesMenu() : null, () => saves.Data.MilestonesDone.Count + " / 13"),
                     Sub("Special ability", () => AbilityMenu != null ? AbilityMenu() : null, () => Gameplay.Abilities.Instance != null && Gameplay.Abilities.Instance.Selected != null ? Gameplay.Abilities.Instance.Selected : ""),
+                    Sub("Turf war", () => Explore.Turf.Instance != null ? Explore.Turf.Instance.TurfMenu() : null, () => Explore.Turf.Instance != null ? Explore.Turf.Instance.Owned + " / " + Explore.Turf.Districts.Length + " districts" : ""),
                     Sub("Bank", () => menu.Finances(), () => "$" + saves.Data.Cash.ToString("N0")) }),
                 Meta = () => (CareerManager.Instance != null ? "TIER " + CareerManager.Instance.Tier : "") + (Progression.Instance != null ? "  ·  LEVEL " + Progression.Instance.Level : "") });
             apps.Add(new App { Name = "Social", Icon = "social", Accent = Ds.Violet, Open = () => Category("Social", "social", new[] {
@@ -156,7 +159,7 @@ namespace MidnightClub.Phone
             Notification.PostTicker("~p~" + from + "~s~: " + subject, false, false);
         }
 
-        private void News(string headline, string body)
+        public void News(string headline, string body)
         {
             saves.Data.News.Add(new NewsItem { Headline = headline, Body = body, Utc = DateTime.UtcNow.ToString("o"), Day = calendar.Day });
             saves.IsDirty = true;
