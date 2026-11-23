@@ -86,6 +86,7 @@ namespace MidnightClub.Phone
             m.Add(flag("HUD", "Show", () => cfg.ShowHud, v => cfg.ShowHud = v, "HUD"));
             m.Add(flag("Welcome screen", "WelcomeScreen", () => cfg.ShowWelcome, v => cfg.ShowWelcome = v, "HUD"));
             m.Add(flag("Always night", "AlwaysNight", () => cfg.AlwaysNight, v => cfg.AlwaysNight = v, "World"));
+            m.Add(flag("Rewind (hold R / B)", "Rewind", () => cfg.Rewind, v => cfg.Rewind = v, "Gameplay"));
             m.Add(flag("Police", "Enabled", () => cfg.PoliceEnabled, v => cfg.PoliceEnabled = v, "Police"));
             return m;
         }
@@ -104,7 +105,8 @@ namespace MidnightClub.Phone
             apps.Add(new App { Name = "Garage", Icon = "garage", Accent = Ds.Cyan, Open = () => Category("Garage", "garage", new[] {
                     Sub("My vehicles", () => menu.MyVehicles(), () => saves.Data.Vehicles.Count.ToString()),
                     Sub("Properties", () => menu.GarageList(), () => saves.Data.Garages.Count + " owned"),
-                    Sub("Vehicle catalogue", () => menu.Catalogue(), null) }),
+                    Sub("Vehicle catalogue", () => menu.Catalogue(), null),
+                    Sub("Photo mode", () => { stack.Close(); IsOpen = false; openT = 0f; Effects(false); Gameplay.PhotoMode.Run(saves, Vehicles.VehicleManager.Instance); return null; }, () => saves.Data.PhotosTaken > 0 ? saves.Data.PhotosTaken + " shots" : "New") }),
                 Meta = () => saves.Data.Vehicles.Count + (saves.Data.Vehicles.Count == 1 ? " CAR" : " CARS") + CurrentCarName() });
             apps.Add(new App { Name = "Dealers", Icon = "dealers", Accent = Ds.Amber, Open = () => menu.DealerList(),
                 Meta = () => menu.Dealers == null ? "" : "NEW STOCK IN " + menu.Dealers.Definitions.Min(x => menu.Dealers.DaysUntilRotation(x)) + " DAYS" });

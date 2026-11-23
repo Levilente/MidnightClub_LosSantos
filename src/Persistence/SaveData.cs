@@ -30,6 +30,7 @@ namespace MidnightClub.Persistence
         [DataMember] public List<KeyValue> SpeedTrapRecords = new List<KeyValue>();   // trap id -> km/h
         [DataMember] public List<string> MeetShowoffs = new List<string>();            // "meetId:day" already rewarded
         [DataMember] public int StreetRacesWon;
+        [DataMember] public int PhotosTaken;
         [DataMember] public List<PhoneMessage> Messages = new List<PhoneMessage>();
         [DataMember] public List<NewsItem> News = new List<NewsItem>();
         [DataMember] public int LastInviteDay = -1;

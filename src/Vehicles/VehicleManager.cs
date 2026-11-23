@@ -12,6 +12,8 @@ namespace MidnightClub.Vehicles
     /// guarantees the car can never be permanently destroyed.</summary>
     public sealed class VehicleManager
     {
+        public static VehicleManager Instance { get; private set; }
+        public VehicleManager() { Instance = this; }
         public Vehicle Current { get; private set; }
         public OwnedVehicle CurrentRecord { get; private set; }
         private Vector3 lastPos; private bool hasLastPos;
