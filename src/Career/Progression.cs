@@ -216,6 +216,14 @@ namespace MidnightClub.Career
         {
             if (saves.Data == null) return;
             WeeklyBump(kind, amount, max);
+            if (Story.Instance != null) Story.Instance.Track(kind, amount, max);
+            if (Disciplines.Instance != null)
+            {
+                if (kind == "outrun") Disciplines.Instance.Add(Racing.Discipline.Street, 180, kind);
+                else if (kind == "zone") Disciplines.Instance.Add(Racing.Discipline.Drift, 120, kind);
+                else if (kind == "trap") Disciplines.Instance.Add(Racing.Discipline.Street, 60, kind);
+                else if (kind == "takedown") Disciplines.Instance.Add(Racing.Discipline.Street, 40, kind);
+            }
             foreach (var c in Today)
             {
                 if (c.Kind != kind || Done(c)) continue;

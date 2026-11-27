@@ -88,6 +88,8 @@ namespace MidnightClub.Explore
                     long cash = (long)Math.Min(25000, score * 0.4f), rep = (long)Math.Min(800, score / 40f);
                     money.Earn(cash, rep, "takeover", "Street takeover " + ((long)score).ToString("N0"), null);
                     if (Career.Progression.Instance != null) { Career.Progression.Instance.Award(300 + (long)(score / 50), "Street takeover"); Career.Progression.Instance.Bump("style", (long)score); }
+                    if (Career.Story.Instance != null) Career.Story.Instance.Track("takeover", (long)score, true);
+                    if (Career.Disciplines.Instance != null) Career.Disciplines.Instance.Add(Racing.Discipline.Drift, 150 + (long)(score / 60), "takeover");
                     Shard.Big("TAKEOVER  " + ((long)score).ToString("N0"), "+$" + cash.ToString("N0") + "  ·  +" + rep + " REP  ·  cops inbound, scatter!", Shard.Orange, 4500);
                     foreach (var p in crowd) if (p.Exists()) { Function.Call(Hash.CLEAR_PED_TASKS, p); p.Task.FleeFrom(spot); }
                 }

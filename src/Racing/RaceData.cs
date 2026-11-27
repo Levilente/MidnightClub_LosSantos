@@ -10,7 +10,8 @@ using MidnightClub.Core;
 
 namespace MidnightClub.Racing
 {
-    public enum RaceType { Sprint, Circuit, TimeTrial, Drift, HeadToHead, Rally, Drag, Elimination }
+    public enum RaceType { Sprint, Circuit, TimeTrial, Drift, HeadToHead, Rally, Drag, Elimination, Offroad, CrossCountry, HillClimb, Gymkhana, Moto }
+    public enum Discipline { Street, Drift, Offroad, Drag, Bikes }
 
     [DataContract]
     public sealed class RaceDefinition
@@ -27,7 +28,26 @@ namespace MidnightClub.Racing
         public RaceType Kind { get { RaceType t; return Enum.TryParse(Type, true, out t) ? t : RaceType.Sprint; } }
         public Vector3 Start { get { var p = Points[0]; return new Vector3(p[0], p[1], p[2]); } }
         public float StartHeading { get { var p = Points[0]; return p.Length > 3 ? p[3] : 0f; } }
-        public bool HasOpponents { get { return Kind != RaceType.TimeTrial && Kind != RaceType.Drift && Kind != RaceType.Rally; } }
+        public bool HasOpponents { get { var k = Kind; return k != RaceType.TimeTrial && k != RaceType.Drift && k != RaceType.Rally && k != RaceType.HillClimb && k != RaceType.Gymkhana; } }
+        /// <summary>Scored by points (drift, gymkhana) rather than time.</summary>
+        public bool Scored { get { return Kind == RaceType.Drift || Kind == RaceType.Gymkhana; } }
+        public bool BikesOnly { get { return Kind == RaceType.Moto; } }
+        public Discipline Discipline
+        {
+            get
+            {
+                switch (Kind)
+                {
+                    case RaceType.Drift: case RaceType.Gymkhana: return Discipline.Drift;
+                    case RaceType.Rally: case RaceType.Offroad: case RaceType.CrossCountry: case RaceType.HillClimb: return Discipline.Offroad;
+                    case RaceType.Drag: return Discipline.Drag;
+                    case RaceType.Moto: return Discipline.Bikes;
+                }
+                return Discipline.Street;
+            }
+        }
+        /// <summary>Discipline level needed (generated events climb 1 / 3 / 5 / 7 with their tier).</summary>
+        public int LevelNeeded { get { return Discipline == Discipline.Street ? 0 : Math.Max(1, (Tier - 1) * 2 + 1); } }
         public bool Solo { get { return !HasOpponents; } }
         public bool Lapped { get { return Kind == RaceType.Circuit; } }
     }

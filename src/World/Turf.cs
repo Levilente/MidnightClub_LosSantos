@@ -75,6 +75,7 @@ namespace MidnightClub.Explore
             if (UnderAttack(d.Id)) { saves.Data.Turf.RemoveAll(x => x.Key == "attack:" + d.Id); Shard.Mid("TURF DEFENDED", d.Name + " is safe. " + d.Crew + " backed off.", Shard.Purple); }
             if (before < 100 && after >= 100)
             {
+                if (Career.Story.Instance != null) Career.Story.Instance.Track("turfown", Owned, true);
                 Shard.Big("DISTRICT TAKEN", d.Name + " is yours. " + d.Crew + " are out. +$" + d.Income.ToString("N0") + " every night.", Shard.Purple, 6000);
                 if (Phone.PhoneManager.Instance != null) Phone.PhoneManager.Instance.News("Street racers take over " + d.Name, "The " + d.Crew + " crew has lost its grip on " + d.Name + ". Locals say a new name runs the streets after midnight.");
                 if (Career.Progression.Instance != null) Career.Progression.Instance.Award(2000, "District taken");

@@ -80,7 +80,14 @@ namespace MidnightClub.Racing
         public void RemoveCustom(string id) { lib.Races.RemoveAll(x => x.Id == id); RefreshBlips(); }
         public void StartNow(RaceDefinition r) { if (session == null && !Explore.Deliveries.Active) StartRace(r, null); }
 
-        public bool Available(RaceDefinition r) { return saves.Data.Rep >= r.RequiredRep && (!r.NightOnly || calendar.IsNight); }
+        public bool Available(RaceDefinition r) { return saves.Data.Rep >= r.RequiredRep && (!r.NightOnly || calendar.IsNight) && (r.LevelNeeded == 0 || Career.Disciplines.Level(r.Discipline) >= r.LevelNeeded); }
+        public string LockReason(RaceDefinition r)
+        {
+            if (r.LevelNeeded > 0 && Career.Disciplines.Level(r.Discipline) < r.LevelNeeded) return Career.Disciplines.Name(r.Discipline) + " lvl " + r.LevelNeeded;
+            if (saves.Data.Rep < r.RequiredRep) return r.RequiredRep.ToString("N0") + " REP";
+            if (r.NightOnly && !calendar.IsNight) return "Night only";
+            return "";
+        }
 
         public long BestTime(string id)
         {
@@ -180,7 +187,7 @@ namespace MidnightClub.Racing
 
         private static string TypeLabel(RaceDefinition r)
         {
-            switch (r.Kind) { case RaceType.Circuit: return "Circuit"; case RaceType.TimeTrial: return "Time trial"; case RaceType.Drift: return "Drift challenge"; case RaceType.HeadToHead: return "Head-to-head"; case RaceType.Rally: return "Rally stage"; case RaceType.Drag: return "Drag race"; case RaceType.Elimination: return "Elimination"; default: return "Sprint"; }
+            switch (r.Kind) { case RaceType.Circuit: return "Circuit"; case RaceType.TimeTrial: return "Time trial"; case RaceType.Drift: return "Drift challenge"; case RaceType.HeadToHead: return "Head-to-head"; case RaceType.Rally: return "Rally stage"; case RaceType.Drag: return "Drag race"; case RaceType.Elimination: return "Elimination"; case RaceType.Offroad: return "Off-road race"; case RaceType.CrossCountry: return "Cross country"; case RaceType.HillClimb: return "Hill climb"; case RaceType.Gymkhana: return "Gymkhana"; case RaceType.Moto: return "Bike race"; default: return "Sprint"; }
         }
 
         public Menu RacesMenu()
@@ -330,7 +337,7 @@ namespace MidnightClub.Racing
             car.Position = r.Start; car.Heading = heading; car.PlaceOnGround(); car.Repair();
             session = new RaceSession(r, lap);
             session.AddPlayer(car, ped);
-            if (rivalSpec != null && rivalSpec.Car != null && r.Kind != RaceType.Drift)
+            if (rivalSpec != null && rivalSpec.Car != null && !r.Scored)
             {
                 session.SpawnOpponents(new[] { rivalSpec.Name }, new[] { rivalSpec.Car }, r.Start, heading, saves.Data.RacesStarted);
                 foreach (var x in session.Racers) if (!x.IsPlayer) { x.Skill = rivalSpec.Skill; if (x.Blip != null && x.Blip.Exists()) x.Blip.Color = BlipColor.Purple; }
@@ -341,7 +348,7 @@ namespace MidnightClub.Racing
                 var names = champ != null ? Roster(lib.Championships.First(c => c.Id == champ)).Take(n).ToList() : DriverNames.OrderBy(x => Guid.NewGuid()).Take(n).ToList();
                 session.SpawnOpponents(names, PickCars(car, n, r), r.Start, heading, saves.Data.RacesStarted);
             }
-            if (!r.HasOpponents && r.Kind != RaceType.Drift) { var g = Ghost.Load(r.Id); if (g != null) { session.Rival = g; g.Spawn(); } }
+            if (!r.HasOpponents && !r.Scored) { var g = Ghost.Load(r.Id); if (g != null) { session.Rival = g; g.Spawn(); } }
             IsRacing = true;
             Function.Call(Hash.SET_GAMEPLAY_CAM_RELATIVE_HEADING, 0f);
             Screen.FadeIn(500);
@@ -374,7 +381,7 @@ namespace MidnightClub.Racing
         private void Finish()
         {
             var s = session; var r = s.Def;
-            if (r.Kind == RaceType.Drift) s.BankDrift();
+            if (r.Scored) s.BankDrift();
             var order = s.Standings();
             int pos = s.Aborted || !s.Player.Finished ? 0 : order.IndexOf(s.Player) + 1;
             if (s.PlayerEliminated && !s.Aborted) pos = s.Racers.Count(x => !x.Out) + 1;
@@ -385,10 +392,10 @@ namespace MidnightClub.Racing
             double cashF = 0, repF = 0;
             if (pos > 0)
             {
-                if (r.Kind == RaceType.TimeTrial || r.Kind == RaceType.Drift || r.Kind == RaceType.Rally)
+                if (!r.HasOpponents)
                 {
-                    float gold = r.Kind != RaceType.Drift ? TrialTarget(r, s) : DriftTarget(r, s);
-                    Func<float, bool> better = k => r.Kind != RaceType.Drift ? res.TimeMs <= gold * 1000f * k : res.Score >= gold / k;
+                    float gold = !r.Scored ? TrialTarget(r, s) : DriftTarget(r, s);
+                    Func<float, bool> better = k => !r.Scored ? res.TimeMs <= gold * 1000f * k : res.Score >= gold / k;
                     res.Medal = better(1f) ? "Gold" : better(1.12f) ? "Silver" : better(1.3f) ? "Bronze" : "No medal";
                     cashF = res.Medal == "Gold" ? 1 : res.Medal == "Silver" ? 0.6 : res.Medal == "Bronze" ? 0.35 : 0.1;
                     repF = cashF;
@@ -405,7 +412,7 @@ namespace MidnightClub.Racing
             if (res.Cash > 0 || res.Rep > 0) money.Earn(res.Cash, res.Rep, "race", r.Name + (pos > 0 ? " (P" + pos + ")" : ""), "race-reward:" + r.Id + ":" + saves.Data.RacesStarted);
             if (rec != null) { rec.Stats.RacesEntered++; if (pos == 1 && r.HasOpponents) rec.Stats.RacesWon++; }
             lastRecord = false;
-            if (pos > 0 && res.TimeMs > 0 && r.Kind != RaceType.Drift)
+            if (pos > 0 && res.TimeMs > 0 && !r.Scored)
             {
                 long best = BestTime(r.Id);
                 lastRecord = best > 0 && res.TimeMs < best;
@@ -430,7 +437,7 @@ namespace MidnightClub.Racing
         {
             if (r.TargetTimeSec > 0) return r.TargetTimeSec;
             float km = RouteBuilder.Length(s.Cps, r.Start) / 1000f;
-            return km / (r.Kind == RaceType.Rally ? 74f : 95f) * 3600f;   // gold = 95 km/h average through traffic
+            return km / (r.Kind == RaceType.Rally ? 74f : r.Kind == RaceType.HillClimb ? 62f : 95f) * 3600f;   // gold = 95 km/h average through traffic
         }
         private float DriftTarget(RaceDefinition r, RaceSession s) { return r.TargetScore > 0 ? r.TargetScore : RouteBuilder.Length(s.Cps, r.Start) * 12f; }
 
@@ -490,7 +497,7 @@ namespace MidnightClub.Racing
                 string big = dnf ? "DNF" : res.Medal != null ? res.Medal.ToUpperInvariant() : res.Position + (res.Position == 1 ? "ST" : res.Position == 2 ? "ND" : res.Position == 3 ? "RD" : "TH");
                 float bs = 2.6f + 0.6f * (1f - UI.Ds.EaseBack(Math.Min(1f, el * 2.2f)));
                 UI.Ds.T(big, x, 0.13f, bs, UI.Ds.A(UI.Ds.Text, a), UI.Ds.Display);
-                string sub = dnf ? "DID NOT FINISH" : r.Kind == RaceType.Drift ? res.Score.ToString("N0") + " PTS" : RaceSession.FormatTime((int)res.TimeMs) + (r.HasOpponents ? "   ·   P" + res.Position + " OF " + res.Of : "");
+                string sub = dnf ? "DID NOT FINISH" : r.Scored ? res.Score.ToString("N0") + " PTS" : RaceSession.FormatTime((int)res.TimeMs) + (r.HasOpponents ? "   ·   P" + res.Position + " OF " + res.Of : "");
                 UI.Ds.T(sub, x, 0.36f, 0.62f, UI.Ds.A(acc, a), UI.Ds.Display);
                 float ty = 0.43f;
                 if (lastRecord) { UI.Ds.Tag("NEW PERSONAL BEST", x, ty, UI.Ds.Lime, UI.Ds.Bg, 0.28f, a * (0.75f + 0.25f * UI.Ds.Pulse(1.2f))); ty += 0.045f; }

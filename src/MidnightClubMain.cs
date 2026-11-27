@@ -70,6 +70,8 @@ namespace MidnightClub
                 new WorldSim.Weather(cfg);
                 new Explore.Deliveries(saves, money, registry, vehicles, stack);
                 new Explore.Takeovers(saves, money, vehicles);
+                new Career.Disciplines(saves, money);
+                new Career.Story(saves, money) { stack = stack };
                 EventBus.Subscribe<MidnightTickEvent>(e =>
                 {
                     float t = cfg.TrafficDensity * (Racing.RaceManager.IsRacing ? cfg.RaceTraffic : 1f);

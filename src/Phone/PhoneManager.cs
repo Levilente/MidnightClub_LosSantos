@@ -144,6 +144,8 @@ namespace MidnightClub.Phone
             apps.Add(new App { Name = "Dealers", Icon = "dealers", Accent = Ds.Amber, Open = () => menu.DealerList(),
                 Meta = () => menu.Dealers == null ? "" : "NEW STOCK IN " + menu.Dealers.Definitions.Min(x => menu.Dealers.DaysUntilRotation(x)) + " DAYS" });
             apps.Add(new App { Name = "Career", Icon = "career", Accent = Ds.Amber, Open = () => Category("Career", "career", new[] {
+                    Sub("Story", () => Career.Story.Instance != null ? Career.Story.Instance.Menu() : null, () => Career.Story.Instance != null && Career.Story.Instance.Current != null ? "Ch. " + (saves.Data.StoryChapter + 1) + "  " + Career.Story.Instance.Current.Title : "Complete"),
+                    Sub("Disciplines", () => Career.Disciplines.Instance != null ? Career.Disciplines.Instance.Menu() : null, () => "Street " + Career.Disciplines.Level(Racing.Discipline.Street) + " · Off-road " + Career.Disciplines.Level(Racing.Discipline.Offroad)),
                     Sub("Career", () => menu.CareerMenu(), () => CareerManager.Instance != null ? "Tier " + CareerManager.Instance.Tier : ""),
                     Sub("Progress", () => Progression.Instance != null ? Progression.Instance.ProgressMenu() : null, () => Progression.Instance != null ? "Level " + Progression.Instance.Level : ""),
                     Sub("Goals", () => MilestonesMenu != null ? MilestonesMenu() : null, () => saves.Data.MilestonesDone.Count + " / 13"),
@@ -458,7 +460,8 @@ namespace MidnightClub.Phone
             float ox = X0 + CW + GX, ow = 3 * CW + 2 * GX;
             Ds.Rect(ox, yb, ow, 0.085f, Ds.A(Color.FromArgb(235, 19, 17, 28), a));
             string head = null, line = null; Color hc = Ds.Violet;
-            if (Gameplay.Objectives.CurrentText != null) { head = "NEXT OBJECTIVE"; line = Gameplay.Objectives.CurrentText; }
+            if (Career.Story.Instance != null && Career.Story.Instance.NextGoalText != null) { head = "STORY  ·  CHAPTER " + (saves.Data.StoryChapter + 1); line = Career.Story.Instance.NextGoalText; hc = Ds.Amber; }
+            else if (Gameplay.Objectives.CurrentText != null) { head = "NEXT OBJECTIVE"; line = Gameplay.Objectives.CurrentText; }
             else if (Progression.Instance != null && Progression.Instance.Today.Any(c => !Progression.Instance.Done(c))) { var dc = Progression.Instance.Today.First(c => !Progression.Instance.Done(c)); head = "DAILY CHALLENGE"; line = dc.Text; hc = Ds.Pink; }
             else if (saves.Data.News.Count > 0) { head = "STREET BUZZ"; line = saves.Data.News.Last().Headline; hc = Ds.Pink; }
             if (line != null)
