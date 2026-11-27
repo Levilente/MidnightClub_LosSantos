@@ -45,7 +45,9 @@ namespace MidnightClub.Vehicles
             s = new Spec { Kind = arch };
             var r = new Random(car.Model.Hash);
             // gearbox by era and type
-            s.Gears = year < 1982 ? 4 : year < 1996 ? 5 : 6;      // GTA handles up to 6 forward gears safely
+            // keep the car's own gear count: GTA builds the ratio table when the car spawns, so changing the number
+            // of gears on a live car leaves gears without a ratio (no drive at all in the "new" top gear)
+            s.Gears = Math.Max(1, Math.Min(10, car.HighGear > 0 ? car.HighGear : car.HandlingData.InitialDriveGears));
             if (arch == "Classic" && year < 1975) s.Gears = 4;
             float r1, rTop;
             switch (arch)
@@ -126,7 +128,6 @@ namespace MidnightClub.Vehicles
         {
             float est = info != null && info.MaxSpeed > 10f ? info.MaxSpeed : 50f;
             float vtop = s.TopGearSpeed / FinalFactor(r) / GearFactor(r, s.Gears);
-            h.InitialDriveGears = s.Gears;
             h.InitialDriveMaxFlatVelocity = stockFlat * vtop / est;
             h.InitialDriveMaxVelocity = h.InitialDriveMaxFlatVelocity * 1.6f;     // the hard cap stays well clear: drag decides
             h.DriveInertia = stockDI * s.DriveInertia;
@@ -140,7 +141,6 @@ namespace MidnightClub.Vehicles
         public static void Tick(Vehicle car, Spec s, OwnedVehicle r, bool inversePower, float dt)
         {
             Current = s;
-            if (car.HighGear != s.Gears) { try { car.HighGear = s.Gears; } catch { } }
             float rpm = car.CurrentRPM, thr = Math.Max(0f, car.Throttle);
             EngineRpm = s.Idle + Clamp((rpm - 0.2f) / 0.8f, 0f, 1f) * (s.Redline - s.Idle);
             int gear = Math.Max(1, Math.Min(s.Gears, car.CurrentGear));
