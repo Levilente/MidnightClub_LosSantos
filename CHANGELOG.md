@@ -1,4 +1,16 @@
 # Changelog
+## 0.30.0 (2026-11-27): everything car games do
+- **Rally stages** (orange blips): generated from San Andreas' dirt and back roads, with a co-driver pace-note panel (curve icons with severity 1-6, hairpins, crests, "into"), medal times and ghosts.
+- **Drag races** on generated dead-straight roads: shift lights, gear readout, perfect-shift boosts (E / L3 at the redline).
+- **Elimination races**: last place is out every 30 seconds; last one standing wins.
+- **Licence tests** (Gran Turismo): B-1 launch & stop, B-2 slalom, A-1 braking point, A-2 top speed; bronze / silver / gold targets scale with your car; B and A licences pay out.
+- **Wheelspins** (Forza Horizon): every level-up earns one, every fifth a Super Wheelspin with three reels; credits, XP, REP or a car, rarity colours.
+- **Car deliveries** (Test Drive Unlimited): drive a client's car across the city against the clock; pay depends on condition and time left.
+- **Street takeovers** (GTA VI): night-time crowds shut down an intersection; donuts and drifts in the circle build hype and score.
+- **Dynamic weather** with wet roads that cost grip (WET ROADS tag on the HUD).
+- **Race intro cinematic**: grid flyover with a title card before every race (skippable).
+- **Premium notifications** replace the GTA feed; **race progress strip** shows every racer on the route; **speed lines** past 170 km/h.
+
 ## 0.29.1 (2026-11-27)
 - Rewind removed (doesn't fit Midnight Club). R / B is back to the normal camera button.
 

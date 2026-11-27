@@ -171,3 +171,15 @@ Tick items off or note what happened. Logs: `scripts\MidnightClub\MidnightClub.l
 - [ ] Glowing purple orbs on roads (Midnight Tokens) collect when driven through; Hub > Explore > Midnight Tokens.
 - [ ] Hub > Daily > Weekly playlist shows 5 challenges.
 - [ ] Ramming an opponent off the road in a race shows TAKEDOWN.
+
+## 0.30.0
+- [ ] Orange rally blips appear a few seconds after entering; a rally shows the pace-note panel with curve arrows.
+- [ ] Green drag blips: shift lights, E at the redline gives PERFECT SHIFT.
+- [ ] Elimination races (Races list): countdown banner, last place removed.
+- [ ] Hub > Races > Licence tests: B-1 box stop, B-2 cones, results card with medal.
+- [ ] Level up → Hub > Career > Wheelspins: reel animation, prize paid.
+- [ ] Hub > Explore > Car deliveries: pick-up swaps you into the client's car, drop-off returns your own car.
+- [ ] At night: orange "Street takeover" blip, crowd, hype meter.
+- [ ] Weather changes every few minutes; rain shows WET ROADS and the car slides more.
+- [ ] Race intro: camera sweep + title card, Enter skips.
+- [ ] Notifications appear as dark cards above the minimap instead of GTA's feed.
