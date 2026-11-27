@@ -181,6 +181,7 @@ namespace MidnightClub.Phone
             Action<int> setTheme = d => { int i = Math.Max(0, Array.IndexOf(themes, cfg.UiTheme)); i = (i + d + 3) % 3; cfg.UiTheme = themes[i]; Config.Save("HUD", "Theme", cfg.UiTheme); Th.Mode = (UiMode)i; };
             G(new MenuItem("Theme", () => setTheme(1)) { Value = () => cfg.UiTheme, OnAdjust = setTheme, Description = () => "Auto follows the in-game clock: light glass by day, dark at night." }, "Display", "palette");
             G(flag("HUD", "Show", () => cfg.ShowHud, v => cfg.ShowHud = v, "HUD"), "Display", "monitor");
+            G(new MenuItem("Text calibration", () => TextCalib.On = !TextCalib.On) { Value = () => TextCalib.On ? "On" : "Off", OnAdjust = d => TextCalib.On = !TextCalib.On, Description = () => "Shows a test card for text alignment. Take a screenshot of it and send it to fix text centring exactly." }, "Display", "eye");
             G(flag("Speed effects", "SpeedEffects", () => cfg.SpeedEffects, v => cfg.SpeedEffects = v, "HUD"), "Display", "flame");
             G(flag("Welcome screen", "WelcomeScreen", () => cfg.ShowWelcome, v => cfg.ShowWelcome = v, "HUD"), "Display", "sparkles");
             G(num("Traffic density", "TrafficDensity", () => cfg.TrafficDensity, v => cfg.TrafficDensity = v, 0f, 2f, 0.1f, "World"), "World", "car-front");
