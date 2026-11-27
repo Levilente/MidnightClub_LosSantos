@@ -65,6 +65,7 @@ namespace MidnightClub
                 new Police.PursuitManager(saves, money, vehicles, cfg);
                 new Explore.Turf(saves, money);
                 new Career.Mastery(saves, money, vehicles);
+                new Explore.Tokens(saves, money, stack);
                 new WorldSim.WorldSimulationManager(saves, money, registry, vehicles, calendar, races, stack, cfg);
                 menu = new MidnightMenu(stack, modes, saves, registry, vehicles, cfg) { Garages = garages, Dealers = dealers, Races = races, RivalMgr = rivals, ClubMgr = clubs };
                 phone = new Phone.PhoneManager(saves, stack, menu, calendar, races, rivals.RivalsMenu, clubs.ClubsMenu);
