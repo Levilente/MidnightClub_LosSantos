@@ -24,6 +24,7 @@ namespace MidnightClub.Racing
         [DataMember] public float TargetTimeSec, TargetScore;            // gold targets for time trials / drift
         [DataMember] public string Classes;                              // optional vehicle class restriction, comma separated
         [DataMember] public int Tier = 1;
+        [DataMember] public bool HotPursuit;                             // police join at the start (+50% reward)
 
         public RaceType Kind { get { RaceType t; return Enum.TryParse(Type, true, out t) ? t : RaceType.Sprint; } }
         public Vector3 Start { get { var p = Points[0]; return new Vector3(p[0], p[1], p[2]); } }

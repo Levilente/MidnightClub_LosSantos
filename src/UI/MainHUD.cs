@@ -112,7 +112,8 @@ namespace MidnightClub.UI
             // car name
             string name = r == null ? "" : (string.IsNullOrEmpty(r.Nickname) ? r.Model : r.Nickname);
             if (WorldSim.Weather.Wetness > 0.3f) Ds.Tag("WET ROADS", bx, bottom - 0.16f, Ds.Cyan, Ds.Bg, 0.24f, Math.Min(1f, (WorldSim.Weather.Wetness - 0.3f) * 4f));
-            Ds.T(name.ToUpperInvariant() + (r != null ? "  ·  " + Career.Mastery.Label(r) : ""), bx, bottom - 0.052f, 0.24f, Ds.Muted, Ds.Body);
+            float pbw = r != null ? Vehicles.PerformanceIndex.Badge(Vehicles.PerformanceIndex.Of(r), bx, bottom - 0.054f, 0.02f) + Ds.Px(0.008f) : 0f;
+            Ds.T(name.ToUpperInvariant() + (r != null ? "  ·  " + Career.Mastery.Label(r) : ""), bx + pbw, bottom - 0.052f, 0.24f, Ds.Muted, Ds.Body);
         }
     }
 }

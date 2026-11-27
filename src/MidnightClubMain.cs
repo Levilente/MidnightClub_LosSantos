@@ -71,6 +71,7 @@ namespace MidnightClub
                 new Explore.Deliveries(saves, money, registry, vehicles, stack);
                 new Explore.Takeovers(saves, money, vehicles);
                 new Career.Disciplines(saves, money);
+                Career.Crew.Init(saves);
                 new Career.Story(saves, money) { stack = stack };
                 EventBus.Subscribe<MidnightTickEvent>(e =>
                 {

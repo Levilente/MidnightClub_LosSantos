@@ -77,7 +77,7 @@ namespace MidnightClub.UI
                     var info = Info(r);
                     m.Add(new MenuItem(Title(r, info), () => stack.Push(VehicleDetail(r)))
                     {
-                        Value = () => r.Id == saves.Data.CurrentVehicleId ? "~p~IN USE" : Condition(r) + "%",
+                        Value = () => Vehicles.PerformanceIndex.Label(Vehicles.PerformanceIndex.Of(r)) + "  ·  " + (r.Id == saves.Data.CurrentVehicleId ? "~p~IN USE" : Condition(r) + "%"),
                         Description = () => (info == null ? r.Model : info.Name + "  |  " + info.Class + "  |  Tier " + info.Tier) + "  |  " + Career.Mastery.Label(r) + " (" + (int)(Career.Mastery.Progress(r) * 100) + "%)"
                     });
                 }

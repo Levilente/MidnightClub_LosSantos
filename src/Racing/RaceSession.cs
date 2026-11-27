@@ -20,6 +20,7 @@ namespace MidnightClub.Racing
         public int StuckSince = -1, LastTask;
         public float Progress;   // for ranking
         public bool Out;         // eliminated
+        public bool IsCrew; public string Role; public int CrewTaskAt;
     }
 
     /// <summary>One race in progress (non-blocking: ticked every frame). Opponents drive checkpoint to
@@ -60,7 +61,7 @@ namespace MidnightClub.Racing
         // ------------------------------------------------------------------ setup
         public void AddPlayer(Vehicle car, Ped ped) { Racers.Add(new Racer { Name = "You", IsPlayer = true, Car = car, Ped = ped }); }
 
-        public void SpawnOpponents(IList<string> names, IList<VehicleInfo> cars, Vector3 start, float heading, int seed)
+        public void SpawnOpponents(IList<string> names, IList<VehicleInfo> cars, Vector3 start, float heading, int seed, int slot0 = 0)
         {
             var rnd = new Random(seed);
             string[] peds = { "a_m_y_hipster_01", "a_m_y_beach_01", "a_m_y_genstreet_01", "a_f_y_hipster_01", "a_m_y_ktown_01", "a_m_y_stwhi_01", "a_f_y_genhot_01", "a_m_y_vinewood_01" };
@@ -68,9 +69,10 @@ namespace MidnightClub.Racing
             var fwd = new Vector3((float)-Math.Sin(h), (float)Math.Cos(h), 0); var right = new Vector3(fwd.Y, -fwd.X, 0);
             for (int i = 0; i < names.Count && i < cars.Count; i++)
             {
-                int row = (i + 1) / 2, side = (i + 1) % 2 == 0 ? -1 : 1;
-                var pos = start - fwd * (7.5f * row) + right * (i == 0 ? 3.2f : side * 3.2f);
-                if (i == 0) pos = start + right * 3.4f;
+                int g = i + slot0;
+                int row = (g + 1) / 2, side = (g + 1) % 2 == 0 ? -1 : 1;
+                var pos = start - fwd * (7.5f * row) + right * (g == 0 ? 3.2f : side * 3.2f);
+                if (g == 0) pos = start + right * 3.4f;
                 try
                 {
                     var vm = new Model(cars[i].Hash); vm.Request(5000);
@@ -99,6 +101,43 @@ namespace MidnightClub.Racing
                 }
                 catch (Exception ex) { Log.Error("Spawning opponent", ex); }
             }
+        }
+
+        /// <summary>Your crew mate joins the grid (blocker rams the closest chaser, drafter runs just ahead of you).</summary>
+        public void SpawnCrew(string name, VehicleInfo car, Vector3 start, float heading, string role, float skill)
+        {
+            if (car == null) return;
+            int before = Racers.Count;
+            SpawnOpponents(new[] { name }, new[] { car }, start, heading, Environment.TickCount, Racers.Count - 1);
+            if (Racers.Count > before)
+            {
+                var c = Racers[Racers.Count - 1]; c.IsCrew = true; c.Role = role; c.Skill = skill;
+                if (c.Blip != null && c.Blip.Exists()) { c.Blip.Color = BlipColor.Blue; c.Blip.Name = name + " (crew)"; }
+            }
+        }
+
+        private void CrewTick(Racer r, int now)
+        {
+            float gap = r.Progress - Player.Progress;   // > 0 = crew ahead
+            if (r.Role == "Drafter")
+            {
+                float mult = gap < 6f ? 1.4f : gap > 45f ? 0.82f : 1.08f;
+                Function.Call(Hash.SET_VEHICLE_CHEAT_POWER_INCREASE, r.Car, mult * r.Skill);
+                return;
+            }
+            // blocker: hunt the closest opponent right behind you
+            Function.Call(Hash.SET_VEHICLE_CHEAT_POWER_INCREASE, r.Car, (gap < -30f ? 1.3f : 1.05f) * r.Skill);
+            if (now - r.CrewTaskAt < 3000) return;
+            r.CrewTaskAt = now;
+            Racer target = null; float best = 60f;
+            foreach (var o in Racers)
+            {
+                if (o.IsPlayer || o.IsCrew || o.Finished || o.Out || o.Car == null || !o.Car.Exists() || o.Ped == null || !o.Ped.Exists()) continue;
+                float g = Player.Progress - o.Progress; if (g < -15f || g > 80f) continue;
+                float d = o.Car.Position.DistanceTo(r.Car.Position); if (d < best) { best = d; target = o; }
+            }
+            if (target != null) { Function.Call(Hash.TASK_VEHICLE_CHASE, r.Ped, target.Ped); Function.Call(Hash.SET_TASK_VEHICLE_CHASE_IDEAL_PURSUIT_DISTANCE, r.Ped, 0f); }
+            else Task(r);
         }
 
         public void Freeze(bool on)
@@ -164,9 +203,9 @@ namespace MidnightClub.Racing
             foreach (var r in Racers)
             {
                 if (r.IsPlayer || r.Finished || r.Out || r.Car == null || !r.Car.Exists() || r.Ped == null || !r.Ped.Exists()) continue;
-                if (r.Car.Position.DistanceTo(Cps[r.Cp]) < 18f) { Advance(r, now); if (!r.Finished) Task(r); }
-                else if (now - r.LastTask > 4000) Task(r);
-                CatchUp(r);
+                if (r.Car.Position.DistanceTo(Cps[r.Cp]) < 18f) { Advance(r, now); if (!r.Finished && !(r.IsCrew && r.Role != "Drafter")) Task(r); }
+                else if (now - r.LastTask > 4000 && !(r.IsCrew && r.Role != "Drafter")) Task(r);
+                if (r.IsCrew) CrewTick(r, now); else CatchUp(r);
                 Unstick(r, now);
             }
 
@@ -292,7 +331,7 @@ namespace MidnightClub.Racing
 
         public List<Racer> Standings()
         {
-            return Racers.OrderByDescending(r => r.Finished ? 2e9f - r.FinishTime : r.Progress).ToList();
+            return Racers.Where(r => !r.IsCrew).OrderByDescending(r => r.Finished ? 2e9f - r.FinishTime : r.Progress).ToList();
         }
 
         private void DrawSplit(int now)
@@ -370,11 +409,11 @@ namespace MidnightClub.Racing
         {
             if (nextElim == 0) nextElim = StartTime + 40000;
             int left = nextElim - now;
-            var alive = Racers.Where(r => !r.Out && !r.Finished).ToList();
+            var alive = Racers.Where(r => !r.Out && !r.Finished && !r.IsCrew).ToList();
             if (alive.Count <= 1 && !Player.Out)
             {   // last one standing
                 Player.Finished = true; Player.FinishTime = now - StartTime; Player.Progress = 1e9f; ClearCheckpoint();
-                foreach (var r in Racers) if (!r.IsPlayer && !r.Finished) r.Out = true;
+                foreach (var r in Racers) if (!r.IsPlayer && !r.Finished && !r.IsCrew) r.Out = true;
                 return;
             }
             // timer bar
@@ -540,7 +579,7 @@ namespace MidnightClub.Racing
             var car = Player.Car; if (car == null || !car.Exists()) return;
             foreach (var r in Racers)
             {
-                if (r.IsPlayer || r.Car == null || !r.Car.Exists() || r.Finished) continue;
+                if (r.IsPlayer || r.IsCrew || r.Car == null || !r.Car.Exists() || r.Finished) continue;
                 int h = r.Car.Handle;
                 if (Function.Call<bool>(Hash.IS_ENTITY_TOUCHING_ENTITY, car, r.Car)) { if (!contact.ContainsKey(h) || now - contact[h] > 2500) contactSpeed[h] = r.Car.Speed; contact[h] = now; }
                 int t; if (!contact.TryGetValue(h, out t) || now - t > 2500) { if (wrecked.Contains(h) && r.Car.Speed > 12f && !r.Car.IsUpsideDown) wrecked.Remove(h); continue; }

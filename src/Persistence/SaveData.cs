@@ -36,6 +36,7 @@ namespace MidnightClub.Persistence
         [DataMember] public int LastLoginDay, LoginStreak;
         [DataMember] public float BestJumpM;
         [DataMember] public int Wheelspins, SuperWheelspins;
+        [DataMember] public string CrewName, CrewRole; [DataMember] public int CrewRaces;
         [DataMember] public List<KeyValue> DisciplineXp = new List<KeyValue>();
         [DataMember] public int StoryChapter; [DataMember] public List<KeyValue> StoryCounters = new List<KeyValue>();
         [DataMember] public List<KeyValue> Licenses = new List<KeyValue>();   // test index -> medal 1..3
@@ -97,8 +98,8 @@ namespace MidnightClub.Persistence
         [DataMember] public List<int> Toggles = new List<int>();      // turbo 18, tyre smoke 20, xenon 22
         [DataMember] public int WindowTint = -1, Livery = -1;
         [DataMember] public int EcuLevel;
-        [DataMember] public string EngineSound;
-        [DataMember] public int[] Tune;                                // tuning setup, -5..+5 per setting (see Vehicles.Tuning)                       // engine swap: audio game object name (null = stock)
+        [DataMember] public string EngineSound;                       // engine swap: audio game object name (null = stock)
+        [DataMember] public int[] Tune;                                // tuning setup, -5..+5 per setting (see Vehicles.Tuning)
         [DataMember] public bool DriftTyres;
         [DataMember] public bool FitKit;                             // adjustable fitment kit bought
         [DataMember] public float CamberF, CamberR;                  // degrees, negative = top of wheel in
@@ -106,8 +107,8 @@ namespace MidnightClub.Persistence
         [DataMember] public float TyreF, TyreR;                      // tyre diameter multiplier, 0 = stock (1.0)
         [DataMember] public int TyreCompound;                        // 0 street, 1 sport, 2 semi-slick, 3 race slick, 4 drift
         [DataMember] public bool LetteredTyres;
-        [DataMember] public float Heat;
-        [DataMember] public int NosLevel;                             // 0 none, 1-3 nitrous kit                               // police attention on this car (0-5)                      // custom-tyre sidewall variation
+        [DataMember] public float Heat;                               // police attention on this car (0-5)
+        [DataMember] public int NosLevel;                             // 0 none, 1-3 nitrous kit
         [DataMember] public List<string> BuildHistory = new List<string>();
         [DataMember] public float EngineHealth = 1000f, BodyHealth = 1000f;
         [DataMember] public long PurchasePrice;

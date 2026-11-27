@@ -157,6 +157,7 @@ namespace MidnightClub.Phone
                 Meta = () => (CareerManager.Instance != null ? "TIER " + CareerManager.Instance.Tier : "") + (Progression.Instance != null ? "  ·  LEVEL " + Progression.Instance.Level : ""),
                 Badge = () => { int n = saves.Data.Wheelspins + saves.Data.SuperWheelspins; return n > 0 ? n.ToString() : null; } });
             apps.Add(new App { Name = "Social", Icon = "social", Accent = Ds.Violet, Open = () => Category("Social", "social", new[] {
+                    Sub("Crew", () => Career.Crew.Menu(Economy.TransactionManager.Instance, stack), () => Career.Crew.Hired ? Career.Crew.Name + " · lvl " + Career.Crew.Level : "Hire a wingman"),
                     Sub("Messages", Inbox, () => saves.Data.Messages.Count(m => !m.Read) + " unread"),
                     Sub("Street buzz", NewsApp, null),
                     Sub("Clubs", () => this.clubsMenu(), null) }),

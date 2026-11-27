@@ -80,6 +80,32 @@ namespace MidnightClub.Racing
         }
         public void AddCustom(RaceDefinition r) { lib.Races.RemoveAll(x => x.Id == r.Id); lib.Races.Add(r); RefreshBlips(); }
         public void RemoveCustom(string id) { lib.Races.RemoveAll(x => x.Id == id); RefreshBlips(); }
+        // ------------------------------------------------------------------ lobby (preview grid, wager, crew)
+        private List<string> presetNames; private List<VehicleInfo> presetCars; private long pendingWager, activeWager; private bool crewOn;
+        public void Lobby(RaceDefinition r)
+        {
+            var car = vehicles.Current; if (car == null || !car.Exists() || session != null) return;
+            if (!Available(r)) { UI.Toast.Post("~r~Locked: " + LockReason(r)); return; }
+            List<string> names = null; List<VehicleInfo> cars = null;
+            if (r.HasOpponents)
+            {
+                int n = r.Kind == RaceType.HeadToHead ? 1 : Math.Max(1, Math.Min(7, r.Opponents));
+                names = DriverNames.OrderBy(x => Guid.NewGuid()).Take(n).ToList(); cars = PickCars(car, n, r);
+            }
+            var res = RaceLobby.Show(r, TypeLabel(r), names, cars, vehicles.CurrentRecord, saves.Data.Cash, RivalTarget(r));
+            if (!res.Start) return;
+            presetNames = names; presetCars = cars; pendingWager = res.Wager; crewOn = res.Crew;
+            StartRace(r, null);
+        }
+
+        /// <summary>Solo events: a rival's time to beat (shown in the lobby, pays a bonus).</summary>
+        public string RivalTarget(RaceDefinition r)
+        {
+            if (r.HasOpponents || r.Scored) return null;
+            int h = 7; foreach (char c in r.Id) h = h * 31 + c; h &= 0x7fffffff;
+            return DriverNames[h % DriverNames.Length];
+        }
+
         public void StartNow(RaceDefinition r) { if (session == null && !Explore.Deliveries.Active) StartRace(r, null); }
 
         public bool Available(RaceDefinition r) { return saves.Data.Rep >= r.RequiredRep && (!r.NightOnly || calendar.IsNight) && (r.LevelNeeded == 0 || Career.Disciplines.Level(r.Discipline) >= r.LevelNeeded); }
@@ -260,7 +286,7 @@ namespace MidnightClub.Racing
         private Menu RaceOptions(RaceDefinition r)
         {
             var m = new Menu(r.Name, TypeLabel(r));
-            m.Add(new MenuItem("Race now", () => { if (!Available(r)) { UI.Toast.Post("~r~Locked: " + LockReason(r)); return; } stack.Close(); StartNow(r); })
+            m.Add(new MenuItem("Race now", () => { if (!Available(r)) { UI.Toast.Post("~r~Locked: " + LockReason(r)); return; } stack.Close(); Lobby(r); })
             { Enabled = Available(r), Value = () => r.EntryFee > 0 ? "$" + r.EntryFee.ToString("N0") : "Free", Description = () => "Fast travel to the start line and go." });
             m.Add(new MenuItem("Set GPS", () => { Function.Call(Hash.SET_NEW_WAYPOINT, r.Start.X, r.Start.Y); stack.Close(); UI.Toast.Post("GPS set to " + r.Name + "."); }));
             if (BestTime(r.Id) > 0) m.Add(new MenuItem("Your best") { Value = () => RaceSession.FormatTime((int)BestTime(r.Id)), Enabled = false });
@@ -273,7 +299,7 @@ namespace MidnightClub.Racing
             var list = lib.Races.Where(r => Available(r) && Explore.Discovery.Known("race:" + r.Id) && r.Points.Count >= 2).ToList();
             if (list.Count == 0) { UI.Toast.Post("No race available right now."); return; }
             var pick = list[new Random().Next(list.Count)];
-            stack.Close(); StartNow(pick);
+            stack.Close(); Lobby(pick);
         }
 
         private Menu HistoryMenu()
@@ -391,9 +417,15 @@ namespace MidnightClub.Racing
             {
                 int n = r.Kind == RaceType.HeadToHead ? 1 : Math.Max(1, Math.Min(7, r.Opponents));
                 var names = champ != null ? Roster(lib.Championships.First(c => c.Id == champ)).Take(n).ToList() : DriverNames.OrderBy(x => Guid.NewGuid()).Take(n).ToList();
-                session.SpawnOpponents(names, PickCars(car, n, r), r.Start, heading, saves.Data.RacesStarted);
+                var cars = PickCars(car, n, r);
+                if (presetNames != null && presetNames.Count == n && presetCars != null && presetCars.Count == n) { names = presetNames; cars = presetCars; }
+                session.SpawnOpponents(names, cars, r.Start, heading, saves.Data.RacesStarted);
+                if (crewOn && Career.Crew.Hired) session.SpawnCrew(Career.Crew.Name, Career.Crew.CarFor(car, PickCars(car, 1, r)[0]), r.Start, heading, Career.Crew.Role, Career.Crew.Skill);
             }
             if (!r.HasOpponents && !r.Scored) { var g = Ghost.Load(r.Id); if (g != null) { session.Rival = g; g.Spawn(); } }
+            presetNames = null; presetCars = null;
+            activeWager = r.HasOpponents ? pendingWager : 0; pendingWager = 0; crewOn = false;
+            if (activeWager > 0 && !money.TrySpend(activeWager, "wager", "Wager on " + r.Name, null)) activeWager = 0;
             IsRacing = true;
             Function.Call(Hash.SET_GAMEPLAY_CAM_RELATIVE_HEADING, 0f);
             Screen.FadeIn(500);
@@ -405,7 +437,7 @@ namespace MidnightClub.Racing
         private List<VehicleInfo> PickCars(Vehicle playerCar, int n, RaceDefinition r)
         {
             var pinfo = registry.Get(playerCar.Model.Hash);
-            string tier = pinfo != null ? pinfo.Tier : "C";
+            string tier = vehicles.CurrentRecord != null ? PerformanceIndex.ClassOf(PerformanceIndex.Of(vehicles.CurrentRecord)) : (pinfo != null ? pinfo.Tier : "C");
             string[] tiers = { "D", "C", "B", "A", "S", "X" };
             int ti = Array.IndexOf(tiers, tier); if (r.Kind == RaceType.HeadToHead) ti = Math.Min(5, ti + 1);
             bool bikes = pinfo != null && pinfo.Class == VehicleClass.Motorcycles;
@@ -457,6 +489,23 @@ namespace MidnightClub.Racing
             if (pos > 0 && s.TakedownCount > 0) { res.Cash += 750L * s.TakedownCount; res.Rep += 25L * s.TakedownCount; }
             lastTakedowns = s.TakedownCount;
             if (res.Cash > 0 || res.Rep > 0) money.Earn(res.Cash, res.Rep, "race", r.Name + (pos > 0 ? " (P" + pos + ")" : ""), "race-reward:" + r.Id + ":" + saves.Data.RacesStarted);
+            // wager
+            lastWagerLine = null;
+            if (activeWager > 0)
+            {
+                if (pos == 1) { money.Earn(activeWager * 2, 0, "wager", "Wager won on " + r.Name, null); lastWagerLine = "WAGER WON  +$" + (activeWager * 2).ToString("N0"); }
+                else if (pos >= 2 && pos <= 3) { money.Earn(activeWager, 0, "wager", "Wager returned", null); lastWagerLine = "WAGER RETURNED  $" + activeWager.ToString("N0"); }
+                else lastWagerLine = "WAGER LOST  -$" + activeWager.ToString("N0");
+                activeWager = 0;
+            }
+            // rival time on solo events
+            var rn = RivalTarget(r);
+            if (rn != null && pos > 0 && res.TimeMs > 0)
+            {
+                float tgt = TrialTarget(r, s) * 0.93f;
+                if (res.TimeMs <= tgt * 1000f) { money.Earn(5000, 150, "race", "Beat " + rn + "'s time", "rivaltime:" + r.Id); lastWagerLine = (lastWagerLine != null ? lastWagerLine + "   ·   " : "") + "BEAT " + rn.ToUpperInvariant() + "'S TIME  +$5,000"; }
+                else lastWagerLine = (lastWagerLine != null ? lastWagerLine + "   ·   " : "") + rn.ToUpperInvariant() + ": " + RaceSession.FormatTime((int)(tgt * 1000f));
+            }
             if (rec != null) { rec.Stats.RacesEntered++; if (pos == 1 && r.HasOpponents) rec.Stats.RacesWon++; }
             lastRecord = false;
             if (pos > 0 && res.TimeMs > 0 && !r.Scored)
@@ -523,7 +572,7 @@ namespace MidnightClub.Racing
             Function.Call(Hash.SET_WAYPOINT_OFF);
         }
 
-        private bool lastRecord; private int lastTakedowns;
+        private bool lastRecord; private int lastTakedowns; private string lastWagerLine;
         private void ShowResults(RaceDefinition r, RaceResult res, List<string> lines, string champLine)
         {
             int start = Game.GameTime;
@@ -553,6 +602,7 @@ namespace MidnightClub.Racing
                 UI.Ds.T("+$" + ((long)(res.Cash * k)).ToString("N0"), x, ty, 0.9f, UI.Ds.A(UI.Ds.Lime, a), UI.Ds.Display);
                 UI.Ds.T("+" + ((long)(res.Rep * k)).ToString("N0") + " REP", x + UI.Ds.Px(0.2f), ty + 0.014f, 0.62f, UI.Ds.A(UI.Ds.Cyan, a), UI.Ds.Display);
                 ty += 0.08f;
+                if (lastWagerLine != null) { UI.Ds.T(lastWagerLine, x, ty, 0.28f, UI.Ds.A(UI.Ds.Pink, a), UI.Ds.Display); ty += 0.03f; }
                 if (lastTakedowns > 0) { UI.Ds.T("TAKEDOWNS  " + lastTakedowns + "   ·   +$" + (750 * lastTakedowns).ToString("N0"), x, ty, 0.28f, UI.Ds.A(UI.Ds.Amber, a), UI.Ds.Display); ty += 0.03f; }
                 if (res.Car != null) { UI.Ds.T("CAR  " + res.Car.ToUpperInvariant(), x, ty, 0.28f, UI.Ds.A(UI.Ds.Muted, a), UI.Ds.Display); ty += 0.03f; }
                 if (champLine != null) UI.Ds.T(UI.Ds.Fit(champLine.Replace("~g~", "").Replace("~s~", ""), 0.34f, 0.4f), x, ty + 0.01f, 0.34f, UI.Ds.A(UI.Ds.Text, a));
