@@ -1,4 +1,11 @@
 # Changelog
+## 0.31.0 (2026-11-27): one career
+- **Story**: seven chapters (Rookie Nights → The Midnight Club) whose goals pull in every part of the game: street wins, outruns, tokens, turf, rivals, police, rally medals, off-road wins, drift and gymkhana medals, takeovers, drag and bike wins. Chapters pay cash, REP, a Super Wheelspin and sometimes a car, and make the news. The Hub and the welcome screen always show the next goal.
+- **Disciplines**: Street, Drift, Off-road, Drag and Bikes level 1-10 separately from events and activities; levels unlock that discipline's harder, better-paying events and pay rewards (cars at 5 and 10).
+- **New events**: trail races (off-road AI), cross country (free route between far checkpoints), hill climbs (with pace notes), gymkhana (donut pillars, close calls, 90 s), bike races (motorcycles only, bike AI). Generated events climb in tiers.
+- **Races menu** grouped by discipline, with lock reasons and your best result on each event.
+- Licence tests removed.
+
 ## 0.30.0 (2026-11-27): everything car games do
 - **Rally stages** (orange blips): generated from San Andreas' dirt and back roads, with a co-driver pace-note panel (curve icons with severity 1-6, hairpins, crests, "into"), medal times and ghosts.
 - **Drag races** on generated dead-straight roads: shift lights, gear readout, perfect-shift boosts (E / L3 at the redline).

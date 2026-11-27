@@ -183,3 +183,11 @@ Tick items off or note what happened. Logs: `scripts\MidnightClub\MidnightClub.l
 - [ ] Weather changes every few minutes; rain shows WET ROADS and the car slides more.
 - [ ] Race intro: camera sweep + title card, Enter skips.
 - [ ] Notifications appear as dark cards above the minimap instead of GTA's feed.
+
+## 0.31.0
+- [ ] Hub > Career > Story shows chapter 1 goals; the Hub strip and welcome screen show the next goal; winning a street race counts.
+- [ ] Hub > Career > Disciplines: levels rise after events; level-up shard.
+- [ ] Hub > Races > Race events: groups (Street / Drift / Off-road / Drag / Bikes); locked events say why.
+- [ ] Trail race (orange) has off-road AI cars; cross country has no road routing; hill climb shows pace notes.
+- [ ] Gymkhana: glowing pillars, DONUT shard after a full 360 around one, 90 s timer, medal at the end.
+- [ ] Bike race refuses to start in a car, works on a motorcycle with bike opponents.

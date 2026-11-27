@@ -89,7 +89,18 @@ namespace MidnightClub.UI
                     Ds.T(d.Vehicles.Count + " CARS  ·  " + d.Garages.Count + " GARAGES  ·  " + d.RaceHistory.Count + " RACES", cx + Ds.Px(0.02f), cy + 0.162f, 0.25f, Ds.A(Ds.Muted, ca));
                     var cur = car != null && car.Exists() ? Game.GetLocalizedString(Function.Call<string>(Hash.GET_DISPLAY_NAME_FROM_VEHICLE_MODEL, car.Model.Hash)) : null;
                     float ny = cy + 0.215f;
-                    if (Gameplay.Objectives.CurrentText != null)
+                    var story = Career.Story.Instance;
+                    if (story != null && story.Current != null)
+                    {
+                        Ds.Round(cx, ny, cw, 0.092f, 0.016f, Ds.A(Ds.Surface, 0.94f * ca));
+                        Ds.Rect(cx, ny, Ds.Px(0.003f), 0.092f, Ds.A(Ds.Amber, ca));
+                        Ds.T("CHAPTER " + (d.StoryChapter + 1) + "  ·  " + story.Current.Title.ToUpperInvariant(), cx + Ds.Px(0.02f), ny + 0.012f, 0.25f, Ds.A(Ds.Amber, ca), Ds.Display);
+                        string g = story.NextGoalText ?? ""; int c = g.IndexOf(": "); if (c >= 0) g = g.Substring(c + 2);
+                        Ds.T(Ds.Fit(g, 0.34f, cw - Ds.Px(0.04f)), cx + Ds.Px(0.02f), ny + 0.036f, 0.34f, Ds.A(Ds.Text, ca));
+                        Ds.T(story.Current.Goals.Count(story.Done) + " / " + story.Current.Goals.Length + " GOALS", cx + Ds.Px(0.02f), ny + 0.064f, 0.23f, Ds.A(Ds.Muted, ca), Ds.Display);
+                        ny += 0.105f;
+                    }
+                    else if (Gameplay.Objectives.CurrentText != null)
                     {
                         Ds.Round(cx, ny, cw, 0.072f, 0.016f, Ds.A(Ds.Surface, 0.94f * ca));
                         Ds.Rect(cx, ny + 0.016f, Ds.Px(0.003f), 0.04f, Ds.A(Ds.Violet, ca));
