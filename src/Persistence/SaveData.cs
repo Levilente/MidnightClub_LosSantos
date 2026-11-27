@@ -99,7 +99,9 @@ namespace MidnightClub.Persistence
         [DataMember] public int WindowTint = -1, Livery = -1;
         [DataMember] public int EcuLevel;
         [DataMember] public string EngineSound;                       // engine swap: audio game object name (null = stock)
-        [DataMember] public int[] Tune;                                // tuning setup, -5..+5 per setting (see Vehicles.Tuning)
+        [DataMember] public int[] Tune;
+        [DataMember] public int[] Setup;                               // full tuning setup (Vehicles.Setup), -10..+10 per setting
+        [DataMember] public List<string> Parts = new List<string>();   // race parts: springs, arb, diff, aero, gearbox, brakes, als, weight1-3, awd, rwd, pipe                                // tuning setup, -5..+5 per setting (see Vehicles.Tuning)
         [DataMember] public bool DriftTyres;
         [DataMember] public bool FitKit;                             // adjustable fitment kit bought
         [DataMember] public float CamberF, CamberR;                  // degrees, negative = top of wheel in

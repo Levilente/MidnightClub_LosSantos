@@ -103,6 +103,12 @@ namespace MidnightClub.Phone
             m.Add(num("Camera motion (G)", "GForceIntensity", () => cfg.CameraGForce, v => cfg.CameraGForce = v, 0f, 2f, 0.1f, "Camera"));
             m.Add(num("Speed FOV", "DynamicFovIntensity", () => cfg.CameraFovScale, v => cfg.CameraFovScale = v, 0f, 2f, 0.1f, "Camera"));
             m.Add(num("Camera shake", "ShakeIntensity", () => cfg.CameraShake, v => cfg.CameraShake = v, 0f, 2f, 0.1f, "Camera"));
+            string[] models = { "Arcade", "Simcade", "Simulation" };
+            float[][] mv = { new[] { 0.7f, 1.4f, 1.5f, 0.6f }, new[] { 1f, 1f, 1f, 1f }, new[] { 1.3f, 0.35f, 0.25f, 1.3f } };
+            Func<int> curModel = () => { for (int i = 0; i < 3; i++) if (Math.Abs(cfg.SimcadeIntensity - mv[i][0]) < 0.01f && Math.Abs(cfg.SimcadeSteerAssist - mv[i][1]) < 0.01f && Math.Abs(cfg.SimcadeStability - mv[i][2]) < 0.01f) return i; return -1; };
+            Action<int> setModel = i => { cfg.SimcadeIntensity = mv[i][0]; cfg.SimcadeSteerAssist = mv[i][1]; cfg.SimcadeStability = mv[i][2]; cfg.SimcadeWeight = mv[i][3]; Config.Save("Simcade", "Intensity", mv[i][0]); Config.Save("Simcade", "SteeringAssist", mv[i][1]); Config.Save("Simcade", "StabilityAssist", mv[i][2]); Config.Save("Simcade", "Weight", mv[i][3]); };
+            m.Add(new MenuItem("Driving model", () => setModel((Math.Max(0, curModel()) + 1) % 3)) { Value = () => curModel() < 0 ? "Custom" : models[curModel()], OnAdjust = d => setModel(((curModel() < 0 ? 1 : curModel()) + d + 3) % 3),
+                Description = () => "Arcade: grippy and forgiving. Simcade: weight, roll and era-correct handling with light assists. Simulation: full weight transfer, almost no assists." });
             m.Add(flag("Simcade handling", "Enabled", () => cfg.SimcadeEnabled, v => cfg.SimcadeEnabled = v, "Simcade"));
             m.Add(num("Handling intensity", "Intensity", () => cfg.SimcadeIntensity, v => cfg.SimcadeIntensity = v, 0f, 1.5f, 0.1f, "Simcade"));
             m.Add(num("Car weight feel", "Weight", () => cfg.SimcadeWeight, v => cfg.SimcadeWeight = v, 0f, 1.5f, 0.1f, "Simcade"));
@@ -138,7 +144,7 @@ namespace MidnightClub.Phone
                     Sub("My vehicles", () => menu.MyVehicles(), () => saves.Data.Vehicles.Count.ToString()),
                     Sub("Properties", () => menu.GarageList(), () => saves.Data.Garages.Count + " owned"),
                     Sub("Vehicle catalogue", () => menu.Catalogue(), null),
-                    Sub("Tuning setup", () => Vehicles.Tuning.Menu(Vehicles.VehicleManager.Instance, stack, saves), () => Vehicles.VehicleManager.Instance != null && Vehicles.VehicleManager.Instance.CurrentRecord != null && Vehicles.Tuning.Any(Vehicles.VehicleManager.Instance.CurrentRecord.Tune) ? "Custom" : "Stock"),
+                    Sub("Tuning setup", () => Vehicles.Setup.Menu(Vehicles.VehicleManager.Instance, stack, saves), () => Vehicles.VehicleManager.Instance != null && Vehicles.VehicleManager.Instance.CurrentRecord != null && Vehicles.Setup.Any(Vehicles.VehicleManager.Instance.CurrentRecord) ? "Custom" : "Stock"),
                     Sub("Photo mode", () => { stack.Close(); IsOpen = false; openT = 0f; Effects(false); Gameplay.PhotoMode.Run(saves, Vehicles.VehicleManager.Instance); return null; }, () => saves.Data.PhotosTaken > 0 ? saves.Data.PhotosTaken + " shots" : "New") }),
                 Meta = () => saves.Data.Vehicles.Count + (saves.Data.Vehicles.Count == 1 ? " CAR" : " CARS") + CurrentCarName() });
             apps.Add(new App { Name = "Dealers", Icon = "dealers", Accent = Ds.Amber, Open = () => menu.DealerList(),

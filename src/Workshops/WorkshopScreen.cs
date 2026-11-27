@@ -296,6 +296,7 @@ namespace MidnightClub.Workshops
             AddModMenu(m, "Suspension", 15, 0.03, "side");
             m.Add(Toggle("Turbo", 18, Disc(2500 + bp * 8 / 100, 3)));
             m.Add(new MenuItem("Nitrous kit", () => menus.Push(Nitrous())) { Value = () => rec.NosLevel == 0 ? "None" : "Stage " + rec.NosLevel, Description = () => "Hold Sprint (keyboard) or the boost button (controller) to fire. Bigger stages: more power, longer burn, faster refill." });
+            m.Add(new MenuItem("Race parts", () => menus.Push(RaceParts())) { Value = () => (rec.Parts != null ? rec.Parts.Count : 0) + " / " + Setup.Parts.Length, Description = () => "Coilovers, anti-roll bars, differential, gearbox, brakes, aero, weight reduction, drivetrain swaps, anti-lag, straight pipe. Unlocks the matching tuning in Midnight Hub > Garage > Tuning." });
             m.Add(new MenuItem("Engine swap (sound)", () => menus.Push(EngineSwap())) { Value = () => SwapName(rec.EngineSound), Description = () => "Swap in a different engine note. Preview revs it in the bay before you buy." });
             m.Add(new MenuItem("ECU tune (Midnight Club)", () => menus.Push(Ecu())) { Value = () => rec.EcuLevel == 0 ? "Stock" : "Stage " + rec.EcuLevel,
                 Description = () => "Remapped engine management: +6% power per stage on top of the engine upgrade." });
@@ -336,6 +337,30 @@ namespace MidnightClub.Workshops
                 Function.Call(Hash.PLAY_SOUND_FROM_ENTITY, -1, "Engine_Revs", car, "DLC_Tuner_Car_Meet_Test_Area_Events_Sounds", false, 0);
             }
             catch { }
+        }
+
+        private Menu RaceParts()
+        {
+            var m = new Menu("Race parts", Title()) { IsShopList = true };
+            m.OnOpen = () => focus = "default";
+            if (rec.Parts == null) rec.Parts = new List<string>();
+            foreach (var pp in Setup.Parts)
+            {
+                var p = pp;
+                long price = Disc(PricingEngine.Round(p.Price + bp * 0.015), 3);
+                m.Add(new MenuItem(p.Name, () =>
+                {
+                    if (rec.Parts.Contains(p.Id)) { Flash("Already installed."); return; }
+                    if (p.Needs != null && !rec.Parts.Contains(p.Needs)) { Flash("Needs " + Setup.Parts.First(x => x.Id == p.Needs).Name + " first."); return; }
+                    if (p.Id == "als" && !(rec.Toggles != null && rec.Toggles.Contains(18))) { Flash("Anti-lag needs a turbo."); return; }
+                    if (!Pay(price, p.Name)) return;
+                    rec.Parts.Add(p.Id);
+                    if (p.Id == "awd") rec.Parts.Remove("rwd"); if (p.Id == "rwd") rec.Parts.Remove("awd");
+                    Setup.ApplyAudio(car, rec);
+                    Bought(p.Name, price);
+                }) { Value = () => rec.Parts.Contains(p.Id) ? "~g~INSTALLED" : "$" + price.ToString("N0") + "  ·  PI +" + p.Pi, Description = () => p.Desc });
+            }
+            return m;
         }
 
         private Menu EngineSwap()

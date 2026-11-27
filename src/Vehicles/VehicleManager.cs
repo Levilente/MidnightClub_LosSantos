@@ -96,6 +96,7 @@ namespace MidnightClub.Vehicles
             if (r.Livery >= 0) Function.Call(Hash.SET_VEHICLE_LIVERY, v, r.Livery);
             if (r.DriftTyres || r.TyreCompound == 4) Function.Call(Hash.SET_DRIFT_TYRES, v, true);
             if (!string.IsNullOrEmpty(r.EngineSound)) try { Function.Call(Hash.FORCE_USE_AUDIO_GAME_OBJECT, v, r.EngineSound); } catch { }
+            Setup.ApplyAudio(v, r);
             v.EngineHealth = Math.Max(r.EngineHealth, 300f);
             v.BodyHealth = Math.Max(r.BodyHealth, 300f);
         }
@@ -138,7 +139,8 @@ namespace MidnightClub.Vehicles
         {
             var v = Current; var r = CurrentRecord;
             if (v == null || r == null || !v.Exists()) return;
-            if (r.EcuLevel > 0) Function.Call(Hash.SET_VEHICLE_CHEAT_POWER_INCREASE, v, 1f + 0.06f * r.EcuLevel);   // ECU tune: +6 % power per stage
+            float pw = 1f + 0.06f * r.EcuLevel + Setup.PowerBonus(r, v) + Setup.SwapPower(r.EngineSound);
+            if (pw > 1.001f) Function.Call(Hash.SET_VEHICLE_CHEAT_POWER_INCREASE, v, pw);   // ECU tune: +6 % power per stage
             var p = v.Position;
             if (hasLastPos)
             {
