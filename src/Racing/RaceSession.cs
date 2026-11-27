@@ -107,7 +107,7 @@ namespace MidnightClub.Racing
 
         public void BeginCountdown()
         {
-            CountdownEnd = Game.GameTime + 3500; Freeze(true); ShowCheckpoint();
+            IntroEnd = Game.GameTime + 4600; CountdownEnd = IntroEnd + 3500; Freeze(true); ShowCheckpoint();
             Active = this;
         }
 
@@ -116,6 +116,11 @@ namespace MidnightClub.Racing
         {
             if (Done) return;
             int now = Game.GameTime;
+            if (!Running && IntroEnd > 0)
+            {
+                if (now < IntroEnd && !(now - (IntroEnd - 4600) > 600 && (UI.Input.JustPressed(Control.FrontendAccept) || UI.Input.JustPressed(Control.VehicleAccelerate)))) { Intro(now); return; }
+                EndIntro(now);
+            }
             if (!Running)
             {
                 int left = CountdownEnd - now;
@@ -295,6 +300,59 @@ namespace MidnightClub.Racing
             UI.Ds.Rect(x, y + 0.046f, w, 0.004f, UI.Ds.A(ahead ? UI.Ds.Lime : UI.Ds.Red, a));
             UI.Ds.T("GHOST", x + UI.Ds.Px(0.01f), y + 0.006f, 0.22f, UI.Ds.A(UI.Ds.Muted, a), UI.Ds.Display);
             UI.Ds.T(s, x + w - UI.Ds.Px(0.01f), y + 0.004f, 0.55f, UI.Ds.A(ahead ? UI.Ds.Lime : UI.Ds.Red, a), UI.Ds.Display, Alignment.Right);
+        }
+
+        // ------------------------------------------------------------------ intro cinematic (title card + grid flyover)
+        public int IntroEnd;
+        private Camera introCam; private float introLen = -1f;
+        public string TypeName
+        {
+            get
+            {
+                switch (Def.Kind) { case RaceType.Circuit: return "CIRCUIT"; case RaceType.TimeTrial: return "TIME TRIAL"; case RaceType.Drift: return "DRIFT"; case RaceType.HeadToHead: return "HEAD TO HEAD"; }
+                return Def.Type == "Rally" ? "RALLY STAGE" : Def.Type == "Drag" ? "DRAG RACE" : Def.Type == "Elimination" ? "ELIMINATION" : "SPRINT";
+            }
+        }
+        private void Intro(int now)
+        {
+            var car = Player.Car; if (car == null || !car.Exists()) return;
+            float t = 1f - (IntroEnd - now) / 4600f;
+            if (introCam == null)
+            {
+                if (Cameras.CameraSystem.Instance != null) Cameras.CameraSystem.Instance.Release();
+                introCam = World.CreateCamera(car.Position, Vector3.Zero, 40f); introCam.IsActive = true;
+                Function.Call(Hash.RENDER_SCRIPT_CAMS, true, false, 0, true, false, 0);
+                introLen = RouteBuilder.Length(Cps, Def.Start);
+            }
+            Game.DisableAllControlsThisFrame(); Function.Call(Hash.HIDE_HUD_AND_RADAR_THIS_FRAME);
+            // sweep from high in front of the grid down to behind the player's car
+            var f = car.ForwardVector; var r = car.RightVector; var c = car.Position;
+            float e = UI.Ds.EaseInOut(t);
+            var from = c + f * 22f + r * -9f + new Vector3(0, 0, 9f);
+            var to = c - f * 6.5f + r * 1.2f + new Vector3(0, 0, 1.6f);
+            introCam.Position = Vector3.Lerp(from, to, e);
+            introCam.PointAt(c + f * (8f * (1f - e) + 6f * e) + new Vector3(0, 0, 0.6f));
+            introCam.FieldOfView = 42f + 10f * e;
+            // title card
+            float a = Math.Min(1f, Math.Min(t * 5f, (1f - t) * 6f)), x = 0.07f, off = (1f - UI.Ds.EaseOut(t * 3f)) * -0.03f;
+            UI.Ds.HGrad(0f, 0.62f, 0.6f, 0.3f, UI.Ds.A(UI.Ds.Bg, 0.85f * a), UI.Ds.A(UI.Ds.Bg, 0f), 8);
+            UI.Ds.Tag(TypeName, x + off, 0.66f, UI.Ds.Violet, Color.White, 0.3f, a);
+            UI.Ds.T(Def.Name.ToUpperInvariant(), x + off, 0.695f, 1.05f, UI.Ds.A(UI.Ds.Text, a), UI.Ds.Display);
+            string info = (introLen / 1000f).ToString("0.0") + " KM" + (Def.Kind == RaceType.Circuit ? "  ·  " + Def.Laps + " LAPS" : "") + (Racers.Count > 1 ? "  ·  " + (Racers.Count - 1) + (Racers.Count == 2 ? " OPPONENT" : " OPPONENTS") : "") + "  ·  $" + Def.CashReward.ToString("N0") + " TO THE WINNER";
+            UI.Ds.T(info, x + off, 0.79f, 0.32f, UI.Ds.A(UI.Ds.Muted, a), UI.Ds.Display);
+            var names = string.Join("   ", Racers.Where(q => !q.IsPlayer).Select(q => q.Name.ToUpperInvariant()).ToArray());
+            if (names.Length > 0) UI.Ds.T("VS  " + names, x + off, 0.825f, 0.28f, UI.Ds.A(UI.Ds.Pink, a), UI.Ds.Display);
+            if (now - (IntroEnd - 4600) > 600) UI.Buttons.Draw(Control.FrontendAccept, "Skip");
+        }
+        private void EndIntro(int now)
+        {
+            if (introCam != null)
+            {
+                Function.Call(Hash.RENDER_SCRIPT_CAMS, false, true, 400, true, false, 0);
+                try { introCam.Delete(); } catch { } introCam = null;
+            }
+            if (now < IntroEnd) CountdownEnd = now + 3500;
+            IntroEnd = 0;
         }
 
         // ------------------------------------------------------------------ takedowns (Burnout-style)
@@ -529,6 +587,7 @@ namespace MidnightClub.Racing
         {
             if (Rival != null) Rival.Delete();
             if (finStart >= 0) EndCinematic();
+            if (introCam != null) { Function.Call(Hash.RENDER_SCRIPT_CAMS, false, false, 0, true, false, 0); try { introCam.Delete(); } catch { } introCam = null; }
             if (Active == this) Active = null;
             ClearCheckpoint();
             foreach (var r in Racers)
