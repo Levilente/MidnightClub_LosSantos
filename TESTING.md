@@ -162,3 +162,12 @@ Tick items off or note what happened. Logs: `scripts\MidnightClub\MidnightClub.l
 - [ ] Hub > Races > Route creator: horn drops checkpoints, holding the horn opens the save menu, "Save and race now" works.
 - [ ] Workshop > Performance > Engine swap: hovering changes the engine note, Back restores it.
 - [ ] Pursuit level 2+: roadblock ahead; level 3+: spike strip; bounty on the HUD, paid on escape.
+
+## 0.29.0
+- [ ] Midnight Hub: all 8 cards have their icon, background and accent bar; EXIT tile visible; level ring smooth.
+- [ ] Loading into Midnight Club puts you inside your last garage (garage screen); leaving works normally.
+- [ ] Hub > Garage > Tuning setup: sliders change the car's feel while driving; presets load.
+- [ ] Purple "Street racer" blips: drive right behind one, press H (D-pad right on controller) → countdown → spirit bars.
+- [ ] Glowing purple orbs on roads (Midnight Tokens) collect when driven through; Hub > Explore > Midnight Tokens.
+- [ ] Hub > Daily > Weekly playlist shows 5 challenges.
+- [ ] Ramming an opponent off the road in a race shows TAKEDOWN.

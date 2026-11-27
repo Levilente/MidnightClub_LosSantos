@@ -1,4 +1,15 @@
 # Changelog
+## 0.29.0 (2026-11-27)
+- **Fixed**: hub cards, icons and the EXIT tile vanishing. GTA drops script rectangles past a per-frame budget and the vector icons used hundreds; icons and the level ring are now anti-aliased PNG textures drawn by Script Hook V (no budget), gradients are cheaper, and DevMode logs the peak draw count.
+- **Start in your last garage** when loading into Midnight Club (Settings toggle).
+- **Tuning setup** per car (Hub > Garage): springs, damping, ride height, anti-roll bars, grip balance, brake balance and pressure, gearing, steering lock; Grip / Drift / Drag / Rally presets.
+- **Outrun battles**: purple-blip street racers cruise the city; get behind one and flash your lights for a Tokyo Xtreme Racer-style spirit-bar battle.
+- **Midnight Tokens**: 40 hidden collectibles, milestone bonuses, tips for sale, a one-off car for all 40.
+- **Weekly playlist**: five challenges per real-world week (tokens, outruns, takedowns, jumps, turf, photos...) and a reward car.
+- **Takedowns** in races (Burnout-style) with cash bonuses. **Jump distance records.**
+- **Races menu**: quick race, race now (fast travel), personal bests, which district a race counts for.
+- **Daily login streak**, **career Records** screen, traffic / race traffic / pedestrian density settings, mastery on the HUD.
+
 ## 0.27.0 (2026-11-23): the big one
 - Shop names no longer reference Vice City / GTA VI: La Mesa Auto Works, Rockford Motorwerks, Runway Tuning LSIA, Southside Speed Lab, Paleto Muscle Garage, Senora Off-Road, Strawberry Lowriders.
 - **Rewind**: hold R (controller B) to scrub back up to 12 s; in races opponents, checkpoints and the clock rewind too. Hard crashes show a rewind prompt. Toggle in Settings.
