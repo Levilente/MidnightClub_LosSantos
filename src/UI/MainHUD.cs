@@ -70,8 +70,22 @@ namespace MidnightClub.UI
             if (v != null && v.Exists() && Game.Player.Character.IsInVehicle(v)) Speedo(v, vehicles.CurrentRecord);
         }
 
+        private float speedFx;
+        /// <summary>NFS Unbound-style speed lines on the screen edges past ~170 km/h.</summary>
+        private void SpeedLines(Vehicle v)
+        {
+            float kmh = v.Speed * 3.6f;
+            speedFx = Ds.Damp(speedFx, Math.Max(0f, Math.Min(1f, (kmh - 170f) / 130f)), 4f);
+            if (speedFx < 0.02f) return;
+            Ds.Streaks(0f, 0.05f, 0.16f, 0.9f, Color.White, 0.35f * speedFx, 6, 3.5f);
+            Ds.Streaks(0.84f, 0.05f, 0.16f, 0.9f, Color.White, 0.35f * speedFx, 6, 3.5f);
+            Ds.HGrad(0f, 0f, 0.12f, 1f, Ds.A(Ds.Bg, 0.35f * speedFx), Ds.A(Ds.Bg, 0f), 4);
+            Ds.HGrad(0.88f, 0f, 0.12f, 1f, Ds.A(Ds.Bg, 0f), Ds.A(Ds.Bg, 0.35f * speedFx), 4);
+        }
+
         private void Speedo(Vehicle v, OwnedVehicle r)
         {
+            if (Core.Config.Current != null && Core.Config.Current.SpeedEffects) SpeedLines(v);
             float right = 0.965f, bottom = 0.93f;
             speedShown = Ds.Damp(speedShown, v.Speed * 3.6f, 14f);
             int kmh = (int)Math.Round(speedShown);

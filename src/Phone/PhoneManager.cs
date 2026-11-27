@@ -109,6 +109,7 @@ namespace MidnightClub.Phone
             m.Add(num("Steering assist", "SteeringAssist", () => cfg.SimcadeSteerAssist, v => cfg.SimcadeSteerAssist = v, 0f, 1.5f, 0.1f, "Simcade"));
             m.Add(num("Stability assist", "StabilityAssist", () => cfg.SimcadeStability, v => cfg.SimcadeStability = v, 0f, 1.5f, 0.1f, "Simcade"));
             m.Add(flag("HUD", "Show", () => cfg.ShowHud, v => cfg.ShowHud = v, "HUD"));
+            m.Add(flag("Speed effects", "SpeedEffects", () => cfg.SpeedEffects, v => cfg.SpeedEffects = v, "HUD"));
             m.Add(flag("Welcome screen", "WelcomeScreen", () => cfg.ShowWelcome, v => cfg.ShowWelcome = v, "HUD"));
             m.Add(num("Traffic density", "TrafficDensity", () => cfg.TrafficDensity, v => cfg.TrafficDensity = v, 0f, 2f, 0.1f, "World"));
             m.Add(num("Traffic in races", "RaceTraffic", () => cfg.RaceTraffic, v => cfg.RaceTraffic = v, 0f, 2f, 0.1f, "World"));

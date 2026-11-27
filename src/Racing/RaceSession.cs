@@ -662,6 +662,22 @@ namespace MidnightClub.Racing
                 UI.Ds.T(((long)DriftScore).ToString("N0"), xr, y, 0.6f, UI.Ds.Amber, UI.Ds.Display, Alignment.Right); y += 0.045f;
                 if (driftChain > 0) UI.Ds.T("+" + ((long)PendingDrift).ToString("N0") + "  x" + DriftCombo.ToString("0.0"), xr, y, 0.36f, UI.Ds.Text, UI.Ds.Display, Alignment.Right);
             }
+            // route progress strip (all racers as dots on one line)
+            if (Running && Cps.Count > 1 && Def.Kind != RaceType.Drag)
+            {
+                float pw = UI.Ds.Px(0.42f), px = 0.5f - pw / 2f, py = 0.018f;
+                UI.Ds.Rect(px, py, pw, 0.004f, UI.Ds.A(UI.Ds.Stroke, 0.9f));
+                Func<Racer, float> frac = r =>
+                {
+                    if (r.Finished) return 1f;
+                    int cp = Math.Min(r.Cp, Cps.Count - 1); var prev = cp > 0 ? Cps[cp - 1] : Def.Start;
+                    float seg = Math.Max(1f, prev.DistanceTo(Cps[cp])), d = r.Car != null && r.Car.Exists() ? r.Car.Position.DistanceTo(Cps[cp]) : seg;
+                    return Math.Max(0f, Math.Min(1f, (cp + Math.Max(0f, 1f - d / seg)) / Cps.Count));
+                };
+                UI.Ds.Rect(px, py, pw * frac(Player), 0.004f, UI.Ds.Violet);
+                foreach (var r in Racers) if (!r.IsPlayer && !r.Out) UI.Ds.Rect(px + pw * frac(r) - UI.Ds.Px(0.003f), py - 0.004f, UI.Ds.Px(0.006f), 0.012f, UI.Ds.Pink);
+                UI.Ds.Rect(px + pw * frac(Player) - UI.Ds.Px(0.005f), py - 0.007f, UI.Ds.Px(0.01f), 0.018f, Color.White);
+            }
             // standings tower (left)
             if (Def.HasOpponents && Racers.Count > 1)
             {
