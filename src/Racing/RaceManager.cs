@@ -56,7 +56,7 @@ namespace MidnightClub.Racing
             EventBus.Subscribe<Explore.DiscoveredEvent>(e => { if (e.Id.StartsWith("race:")) RefreshBlips(); });
             EventBus.Subscribe<ModeChangedEvent>(e =>
             {
-                if (e.To == GameMode.MIDNIGHT_CLUB) { try { lib = RaceLibrary.Load(this.dataDir); lib.Races.RemoveAll(x => x.Id.StartsWith("custom_")); lib.Races.AddRange(RouteCreator.LoadAll(this.dataDir)); SeparateFromLocations(); } catch (Exception ex) { Log.Error("Race library", ex); } RefreshBlips(); }
+                if (e.To == GameMode.MIDNIGHT_CLUB) { try { lib = RaceLibrary.Load(this.dataDir); lib.Races.RemoveAll(x => x.Id.StartsWith("custom_")); lib.Races.AddRange(RouteCreator.LoadAll(this.dataDir)); RallyStages.Generate(this); SeparateFromLocations(); } catch (Exception ex) { Log.Error("Race library", ex); } RefreshBlips(); }
                 else { EndSession(true); ClearBlips(); }
             });
             EventBus.Subscribe<MidnightTickEvent>(e => Tick());
@@ -117,7 +117,8 @@ namespace MidnightClub.Racing
                 var b = UI.BlipRegistry.Own(World.CreateBlip(r.Start));
                 bool open = Available(r);
                 b.Sprite = BlipSprite.RaceCar; b.IsShortRange = true; b.Scale = 0.8f;
-                b.Color = !open ? BlipColor.White : r.Kind == RaceType.Drift ? BlipColor.Yellow2 : r.Kind == RaceType.TimeTrial ? BlipColor.Blue : BlipColor.Red;
+                b.Color = !open ? BlipColor.White : r.Kind == RaceType.Drift ? BlipColor.Yellow2 : r.Kind == RaceType.TimeTrial ? BlipColor.Blue : r.Kind == RaceType.Rally ? BlipColor.Orange : r.Kind == RaceType.Drag ? BlipColor.Green : BlipColor.Red;
+                if (r.Kind == RaceType.Rally) b.Sprite = BlipSprite.OffRoadRaceFinish;
                 b.Name = open ? "Race: " + r.Name : "Race (locked)";
                 blips[r.Id] = b;
             }
@@ -128,6 +129,7 @@ namespace MidnightClub.Racing
 
         private void Tick()
         {
+            RallyStages.Drain(this);
             if (session != null) { TickSession(); return; }
             if (Game.GameTime - lastBlipRefresh > 60000) RefreshBlips();   // night-only / REP changes
             var pos = Game.Player.Character.Position;
@@ -168,7 +170,7 @@ namespace MidnightClub.Racing
 
         private static string TypeLabel(RaceDefinition r)
         {
-            switch (r.Kind) { case RaceType.Circuit: return "Circuit"; case RaceType.TimeTrial: return "Time trial"; case RaceType.Drift: return "Drift challenge"; case RaceType.HeadToHead: return "Head-to-head"; default: return "Sprint"; }
+            switch (r.Kind) { case RaceType.Circuit: return "Circuit"; case RaceType.TimeTrial: return "Time trial"; case RaceType.Drift: return "Drift challenge"; case RaceType.HeadToHead: return "Head-to-head"; case RaceType.Rally: return "Rally stage"; case RaceType.Drag: return "Drag race"; case RaceType.Elimination: return "Elimination"; default: return "Sprint"; }
         }
 
         public Menu RacesMenu()
@@ -372,10 +374,10 @@ namespace MidnightClub.Racing
             double cashF = 0, repF = 0;
             if (pos > 0)
             {
-                if (r.Kind == RaceType.TimeTrial || r.Kind == RaceType.Drift)
+                if (r.Kind == RaceType.TimeTrial || r.Kind == RaceType.Drift || r.Kind == RaceType.Rally)
                 {
-                    float gold = r.Kind == RaceType.TimeTrial ? TrialTarget(r, s) : DriftTarget(r, s);
-                    Func<float, bool> better = k => r.Kind == RaceType.TimeTrial ? res.TimeMs <= gold * 1000f * k : res.Score >= gold / k;
+                    float gold = r.Kind != RaceType.Drift ? TrialTarget(r, s) : DriftTarget(r, s);
+                    Func<float, bool> better = k => r.Kind != RaceType.Drift ? res.TimeMs <= gold * 1000f * k : res.Score >= gold / k;
                     res.Medal = better(1f) ? "Gold" : better(1.12f) ? "Silver" : better(1.3f) ? "Bronze" : "No medal";
                     cashF = res.Medal == "Gold" ? 1 : res.Medal == "Silver" ? 0.6 : res.Medal == "Bronze" ? 0.35 : 0.1;
                     repF = cashF;
@@ -417,7 +419,7 @@ namespace MidnightClub.Racing
         {
             if (r.TargetTimeSec > 0) return r.TargetTimeSec;
             float km = RouteBuilder.Length(s.Cps, r.Start) / 1000f;
-            return km / 95f * 3600f;   // gold = 95 km/h average through traffic
+            return km / (r.Kind == RaceType.Rally ? 74f : 95f) * 3600f;   // gold = 95 km/h average through traffic
         }
         private float DriftTarget(RaceDefinition r, RaceSession s) { return r.TargetScore > 0 ? r.TargetScore : RouteBuilder.Length(s.Cps, r.Start) * 12f; }
 

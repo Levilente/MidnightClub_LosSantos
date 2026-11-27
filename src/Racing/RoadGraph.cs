@@ -115,6 +115,7 @@ namespace MidnightClub.Racing
             return best;
         }
 
+        [ThreadStatic] private static bool rallyMode;
         private static float Cost(int a, int b, int k)
         {
             float dx = xs[a] - xs[b], dy = ys[a] - ys[b], dz = zs[a] - zs[b];
@@ -123,12 +124,17 @@ namespace MidnightClub.Racing
             if ((f & (byte)NodeFlags.Water) != 0) return d * 50f;
             float m = 1f;
             if ((f & (byte)NodeFlags.Gps) == 0) m *= 1.35f;
-            if ((f & (byte)NodeFlags.Gravel) != 0) m *= 1.8f;
+            if (rallyMode) { if ((f & (byte)NodeFlags.Gravel) != 0) m *= 0.45f; else if ((f & (byte)NodeFlags.Backroad) != 0) m *= 0.8f; if ((f & (byte)NodeFlags.Freeway) != 0) m *= 4f; }
+            else if ((f & (byte)NodeFlags.Gravel) != 0) m *= 1.8f;
             if ((f & (byte)NodeFlags.Freeway) != 0) m *= 0.92f;
             int lanesFwd = lanes[k] & 15, lanesBack = lanes[k] >> 4;
             if (lanesFwd + lanesBack <= 1) m *= 1.15f;            // narrow lanes are slower
             return d * m;
         }
+
+        /// <summary>Route that prefers dirt and back roads (rally stages).</summary>
+        public static List<Vector3> RouteRally(Vector3 from, Vector3 to) { rallyMode = true; try { return Route(from, to); } finally { rallyMode = false; } }
+        public static int NearestIndex(Vector3 p) { return Nearest(p, 30f); }
 
         /// <summary>A* route between two world positions. Returns node positions along the road, or null.</summary>
         public static List<Vector3> Route(Vector3 from, Vector3 to)

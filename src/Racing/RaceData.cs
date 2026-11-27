@@ -10,7 +10,7 @@ using MidnightClub.Core;
 
 namespace MidnightClub.Racing
 {
-    public enum RaceType { Sprint, Circuit, TimeTrial, Drift, HeadToHead }
+    public enum RaceType { Sprint, Circuit, TimeTrial, Drift, HeadToHead, Rally, Drag, Elimination }
 
     [DataContract]
     public sealed class RaceDefinition
@@ -27,7 +27,8 @@ namespace MidnightClub.Racing
         public RaceType Kind { get { RaceType t; return Enum.TryParse(Type, true, out t) ? t : RaceType.Sprint; } }
         public Vector3 Start { get { var p = Points[0]; return new Vector3(p[0], p[1], p[2]); } }
         public float StartHeading { get { var p = Points[0]; return p.Length > 3 ? p[3] : 0f; } }
-        public bool HasOpponents { get { return Kind != RaceType.TimeTrial && Kind != RaceType.Drift; } }
+        public bool HasOpponents { get { return Kind != RaceType.TimeTrial && Kind != RaceType.Drift && Kind != RaceType.Rally; } }
+        public bool Solo { get { return !HasOpponents; } }
     }
 
     [DataContract]

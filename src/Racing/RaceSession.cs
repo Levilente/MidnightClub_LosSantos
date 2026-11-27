@@ -141,6 +141,7 @@ namespace MidnightClub.Racing
             if (now - StartTime < 900) Countdown(now - StartTime > 0 ? -(now - StartTime) : 0);
             LaunchBoost(now);
             Slipstream();
+            if (Def.Kind == RaceType.Rally) PaceNotes();
             if (!Player.Finished && Player.Car != null && Player.Car.Exists()) { Recording.Model = Player.Car.Model.Hash; Recording.Record(Player.Car, now - StartTime); }
             if (Rival != null) Rival.Play(now - StartTime);
             DrawSplit(now);
@@ -300,6 +301,55 @@ namespace MidnightClub.Racing
             UI.Ds.Rect(x, y + 0.046f, w, 0.004f, UI.Ds.A(ahead ? UI.Ds.Lime : UI.Ds.Red, a));
             UI.Ds.T("GHOST", x + UI.Ds.Px(0.01f), y + 0.006f, 0.22f, UI.Ds.A(UI.Ds.Muted, a), UI.Ds.Display);
             UI.Ds.T(s, x + w - UI.Ds.Px(0.01f), y + 0.004f, 0.55f, UI.Ds.A(ahead ? UI.Ds.Lime : UI.Ds.Red, a), UI.Ds.Display, Alignment.Right);
+        }
+
+        // ------------------------------------------------------------------ rally pace notes (co-driver)
+        private sealed class Note { public int Cp; public string Icon, Text; public Vector3 At; }
+        private List<Note> notes; private int lastCalled = -1;
+        private void BuildNotes()
+        {
+            notes = new List<Note>();
+            var pts = new List<Vector3> { Def.Start }; pts.AddRange(Cps);
+            for (int i = 1; i < pts.Count - 1; i++)
+            {
+                var a = pts[i] - pts[i - 1]; var b = pts[i + 1] - pts[i]; a.Z = 0; b.Z = 0;
+                if (a.Length() < 1f || b.Length() < 1f) continue;
+                float ang = (float)(Math.Atan2(a.X * b.Y - a.Y * b.X, a.X * b.X + a.Y * b.Y) * 180.0 / Math.PI);   // + = left
+                float abs = Math.Abs(ang); if (abs < 14f) continue;
+                float radius = Math.Min(a.Length(), b.Length()) / Math.Max(0.05f, abs * (float)Math.PI / 180f);
+                int sev = abs > 120 ? 1 : radius < 18 ? 2 : radius < 35 ? 3 : radius < 60 ? 4 : radius < 110 ? 5 : 6;
+                if (sev == 6 && abs < 22f) continue;
+                bool left = ang > 0;
+                string word = sev == 1 ? "HAIRPIN" : (left ? "LEFT " : "RIGHT ") + sev;
+                float dz = pts[i + 1].Z - pts[i].Z; if (dz > 4f) word += "  ·  CREST";
+                notes.Add(new Note { Cp = i - 1, Icon = "pn_" + (left ? "l" : "r") + sev, Text = word, At = pts[i] });
+            }
+            // "into" joins: two notes close together
+            for (int i = 0; i + 1 < notes.Count; i++) if (notes[i].At.DistanceTo(notes[i + 1].At) < 60f) notes[i].Text += "  INTO";
+        }
+        private void PaceNotes()
+        {
+            if (notes == null) BuildNotes();
+            var car = Player.Car; if (car == null || !car.Exists() || Player.Finished) return;
+            var next = notes.FirstOrDefault(n => n.Cp >= Player.Cp);
+            if (next == null) return;
+            float d = car.Position.DistanceTo(next.At);
+            int idx = notes.IndexOf(next);
+            if (d < 220f && lastCalled < idx) { lastCalled = idx; Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "NAV_UP_DOWN", "HUD_FRONTEND_DEFAULT_SOUNDSET", true); }
+            float a = d < 260f ? 1f : 0.45f;
+            float cx = 0.5f, y = 0.06f, w = UI.Ds.Px(0.3f);
+            UI.Ds.Rect(cx - w / 2f, y, w, 0.105f, UI.Ds.A(UI.Ds.Bg, 0.8f));
+            UI.Ds.Rect(cx - w / 2f, y, w, 0.004f, UI.Ds.A(UI.Ds.Amber, a));
+            var col = next.Icon.EndsWith("1") || next.Icon.EndsWith("2") ? UI.Ds.Red : next.Icon.EndsWith("3") ? UI.Ds.Amber : UI.Ds.Text;
+            UI.Textures.Draw(next.Icon, cx - w / 2f + UI.Ds.Px(0.05f), y + 0.054f, 0.082f, UI.Ds.A(col, a));
+            UI.Ds.T(next.Text, cx - w / 2f + UI.Ds.Px(0.1f), y + 0.016f, 0.55f, UI.Ds.A(col, a), UI.Ds.Display);
+            UI.Ds.T(((int)(d / 10) * 10) + " M", cx - w / 2f + UI.Ds.Px(0.1f), y + 0.062f, 0.32f, UI.Ds.A(UI.Ds.Muted, a), UI.Ds.Display);
+            if (idx + 1 < notes.Count)
+            {
+                var n2 = notes[idx + 1];
+                UI.Textures.Draw(n2.Icon, cx + w / 2f - UI.Ds.Px(0.035f), y + 0.054f, 0.05f, UI.Ds.A(UI.Ds.Muted, 0.8f));
+                UI.Ds.T("THEN", cx + w / 2f - UI.Ds.Px(0.07f), y + 0.075f, 0.22f, UI.Ds.Faint, UI.Ds.Display, Alignment.Right);
+            }
         }
 
         // ------------------------------------------------------------------ intro cinematic (title card + grid flyover)
