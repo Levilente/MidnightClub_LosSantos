@@ -40,7 +40,7 @@ namespace MidnightClub.Police
 
         public PursuitManager(SaveManager saves, TransactionManager money, VehicleManager vehicles, Config cfg)
         {
-            this.saves = saves; this.money = money; this.vehicles = vehicles; this.cfg = cfg;
+            this.saves = saves; this.money = money; this.vehicles = vehicles; this.cfg = cfg; Instance = this;
             foreach (var m in CarModels.Concat(FastModels).Concat(new[] { "police4", "policeb", "polmav", "pranger", "policet" })) PoliceHashes.Add(new Model(m).Hash);
             EventBus.Subscribe<MidnightTickEvent>(e => Tick());
             EventBus.Subscribe<ModeChangedEvent>(e => { if (e.To != GameMode.MIDNIGHT_CLUB) End(false, silent: true); });
@@ -81,6 +81,14 @@ namespace MidnightClub.Police
                     return;
                 }
             }
+        }
+
+        public static PursuitManager Instance;
+        /// <summary>Hot-pursuit events: the police are on you from the green light.</summary>
+        public void StartHot(int level)
+        {
+            if (Active || !cfg.PoliceEnabled) return;
+            Start("Hot pursuit race", null, null); Level = Math.Max(Level, level); startedAt = Game.GameTime - (level >= 2 ? 41000 : 0);
         }
 
         private void Start(string why, Vehicle firstCar, Ped firstDriver)

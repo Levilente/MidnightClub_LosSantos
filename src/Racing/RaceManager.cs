@@ -69,6 +69,7 @@ namespace MidnightClub.Racing
         /// <summary>Every third sprint with a full grid also runs as an Elimination event (last place out every 30 s).</summary>
         private void AddEliminations()
         {
+            int hp = 0; foreach (var x in lib.Races.Where(q => (q.Kind == RaceType.Sprint || q.Kind == RaceType.Circuit) && !q.Id.StartsWith("custom_"))) { if (hp++ % 5 == 2) { x.HotPursuit = true; if (!x.Name.Contains("Hot Pursuit")) x.Name += " (Hot Pursuit)"; } }
             var sprints = lib.Races.Where(r => r.Kind == RaceType.Sprint && r.Opponents >= 3 && !r.Id.StartsWith("custom_")).ToList();
             for (int i = 0; i < sprints.Count; i += 3)
             {
@@ -226,6 +227,7 @@ namespace MidnightClub.Racing
             {
                 m.Items.Clear();
                 m.Add(new MenuItem("Quick race", QuickRace) { Description = () => "Fast travel to a random race you can enter right now and start it." });
+                m.Add(new MenuItem("Series", () => { if (Series.Instance != null) stack.Push(Series.Instance.Menu()); }) { Description = () => "Three-round championships for every discipline, with a podium and a reward car." });
                 m.Add(new MenuItem("Championships", () => stack.Push(ChampionshipsMenu())));
                 m.Add(new MenuItem("Race history", () => stack.Push(HistoryMenu())) { Value = () => saves.Data.RaceHistory.Count.ToString() });
                 foreach (Discipline dd in Enum.GetValues(typeof(Discipline)))
@@ -485,7 +487,7 @@ namespace MidnightClub.Racing
                     repF = pos == 1 ? 1 : pos == 2 ? 0.6 : pos == 3 ? 0.4 : 0.2;
                 }
             }
-            res.Cash = (long)(r.CashReward * cashF * Career.Mastery.CashMult(vehicles.CurrentRecord)); res.Rep = (long)(r.RepReward * repF);
+            res.Cash = (long)(r.CashReward * cashF * Career.Mastery.CashMult(vehicles.CurrentRecord) * (r.HotPursuit ? 1.5 : 1.0)); res.Rep = (long)(r.RepReward * repF * (r.HotPursuit ? 1.5 : 1.0));
             if (pos > 0 && s.TakedownCount > 0) { res.Cash += 750L * s.TakedownCount; res.Rep += 25L * s.TakedownCount; }
             lastTakedowns = s.TakedownCount;
             if (res.Cash > 0 || res.Rep > 0) money.Earn(res.Cash, res.Rep, "race", r.Name + (pos > 0 ? " (P" + pos + ")" : ""), "race-reward:" + r.Id + ":" + saves.Data.RacesStarted);
@@ -527,6 +529,7 @@ namespace MidnightClub.Racing
             var lines = order.Select((x, i) => (x.IsPlayer ? "\u0001" : "") + x.Name + "\t" + (x.Finished ? RaceSession.FormatTime(x.FinishTime) : x.IsPlayer || s.Aborted ? "DNF" : "--:--.--")).ToList();
             EndSession(false);
             ShowResults(r, res, r.HasOpponents ? lines : null, champLine);
+            if (Series.Instance != null) Series.Instance.AfterResults();
         }
 
         private float TrialTarget(RaceDefinition r, RaceSession s)

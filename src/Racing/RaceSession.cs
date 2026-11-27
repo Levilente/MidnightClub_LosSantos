@@ -175,6 +175,7 @@ namespace MidnightClub.Racing
                     Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "GO", "HUD_MINI_GAME_SOUNDSET", true);
                     foreach (var r in Racers) if (!r.IsPlayer) Task(r);
                     Launch();
+                    if (Def.HotPursuit && Police.PursuitManager.Instance != null) Police.PursuitManager.Instance.StartHot(2);
                 }
                 DrawHud();
                 return;
