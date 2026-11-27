@@ -177,19 +177,40 @@ namespace MidnightClub.Racing
             m.OnOpen = () =>
             {
                 m.Items.Clear();
+                m.Add(new MenuItem("Quick race", QuickRace) { Description = () => "Fast travel to a random race you can enter right now and start it." });
                 m.Add(new MenuItem("Championships", () => stack.Push(ChampionshipsMenu())));
                 m.Add(new MenuItem("Race history", () => stack.Push(HistoryMenu())) { Value = () => saves.Data.RaceHistory.Count.ToString() });
                 foreach (var race in lib.Races)
                 {
                     var r = race;
-                    m.Add(new MenuItem(r.Name, () => { Function.Call(Hash.SET_NEW_WAYPOINT, r.Start.X, r.Start.Y); Notification.PostTicker("GPS set to " + r.Name + ".", true, false); })
+                    if (!Explore.Discovery.Known("race:" + r.Id)) continue;
+                    m.Add(new MenuItem(r.Name, () => stack.Push(RaceOptions(r)))
                     {
-                        Value = () => Available(r) ? TypeLabel(r) : (r.RequiredRep > saves.Data.Rep ? r.RequiredRep.ToString("N0") + " REP" : "Night"),
-                        Description = () => TypeLabel(r) + ", $" + r.CashReward.ToString("N0") + " / " + r.RepReward + " REP for the win. Select to set GPS."
+                        Value = () => Available(r) ? TypeLabel(r) + (BestTime(r.Id) > 0 ? "  ·  " + RaceSession.FormatTime((int)BestTime(r.Id)) : "") : (r.RequiredRep > saves.Data.Rep ? r.RequiredRep.ToString("N0") + " REP" : "Night"),
+                        Description = () => TypeLabel(r) + ", $" + r.CashReward.ToString("N0") + " / " + r.RepReward + " REP for the win." + (Explore.Turf.At(r.Start) != null ? " Counts for " + Explore.Turf.At(r.Start).Name + "." : "")
                     });
                 }
             };
             return m;
+        }
+
+        private Menu RaceOptions(RaceDefinition r)
+        {
+            var m = new Menu(r.Name, TypeLabel(r));
+            m.Add(new MenuItem("Race now", () => { if (!Available(r)) { Notification.PostTicker("~r~Not available yet.", true, false); return; } stack.Close(); StartNow(r); })
+            { Enabled = Available(r), Value = () => r.EntryFee > 0 ? "$" + r.EntryFee.ToString("N0") : "Free", Description = () => "Fast travel to the start line and go." });
+            m.Add(new MenuItem("Set GPS", () => { Function.Call(Hash.SET_NEW_WAYPOINT, r.Start.X, r.Start.Y); stack.Close(); Notification.PostTicker("GPS set to " + r.Name + ".", true, false); }));
+            if (BestTime(r.Id) > 0) m.Add(new MenuItem("Your best") { Value = () => RaceSession.FormatTime((int)BestTime(r.Id)), Enabled = false });
+            return m;
+        }
+
+        private void QuickRace()
+        {
+            var car = vehicles.Current; if (car == null) return;
+            var list = lib.Races.Where(r => Available(r) && Explore.Discovery.Known("race:" + r.Id) && r.Points.Count >= 2).ToList();
+            if (list.Count == 0) { Notification.PostTicker("No race available right now.", true, false); return; }
+            var pick = list[new Random().Next(list.Count)];
+            stack.Close(); StartNow(pick);
         }
 
         private Menu HistoryMenu()
