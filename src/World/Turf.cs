@@ -70,6 +70,7 @@ namespace MidnightClub.Explore
             int gain = e.Result.Position == 1 || e.Result.Medal == "Gold" ? 34 : e.Result.Position == 2 || e.Result.Medal == "Silver" ? 12 : 0;
             if (gain == 0) return;
             int before = Control(d.Id), after = Math.Min(100, before + gain);
+            if (Career.Progression.Instance != null) Career.Progression.Instance.Bump("turf", 1);
             Set(d.Id, after);
             if (UnderAttack(d.Id)) { saves.Data.Turf.RemoveAll(x => x.Key == "attack:" + d.Id); Shard.Mid("TURF DEFENDED", d.Name + " is safe. " + d.Crew + " backed off.", Shard.Purple); }
             if (before < 100 && after >= 100)

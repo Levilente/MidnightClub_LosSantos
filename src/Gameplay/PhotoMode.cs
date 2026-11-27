@@ -98,7 +98,7 @@ namespace MidnightClub.Gameplay
                         bool accept = Input.JustPressed(Control.FrontendAccept);
                         if ((accept && ui && sel == 8) || Input.JustPressed(Control.FrontendX) || (!ui && accept))
                         {
-                            shotAt = Environment.TickCount; saves.Data.PhotosTaken++; saves.IsDirty = true;
+                            shotAt = Environment.TickCount; saves.Data.PhotosTaken++; saves.IsDirty = true; if (Career.Progression.Instance != null) Career.Progression.Instance.Bump("photo", 1);
                             Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "Camera_Shoot", "Phone_SoundSet_Michael", true);
                             if (saves.Data.PhotosTaken == 1 && Career.Progression.Instance != null) Career.Progression.Instance.Award(250, "First photo");
                         }

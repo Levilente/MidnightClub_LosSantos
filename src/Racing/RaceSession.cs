@@ -350,6 +350,7 @@ namespace MidnightClub.Racing
                 if (before > 18f && (r.Car.IsUpsideDown || r.Car.Speed < before * 0.25f || spun) && car.Speed > 12f)
                 {
                     wrecked.Add(h); TakedownCount++;
+                    if (Career.Progression.Instance != null) Career.Progression.Instance.Bump("takedown", 1);
                     Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "CHECKPOINT_PERFECT", "HUD_MINI_GAME_SOUNDSET", true);
                     UI.Shard.Mid("TAKEDOWN", r.Name.ToUpperInvariant() + (TakedownCount > 1 ? "  ·  x" + TakedownCount : ""), UI.Shard.Orange, 1800);
                     r.StuckSince = now - 2000;   // help them get going again a bit sooner

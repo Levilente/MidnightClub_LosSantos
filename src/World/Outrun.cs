@@ -160,6 +160,7 @@ namespace MidnightClub.Explore
                 long cash = 2500 + 1500L * ti, rep = 80 + 40L * ti;
                 money.Earn(cash, rep, "outrun", "Outran " + (f != null ? f.Name : "a street racer"), null);
                 saves.Data.StreetRacesWon++; saves.IsDirty = true;
+                if (Career.Progression.Instance != null) Career.Progression.Instance.Bump("outrun", 1);
                 Shard.Mid("OUTRUN WON", (f != null ? f.Name.ToUpperInvariant() + "  ·  " : "") + "+$" + cash.ToString("N0") + "  ·  +" + rep + " REP", Shard.Purple, 3500);
                 if (Career.Progression.Instance != null) Career.Progression.Instance.Award(300 + 100 * ti, "Outrun battle");
             }

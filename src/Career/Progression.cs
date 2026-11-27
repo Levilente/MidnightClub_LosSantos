@@ -213,6 +213,7 @@ namespace MidnightClub.Career
         public void Bump(string kind, long amount, bool max = false)
         {
             if (saves.Data == null) return;
+            WeeklyBump(kind, amount, max);
             foreach (var c in Today)
             {
                 if (c.Kind != kind || Done(c)) continue;
@@ -229,6 +230,80 @@ namespace MidnightClub.Career
                 saves.IsDirty = true;
             }
         }
+
+        // ------------------------------------------------------------------ weekly playlist (real-world week)
+        public readonly List<Daily> Week = new List<Daily>();
+        private static readonly string[] WeekKinds = { "win", "race", "km", "escape", "token", "outrun", "takedown", "jump", "turf", "photo", "zone", "trap" };
+        public static int WeekNumber { get { var n = DateTime.Now; return n.Year * 100 + System.Globalization.CultureInfo.InvariantCulture.Calendar.GetWeekOfYear(n, System.Globalization.CalendarWeekRule.FirstFourDayWeek, DayOfWeek.Monday); } }
+        public string WeekCarModel { get { string[] cars = { "jester4", "zr350", "comet6", "euros", "growler", "cypher", "vectre", "remus", "calico", "tailgater2", "sultan3", "dominator7" }; return cars[WeekNumber % cars.Length]; } }
+
+        private void RollWeekly()
+        {
+            var d = saves.Data; if (d == null) return;
+            int w = WeekNumber;
+            if (d.WeeklyId != w) { d.WeeklyId = w; d.WeeklyProgress.Clear(); d.WeeklyDone.Clear(); saves.IsDirty = true; }
+            Week.Clear();
+            var r = new Random(w * 104729 + 3); var picks = WeekKinds.OrderBy(k => r.Next()).Take(5).ToList();
+            foreach (var k in picks)
+            {
+                var c = new Daily { Id = "w" + w + ":" + k, Kind = k, Cash = 6000, Xp = 1500 };
+                switch (k)
+                {
+                    case "win": c.Target = 5; c.Text = "Win 5 races with opponents"; break;
+                    case "race": c.Target = 10; c.Text = "Finish 10 races"; break;
+                    case "km": c.Target = 100; c.Text = "Drive 100 km"; break;
+                    case "escape": c.Target = 3; c.Text = "Escape 3 police pursuits"; break;
+                    case "token": c.Target = 3; c.Text = "Collect 3 Midnight Tokens"; break;
+                    case "outrun": c.Target = 3; c.Text = "Win 3 outrun battles"; break;
+                    case "takedown": c.Target = 5; c.Text = "Take down 5 opponents in races"; break;
+                    case "jump": c.Target = 60; c.Text = "Jump 60 m in one go"; break;
+                    case "turf": c.Target = 3; c.Text = "Win 3 races for turf"; break;
+                    case "photo": c.Target = 5; c.Text = "Take 5 photos in photo mode"; break;
+                    case "zone": c.Target = 4; c.Text = "Earn 4 skill zone stars"; break;
+                    case "trap": c.Target = 4; c.Text = "Set 4 speed trap records"; break;
+                }
+                Week.Add(c);
+            }
+        }
+        private long WProgress(Daily c) { var kv = saves.Data.WeeklyProgress.FirstOrDefault(x => x.Key == c.Id); long v; return kv != null && long.TryParse(kv.Value, out v) ? v : 0; }
+        private bool WDone(Daily c) { return saves.Data.WeeklyDone.Contains(c.Id); }
+        private void WeeklyBump(string kind, long amount, bool max)
+        {
+            if (saves.Data.WeeklyId != WeekNumber || Week.Count == 0) RollWeekly();
+            foreach (var c in Week)
+            {
+                if (c.Kind != kind || WDone(c)) continue;
+                long v = max ? Math.Max(WProgress(c), amount) : WProgress(c) + amount;
+                saves.Data.WeeklyProgress.RemoveAll(x => x.Key == c.Id); saves.Data.WeeklyProgress.Add(new KeyValue { Key = c.Id, Value = v.ToString() });
+                if (v >= c.Target)
+                {
+                    saves.Data.WeeklyDone.Add(c.Id);
+                    money.Earn(c.Cash, 100, "weekly", "Weekly: " + c.Text, "weekly:" + c.Id);
+                    Award(c.Xp, "Weekly challenge");
+                    if (Week.All(WDone))
+                    {
+                        Shard.Big("WEEKLY PLAYLIST COMPLETE", "Reward car on its way: " + WeekCarModel.ToUpperInvariant(), Shard.Gold, 6000);
+                        GiveCar(WeekCarModel, "Weekly playlist");
+                    }
+                    else Shard.Mid("WEEKLY CHALLENGE COMPLETE", c.Text + "   $" + c.Cash.ToString("N0") + "  ·  " + Week.Count(WDone) + " / " + Week.Count, Shard.Gold);
+                }
+                saves.IsDirty = true;
+            }
+        }
+
+        public UI.Menu WeeklyMenu()
+        {
+            if (saves.Data.WeeklyId != WeekNumber || Week.Count == 0) RollWeekly();
+            var m = new UI.Menu("Weekly playlist", "Complete all five for a reward car");
+            m.OnOpen = () =>
+            {
+                m.Items.Clear();
+                foreach (var c in Week) { var x = c; m.Add(new UI.MenuItem(x.Text) { Value = () => WDone(x) ? "DONE" : WProgress(x).ToString("N0") + " / " + x.Target.ToString("N0"), Description = () => "$" + x.Cash.ToString("N0") + " and " + x.Xp + " XP." }); }
+                m.Add(new UI.MenuItem("Reward car") { Value = () => WeekCarModel.ToUpperInvariant(), Enabled = false, Description = () => "A new playlist every Monday." });
+            };
+            return m;
+        }
+        public int WeekDone { get { if (saves.Data == null) return 0; if (saves.Data.WeeklyId != WeekNumber || Week.Count == 0) RollWeekly(); return Week.Count(WDone); } }
 
         public UI.Menu DailyMenu()
         {

@@ -162,8 +162,10 @@ namespace MidnightClub.Phone
                     Sub("Midnight Tokens", () => Explore.Tokens.Instance != null ? Explore.Tokens.Instance.TokensMenu() : null, () => Explore.Tokens.Instance != null ? Explore.Tokens.Instance.Collected + " / " + Explore.Tokens.Total : ""),
                     Sub("Calendar", CalendarApp, () => calendar.DayName) }),
                 Meta = () => (Progression.Instance != null ? Progression.Instance.RoadPercent.ToString("0.0") + "% ROADS" : "") + (Explore.Discovery.Instance != null ? "  ·  " + Explore.Discovery.Instance.KnownCount + " / " + Explore.Discovery.Instance.TotalCount + " FOUND" : "") });
-            apps.Add(new App { Name = "Daily", Icon = "daily", Accent = Ds.Pink, Open = () => Progression.Instance != null ? Progression.Instance.DailyMenu() : null,
-                Meta = () => Progression.Instance == null ? "" : Progression.Instance.Today.Count(c => Progression.Instance.Done(c)) + " / " + Progression.Instance.Today.Count + " DONE" });
+            apps.Add(new App { Name = "Daily", Icon = "daily", Accent = Ds.Pink, Open = () => Category("Daily", "daily", new[] {
+                    Sub("Daily challenges", () => Progression.Instance != null ? Progression.Instance.DailyMenu() : null, () => Progression.Instance == null ? "" : Progression.Instance.Today.Count(c => Progression.Instance.Done(c)) + " / " + Progression.Instance.Today.Count),
+                    Sub("Weekly playlist", () => Progression.Instance != null ? Progression.Instance.WeeklyMenu() : null, () => Progression.Instance == null ? "" : Progression.Instance.WeekDone + " / 5") }),
+                Meta = () => Progression.Instance == null ? "" : Progression.Instance.Today.Count(c => Progression.Instance.Done(c)) + " / " + Progression.Instance.Today.Count + " TODAY  ·  " + Progression.Instance.WeekDone + " / 5 THIS WEEK" });
             apps.Add(new App { Name = "Settings", Icon = "settings", Accent = Ds.Muted, Open = () => Category("Settings", "settings", new[] {
                     Sub("Game settings", SettingsMenu, null),
                     Sub("Edit driver", () => { stack.Close(); IsOpen = false; menu.Modes.EditCharacter(); return null; }, null),

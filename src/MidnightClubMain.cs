@@ -157,7 +157,7 @@ namespace MidnightClub
                 }
                 else { viewHoldStart = -1; viewHoldFired = false; }
                 modes.Tick();
-                if (welcomePending > 0 && modes.InMidnightClub && Game.GameTime > welcomePending && !menu.IsOpen && !phone.IsOpen && !Racing.RaceManager.IsRacing && Game.Player.Character.IsInVehicle())
+                if (welcomePending > 0 && modes.InMidnightClub && Game.GameTime > welcomePending && !menu.IsOpen && !phone.IsOpen && !Racing.RaceManager.IsRacing && Game.Player.Character.IsInVehicle() && (menu.Garages == null || !menu.Garages.IsInside))
                 {
                     welcomePending = 0;
                     var c = WelcomeScreen.Show(saves.Data, welcomeCalendar.DayName);

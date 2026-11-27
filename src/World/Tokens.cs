@@ -75,6 +75,7 @@ namespace MidnightClub.Explore
             saves.Data.Discovered.Add(Key(i)); saves.IsDirty = true;
             if (i == tipIdx) ClearTip();
             int n = Collected;
+            if (Career.Progression.Instance != null) Career.Progression.Instance.Bump("token", 1);
             Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "PICK_UP", "HUD_FRONTEND_DEFAULT_SOUNDSET", true);
             long cash = 1000 + (n % 10 == 0 ? 15000L * (n / 10) : 0);
             money.Earn(cash, 40, "token", "Midnight Token " + n + "/" + Total, "token:" + i);

@@ -76,6 +76,7 @@ namespace MidnightClub.Gameplay
                 float dist = new Vector2(car.Position.X - takeoff.X, car.Position.Y - takeoff.Y).Length();
                 if (ms > 900 && dist > 25f && dist < 600f && !car.IsUpsideDown)
                 {
+                    if (Career.Progression.Instance != null) Career.Progression.Instance.Bump("jump", (long)dist, true);
                     if (dist > saves.Data.BestJumpM)
                     {
                         bool first = saves.Data.BestJumpM <= 0; saves.Data.BestJumpM = dist; saves.IsDirty = true;
