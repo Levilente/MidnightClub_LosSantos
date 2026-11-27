@@ -6,7 +6,7 @@ Tick items off or note what happened. Logs: `scripts\MidnightClub\MidnightClub.l
 - Simulation driving model: turn-in is sharper, no hidden yaw damping; a RWD car with throttle can be held in a drift (counter-steer + throttle). Toggle Inverse power off to feel the difference.
 - Race diff at high acceleration lock: power oversteer; low lock: inside wheel spins in tight corners.
 - Real drivetrain: each car pulls through its gears and keeps accelerating past GTA's old limiter speed until drag wins; the RPM readout follows the car's redline. MidnightClub.log lists each car's gearbox ("Drivetrain ...").
-- Workshop > Performance > Drivetrain: Full race gearbox; Tuning setup > Gear ratios shows each gear's ratio.
+- Workshop > Performance > Drivetrain: Fully adjustable gearbox; Tuning setup > Gear ratios shows each gear's ratio.
 
 ## 0.36.0
 - Settings > Display > Theme: Auto / Dark / Light switches every screen live; text readable in both.

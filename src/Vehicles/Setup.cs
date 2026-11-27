@@ -64,7 +64,7 @@ namespace MidnightClub.Vehicles
             new Part { Id = "arb", Name = "Race anti-roll bars", Desc = "Adjustable front and rear bars.", Price = 4500, Pi = 4 },
             new Part { Id = "diff", Name = "Race differential", Desc = "Limited-slip diff with adjustable lock (and centre balance on AWD).", Price = 7500, Pi = 6 },
             new Part { Id = "gearbox", Name = "Race gearbox", Desc = "Adjustable final drive: shorter for acceleration, longer for top speed.", Price = 8000, Pi = 6 },
-            new Part { Id = "gearbox2", Name = "Full race gearbox", Desc = "Dog-box with a ratio for every gear: tune each gear on top of the final drive.", Price = 16000, Pi = 5, Needs = "gearbox" },
+            new Part { Id = "gearbox2", Name = "Fully adjustable gearbox", Desc = "Dog-box with a ratio for every gear: tune each gear on top of the final drive.", Price = 16000, Pi = 5, Needs = "gearbox" },
             new Part { Id = "brakes", Name = "Race brake kit", Desc = "Adjustable balance and pressure, better bite.", Price = 6000, Pi = 5 },
             new Part { Id = "aero", Name = "Adjustable aero", Desc = "Splitter and wing with adjustable downforce: grip at speed, costs top speed.", Price = 11000, Pi = 10 },
             new Part { Id = "weight1", Name = "Weight reduction: street", Desc = "-4% weight.", Price = 5000, Pi = 8 },
