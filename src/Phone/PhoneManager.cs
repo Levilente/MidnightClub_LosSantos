@@ -162,6 +162,7 @@ namespace MidnightClub.Phone
                 Meta = () => { int n = saves.Data.Messages.Count(m => !m.Read); return n > 0 ? n + " UNREAD" : "MESSAGES  ·  CLUBS  ·  NEWS"; } });
             apps.Add(new App { Name = "Explore", Icon = "explore", Accent = Ds.Lime, Open = () => Category("Explore", "explore", new[] {
                     Sub("Exploration", () => Progression.Instance != null ? Progression.Instance.ProgressMenu() : null, () => Progression.Instance != null ? Progression.Instance.RoadPercent.ToString("0.0") + "% roads" : ""),
+                    Sub("Car deliveries", () => Explore.Deliveries.Instance != null ? Explore.Deliveries.Instance.Menu() : null, () => "Jobs"),
                     Sub("Midnight Tokens", () => Explore.Tokens.Instance != null ? Explore.Tokens.Instance.TokensMenu() : null, () => Explore.Tokens.Instance != null ? Explore.Tokens.Instance.Collected + " / " + Explore.Tokens.Total : ""),
                     Sub("Calendar", CalendarApp, () => calendar.DayName) }),
                 Meta = () => (Progression.Instance != null ? Progression.Instance.RoadPercent.ToString("0.0") + "% ROADS" : "") + (Explore.Discovery.Instance != null ? "  ·  " + Explore.Discovery.Instance.KnownCount + " / " + Explore.Discovery.Instance.TotalCount + " FOUND" : "") });

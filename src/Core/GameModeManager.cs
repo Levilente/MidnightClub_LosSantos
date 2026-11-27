@@ -314,8 +314,11 @@ namespace MidnightClub.Core
             if (cfg.DisableStoryPolice && Game.Player.WantedLevel > 0) Game.Player.WantedLevel = 0;
         }
 
+        /// <summary>Jobs that put the player in another car (deliveries) pause the keep-in-your-car logic.</summary>
+        public static Func<bool> VehicleCheckSuspended = () => false;
         private void CheckVehicle(Ped ped)
         {
+            if (VehicleCheckSuspended()) return;
             if (vehicles.NeedsRecovery(cfg.RecoveryEngineThreshold)) { RecoverVehicle("Your car needed a tow"); return; }
             var car = vehicles.Current;
             if (!ped.IsInVehicle(car))
