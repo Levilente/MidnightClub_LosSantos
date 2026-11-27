@@ -78,7 +78,7 @@ namespace MidnightClub.Racing
         }
         public void AddCustom(RaceDefinition r) { lib.Races.RemoveAll(x => x.Id == r.Id); lib.Races.Add(r); RefreshBlips(); }
         public void RemoveCustom(string id) { lib.Races.RemoveAll(x => x.Id == id); RefreshBlips(); }
-        public void StartNow(RaceDefinition r) { if (session == null && !Explore.Deliveries.Active && !Gameplay.Licenses.Active) StartRace(r, null); }
+        public void StartNow(RaceDefinition r) { if (session == null && !Explore.Deliveries.Active) StartRace(r, null); }
 
         public bool Available(RaceDefinition r) { return saves.Data.Rep >= r.RequiredRep && (!r.NightOnly || calendar.IsNight); }
 

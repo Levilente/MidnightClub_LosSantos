@@ -67,7 +67,6 @@ namespace MidnightClub
                 new Career.Mastery(saves, money, vehicles);
                 new Explore.Tokens(saves, money, stack);
                 new Explore.Outrun(saves, money, registry, vehicles);
-                new Gameplay.Licenses(saves, money, vehicles, races, stack);
                 new WorldSim.Weather(cfg);
                 new Explore.Deliveries(saves, money, registry, vehicles, stack);
                 new Explore.Takeovers(saves, money, vehicles);

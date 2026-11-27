@@ -130,8 +130,7 @@ namespace MidnightClub.Phone
             this.saves = saves; this.stack = stack; this.menu = menu; this.calendar = calendar; this.races = races; this.rivalsMenu = rivalsMenu; this.clubsMenu = clubsMenu;
             apps.Add(new App { Name = "Races", Icon = "races", Accent = Ds.Red, Open = () => Category("Races", "races", new[] {
                     Sub("Race events", () => races.RacesMenu(), () => races.Races.Count(r => races.Available(r)) + " open"),
-                    Sub("Licence tests", () => Gameplay.Licenses.Instance != null ? Gameplay.Licenses.Instance.Menu() : null, () => Gameplay.Licenses.Instance != null ? "Licence " + Gameplay.Licenses.Instance.LicenseLevel : ""),
-                Sub("Route creator", () => RouteCreator.Instance != null ? RouteCreator.Instance.MyRoutes() : null, () => "Build your own"),
+                    Sub("Route creator", () => RouteCreator.Instance != null ? RouteCreator.Instance.MyRoutes() : null, () => "Build your own"),
                 Sub("Rivals", () => this.rivalsMenu(), () => saves.Data.Rivals.Count(r => r.Defeated) + " / " + RivalManager.Profiles.Count + " beaten"),
                     Sub("Rankings", Rankings, () => "#" + MyRank()) }),
                 Meta = () => races.Races.Count(r => races.Available(r)) + " OPEN  ·  " + races.Championships.Count() + " CHAMPIONSHIPS" });
