@@ -38,6 +38,7 @@ namespace MidnightClub.UI
                     World.RenderingCamera = cam;
                 }
                 int sel = 0; float ang = 200f, selY = -1f; int start = Game.GameTime;
+                if (Screen.IsFadedOut || Screen.IsFadingOut) Screen.FadeIn(600);     // entering Midnight Club: straight from black into the welcome screen
                 Wait(); // swallow the key that opened us
                 while (true)
                 {

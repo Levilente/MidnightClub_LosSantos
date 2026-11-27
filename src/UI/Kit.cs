@@ -171,7 +171,7 @@ namespace MidnightClub.UI
         // ------------------------------------------------------------------ button prompts
         // ---- controller family: PlayStation pads get PlayStation glyphs (like the game itself)
         public static string ButtonStyle = "Auto";      // Auto / Xbox / PlayStation (config [HUD] ButtonStyle)
-        private static volatile bool sonyPad; private static int padCheckAt = -100000; private static volatile bool checking;
+        private static volatile bool sonyPad, logged; private static int padCheckAt = -100000; private static volatile bool checking;
         public static bool PlayStation
         {
             get
@@ -186,10 +186,20 @@ namespace MidnightClub.UI
                     {
                         try
                         {
-                            using (var q = new System.Management.ManagementObjectSearcher("SELECT DeviceID FROM Win32_PnPEntity WHERE DeviceID LIKE '%VID_054C%'"))
-                            using (var r = q.Get()) sonyPad = r.Count > 0;      // Sony: DualShock 4 / DualSense / Edge
+                            using (var q = new System.Management.ManagementObjectSearcher("SELECT DeviceID FROM Win32_PnPEntity WHERE DeviceID LIKE '%054C%'"))
+                            using (var r = q.Get())
+                            {
+                                bool found = false;
+                                foreach (System.Management.ManagementObject o in r)
+                                {   // USB: VID_054C, Bluetooth: VID&0002054C; Sony pads: DS4 05C4/09CC, DualSense 0CE6, Edge 0DF2
+                                    string id = (o["DeviceID"] as string ?? "").ToUpperInvariant();
+                                    if (id.Contains("VID_054C") || id.Contains("VID&0002054C") || id.Contains("054C&PID")) { found = true; break; }
+                                }
+                                if (found != sonyPad || !logged) { logged = true; Core.Log.Info("Controller glyphs: " + (found ? "PlayStation pad found" : "no PlayStation pad")); }
+                                sonyPad = found;
+                            }
                         }
-                        catch { }
+                        catch (Exception ex) { if (!logged) { logged = true; Core.Log.Error("Controller detection", ex); } }
                         checking = false;
                     });
                 }

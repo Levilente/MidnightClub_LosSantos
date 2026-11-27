@@ -150,7 +150,8 @@ namespace MidnightClub.Core
                 lastAutoSave = Game.GameTime;
                 SetState(GameMode.MIDNIGHT_CLUB);
                 if (startGarage != null && !needCreator) { Script.Wait(0); Garages.EnterOnStart(startGarage); }
-                else Screen.FadeIn(cfg.TransitionFadeMs);
+                else if (!cfg.ShowWelcome) Screen.FadeIn(cfg.TransitionFadeMs);
+                // with the welcome screen on, the screen stays black and the welcome screen fades in itself (no gameplay flash)
                 UI.Toast.Post(isNew ? "~p~MIDNIGHT CLUB~s~: welcome to the streets. ~b~" + cfg.ToggleKey + "~s~ (or hold ~INPUT_NEXT_CAMERA~ on a controller) returns to Story Mode. Phone: ~INPUT_PHONE~."
                                               : "~p~MIDNIGHT CLUB~s~: welcome back.");
             }

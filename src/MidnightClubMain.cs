@@ -102,7 +102,7 @@ namespace MidnightClub
                 var abilities = new Gameplay.Abilities(saves, vehicles);
                 var objectives = new Gameplay.Objectives(saves, money) { stackOpen = () => stack.IsOpen || phone.IsOpen };
                 phone.MilestonesMenu = objectives.MilestonesMenu; phone.AbilityMenu = abilities.AbilityMenu;
-                EventBus.Subscribe<ModeChangedEvent>(e => { menu.Close(); if (e.To == GameMode.MIDNIGHT_CLUB && cfg.ShowWelcome) welcomePending = Game.GameTime + 1500; });
+                EventBus.Subscribe<ModeChangedEvent>(e => { menu.Close(); if (e.To == GameMode.MIDNIGHT_CLUB && cfg.ShowWelcome) welcomePending = Game.GameTime + 30; });
                 welcomeCalendar = calendar;
                 hud = new MainHUD(cfg.HudX, cfg.HudY);
                 // Launcher: "Play Midnight Club" writes autostart.flag -> boot straight into Midnight Club
@@ -187,6 +187,8 @@ namespace MidnightClub
                     else if (c == WelcomeScreen.Choice.Story) phone.OpenExit();
                 }
                 else if (!modes.InMidnightClub) welcomePending = 0;
+                // safety: if the welcome screen can't come up (garage, race...), never leave the screen black
+                if (welcomePending > 0 && Game.GameTime > welcomePending + 2500 && GTA.UI.Screen.IsFadedOut) { welcomePending = 0; GTA.UI.Screen.FadeIn(500); }
                 if (modes.InMidnightClub) menu.Tick();
                 if (modes.InMidnightClub && !phone.IsVisible && !menu.IsOpen) { Shard.Tick(); UI.Toast.Tick(); }   // banners wait until menus close
                 if (modes.InMidnightClub && cfg.ShowHud && !phone.IsVisible && !menu.IsOpen) hud.Draw(saves.Data, vehicles);
