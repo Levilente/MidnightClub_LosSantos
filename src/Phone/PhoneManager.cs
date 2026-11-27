@@ -120,6 +120,9 @@ namespace MidnightClub.Phone
             m.Add(num("Traffic density", "TrafficDensity", () => cfg.TrafficDensity, v => cfg.TrafficDensity = v, 0f, 2f, 0.1f, "World"));
             m.Add(num("Traffic in races", "RaceTraffic", () => cfg.RaceTraffic, v => cfg.RaceTraffic = v, 0f, 2f, 0.1f, "World"));
             m.Add(num("Pedestrians", "PedDensity", () => cfg.PedDensity, v => cfg.PedDensity = v, 0f, 2f, 0.1f, "World"));
+            m.Add(new MenuItem("Radio station") { Value = () => { int i = Array.IndexOf(Gameplay.Radio.Ids, cfg.RadioStation ?? ""); return Gameplay.Radio.Names[Math.Max(0, i)]; },
+                OnAdjust = d => { int i = Math.Max(0, Array.IndexOf(Gameplay.Radio.Ids, cfg.RadioStation ?? "")); i = (i + d + Gameplay.Radio.Ids.Length) % Gameplay.Radio.Ids.Length; cfg.RadioStation = Gameplay.Radio.Ids[i]; Config.Save("World", "RadioStation", cfg.RadioStation); Gameplay.Radio.Retune(); },
+                Description = () => "Tuned in every time you get in a car." });
             m.Add(flag("Dynamic weather", "DynamicWeather", () => cfg.DynamicWeather, v => cfg.DynamicWeather = v, "World"));
             m.Add(flag("Always night", "AlwaysNight", () => cfg.AlwaysNight, v => cfg.AlwaysNight = v, "World"));
             m.Add(flag("Start in your last garage", "StartInGarage", () => cfg.StartInGarage, v => cfg.StartInGarage = v, "Gameplay"));
@@ -144,10 +147,13 @@ namespace MidnightClub.Phone
                     Sub("My vehicles", () => menu.MyVehicles(), () => saves.Data.Vehicles.Count.ToString()),
                     Sub("Properties", () => menu.GarageList(), () => saves.Data.Garages.Count + " owned"),
                     Sub("Vehicle catalogue", () => menu.Catalogue(), null),
+                    Sub("Collection", () => Gameplay.Collection.Instance != null ? Gameplay.Collection.Instance.Menu() : null, () => Gameplay.Collection.Instance != null ? Gameplay.Collection.Instance.Unique + " distinct cars" : ""),
                     Sub("Tuning setup", () => Vehicles.Setup.Menu(Vehicles.VehicleManager.Instance, stack, saves), () => Vehicles.VehicleManager.Instance != null && Vehicles.VehicleManager.Instance.CurrentRecord != null && Vehicles.Setup.Any(Vehicles.VehicleManager.Instance.CurrentRecord) ? "Custom" : "Stock"),
                     Sub("Photo mode", () => { stack.Close(); IsOpen = false; openT = 0f; Effects(false); Gameplay.PhotoMode.Run(saves, Vehicles.VehicleManager.Instance); return null; }, () => saves.Data.PhotosTaken > 0 ? saves.Data.PhotosTaken + " shots" : "New") }),
                 Meta = () => saves.Data.Vehicles.Count + (saves.Data.Vehicles.Count == 1 ? " CAR" : " CARS") + CurrentCarName() });
-            apps.Add(new App { Name = "Dealers", Icon = "dealers", Accent = Ds.Amber, Open = () => menu.DealerList(),
+            apps.Add(new App { Name = "Dealers", Icon = "dealers", Accent = Ds.Amber, Open = () => Category("Dealers", "dealers", new[] {
+                    Sub("Dealerships", () => menu.DealerList(), null),
+                    Sub("Auction house", () => Gameplay.Auction.Instance != null ? Gameplay.Auction.Instance.Menu(() => { stack.Close(); IsOpen = false; openT = 0f; Effects(false); }) : null, () => "3 lots today") }),
                 Meta = () => menu.Dealers == null ? "" : "NEW STOCK IN " + menu.Dealers.Definitions.Min(x => menu.Dealers.DaysUntilRotation(x)) + " DAYS" });
             apps.Add(new App { Name = "Career", Icon = "career", Accent = Ds.Amber, Open = () => Category("Career", "career", new[] {
                     Sub("Story", () => Career.Story.Instance != null ? Career.Story.Instance.Menu() : null, () => Career.Story.Instance != null && Career.Story.Instance.Current != null ? "Ch. " + (saves.Data.StoryChapter + 1) + "  " + Career.Story.Instance.Current.Title : "Complete"),

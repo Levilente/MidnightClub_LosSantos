@@ -37,6 +37,7 @@ namespace MidnightClub.Persistence
         [DataMember] public float BestJumpM;
         [DataMember] public int Wheelspins, SuperWheelspins;
         [DataMember] public string CrewName, CrewRole; [DataMember] public int CrewRaces;
+        [DataMember] public List<string> CollectionRewards = new List<string>();
         [DataMember] public string SeriesActive; [DataMember] public int SeriesRound, SeriesPoints; [DataMember] public List<string> SeriesWon = new List<string>();
         [DataMember] public List<KeyValue> DisciplineXp = new List<KeyValue>();
         [DataMember] public int StoryChapter; [DataMember] public List<KeyValue> StoryCounters = new List<KeyValue>();

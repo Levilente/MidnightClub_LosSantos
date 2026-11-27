@@ -77,6 +77,7 @@ namespace MidnightClub.Persistence
             if (d.DisciplineXp == null) d.DisciplineXp = new System.Collections.Generic.List<KeyValue>();
             if (d.StoryCounters == null) d.StoryCounters = new System.Collections.Generic.List<KeyValue>();
             if (d.SeriesWon == null) d.SeriesWon = new System.Collections.Generic.List<string>();
+            if (d.CollectionRewards == null) d.CollectionRewards = new System.Collections.Generic.List<string>();
             if (d.Turf == null) d.Turf = new System.Collections.Generic.List<KeyValue>();
             if (d.SpeedTrapRecords == null) d.SpeedTrapRecords = new System.Collections.Generic.List<KeyValue>();
             if (d.MeetShowoffs == null) d.MeetShowoffs = new System.Collections.Generic.List<string>();
