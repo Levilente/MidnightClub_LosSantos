@@ -66,6 +66,12 @@ namespace MidnightClub
                 new Explore.Turf(saves, money);
                 new Career.Mastery(saves, money, vehicles);
                 new Explore.Tokens(saves, money, stack);
+                EventBus.Subscribe<MidnightTickEvent>(e =>
+                {
+                    float t = cfg.TrafficDensity * (Racing.RaceManager.IsRacing ? cfg.RaceTraffic : 1f);
+                    if (Math.Abs(t - 1f) > 0.01f) { GTA.Native.Function.Call(GTA.Native.Hash.SET_VEHICLE_DENSITY_MULTIPLIER_THIS_FRAME, t); GTA.Native.Function.Call(GTA.Native.Hash.SET_RANDOM_VEHICLE_DENSITY_MULTIPLIER_THIS_FRAME, t); GTA.Native.Function.Call(GTA.Native.Hash.SET_PARKED_VEHICLE_DENSITY_MULTIPLIER_THIS_FRAME, Math.Min(1f, t)); }
+                    if (Math.Abs(cfg.PedDensity - 1f) > 0.01f) { GTA.Native.Function.Call(GTA.Native.Hash.SET_PED_DENSITY_MULTIPLIER_THIS_FRAME, cfg.PedDensity); GTA.Native.Function.Call(GTA.Native.Hash.SET_SCENARIO_PED_DENSITY_MULTIPLIER_THIS_FRAME, cfg.PedDensity, cfg.PedDensity); }
+                });
                 new WorldSim.WorldSimulationManager(saves, money, registry, vehicles, calendar, races, stack, cfg);
                 menu = new MidnightMenu(stack, modes, saves, registry, vehicles, cfg) { Garages = garages, Dealers = dealers, Races = races, RivalMgr = rivals, ClubMgr = clubs };
                 phone = new Phone.PhoneManager(saves, stack, menu, calendar, races, rivals.RivalsMenu, clubs.ClubsMenu);

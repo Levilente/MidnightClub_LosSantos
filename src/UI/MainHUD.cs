@@ -97,7 +97,7 @@ namespace MidnightClub.UI
             }
             // car name
             string name = r == null ? "" : (string.IsNullOrEmpty(r.Nickname) ? r.Model : r.Nickname);
-            Ds.T(name.ToUpperInvariant(), bx, bottom - 0.052f, 0.24f, Ds.Muted, Ds.Body);
+            Ds.T(name.ToUpperInvariant() + (r != null ? "  ·  " + Career.Mastery.Label(r) : ""), bx, bottom - 0.052f, 0.24f, Ds.Muted, Ds.Body);
         }
     }
 }

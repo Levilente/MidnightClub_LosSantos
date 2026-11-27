@@ -46,7 +46,6 @@ namespace MidnightClub.WorldSim
         private void Tick()
         {
             // Per-frame, cheap: traffic density and the bits that draw markers or read input.
-            if (cfg.TrafficDensity != 1f) { Function.Call(Hash.SET_VEHICLE_DENSITY_MULTIPLIER_THIS_FRAME, cfg.TrafficDensity); Function.Call(Hash.SET_RANDOM_VEHICLE_DENSITY_MULTIPLIER_THIS_FRAME, cfg.TrafficDensity); }
             if (cfg.ParkedDensity != 1f) Function.Call(Hash.SET_PARKED_VEHICLE_DENSITY_MULTIPLIER_THIS_FRAME, cfg.ParkedDensity);
             var car = vehicles.Current;
             if (car == null || !car.Exists()) return;
