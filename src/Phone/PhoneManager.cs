@@ -78,6 +78,7 @@ namespace MidnightClub.Phone
             row("Street races won", () => d.StreetRacesWon.ToString("N0"));
             row("Rivals beaten", () => d.Rivals.Count(r => r.Defeated) + " / " + RivalManager.Profiles.Count);
             row("Districts owned", () => Explore.Turf.Instance != null ? Explore.Turf.Instance.Owned + " / " + Explore.Turf.Districts.Length : "-");
+            row("Longest jump", () => ((int)d.BestJumpM) + " m");
             row("Top speed", () => ((int)d.BestSpeedKmh) + " km/h");
             row("Distance driven", () => d.Vehicles.Sum(v => v.Stats != null ? v.Stats.DistanceKm : 0).ToString("N0") + " km");
             row("Style points", () => d.StylePointsTotal.ToString("N0"));

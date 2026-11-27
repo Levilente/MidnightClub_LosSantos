@@ -57,7 +57,7 @@ namespace MidnightClub.Gameplay
             combo = 0; mult = 1f;
         }
 
-        private int wheelieStart = -1; private bool stoppie;
+        private int wheelieStart = -1; private bool stoppie; private Vector3 takeoff;
         private void Tick()
         {
             var car = vehicles.Current;
@@ -68,8 +68,23 @@ namespace MidnightClub.Gameplay
             if (combo > 0 && now - lastEvent > 4000) Bank();
 
             // airtime
-            if (car.IsInAir && kmh > 30f) { if (airStart < 0) airStart = now; }
-            else if (airStart >= 0) { int ms = now - airStart; airStart = -1; if (ms > 700) Add(ms > 2000 ? "BIG AIR" : "AIR", ms / 4); }
+            if (car.IsInAir && kmh > 30f) { if (airStart < 0) { airStart = now; takeoff = car.Position; } }
+            else if (airStart >= 0)
+            {
+                int ms = now - airStart; airStart = -1;
+                if (ms > 700) Add(ms > 2000 ? "BIG AIR" : "AIR", ms / 4);
+                float dist = new Vector2(car.Position.X - takeoff.X, car.Position.Y - takeoff.Y).Length();
+                if (ms > 900 && dist > 25f && dist < 600f && !car.IsUpsideDown)
+                {
+                    if (dist > saves.Data.BestJumpM)
+                    {
+                        bool first = saves.Data.BestJumpM <= 0; saves.Data.BestJumpM = dist; saves.IsDirty = true;
+                        UI.Shard.Mid(first ? "JUMP" : "NEW JUMP RECORD", ((int)dist) + " M  ·  " + (ms / 1000f).ToString("0.0") + " S AIRTIME", UI.Shard.Orange, 2500);
+                        if (!first) money.Earn(500, 50, "style", "Jump record " + (int)dist + " m", null);
+                    }
+                    else UI.Shard.Mid("JUMP", ((int)dist) + " M  ·  BEST " + (int)saves.Data.BestJumpM + " M", UI.Shard.Orange, 1500);
+                }
+            }
 
             // bikes: wheelies and stoppies
             if (car.Model.IsBike && kmh > 25f)
