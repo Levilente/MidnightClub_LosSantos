@@ -202,24 +202,65 @@ namespace MidnightClub.Racing
                 m.Add(new MenuItem("Quick race", QuickRace) { Description = () => "Fast travel to a random race you can enter right now and start it." });
                 m.Add(new MenuItem("Championships", () => stack.Push(ChampionshipsMenu())));
                 m.Add(new MenuItem("Race history", () => stack.Push(HistoryMenu())) { Value = () => saves.Data.RaceHistory.Count.ToString() });
-                foreach (var race in lib.Races)
+                foreach (Discipline dd in Enum.GetValues(typeof(Discipline)))
                 {
-                    var r = race;
-                    if (!Explore.Discovery.Known("race:" + r.Id)) continue;
-                    m.Add(new MenuItem(r.Name, () => stack.Push(RaceOptions(r)))
+                    var d = dd;
+                    var list = lib.Races.Where(r => r.Discipline == d && Explore.Discovery.Known("race:" + r.Id)).ToList();
+                    if (list.Count == 0) continue;
+                    m.Add(new MenuItem(Career.Disciplines.Name(d) + " events", () => stack.Push(EventList(d)))
                     {
-                        Value = () => Available(r) ? TypeLabel(r) + (BestTime(r.Id) > 0 ? "  ·  " + RaceSession.FormatTime((int)BestTime(r.Id)) : "") : (r.RequiredRep > saves.Data.Rep ? r.RequiredRep.ToString("N0") + " REP" : "Night"),
-                        Description = () => TypeLabel(r) + ", $" + r.CashReward.ToString("N0") + " / " + r.RepReward + " REP for the win." + (Explore.Turf.At(r.Start) != null ? " Counts for " + Explore.Turf.At(r.Start).Name + "." : "")
+                        Value = () => "LVL " + Career.Disciplines.Level(d) + "  ·  " + list.Count(Available) + " / " + list.Count + " open",
+                        Description = () => DisciplineBlurb(d)
                     });
                 }
             };
             return m;
         }
 
+        private static string DisciplineBlurb(Discipline d)
+        {
+            switch (d)
+            {
+                case Discipline.Street: return "Sprints, circuits, eliminations and head-to-heads through live traffic.";
+                case Discipline.Drift: return "Drift events and gymkhana runs: angle, smoke, donuts around the pillars.";
+                case Discipline.Offroad: return "Rally stages with pace notes, trail races, cross country and hill climbs. Bring something with ground clearance.";
+                case Discipline.Drag: return "Straight-line drag strips. Launch in the green, shift on the redline.";
+                default: return "Motorcycle races. You'll need a bike from Two Wheel Fury Motorsport.";
+            }
+        }
+
+        private Menu EventList(Discipline d)
+        {
+            var m = new Menu(Career.Disciplines.Name(d) + " events", "Level " + Career.Disciplines.Level(d));
+            m.OnOpen = () =>
+            {
+                m.Items.Clear();
+                foreach (var race in lib.Races.Where(r => r.Discipline == d && Explore.Discovery.Known("race:" + r.Id)).OrderBy(r => r.LevelNeeded).ThenBy(r => r.RequiredRep))
+                {
+                    var r = race;
+                    m.Add(new MenuItem(r.Name, () => stack.Push(RaceOptions(r)))
+                    {
+                        Enabled = true,
+                        Value = () => Available(r) ? TypeLabel(r) + (Result(r) != null ? "  ·  " + Result(r) : "") : "LOCKED  " + LockReason(r),
+                        Description = () => TypeLabel(r) + ". $" + r.CashReward.ToString("N0") + " and " + r.RepReward + " REP for the win." + (Explore.Turf.At(r.Start) != null && r.HasOpponents ? " Counts for " + Explore.Turf.At(r.Start).Name + "." : "")
+                    });
+                }
+            };
+            return m;
+        }
+
+        /// <summary>Best result on an event for the lists ("P1", "GOLD", best time).</summary>
+        private string Result(RaceDefinition r)
+        {
+            var h = saves.Data.RaceHistory.Where(x => x.RaceId == r.Id && x.Position > 0).ToList(); if (h.Count == 0) return null;
+            if (!r.HasOpponents) { var medals = new[] { "Gold", "Silver", "Bronze" }; foreach (var md in medals) if (h.Any(x => x.Medal == md)) return md.ToUpperInvariant(); return "DONE"; }
+            return "BEST P" + h.Min(x => x.Position);
+        }
+
         private Menu RaceOptions(RaceDefinition r)
         {
             var m = new Menu(r.Name, TypeLabel(r));
-            m.Add(new MenuItem("Race now", () => { if (!Available(r)) { UI.Toast.Post("~r~Not available yet."); return; } stack.Close(); StartNow(r); })
+            m.Add(new MenuItem("Race now", () => { if (!Available(r)) { UI.Toast.Post("~r~Locked: " + LockReason(r)); return; } stack.Close(); StartNow(r); })
             { Enabled = Available(r), Value = () => r.EntryFee > 0 ? "$" + r.EntryFee.ToString("N0") : "Free", Description = () => "Fast travel to the start line and go." });
             m.Add(new MenuItem("Set GPS", () => { Function.Call(Hash.SET_NEW_WAYPOINT, r.Start.X, r.Start.Y); stack.Close(); UI.Toast.Post("GPS set to " + r.Name + "."); }));
             if (BestTime(r.Id) > 0) m.Add(new MenuItem("Your best") { Value = () => RaceSession.FormatTime((int)BestTime(r.Id)), Enabled = false });
