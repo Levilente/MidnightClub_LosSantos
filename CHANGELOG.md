@@ -1,4 +1,14 @@
 # Changelog
+## 0.32.0 (2026-11-27): deep
+- **Handling revamp**: every car gets an era (pre-war, 60s ... modern) that shapes grip, spring and damper softness, travel, body roll, brakes and steering on top of its archetype. Old cars float and pitch, muscle cars are boaty, luxury saloons waft, modern cars sit flat and stop hard. New **driving model** setting: Arcade / Simcade / Simulation.
+- **Forza-style tuning** per car (Hub > Garage > Tuning): tyre pressures, final drive, camber, toe, caster, anti-roll bars, springs, ride height, rebound / bump, front / rear downforce, brake balance and pressure, diff acceleration / deceleration lock, AWD centre balance, steering lock, in real units, with presets (grip, drift, drag, rally, touge).
+- **Race parts** (workshops > Performance > Race parts): coilovers, anti-roll bars, race diff, race gearbox, race brakes, adjustable aero, three stages of weight reduction, AWD and RWD conversions, anti-lag (exhaust pops, punchier low-rev boost), straight-pipe exhaust (raspier note, a bit more power). Parts unlock the matching tuning pages and raise PI. Engine swaps now add power too.
+- **Performance Index & classes** (D / C / B / A / S / X) with badges on the HUD, car lists, lobby and auctions; opponents are matched to your class.
+- **Race lobby**: grid preview with every opponent's car and class, side bets, crew toggle, rival time on solo events.
+- **Crew mates**: hire a blocker or a drafter; they level up and get faster cars.
+- **Series** (Cup and Masters for every discipline): three rounds, points against two rivals, podium ceremony, reward car; series wins are story goals.
+- **Hot pursuit races** (police from the green light, +50% reward), **rock crawls** (don't roll it), **seasons** (weekly featured discipline +25% XP and weather mood), **live events** (8-minute challenges for cash and a Wheelspin), **collection rewards**, **auction house** with live bidding, **radio station** setting.
+
 ## 0.31.0 (2026-11-27): one career
 - **Story**: seven chapters (Rookie Nights → The Midnight Club) whose goals pull in every part of the game: street wins, outruns, tokens, turf, rivals, police, rally medals, off-road wins, drift and gymkhana medals, takeovers, drag and bike wins. Chapters pay cash, REP, a Super Wheelspin and sometimes a car, and make the news. The Hub and the welcome screen always show the next goal.
 - **Disciplines**: Street, Drift, Off-road, Drag and Bikes level 1-10 separately from events and activities; levels unlock that discipline's harder, better-paying events and pay rewards (cars at 5 and 10).

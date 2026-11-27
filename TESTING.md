@@ -191,3 +191,17 @@ Tick items off or note what happened. Logs: `scripts\MidnightClub\MidnightClub.l
 - [ ] Trail race (orange) has off-road AI cars; cross country has no road routing; hill climb shows pace notes.
 - [ ] Gymkhana: glowing pillars, DONUT shard after a full 360 around one, 90 s timer, medal at the end.
 - [ ] Bike race refuses to start in a car, works on a motorcycle with bike opponents.
+
+## 0.32.0
+- [ ] Drive a 60s/70s car (Tornado, Sabre GT, Stinger): soft, wallowy, rolls; a modern supercar: flat and grippy. Log shows "Simcade profile <car> (1970s)".
+- [ ] Settings > Driving model cycles Arcade / Simcade / Simulation.
+- [ ] Workshop > Performance > Race parts: buy coilovers → Hub > Garage > Tuning > Springs unlocks; sliders change the feel.
+- [ ] Anti-lag (needs turbo): pops off throttle. Straight pipe: raspier note.
+- [ ] Class badge next to the car name on the HUD; PI changes after upgrades.
+- [ ] Race now → lobby with grid, side bet (left/right), crew (X).
+- [ ] Hub > Social > Crew: hire; crew car joins races (blue blip).
+- [ ] Races > Series: enter the Street Cup, three rounds, podium at the end.
+- [ ] "(Hot Pursuit)" races: police at the green light.
+- [ ] Live event card top right after a few minutes; Season shown in the Hub top bar.
+- [ ] Dealers > Auction house: bidding works, car delivered when you win.
+- [ ] Settings > Radio station: station set when getting in a car.
