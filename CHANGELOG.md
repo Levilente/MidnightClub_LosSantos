@@ -1,4 +1,8 @@
 # Changelog
+## 0.39.0 (2026-11-27): proper lots and grids
+- **Dealership display cars only stand in real parking bays**: when you come near a dealership, the parked cars the map itself places on its car park (GTA's car generators, i.e. the painted bays) are learned as display spots (saved to data\lots.ini, so it's instant next time) and swapped for the current offer. No more cars in doorways, garages or bushes; a dealership without a car park shows its offer only in the showroom. The old guessed spots are gone.
+- **Race starting grids on the road**: rows follow the road backwards from the start line (they bend with the road), every car is lined up with the road's heading, two abreast in the lanes going your way (both lanes on a narrow two-way street), each slot checked to be on tarmac and moved towards the lane centre if not. You start on pole.
+
 ## 0.38.0 (2026-11-27): real drivetrain, drift physics
 - **Less understeer**: tyre peak slip angles brought down to real-tyre values (11-14° instead of 18-24°, which made every car lazy to turn in), rotational inertia capped, a touch more front grip in the balance. simcade.ini is reset once (old file kept as simcade.ini.v1.bak).
 - **No artificial assists in Simulation**: the anti-spin yaw damper only runs in Arcade / Simcade; the old "drift sustain" push is gone everywhere.

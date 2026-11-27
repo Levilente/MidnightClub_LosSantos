@@ -123,44 +123,81 @@ namespace MidnightClub.Dealerships
         }
 
         // ------------------------------------------------------------------ the lot
-        // The current offer is parked on the dealership's forecourt (spots found procedurally: flat, off the road,
-        // clear of walls). Pull into the lot - anywhere within its area - and the car picker opens on request;
-        // stopping next to a display car opens the picker on that car.
-        private sealed class Lot { public List<Vector3> Spots; public List<float> Headings; public readonly List<Vehicle> Cars = new List<Vehicle>(); public int Rot = -1; }
+        // Display cars only stand where the game itself parks cars: when you come near a dealership, the parked cars the
+        // map puts on its forecourt / car park (GTA's car generators, i.e. real painted bays) are learned as display
+        // spots, saved to data\lots.ini, and swapped for the current offer. Nothing is guessed, so cars never end up in
+        // doorways, garages or bushes; a dealership without a car park simply shows its offer in the showroom.
+        private sealed class Lot { public List<Vector3> Spots = new List<Vector3>(); public List<float> Headings = new List<float>(); public readonly List<Vehicle> Cars = new List<Vehicle>(); public int Rot = -1; public int ScanAt; public bool Loaded; }
         private readonly Dictionary<string, Lot> lots = new Dictionary<string, Lot>();
         private const float AreaRadius = 30f;
+        private ScriptSettings lotIni;
 
         private Lot LotFor(DealershipDefinition d)
         {
-            Lot l; if (lots.TryGetValue(d.Id, out l)) return l;
-            l = new Lot { Spots = new List<Vector3>(), Headings = new List<float>() };
-            lots[d.Id] = l;
-            var c = d.Position;
-            for (float r = 6f; r <= 24f && l.Spots.Count < 6; r += 3f)
-                for (int k = 0; k < 16 && l.Spots.Count < 6; k++)
+            Lot l; if (!lots.TryGetValue(d.Id, out l)) lots[d.Id] = l = new Lot();
+            if (!l.Loaded)
+            {
+                l.Loaded = true;
+                try
                 {
-                    double ang = k * Math.PI * 2 / 16 + r * 0.37;
-                    var p = c + new Vector3((float)Math.Cos(ang) * r, (float)Math.Sin(ang) * r, 0f);
-                    float gz = UI.WorldMarker.Ground(p + new Vector3(0, 0, 4f));
-                    if (Math.Abs(gz - c.Z) > 2.5f) continue;
-                    p.Z = gz;
-                    if (Function.Call<bool>(Hash.IS_POINT_ON_ROAD, p.X, p.Y, p.Z, 0)) continue;
-                    if (l.Spots.Any(o => o.DistanceTo(p) < 5f)) continue;
-                    if (Workshops.WorkshopManager.All.Any(w => w.Position.DistanceTo(p) < 9f)) continue;
-                    bool flat = true, clear = true;
-                    foreach (var off in new[] { new Vector3(1.4f, 0, 0), new Vector3(-1.4f, 0, 0), new Vector3(0, 2.6f, 0), new Vector3(0, -2.6f, 0) })
+                    if (lotIni == null) lotIni = ScriptSettings.Load(System.IO.Path.Combine(dataDir, "lots.ini"));
+                    string raw = lotIni.GetValue(d.Id, "Spots", "");
+                    foreach (var part in raw.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries))
                     {
-                        float z2 = UI.WorldMarker.Ground(p + off + new Vector3(0, 0, 4f));
-                        if (Math.Abs(z2 - gz) > 0.35f) { flat = false; break; }
-                        var hit = World.Raycast(p + new Vector3(0, 0, 0.9f), p + off * 1.15f + new Vector3(0, 0, 0.9f), IntersectFlags.Map);
-                        if (hit.DidHit) { clear = false; break; }
+                        var f = part.Split(',').Select(x => float.Parse(x, System.Globalization.CultureInfo.InvariantCulture)).ToArray();
+                        if (f.Length == 4) { l.Spots.Add(new Vector3(f[0], f[1], f[2])); l.Headings.Add(f[3]); }
                     }
-                    if (!flat || !clear) continue;
-                    var toC = c - p;
-                    l.Spots.Add(p); l.Headings.Add((float)(Math.Atan2(-toC.X, toC.Y) * 180.0 / Math.PI) + 30f);
                 }
-            Log.Info("Dealership lot " + d.Id + ": " + l.Spots.Count + " display spots");
+                catch (Exception ex) { Log.Error("lots.ini", ex); }
+            }
             return l;
+        }
+
+        private void SaveLot(DealershipDefinition d, Lot l)
+        {
+            try
+            {
+                if (lotIni == null) lotIni = ScriptSettings.Load(System.IO.Path.Combine(dataDir, "lots.ini"));
+                var ci = System.Globalization.CultureInfo.InvariantCulture;
+                lotIni.SetValue(d.Id, "Spots", string.Join(";", l.Spots.Select((p, i) => p.X.ToString("0.00", ci) + "," + p.Y.ToString("0.00", ci) + "," + p.Z.ToString("0.00", ci) + "," + l.Headings[i].ToString("0.0", ci)).ToArray()));
+                lotIni.Save();
+            }
+            catch (Exception ex) { Log.Error("lots.ini", ex); }
+        }
+
+        /// <summary>Learns parking bays from the parked cars the game spawned on the lot, and clears them for the display.</summary>
+        private void Learn(DealershipDefinition d, Lot l)
+        {
+            if (Game.GameTime < l.ScanAt) return;
+            l.ScanAt = Game.GameTime + 1500;
+            bool added = false;
+            var own = vehicles.Current;
+            foreach (var v in World.GetNearbyVehicles(d.Position, AreaRadius + 12f))
+            {
+                try
+                {
+                    if (v == null || !v.Exists() || v == own || l.Cars.Contains(v)) continue;
+                    if (v.IsPersistent || !Function.Call<bool>(Hash.IS_VEHICLE_SEAT_FREE, v, -1, false) || v.Speed > 0.1f || !v.IsOnAllWheels) continue;
+                    if (v.Model.IsBike || v.Model.IsBicycle || v.Model.IsBoat || v.Model.IsHelicopter || v.Model.IsPlane) continue;
+                    var p = v.Position;
+                    if (Function.Call<bool>(Hash.IS_POINT_ON_ROAD, p.X, p.Y, p.Z, v)) continue;              // parked in traffic lanes
+                    if (Math.Abs(v.Rotation.X) > 6f || Math.Abs(v.Rotation.Y) > 6f) continue;              // on a slope or kerb
+                    if (Workshops.WorkshopManager.All.Any(w => w.Position.DistanceTo(p) < 10f)) continue;
+                    // the car stands in a bay: register it (once) and make room for a display car
+                    if (!l.Spots.Any(o => o.DistanceTo(p) < 4f))
+                    {
+                        l.Spots.Add(new Vector3(p.X, p.Y, p.Z - v.HeightAboveGround)); l.Headings.Add(v.Heading); added = true;
+                        Log.Info("Dealership lot " + d.Id + ": learned bay " + l.Spots.Count + " from a parked " + v.DisplayName);
+                    }
+                    if (l.Spots.Any(o => o.DistanceTo(p) < 4f))
+                    {
+                        Function.Call(Hash.SET_ENTITY_AS_MISSION_ENTITY, v, true, true);
+                        v.Delete();
+                    }
+                }
+                catch { }
+            }
+            if (added) SaveLot(d, l);
         }
 
         private void ClearLot(Lot l) { foreach (var v in l.Cars) try { if (v != null && v.Exists()) v.Delete(); } catch { } l.Cars.Clear(); }
@@ -171,19 +208,24 @@ namespace MidnightClub.Dealerships
             if (dist > 160f) { Lot old; if (lots.TryGetValue(d.Id, out old) && old.Cars.Count > 0) ClearLot(old); return; }
             if (dist > 130f) return;
             var l = LotFor(d);
+            Learn(d, l);
             int rot = Rotation(d);
             if (l.Rot != rot) { ClearLot(l); l.Rot = rot; }
             var stock = Stock(d);
             int want = Math.Min(l.Spots.Count, stock.Count);
             if (l.Cars.Count >= want) return;
             int i = l.Cars.Count;
+            // the bay must be free (no parked car or pedestrian standing in it right now)
+            var spot = l.Spots[i];
+            if (World.GetNearbyVehicles(spot, 2.2f).Any(v => v != null && v.Exists() && !l.Cars.Contains(v))) return;
             var item = stock[i];
             if (item.Preview == null) item.Preview = item.MakeRecord();
             var model = item.Preview.ModelHash != 0 ? new Model(item.Preview.ModelHash) : new Model(item.Preview.Model);
             if (!Core.Assets.Ready(model)) return;                 // streams in the background, one car per frame
             try
             {
-                var v = vehicles.SpawnDisplay(item.Preview, l.Spots[i] + new Vector3(0, 0, 0.3f), l.Headings[i]);
+                var v = vehicles.SpawnDisplay(item.Preview, spot + new Vector3(0, 0, 0.4f), l.Headings[i]);
+                Function.Call(Hash.SET_VEHICLE_ON_GROUND_PROPERLY, v, 5f);
                 Function.Call(Hash.FREEZE_ENTITY_POSITION, v, true);
                 v.IsPersistent = true;
                 l.Cars.Add(v);

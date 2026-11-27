@@ -406,9 +406,12 @@ namespace MidnightClub.Racing
             }
             championshipId = champ; rival = rivalSpec;
             Function.Call(Hash.CLEAR_AREA_OF_VEHICLES, r.Start.X, r.Start.Y, r.Start.Z, 45f, false, false, false, false, false, false, 0);
-            float heading = (float)(Math.Atan2(-(lap[0].X - r.Start.X), lap[0].Y - r.Start.Y) * 180.0 / Math.PI);
-            car.Position = r.Start; car.Heading = heading; car.PlaceOnGround(); car.Repair();
+            // grid on the road: pole for the player, rows following the road behind the line
+            var grid = Grid.Build(r.Start, lap[0], 10);
+            float heading = grid[0].Heading;
+            car.Position = grid[0].Pos + new Vector3(0, 0, 0.3f); car.Heading = heading; car.PlaceOnGround(); car.Repair();
             session = new RaceSession(r, lap);
+            session.GridSlots = grid;
             session.AddPlayer(car, ped);
             if (rivalSpec != null && rivalSpec.Car != null && !r.Scored)
             {

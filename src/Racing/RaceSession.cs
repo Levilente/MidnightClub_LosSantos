@@ -61,6 +61,9 @@ namespace MidnightClub.Racing
         // ------------------------------------------------------------------ setup
         public void AddPlayer(Vehicle car, Ped ped) { Racers.Add(new Racer { Name = "You", IsPlayer = true, Car = car, Ped = ped }); }
 
+        /// <summary>Road-aligned start slots from Grid.Build (slot 0 = the player).</summary>
+        public List<Grid.Slot> GridSlots;
+
         public void SpawnOpponents(IList<string> names, IList<VehicleInfo> cars, Vector3 start, float heading, int seed, int slot0 = 0)
         {
             var rnd = new Random(seed);
@@ -73,10 +76,12 @@ namespace MidnightClub.Racing
                 int row = (g + 1) / 2, side = (g + 1) % 2 == 0 ? -1 : 1;
                 var pos = start - fwd * (7.5f * row) + right * (g == 0 ? 3.2f : side * 3.2f);
                 if (g == 0) pos = start + right * 3.4f;
+                float carHeading = heading;
+                if (GridSlots != null && g + 1 < GridSlots.Count) { pos = GridSlots[g + 1].Pos + new Vector3(0, 0, 0.3f); carHeading = GridSlots[g + 1].Heading; }
                 try
                 {
                     var vm = new Model(cars[i].Hash); vm.Request(5000);
-                    var car = World.CreateVehicle(vm, pos, heading); vm.MarkAsNoLongerNeeded();
+                    var car = World.CreateVehicle(vm, pos, carHeading); vm.MarkAsNoLongerNeeded();
                     if (car == null || !car.Exists()) continue;
                     car.PlaceOnGround(); car.IsPersistent = true;
                     car.Mods.InstallModKit();
