@@ -561,10 +561,8 @@ namespace MidnightClubLauncher
             Str(g, "HIT THE STREETS", fHero, Text1, x - 4, y + 62);
             Str(g, "Race the city, build your garage, climb from nobody to the Midnight Club.", fBody, Text2, x + 2, y + 122);
             // buttons
-            var pr = new RectangleF(x, y + 160, 340, 68);
-            Button(g, pr, "play", "PLAY MIDNIGHT CLUB", "play", Red, Color.White, () => Launch(true));
-            var sr = new RectangleF(x + 356, y + 166, 210, 56);
-            Button(g, sr, "story", "STORY MODE", null, Color.Empty, Text1, () => Launch(false), true);
+            var pr = new RectangleF(x, y + 160, 380, 72);
+            Button(g, pr, "play", "PLAY", "play", Red, Color.White, () => Launch(true));
             float kx = x + 6, ky = y + 254;
             kx += Keycap(g, "ENTER", kx, ky) + 8; Str(g, "play", fSmall, Text2, kx, ky); kx += 46;
             kx += Keycap(g, "ESC", kx, ky) + 8; Str(g, "close", fSmall, Text2, kx, ky);
