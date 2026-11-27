@@ -66,6 +66,7 @@ namespace MidnightClub
                 new Explore.Turf(saves, money);
                 new Career.Mastery(saves, money, vehicles);
                 new Explore.Tokens(saves, money, stack);
+                new Explore.Outrun(saves, money, registry, vehicles);
                 EventBus.Subscribe<MidnightTickEvent>(e =>
                 {
                     float t = cfg.TrafficDensity * (Racing.RaceManager.IsRacing ? cfg.RaceTraffic : 1f);
