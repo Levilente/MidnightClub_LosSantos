@@ -22,7 +22,7 @@ namespace MidnightClub.Racing
             if (cache.TryGetValue(r.Id, out cached)) return cached;
             var pts = new List<Vector3>();
             foreach (var p in r.Points) pts.Add(new Vector3(p[0], p[1], p[2]));
-            if (r.Kind == RaceType.Circuit) pts.Add(pts[0]);
+            if (r.Lapped) pts.Add(pts[0]);
 
             var all = new List<Vector3>();
             for (int leg = 0; leg + 1 < pts.Count; leg++)

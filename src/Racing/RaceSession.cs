@@ -19,6 +19,7 @@ namespace MidnightClub.Racing
         public int Cp; public bool Finished; public int FinishTime; public float Skill = 1f;
         public int StuckSince = -1, LastTask;
         public float Progress;   // for ranking
+        public bool Out;         // eliminated
     }
 
     /// <summary>One race in progress (non-blocking: ticked every frame). Opponents drive checkpoint to
@@ -50,7 +51,7 @@ namespace MidnightClub.Racing
         {
             Def = def; Lap = lap;
             Cps = new List<Vector3>();
-            int laps = def.Kind == RaceType.Circuit ? Math.Max(1, def.Laps) : 1;
+            int laps = def.Lapped ? Math.Max(1, def.Laps) : 1;
             for (int l = 0; l < laps; l++) Cps.AddRange(lap);
         }
 
@@ -160,7 +161,7 @@ namespace MidnightClub.Racing
             // opponents
             foreach (var r in Racers)
             {
-                if (r.IsPlayer || r.Finished || r.Car == null || !r.Car.Exists() || r.Ped == null || !r.Ped.Exists()) continue;
+                if (r.IsPlayer || r.Finished || r.Out || r.Car == null || !r.Car.Exists() || r.Ped == null || !r.Ped.Exists()) continue;
                 if (r.Car.Position.DistanceTo(Cps[r.Cp]) < 18f) { Advance(r, now); if (!r.Finished) Task(r); }
                 else if (now - r.LastTask > 4000) Task(r);
                 CatchUp(r);
@@ -169,8 +170,10 @@ namespace MidnightClub.Racing
 
             // progress / ranking
             foreach (var r in Racers)
-                if (!r.Finished && r.Car != null && r.Car.Exists())
+                if (!r.Finished && !r.Out && r.Car != null && r.Car.Exists())
                     r.Progress = r.Cp * 100000f - r.Car.Position.DistanceTo(Cps[Math.Min(r.Cp, Cps.Count - 1)]);
+            if (Def.Kind == RaceType.Elimination && !p.Finished) Eliminations(now);
+            if (Def.Kind == RaceType.Drag) DragShift(now);
 
             // hold Backspace to quit
             Game.DisableControlThisFrame(Control.VehicleCinCam);
@@ -303,6 +306,70 @@ namespace MidnightClub.Racing
             UI.Ds.T(s, x + w - UI.Ds.Px(0.01f), y + 0.004f, 0.55f, UI.Ds.A(ahead ? UI.Ds.Lime : UI.Ds.Red, a), UI.Ds.Display, Alignment.Right);
         }
 
+        // ------------------------------------------------------------------ elimination
+        private int nextElim, elimCount;
+        public bool PlayerEliminated;
+        private void Eliminations(int now)
+        {
+            if (nextElim == 0) nextElim = StartTime + 40000;
+            int left = nextElim - now;
+            var alive = Racers.Where(r => !r.Out && !r.Finished).ToList();
+            if (alive.Count <= 1 && !Player.Out)
+            {   // last one standing
+                Player.Finished = true; Player.FinishTime = now - StartTime; Player.Progress = 1e9f; ClearCheckpoint();
+                foreach (var r in Racers) if (!r.IsPlayer && !r.Finished) r.Out = true;
+                return;
+            }
+            // timer bar
+            float w = UI.Ds.Px(0.22f), x = 0.5f - w / 2f, y = 0.035f, k = Math.Max(0f, Math.Min(1f, left / 30000f));
+            bool lastIsMe = Standings().Where(r => !r.Out).LastOrDefault() == Player;
+            UI.Ds.Rect(x, y, w, 0.05f, UI.Ds.A(UI.Ds.Bg, 0.82f));
+            UI.Ds.T("ELIMINATION IN " + Math.Max(0, left / 1000) + "s", 0.5f, y + 0.006f, 0.32f, lastIsMe && left < 10000 ? UI.Ds.Red : UI.Ds.Text, UI.Ds.Display, Alignment.Center);
+            UI.Ds.Rect(x, y + 0.042f, w * k, 0.004f, lastIsMe ? UI.Ds.Red : UI.Ds.Amber);
+            if (left > 0) return;
+            nextElim = now + 30000;
+            var victim = Standings().Where(r => !r.Out && !r.Finished).LastOrDefault();
+            if (victim == null) return;
+            victim.Out = true; elimCount++; victim.Progress = -1e9f + elimCount * 1000f;
+            if (victim.IsPlayer)
+            {
+                PlayerEliminated = true; UI.Shard.Mid("ELIMINATED", "You were last. Out in " + (Racers.Count(r => !r.Out) + 1) + Ord(Racers.Count(r => !r.Out) + 1), UI.Shard.Red, 3500);
+                Done = true; return;
+            }
+            UI.Shard.Mid("ELIMINATED", victim.Name.ToUpperInvariant(), UI.Shard.Orange, 2200);
+            try { if (victim.Blip != null && victim.Blip.Exists()) victim.Blip.Delete(); if (victim.Ped != null && victim.Ped.Exists() && victim.Car != null && victim.Car.Exists()) victim.Ped.Task.CruiseWithVehicle(victim.Car, 12f, VehicleDrivingFlags.DrivingModeStopForVehicles); } catch { }
+        }
+
+        // ------------------------------------------------------------------ drag: shift timing
+        private int lastGear = 1; private bool shiftUsed; private string shiftText; private int shiftShownAt; private Color shiftCol;
+        private void DragShift(int now)
+        {
+            var car = Player.Car; if (car == null || !car.Exists() || Player.Finished) return;
+            Game.DisableControlThisFrame(Control.VehicleHorn);
+            int gear = car.CurrentGear; float rpm = car.CurrentRPM;
+            if (gear != lastGear) { lastGear = gear; shiftUsed = false; }
+            if (!shiftUsed && UI.Input.JustPressed(Control.VehicleHorn))
+            {
+                shiftUsed = true;
+                if (rpm >= 0.88f && rpm <= 0.98f) { shiftText = "PERFECT SHIFT"; shiftCol = UI.Ds.Lime; car.Velocity += car.ForwardVector * 2.6f; Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "CHECKPOINT_PERFECT", "HUD_MINI_GAME_SOUNDSET", true); }
+                else if (rpm >= 0.8f) { shiftText = "GOOD SHIFT"; shiftCol = UI.Ds.Cyan; car.Velocity += car.ForwardVector * 1.1f; }
+                else { shiftText = "EARLY"; shiftCol = UI.Ds.Red; }
+                shiftShownAt = now;
+            }
+            // shift lights (12 LEDs) + gear
+            int leds = 12; float lw = UI.Ds.Px(0.022f), gap = UI.Ds.Px(0.006f), total = leds * lw + (leds - 1) * gap, x = 0.5f - total / 2f, y = 0.12f;
+            for (int i = 0; i < leds; i++)
+            {
+                float th = 0.55f + i * (0.43f / leds); bool on = rpm >= th;
+                var c = i >= leds - 2 ? UI.Ds.Red : i >= leds - 5 ? UI.Ds.Lime : UI.Ds.Amber;
+                bool flash = rpm >= 0.88f && (Game.GameTime / 80) % 2 == 0;
+                UI.Ds.Rect(x + i * (lw + gap), y, lw, 0.016f, on ? (flash ? UI.Ds.Lime : c) : UI.Ds.A(UI.Ds.Stroke, 0.9f));
+            }
+            UI.Ds.T(gear.ToString(), 0.5f, y + 0.025f, 1.1f, UI.Ds.Text, UI.Ds.Display, Alignment.Center);
+            UI.Ds.T("SHIFT  [E / L3]", 0.5f, y + 0.1f, 0.24f, UI.Ds.Muted, UI.Ds.Display, Alignment.Center);
+            if (shiftText != null && now - shiftShownAt < 900) UI.Ds.T(shiftText, 0.5f, y + 0.125f, 0.5f, UI.Ds.A(shiftCol, 1f - (now - shiftShownAt) / 900f), UI.Ds.Display, Alignment.Center);
+        }
+
         // ------------------------------------------------------------------ rally pace notes (co-driver)
         private sealed class Note { public int Cp; public string Icon, Text; public Vector3 At; }
         private List<Note> notes; private int lastCalled = -1;
@@ -388,7 +455,7 @@ namespace MidnightClub.Racing
             UI.Ds.HGrad(0f, 0.62f, 0.6f, 0.3f, UI.Ds.A(UI.Ds.Bg, 0.85f * a), UI.Ds.A(UI.Ds.Bg, 0f), 8);
             UI.Ds.Tag(TypeName, x + off, 0.66f, UI.Ds.Violet, Color.White, 0.3f, a);
             UI.Ds.T(Def.Name.ToUpperInvariant(), x + off, 0.695f, 1.05f, UI.Ds.A(UI.Ds.Text, a), UI.Ds.Display);
-            string info = (introLen / 1000f).ToString("0.0") + " KM" + (Def.Kind == RaceType.Circuit ? "  ·  " + Def.Laps + " LAPS" : "") + (Racers.Count > 1 ? "  ·  " + (Racers.Count - 1) + (Racers.Count == 2 ? " OPPONENT" : " OPPONENTS") : "") + "  ·  $" + Def.CashReward.ToString("N0") + " TO THE WINNER";
+            string info = (introLen / 1000f).ToString("0.0") + " KM" + (Def.Lapped ? "  ·  " + Def.Laps + " LAPS" : "") + (Racers.Count > 1 ? "  ·  " + (Racers.Count - 1) + (Racers.Count == 2 ? " OPPONENT" : " OPPONENTS") : "") + "  ·  $" + Def.CashReward.ToString("N0") + " TO THE WINNER";
             UI.Ds.T(info, x + off, 0.79f, 0.32f, UI.Ds.A(UI.Ds.Muted, a), UI.Ds.Display);
             var names = string.Join("   ", Racers.Where(q => !q.IsPlayer).Select(q => q.Name.ToUpperInvariant()).ToArray());
             if (names.Length > 0) UI.Ds.T("VS  " + names, x + off, 0.825f, 0.28f, UI.Ds.A(UI.Ds.Pink, a), UI.Ds.Display);
@@ -587,7 +654,7 @@ namespace MidnightClub.Racing
                 y += 0.12f;
             }
             UI.Ds.T(Def.Name.ToUpperInvariant(), xr, y, 0.26f, UI.Ds.Violet, UI.Ds.Display, Alignment.Right); y += 0.026f;
-            if (Def.Kind == RaceType.Circuit) { UI.Ds.T("LAP  " + Math.Min(Def.Laps, LapOf(Player)) + " / " + Def.Laps, xr, y, 0.44f, UI.Ds.Text, UI.Ds.Display, Alignment.Right); y += 0.036f; }
+            if (Def.Lapped) { UI.Ds.T("LAP  " + Math.Min(Def.Laps, LapOf(Player)) + " / " + Def.Laps, xr, y, 0.44f, UI.Ds.Text, UI.Ds.Display, Alignment.Right); y += 0.036f; }
             UI.Ds.T(FormatTime(t), xr, y, 0.5f, UI.Ds.Text, UI.Ds.Display, Alignment.Right); y += 0.04f;
             UI.Ds.T("CHECKPOINT  " + Math.Min(Player.Cp + 1, Cps.Count) + " / " + Cps.Count, xr, y, 0.26f, UI.Ds.Muted, UI.Ds.Display, Alignment.Right); y += 0.03f;
             if (Def.Kind == RaceType.Drift)

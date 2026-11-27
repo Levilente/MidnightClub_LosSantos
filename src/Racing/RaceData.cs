@@ -29,6 +29,7 @@ namespace MidnightClub.Racing
         public float StartHeading { get { var p = Points[0]; return p.Length > 3 ? p[3] : 0f; } }
         public bool HasOpponents { get { return Kind != RaceType.TimeTrial && Kind != RaceType.Drift && Kind != RaceType.Rally; } }
         public bool Solo { get { return !HasOpponents; } }
+        public bool Lapped { get { return Kind == RaceType.Circuit; } }
     }
 
     [DataContract]

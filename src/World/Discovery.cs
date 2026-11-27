@@ -41,6 +41,7 @@ namespace MidnightClub.Explore
         public static bool Known(string id)
         {
             var d = Instance != null ? Instance.saves.Data : null;
+            if (id.StartsWith("race:elim_")) return Known("race:" + id.Substring(10));
             if (d == null || id.StartsWith("race:custom_") || id.StartsWith("race:rally_") || id.StartsWith("race:drag_")) return true;
             return Starter.Contains(id) || d.Discovered.Contains(id);
         }

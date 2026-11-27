@@ -56,7 +56,7 @@ namespace MidnightClub.Racing
             EventBus.Subscribe<Explore.DiscoveredEvent>(e => { if (e.Id.StartsWith("race:")) RefreshBlips(); });
             EventBus.Subscribe<ModeChangedEvent>(e =>
             {
-                if (e.To == GameMode.MIDNIGHT_CLUB) { try { lib = RaceLibrary.Load(this.dataDir); lib.Races.RemoveAll(x => x.Id.StartsWith("custom_")); lib.Races.AddRange(RouteCreator.LoadAll(this.dataDir)); RallyStages.Generate(this); SeparateFromLocations(); } catch (Exception ex) { Log.Error("Race library", ex); } RefreshBlips(); }
+                if (e.To == GameMode.MIDNIGHT_CLUB) { try { lib = RaceLibrary.Load(this.dataDir); lib.Races.RemoveAll(x => x.Id.StartsWith("custom_")); lib.Races.AddRange(RouteCreator.LoadAll(this.dataDir)); RallyStages.Generate(this); AddEliminations(); SeparateFromLocations(); } catch (Exception ex) { Log.Error("Race library", ex); } RefreshBlips(); }
                 else { EndSession(true); ClearBlips(); }
             });
             EventBus.Subscribe<MidnightTickEvent>(e => Tick());
@@ -66,6 +66,16 @@ namespace MidnightClub.Racing
         public IEnumerable<ChampionshipDefinition> Championships { get { return lib.Championships; } }
         public RaceDefinition Race(string id) { return lib.Races.FirstOrDefault(r => r.Id == id); }
         public string DataDir { get { return dataDir; } }
+        /// <summary>Every third sprint with a full grid also runs as an Elimination event (last place out every 30 s).</summary>
+        private void AddEliminations()
+        {
+            var sprints = lib.Races.Where(r => r.Kind == RaceType.Sprint && r.Opponents >= 3 && !r.Id.StartsWith("custom_")).ToList();
+            for (int i = 0; i < sprints.Count; i += 3)
+            {
+                var s = sprints[i];
+                lib.Races.Add(new RaceDefinition { Id = "elim_" + s.Id, Name = s.Name.Replace("Sprint", "").Trim() + " Elimination", Type = "Elimination", Laps = 1, Opponents = Math.Max(4, s.Opponents), Points = s.Points, CashReward = (long)(s.CashReward * 1.4), RepReward = (long)(s.RepReward * 1.4), RequiredRep = s.RequiredRep, NightOnly = s.NightOnly, Tier = s.Tier });
+            }
+        }
         public void AddCustom(RaceDefinition r) { lib.Races.RemoveAll(x => x.Id == r.Id); lib.Races.Add(r); RefreshBlips(); }
         public void RemoveCustom(string id) { lib.Races.RemoveAll(x => x.Id == id); RefreshBlips(); }
         public void StartNow(RaceDefinition r) { if (session == null) StartRace(r, null); }
@@ -367,6 +377,7 @@ namespace MidnightClub.Racing
             if (r.Kind == RaceType.Drift) s.BankDrift();
             var order = s.Standings();
             int pos = s.Aborted || !s.Player.Finished ? 0 : order.IndexOf(s.Player) + 1;
+            if (s.PlayerEliminated && !s.Aborted) pos = s.Racers.Count(x => !x.Out) + 1;
             var res = new RaceResult { RaceId = r.Id, Name = r.Name, Type = r.Kind.ToString(), Utc = DateTime.UtcNow.ToString("o"), Position = pos, Of = s.Racers.Count, TimeMs = s.Player.Finished ? s.Player.FinishTime : 0, Score = (long)s.DriftScore };
             var rec = vehicles.CurrentRecord; if (rec != null) res.Car = rec.Nickname ?? rec.Model;
 

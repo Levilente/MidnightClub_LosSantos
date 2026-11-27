@@ -22,7 +22,7 @@ namespace MidnightClub.Racing
             System.Threading.ThreadPool.QueueUserWorkItem(_ =>
             {
                 var list = new List<RaceDefinition>();
-                try { list = Build(); }
+                try { list = Build(); list.AddRange(BuildDrag()); }
                 catch (Exception ex) { Log.Error("Rally stage generation", ex); }
                 lock (gate) { ready = list; pending = true; }
                 built = true; running = false;
@@ -38,10 +38,43 @@ namespace MidnightClub.Racing
             if (l == null) return;
             foreach (var r in l)
             {
-                try { var z = GTA.World.GetZoneLocalizedName(r.Start); if (!string.IsNullOrEmpty(z)) r.Name = z + " Rally Stage"; } catch { }
+                try { var z = GTA.World.GetZoneLocalizedName(r.Start); if (!string.IsNullOrEmpty(z)) r.Name = z + (r.Type == "Drag" ? " Drag Strip" : " Rally Stage"); } catch { }
                 races.AddCustom(r);
             }
             Log.Info("Rally stages: " + l.Count);
+        }
+
+        /// <summary>Dead-straight 400-600 m stretches (freeways, airport roads, desert highways) for drag races.</summary>
+        private static List<RaceDefinition> BuildDrag()
+        {
+            var outList = new List<RaceDefinition>();
+            var rnd = new Random(1402); int n = RoadGraph.Count; var used = new List<Vector3>();
+            for (int attempt = 0; attempt < 3000 && outList.Count < 5; attempt++)
+            {
+                int a = rnd.Next(n); var f = RoadGraph.Flags(a);
+                if ((f & RoadGraph.NodeFlags.Gps) == 0 || (f & (RoadGraph.NodeFlags.Gravel | RoadGraph.NodeFlags.Water | RoadGraph.NodeFlags.Junction)) != 0) continue;
+                var pa = RoadGraph.Pos(a);
+                if (used.Any(u => u.DistanceTo2D(pa) < 1500f)) continue;
+                double ang = rnd.NextDouble() * Math.PI * 2; float len = 420f + (float)rnd.NextDouble() * 180f;
+                var target = pa + new Vector3((float)Math.Cos(ang) * len, (float)Math.Sin(ang) * len, 0);
+                int b = RoadGraph.Nearest(target, 25f); if (b < 0) continue;
+                var pb = RoadGraph.Pos(b);
+                if (Math.Abs(pb.Z - pa.Z) > 12f) continue;
+                var route = RoadGraph.Route(pa, pb); if (route == null || route.Count < 3) continue;
+                var dir = pb - pa; dir.Z = 0; float L = dir.Length(); if (L < 380f) continue; dir.Normalize();
+                bool straight = true; float total = 0;
+                for (int i = 0; i < route.Count; i++)
+                {
+                    var v = route[i] - pa; v.Z = 0; float along = Vector3.Dot(v, dir); var lat = v - dir * along;
+                    if (lat.Length() > 3.5f) { straight = false; break; }
+                    if (i > 0) total += route[i].DistanceTo2D(route[i - 1]);
+                }
+                if (!straight || total > L * 1.04f) continue;
+                float h = (float)(Math.Atan2(-dir.X, dir.Y) * 180.0 / Math.PI);
+                outList.Add(new RaceDefinition { Id = "drag_" + outList.Count, Name = "Drag Strip", Type = "Drag", Laps = 1, Opponents = 1, Points = new List<float[]> { new[] { pa.X, pa.Y, pa.Z, h }, new[] { pb.X, pb.Y, pb.Z, 0f } }, CashReward = 3500, RepReward = 140, Tier = 1 });
+                used.Add(pa);
+            }
+            return outList;
         }
 
         private static List<RaceDefinition> Build()
