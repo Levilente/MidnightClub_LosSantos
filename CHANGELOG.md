@@ -1,4 +1,8 @@
 # Changelog
+## 0.40.1 (2026-11-28): straight in from the launcher
+- **MidnightClubBoot.asi** (game folder): when the game is started from the Midnight Club launcher, the legal / splash screens and the Enhanced landing page are skipped and the game loads straight into Midnight Club. Started any other way (Steam, Rockstar launcher) the game is untouched. Patch patterns from StraightToStoryMode (Chiheb-Bacha, landing-page patch by alloc8or, GPL-3.0); source in asi\.
+- Launcher: no Story Mode button, Midnight Club only.
+
 ## 0.40.0 (2026-11-28): text centring, UI budget, PlayStation glyphs
 - **Text is vertically centred exactly**: per-font offsets measured in game with the new text calibration card (Settings > Display > Text calibration).
 - **Rounded shapes no longer fall apart on busy screens**: a rounded panel now costs one GTA rect (the centre column); its side columns, outlines and highlights are textures, which have no per-frame limit. Toggles, selected rows and chips stay whole.

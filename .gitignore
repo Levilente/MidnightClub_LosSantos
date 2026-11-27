@@ -2,3 +2,6 @@ build/
 *.exe
 *.pdb
 tests/*.dll
+
+asi/*.lib
+asi/*.pdb

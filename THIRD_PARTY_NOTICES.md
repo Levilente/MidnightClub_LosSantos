@@ -47,3 +47,6 @@ Line icons rendered from the Lucide icon font (https://lucide.dev), ISC License,
 
 ## Barlow / Barlow Condensed (launcher/fonts)
 By Jeremy Tribby, SIL Open Font License 1.1 (via Fontsource).
+
+## StraightToStoryMode patterns (asi/MidnightClubBoot.c)
+Landing-page patch by alloc8or ("Unknown Modder"), legal/splash patches adapted from ChaosModV, as published in StraightToStoryMode by Chiheb-Bacha, GPL-3.0. MidnightClubBoot.c is GPL-3.0.
