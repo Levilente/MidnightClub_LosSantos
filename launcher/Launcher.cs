@@ -103,8 +103,8 @@ namespace MidnightClubLauncher
         private Color Text1 { get { return light ? Color.FromArgb(14, 16, 22) : Color.FromArgb(245, 246, 250); } }
         private Color Text2 { get { return light ? Color.FromArgb(70, 76, 92) : Color.FromArgb(172, 177, 194); } }
         private Color Text3 { get { return light ? Color.FromArgb(130, 135, 150) : Color.FromArgb(112, 117, 136); } }
-        private Color GlassTint { get { return light ? Color.FromArgb(150, 250, 251, 253) : Color.FromArgb(140, 18, 20, 28); } }
-        private Color GlassStrong { get { return light ? Color.FromArgb(205, 252, 252, 254) : Color.FromArgb(200, 20, 22, 31); } }
+        private Color GlassTint { get { return light ? Color.FromArgb(178, 250, 251, 253) : Color.FromArgb(168, 14, 16, 24); } }
+        private Color GlassStrong { get { return light ? Color.FromArgb(220, 252, 252, 254) : Color.FromArgb(214, 16, 18, 26); } }
         private Color Line { get { return light ? Color.FromArgb(40, 10, 14, 30) : Color.FromArgb(46, 255, 255, 255); } }
         private Color Hi { get { return light ? Color.FromArgb(220, 255, 255, 255) : Color.FromArgb(50, 255, 255, 255); } }
         private Color Track { get { return light ? Color.FromArgb(40, 10, 14, 30) : Color.FromArgb(60, 255, 255, 255); } }
@@ -467,6 +467,13 @@ namespace MidnightClubLauncher
             hits.Clear();
             int W = ClientSize.Width, H = ClientSize.Height;
             Image bg; if (img.TryGetValue("art.bg_" + (light ? "light" : "dark"), out bg)) g.DrawImage(bg, 0, 0, W, H); else g.Clear(BackColor);
+            // readability scrim: the left / content side is calmer, the art stays vivid on the right
+            using (var sb = new LinearGradientBrush(new Rectangle(0, 0, W, H), Color.FromArgb(light ? 170 : 175, light ? Color.FromArgb(240, 242, 247) : Color.FromArgb(8, 9, 14)), Color.FromArgb(0, 0, 0, 0), 0f))
+            {
+                var sc = light ? Color.FromArgb(242, 243, 248) : Color.FromArgb(8, 9, 14);
+                var blend = new ColorBlend { Positions = new[] { 0f, 0.5f, 0.78f, 1f }, Colors = new[] { Color.FromArgb(225, sc), Color.FromArgb(light ? 200 : 190, sc), Color.FromArgb(light ? 60 : 50, sc), Color.FromArgb(0, sc) } };
+                sb.InterpolationColors = blend; g.FillRectangle(sb, 0, 0, W, H);
+            }
             // slow drifting light over the background
             float tt = (float)(DateTime.Now - started).TotalSeconds;
             using (var path = new GraphicsPath())
@@ -480,15 +487,16 @@ namespace MidnightClubLauncher
             if (page == 0) DrawHome(g, content);
             else if (page == 1) DrawSettings(g, content);
             else DrawAbout(g, content);
-            // window controls
-            float bx = W - 44;
+            // window controls (on a glass pill so they read over the artwork)
+            Glass(g, new RectangleF(W - 96, 10, 84, 40), 20, true);
+            float bx = W - 52;
             foreach (var wc in new[] { "x", "minus" })
             {
-                var r = new RectangleF(bx - 4, 14, 32, 32); string id = "win_" + wc; float h = Hot(id);
+                var r = new RectangleF(bx, 14, 32, 32); string id = "win_" + wc; float h = Hot(id);
                 if (h > 0.01f) Fill(g, r, 10, wc == "x" ? A(Red, (int)(220 * h)) : A(Text1, (int)(30 * h)));
                 Ico(g, wc, r.X + 16, r.Y + 16, 18, wc == "x" && h > 0.5f ? Color.White : Text2);
                 AddHit(r, id, wc == "x" ? (Action)Close : () => WindowState = FormWindowState.Minimized);
-                bx -= 40;
+                bx -= 36;
             }
             // toast
             if (toast != null)
@@ -560,7 +568,7 @@ namespace MidnightClubLauncher
             kx += Keycap(g, "ESC", kx, ky) + 8; Str(g, "close", fSmall, Text2, kx, ky);
 
             // cards row
-            float cy = c.Bottom - 250, cw = (c.Right - 24 - x - 16) / 2f, chh = 226;
+            float cy = c.Bottom - 262, cw = (c.Right - 24 - x - 16) / 2f, chh = 226;
             var cr = new RectangleF(x, cy, cw, chh);
             Glass(g, cr, 20);
             Str(g, "SYSTEM CHECK", fCaps, Text2, cr.X + 22, cr.Y + 28);
@@ -599,8 +607,11 @@ namespace MidnightClubLauncher
             }
             else Str(g, "No save yet. Your career starts the first time you play.", fBody, Text2, kr.X + 22, kr.Y + 56, StringAlignment.Near, StringAlignment.Near, kr.Width - 44);
             // status line
-            Ico(g, gameDir != null ? "circle-check" : "circle-x", x + 10, c.Bottom + 4, 14, gameDir != null ? Green : Red);
-            Str(g, status, fSmall, Text2, x + 24, c.Bottom + 4);
+            var ssz = g.MeasureString(status, fSmall);
+            var sr2 = new RectangleF(x, c.Bottom - 12, ssz.Width + 44, 30);
+            Glass(g, sr2, 15, true);
+            Ico(g, gameDir != null ? "circle-check" : "circle-x", sr2.X + 16, sr2.Y + 15, 14, gameDir != null ? Green : Red);
+            Str(g, status, fSmall, Text2, sr2.X + 30, sr2.Y + 15);
         }
 
         /// <summary>Small keycap (same look as the in-game prompts). Returns its width.</summary>

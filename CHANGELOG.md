@@ -4,6 +4,7 @@
   - **Play**: big Play Midnight Club / Story Mode buttons, system check (GTA V Enhanced, Script Hook V, ScriptHookVDotNet, MidnightClub.dll, settings file) and your career at a glance (cash, REP, story chapter, last played).
   - **Settings** right in the app instead of opening config.ini: Driving, Cameras, Display, World, Police, Controls (click a key and press the new one), Advanced. Toggles, sliders, segmented choices, reset per page; every change is saved to config.ini instantly.
   - **About** page and a mod-folder shortcut.
+- Launcher backdrop: the new illustrated LA freeway art (day for the light theme, night for the dark theme), with a readability scrim on the content side.
 - **New logo** (Midnight Club Los Santos, by Turbomotive) in the launcher, the Hub, the welcome screen, the loading / starting screen, the race lobby and photo mode.
 
 ## 0.36.0 (2026-11-27): new design system (glass, light / dark)
