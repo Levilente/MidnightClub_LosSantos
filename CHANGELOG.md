@@ -1,4 +1,12 @@
 # Changelog
+## 0.34.0 (2026-11-27): Forza Hub, exact speedometer, camera fixes
+- **New Hub, Forza Horizon style**: tabs across the top (RACES · GARAGE · CAREER · WORLD · SETTINGS · EXIT, switch with Q / E or LB / RB) and a scrolling mosaic of big and small tiles per tab, each with an icon, a live info line and a short explanation strip; the garage tile shows a picture of your current car. No more long lists of options on one screen.
+- **Sub-screens**: max eight rows with icons, plus a detail panel (big icon, value, what the option does). Settings are split into Driving, Cameras, Display, World and Police pages.
+- 70 new line icons (Lucide, ISC licence).
+- **Speedometer rebuilt pixel-for-pixel after the reference**: outlined curved rev band with red zone, white fill fading into red, "• RPM" readout, pink gear, big condensed speed digits, KM/H, BOOST box gauge with peak tick and BAR readout, slim NOS bar, ability bar in the same style. All drawn from textures (no GTA font differences).
+- **Chase cameras no longer fly away**: the Forza springs are now integrated implicitly (stable at any frame rate and spring setting), layer output is clamped.
+- **Bumper, hood and roof cams are rigidly fixed to the body**: no G-force, pitch or shake, only the speed FOV. Cockpit cam: the head now dips under braking and leans back on throttle (was the wrong way round).
+
 ## 0.33.0 (2026-11-27): Forza cameras, Forza HUD
 - **Cameras rebuilt from the player's Forza Horizon files** (scripts\MidnightClub\camera\CameraSettings.ini + CameraPhysics.xml, editable / replaceable): chase near / far use Forza's heights above ground, radius and target offsets and yaw springs; every enabled CameraPhysics layer runs (G-forces, speed FOV, slip, suspension pitch / roll, pitch angle, airtime, collision impulses, noise, springs).
 - New **roof cam**; bumper, hood, roof and cockpit follow the body's pitch **and roll**; bumper / hood pitch from the Forza file (no more looking at the sky); **action cam** moved out and up.

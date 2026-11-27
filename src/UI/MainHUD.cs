@@ -88,64 +88,108 @@ namespace MidnightClub.UI
         private static readonly Color Coral = Color.FromArgb(255, 255, 92, 102);
         private static readonly Color Dim = Color.FromArgb(70, 255, 255, 255);
 
-        /// <summary>Forza Horizon-style speedometer: a curved rev arc with a red line zone, the gear in coral, a big
-        /// speed readout, a boost gauge for turbo cars and a slim nitrous bar.</summary>
+        // ---- reference-exact speedometer: every element is a texture laid out in a 240 x 186 "reference pixel" box
+        private const float RefW = 240f, RefH = 186f;
+        private static float su, sx0, sy0;                       // 1 ref px in screen-height units; box origin
+        private static float SX(float px) { return sx0 + Ds.Px(px * su); }
+        private static float SY(float px) { return sy0 + px * su; }
+        private static void Box(string tex, float x, float y, float w, float h, Color c) { Textures.DrawBox(tex, SX(x), SY(y), Ds.Px(w * su), h * su, c); }
+        private static float GAdv(string p, char ch) { float v; return SpeedoGlyphs.Adv.TryGetValue(p + ":" + ch, out v) ? v : 0f; }
+        /// <summary>Draws a string from the pre-rendered glyph set (gb/gm/gs). align: 0 left, 1 centre, 2 right.</summary>
+        private static void Glyphs(string p, string text, float x, float baseline, int align, Color c)
+        {
+            float tot = 0f; foreach (char ch in text) tot += GAdv(p, ch);
+            float cap = GAdv(p, 'H');
+            float cx = align == 2 ? x - tot : align == 1 ? x - tot / 2f : x;
+            foreach (char ch in text)
+            {
+                float adv = GAdv(p, ch); if (adv <= 0f) continue;
+                string n = ch == '.' ? "dot" : ch == '\u2022' ? "bul" : ch.ToString();
+                Box(p + "_" + n, cx, baseline - cap, adv, cap, c);
+                cx += adv;
+            }
+        }
+        private static readonly Color GearPink = Color.FromArgb(255, 232, 128, 140);
+        private static readonly Color RevRed = Color.FromArgb(255, 236, 64, 84);
+        private static readonly Color BoostFill = Color.FromArgb(235, 190, 203, 222);
+        private static readonly Color Track = Color.FromArgb(255, 255, 255, 255);
+        private float boostPeak, boostPeakT;
+        private int rowsDrawn; private float rowBase;
+
+        /// <summary>Draws one bar row in the speedometer's row style (NOS / ability meter). Row 0 sits where the reference NOS row is.</summary>
+        public static void Row(string label, float fill, Color fillC)
+        {
+            if (inst == null || su <= 0f) return;
+            float dy = inst.rowBase + (inst.rowsDrawn - 1) * 22f;
+            string tex = "spd_ab_" + label.ToLowerInvariant();
+            if (label == "NOS") tex = "spd_nos";
+            if (Textures.Has(tex)) Box(tex, 0f, dy, RefW, RefH, Color.White);
+            fill = Math.Max(0f, Math.Min(1f, fill));
+            if (fill > 0.005f) Box("px", 89f, 161f + dy, 131f * fill, 6f, fillC);
+            inst.rowsDrawn++;
+        }
+        private static MainHUD inst;
+
+        /// <summary>Forza Horizon-style speedometer, laid out pixel-for-pixel after the reference: curved rev band with a
+        /// red-line zone, "• RPM" readout, pink gear, big speed, boost box gauge (turbo cars) and a slim NOS bar.</summary>
         private void Speedo(Vehicle v, OwnedVehicle r)
         {
+            inst = this;
             if (Core.Config.Current != null && Core.Config.Current.SpeedEffects) SpeedLines(v);
-            float right = 0.965f, bottom = 0.935f;
             speedShown = Ds.Damp(speedShown, v.Speed * 3.6f, 14f);
             rpmShown = Ds.Damp(rpmShown, Math.Max(0f, Math.Min(1f, v.CurrentRPM)), 18f);
             int kmh = (int)Math.Round(speedShown);
             bool turbo = r != null && r.Toggles != null && r.Toggles.Contains(18);
             bool nos = r != null && r.NosLevel > 0;
-            int rows = (turbo ? 1 : 0) + (nos ? 1 : 0) + (Gameplay.Abilities.Instance != null && Gameplay.Abilities.Instance.Selected != null ? 1 : 0);
-            float rowH = 0.034f;
-            float ah = 0.13f, aw = Ds.Px(ah * 1.7778f);
-            float bx = right - aw, by = bottom - rows * rowH - 0.1f - ah * 0.62f;
-            bool red = rpmShown > 0.86f;
-            // rev arc
-            Textures.DrawBox("tach_track", bx, by, aw, ah, Dim);
-            Textures.DrawBox("tach_red", bx, by, aw, ah, Color.FromArgb(red ? 230 : 120, 255, 92, 102));
+            bool ability = Gameplay.Abilities.Instance != null && Gameplay.Abilities.Instance.Selected != null;
+            int extraRows = (nos ? 1 : 0) + (ability ? 1 : 0);
+            // layout: 1 ref px = 1.12 px at 1080p; the box is anchored bottom-right, rows below the boost row grow downwards
+            su = 1.12f / 1080f;
+            float rowsBottom = turbo ? 148f : 112f;
+            if (extraRows > 0) rowsBottom = (turbo ? 168f : 132f) + (extraRows - 1) * 22f;
+            sx0 = 0.985f - Ds.Px(RefW * su);
+            sy0 = 0.965f - rowsBottom * su;
+            // rev band
+            Box("spd_frame", 0f, 0f, RefW, RefH, Color.White);
             int step = Math.Max(0, Math.Min(50, (int)Math.Round(rpmShown * 50f))) * 2;
-            Textures.DrawBox("tach_" + step.ToString("000"), bx, by, aw, ah, red ? Coral : Color.White);
-            int rpmNum = (int)(rpmShown * 90f) * 100;
-            Ds.T("•  " + rpmNum.ToString("N0") + " RPM", right - Ds.Px(0.004f), by + ah * 0.3f, 0.24f, red ? Coral : Color.FromArgb(200, 255, 255, 255), Ds.Display, Alignment.Right);
+            Box("spd_rev_" + step.ToString("000"), 0f, 0f, RefW, RefH, Color.White);
+            int rpmNum = (int)Math.Round(rpmShown * 9000f / 100f) * 100;
+            string rpmTxt = rpmNum.ToString();
+            Glyphs("gs", rpmTxt, 195f, 57f, 2, RevRed);
+            float tw = 0f; foreach (char ch in rpmTxt) tw += GAdv("gs", ch);
+            Glyphs("gs", "\u2022", 195f - tw - 4f, 57f, 2, RevRed);
             // gear + speed
             int gear = v.CurrentGear;
             string g = v.Speed < 0.5f && v.Throttle <= 0 ? "N" : gear == 0 ? "R" : gear.ToString();
-            float ty = by + ah * 0.52f;
-            Ds.T(g, bx + aw * 0.14f, ty, 1.35f, Coral, Ds.Display, Alignment.Center);
-            Ds.T(kmh.ToString(), right - Ds.Px(0.052f), ty, 1.35f, Color.White, Ds.Display, Alignment.Right);
-            Ds.T("KM/H", right - Ds.Px(0.047f), ty + 0.054f, 0.3f, Color.FromArgb(220, 255, 255, 255), Ds.Display);
-            // rows: boost, nos, (ability meter by Abilities)
-            float rx = bx + aw * 0.04f, rw = right - rx, ry = ty + 0.105f;
+            Glyphs("gb", g, 47.5f, 112f, 1, GearPink);
+            Glyphs("gb", kmh.ToString(), 188f, 112f, 2, Color.White);
+            // boost
+            float y = 0f;
             if (turbo)
             {
                 float maxBar = 1.0f + 0.15f * r.EcuLevel + (Vehicles.Setup.Has(r, "als") ? 0.2f : 0f);
                 float want = Math.Max(0f, v.Throttle) * Math.Max(0f, Math.Min(1f, (rpmShown - 0.25f) / 0.45f)) * maxBar;
                 if (Vehicles.Setup.Has(r, "als") && v.Throttle <= 0.05f) want = 0.35f * maxBar;
                 boostShown = Ds.Damp(boostShown, want, want > boostShown ? (Vehicles.Setup.Has(r, "als") ? 9f : 3.5f) : 6f);
-                Ds.T("BOOST", rx, ry - 0.012f, 0.3f, Color.FromArgb(230, 255, 255, 255), Ds.Display);
-                float gx = rx + Ds.Px(0.065f), gw = rw - Ds.Px(0.065f) - Ds.Px(0.06f);
-                Ds.Rect(gx, ry - 0.008f, gw, 0.002f, Color.White); Ds.Rect(gx, ry + 0.012f, gw, 0.002f, Color.White);
-                Ds.Rect(gx, ry - 0.008f, Ds.Px(0.002f), 0.022f, Color.White); Ds.Rect(gx + gw - Ds.Px(0.002f), ry - 0.008f, Ds.Px(0.002f), 0.022f, Color.White);
-                Ds.Rect(gx + Ds.Px(0.004f), ry - 0.004f, (gw - Ds.Px(0.008f)) * Math.Min(1f, boostShown / (maxBar * 1.1f)), 0.012f, Color.FromArgb(210, 190, 205, 230));
-                Ds.T(boostShown.ToString("0.0") + " BAR", right, ry - 0.012f, 0.3f, Color.White, Ds.Display, Alignment.Right);
-                ry += rowH;
+                if (boostShown >= boostPeak) { boostPeak = boostShown; boostPeakT = 1.2f; }
+                else { boostPeakT -= Ds.Dt; if (boostPeakT <= 0f) boostPeak = Math.Max(boostShown, boostPeak - Ds.Dt * 0.8f); }
+                float span = 2.65f;                       // 1.2 bar fills 45% of the box, as in the reference
+                Box("spd_boost", 0f, 0f, RefW, RefH, Color.White);
+                float f = Math.Min(1f, boostShown / span), pk = Math.Min(1f, boostPeak / span);
+                if (f > 0.005f) Box("px", 93f, 129f, 124f * f, 15f, BoostFill);
+                float tx = 93f + 124f * pk + 3f;
+                Box("px", tx, 129.5f, 1.4f, 14f, Color.White);
+                Box("px", tx + 3f, 136.3f, 4f, 1.3f, Color.White);
+                Glyphs("gm", boostShown.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture), 188f, 143f, 2, Color.White);
             }
-            if (nos)
-            {
-                Ds.T("NOS", rx, ry - 0.012f, 0.3f, Gameplay.Abilities.NosActive ? Ds.Cyan : Color.FromArgb(230, 255, 255, 255), Ds.Display);
-                float nx = rx + Ds.Px(0.065f), nw = rw - Ds.Px(0.065f);
-                Ds.Rect(nx, ry, nw, 0.006f, Dim);
-                Ds.Rect(nx, ry, nw * Gameplay.Abilities.NosFill, 0.006f, Gameplay.Abilities.NosActive ? Ds.Cyan : Color.White);
-                ry += rowH;
-            }
-            RowX = rx; RowW = rw; RowY = ry;
+            // NOS / ability rows: the reference NOS row sits 36 ref px under the boost row; without turbo the rows move up
+            rowBase = turbo ? 0f : -36f;
+            rowsDrawn = 1;
+            if (nos) Row("NOS", Gameplay.Abilities.NosFill, Gameplay.Abilities.NosActive ? Ds.Cyan : Color.White);
+            RowX = 1f; RowY = 1f; RowW = 0f;              // Abilities draws its row through MainHUD.Row()
             // car line above the arc
             string name = r == null ? "" : (string.IsNullOrEmpty(r.Nickname) ? r.Model : r.Nickname);
-            float ny = by - 0.03f;
+            float right = 0.985f, ny = SY(20f) - 0.026f;
             float pbw = r != null ? Vehicles.PerformanceIndex.Badge(Vehicles.PerformanceIndex.Of(r), right - Ds.Px(0.24f), ny, 0.02f) + Ds.Px(0.008f) : 0f;
             Ds.T(Ds.Fit(name.ToUpperInvariant() + (r != null ? "  ·  " + Career.Mastery.Label(r) : ""), 0.24f, Ds.Px(0.24f) - pbw, Ds.Display), right - Ds.Px(0.24f) + pbw, ny + 0.001f, 0.24f, Color.FromArgb(200, 255, 255, 255), Ds.Display);
             if (WorldSim.Weather.Wetness > 0.3f) Ds.T("WET ROADS", right, ny + 0.001f, 0.24f, Ds.A(Ds.Cyan, Math.Min(1f, (WorldSim.Weather.Wetness - 0.3f) * 4f)), Ds.Display, Alignment.Right);

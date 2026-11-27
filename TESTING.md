@@ -2,6 +2,13 @@
 
 Tick items off or note what happened. Logs: `scripts\MidnightClub\MidnightClub.log` and `ScriptHookVDotNet.log`; Claude can read them from the game folder.
 
+## 0.34.0
+- Hub (Up / F6): tabs switch with Q / E (LB / RB), arrows move between tiles, the mosaic scrolls on tabs with many tiles, the info strip describes the selected tile, Back closes. EXIT tab: Story mode / Save / Quit.
+- Garage tab: the big "My vehicles" tile shows the current car's picture after a moment (cars without a website picture show the icon).
+- Settings > Driving / Cameras / Display / World / Police: 3-6 options each, detail panel on the right.
+- Speedometer matches the reference image (turbo car for the BOOST row, NOS kit for the NOS row, ability below).
+- Chase near / far / action: switching to them no longer throws the camera away. Bumper / hood / roof: no nodding at all, only FOV with speed. Cockpit: dips forward on braking, back on throttle.
+
 ## Already confirmed in-game
 - [x] F7 switch into/out of Midnight Club, HUD, starter Futo, profile save/load
 - [x] Vehicle registry (615 cars), garage screen UI (car card, stats bars)

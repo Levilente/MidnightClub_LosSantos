@@ -169,12 +169,9 @@ namespace MidnightClub.Gameplay
             var style = StyleSystem.Instance;
             if (style != null && Selected != null && UI.MainHUD.RowY > 0f)
             {
-                float x = UI.MainHUD.RowX, w = UI.MainHUD.RowW, y = UI.MainHUD.RowY;
                 bool full = style.Meter >= 0.999f;
                 var c = full ? UI.Ds.Mix(UI.Ds.Amber, Color.White, UI.Ds.Pulse(2f) * 0.5f) : Color.White;
-                UI.Ds.T((active ?? Selected).ToUpperInvariant() + (full && active == null ? "  READY" : ""), x, y - 0.012f, 0.3f, full ? UI.Ds.Amber : Color.FromArgb(230, 255, 255, 255), UI.Ds.Display);
-                UI.Ds.Rect(x + UI.Ds.Px(0.065f), y, w - UI.Ds.Px(0.065f), 0.006f, Color.FromArgb(70, 255, 255, 255));
-                if (style.Meter > 0.01f) UI.Ds.Rect(x + UI.Ds.Px(0.065f), y, (w - UI.Ds.Px(0.065f)) * style.Meter, 0.006f, c);
+                UI.MainHUD.Row((active ?? Selected).ToUpperInvariant(), style.Meter, c);
             }
             UI.MainHUD.RowY = 0f;
         }

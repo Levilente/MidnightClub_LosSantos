@@ -12,6 +12,7 @@ namespace MidnightClub.UI
         public string Label;
         public Func<string> Value;          // right-aligned value text (optional)
         public Func<string> Description;    // shown under the menu (optional)
+        public string Icon;                 // optional li_* icon name (hub list rows + detail panel)
         public Action OnSelect;
         public Action<int> OnAdjust;        // -1 / +1 for left/right
         public bool Enabled = true;

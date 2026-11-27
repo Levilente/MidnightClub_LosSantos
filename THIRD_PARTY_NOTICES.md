@@ -41,3 +41,6 @@ https://github.com/citizenfx/fivem/blob/master/code/components/extra-natives-fiv
 `res/roads.bin.gz` (vehicle path nodes) and `res/skills.json` (skill zones / barn find spots, generated from it by `res/skills.py`)
 are derived from the "(Vehicle Navigation) Nodes" dump in DurtyFree's gta-v-data-dumps (https://github.com/DurtyFree/gta-v-data-dumps),
 which is extracted from Grand Theft Auto V game data (c) Rockstar Games. Converted with `res/build.py` / `res/export.py`.
+
+## Lucide icons (res/ui/li_*.png)
+Line icons rendered from the Lucide icon font (https://lucide.dev), ISC License, Copyright (c) Lucide Contributors 2022; portions MIT, Copyright (c) 2013-2022 Cole Bemis (Feather).
