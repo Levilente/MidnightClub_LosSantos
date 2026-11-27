@@ -23,43 +23,13 @@ namespace MidnightClub.Racing
 
     /// <summary>One race in progress (non-blocking: ticked every frame). Opponents drive checkpoint to
     /// checkpoint with the game's racing AI, with mild catch-up and un-stick help.</summary>
-    public sealed class RaceSession : Gameplay.IRewindable
+    public sealed class RaceSession
     {
         public static RaceSession Active;
         /// <summary>Best-run ghost to race against (solo races) and this run's recording.</summary>
         public Ghost Rival; public readonly Ghost Recording = new Ghost();
         private int splitShownAt = -10000, splitDelta; private bool splitValid;
-        public int Rewinds { get { return Gameplay.Rewind.UsedThisRace; } }
 
-        // ---------------------------------------------------------------- rewind support
-        private sealed class RState { public int Elapsed; public float Drift, Chain, Combo; public int[] Cp; public Vector3[] Pos, Vel; public Quaternion[] Q; public bool[] Fin; }
-        public object Capture()
-        {
-            if (!Running) return null;
-            var st = new RState { Elapsed = Game.GameTime - StartTime, Drift = DriftScore, Chain = driftChain, Combo = DriftCombo, Cp = new int[Racers.Count], Pos = new Vector3[Racers.Count], Vel = new Vector3[Racers.Count], Q = new Quaternion[Racers.Count], Fin = new bool[Racers.Count] };
-            for (int i = 0; i < Racers.Count; i++)
-            {
-                var r = Racers[i]; st.Cp[i] = r.Cp; st.Fin[i] = r.Finished;
-                if (!r.IsPlayer && r.Car != null && r.Car.Exists()) { st.Pos[i] = r.Car.Position; st.Vel[i] = r.Car.Velocity; st.Q[i] = r.Car.Quaternion; }
-            }
-            return st;
-        }
-        public void Restore(object o, bool final)
-        {
-            var st = o as RState; if (st == null || Done) return;
-            StartTime = Game.GameTime - st.Elapsed; DriftScore = st.Drift; driftChain = st.Chain; DriftCombo = st.Combo;
-            for (int i = 0; i < Racers.Count && i < st.Cp.Length; i++)
-            {
-                var r = Racers[i];
-                if (r.Finished && !st.Fin[i]) r.Finished = false;
-                r.Cp = st.Cp[i];
-                if (r.IsPlayer || r.Car == null || !r.Car.Exists() || st.Pos[i] == Vector3.Zero) continue;
-                Function.Call(Hash.FREEZE_ENTITY_POSITION, r.Car, !final);
-                r.Car.Position = st.Pos[i]; r.Car.Quaternion = st.Q[i];
-                if (final) { r.Car.Velocity = st.Vel[i]; r.StuckSince = -1; if (!r.Finished && r.Ped != null && r.Ped.Exists()) Task(r); }
-            }
-            if (final) { ClearCheckpoint(); ShowCheckpoint(); }
-        }
 
         public readonly RaceDefinition Def;
         public readonly List<Vector3> Lap;      // checkpoints of one lap
@@ -138,9 +108,7 @@ namespace MidnightClub.Racing
         public void BeginCountdown()
         {
             CountdownEnd = Game.GameTime + 3500; Freeze(true); ShowCheckpoint();
-            Active = this; Gameplay.Rewind.UsedThisRace = 0;
-            if (!Gameplay.Rewind.Participants.Contains(this)) Gameplay.Rewind.Participants.Add(this);
-            if (Gameplay.Rewind.Instance != null) Gameplay.Rewind.Instance.Clear();
+            Active = this;
         }
 
         // ------------------------------------------------------------------ per frame
@@ -171,7 +139,6 @@ namespace MidnightClub.Racing
             if (!Player.Finished && Player.Car != null && Player.Car.Exists()) { Recording.Model = Player.Car.Model.Hash; Recording.Record(Player.Car, now - StartTime); }
             if (Rival != null) Rival.Play(now - StartTime);
             DrawSplit(now);
-            if (Gameplay.Rewind.Active) { DrawHud(); return; }
 
             // player
             var p = Player;
@@ -562,8 +529,7 @@ namespace MidnightClub.Racing
         {
             if (Rival != null) Rival.Delete();
             if (finStart >= 0) EndCinematic();
-            Gameplay.Rewind.Participants.Remove(this); if (Active == this) Active = null;
-            if (Gameplay.Rewind.Instance != null) Gameplay.Rewind.Instance.Clear();
+            if (Active == this) Active = null;
             ClearCheckpoint();
             foreach (var r in Racers)
             {

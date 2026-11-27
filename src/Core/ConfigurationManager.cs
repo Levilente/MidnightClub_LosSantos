@@ -33,7 +33,7 @@ namespace MidnightClub.Core
         public float TrafficDensity = 1f, ParkedDensity = 1f;
         public int MaxEnthusiasts = 4;
         public bool StreetChallenges = true, CarMeets = true, SpeedTraps = true;
-        public bool Rewind = true, PhotoMode = true, StartInGarage = true;
+        public bool PhotoMode = true, StartInGarage = true;
         public float PedDensity = 1f, RaceTraffic = 0.8f;
         public float PoliceSpeedKmh = 115f, PoliceDifficulty = 1f;
         public long TierRep2 = 1000, TierRep3 = 3500, TierRep4 = 9000, TierRep5 = 20000;
@@ -101,7 +101,6 @@ namespace MidnightClub.Core
             c.TrafficDensity = Get(s, "World", "TrafficDensity", c.TrafficDensity); c.ParkedDensity = Get(s, "World", "ParkedDensity", c.ParkedDensity);
             c.MaxEnthusiasts = Get(s, "World", "MaxEnthusiastCars", c.MaxEnthusiasts);
             c.StreetChallenges = Get(s, "World", "StreetChallenges", c.StreetChallenges); c.CarMeets = Get(s, "World", "CarMeets", c.CarMeets); c.SpeedTraps = Get(s, "World", "SpeedTraps", c.SpeedTraps);
-            c.Rewind = Get(s, "Gameplay", "Rewind", c.Rewind);
             c.StartInGarage = Get(s, "Gameplay", "StartInGarage", c.StartInGarage);
             c.PedDensity = Get(s, "World", "PedDensity", c.PedDensity); c.RaceTraffic = Get(s, "World", "RaceTraffic", c.RaceTraffic);
             c.PoliceSpeedKmh = Get(s, "Police", "SpeedTriggerKmh", c.PoliceSpeedKmh);

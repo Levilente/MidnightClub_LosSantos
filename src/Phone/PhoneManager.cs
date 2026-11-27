@@ -115,7 +115,6 @@ namespace MidnightClub.Phone
             m.Add(num("Pedestrians", "PedDensity", () => cfg.PedDensity, v => cfg.PedDensity = v, 0f, 2f, 0.1f, "World"));
             m.Add(flag("Always night", "AlwaysNight", () => cfg.AlwaysNight, v => cfg.AlwaysNight = v, "World"));
             m.Add(flag("Start in your last garage", "StartInGarage", () => cfg.StartInGarage, v => cfg.StartInGarage = v, "Gameplay"));
-            m.Add(flag("Rewind (hold R / B)", "Rewind", () => cfg.Rewind, v => cfg.Rewind = v, "Gameplay"));
             m.Add(flag("Police", "Enabled", () => cfg.PoliceEnabled, v => cfg.PoliceEnabled = v, "Police"));
             return m;
         }

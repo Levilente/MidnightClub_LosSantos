@@ -459,7 +459,7 @@ namespace MidnightClub.Racing
         private bool lastRecord; private int lastTakedowns;
         private void ShowResults(RaceDefinition r, RaceResult res, List<string> lines, string champLine)
         {
-            int start = Game.GameTime, rewinds = Gameplay.Rewind.UsedThisRace;
+            int start = Game.GameTime;
             bool win = res.Position == 1 && r.HasOpponents, dnf = res.Position == 0;
             var acc = dnf ? UI.Ds.Red : res.Medal == "Gold" || win ? UI.Ds.Amber : res.Medal == "Silver" ? Color.FromArgb(255, 200, 205, 220) : res.Medal == "Bronze" ? Color.FromArgb(255, 205, 127, 70) : UI.Ds.Violet;
             if (win || res.Medal == "Gold") Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "RACE_PLACED", "HUD_AWARDS", true);
@@ -487,7 +487,6 @@ namespace MidnightClub.Racing
                 UI.Ds.T("+" + ((long)(res.Rep * k)).ToString("N0") + " REP", x + UI.Ds.Px(0.2f), ty + 0.014f, 0.62f, UI.Ds.A(UI.Ds.Cyan, a), UI.Ds.Display);
                 ty += 0.08f;
                 if (lastTakedowns > 0) { UI.Ds.T("TAKEDOWNS  " + lastTakedowns + "   ·   +$" + (750 * lastTakedowns).ToString("N0"), x, ty, 0.28f, UI.Ds.A(UI.Ds.Amber, a), UI.Ds.Display); ty += 0.03f; }
-                UI.Ds.T("REWINDS  " + rewinds + (rewinds == 0 && !dnf ? "   ·   CLEAN RUN" : ""), x, ty, 0.28f, UI.Ds.A(UI.Ds.Muted, a), UI.Ds.Display); ty += 0.03f;
                 if (res.Car != null) { UI.Ds.T("CAR  " + res.Car.ToUpperInvariant(), x, ty, 0.28f, UI.Ds.A(UI.Ds.Muted, a), UI.Ds.Display); ty += 0.03f; }
                 if (champLine != null) UI.Ds.T(UI.Ds.Fit(champLine.Replace("~g~", "").Replace("~s~", ""), 0.34f, 0.4f), x, ty + 0.01f, 0.34f, UI.Ds.A(UI.Ds.Text, a));
                 // standings

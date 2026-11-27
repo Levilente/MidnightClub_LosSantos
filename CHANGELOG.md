@@ -1,4 +1,7 @@
 # Changelog
+## 0.29.1 (2026-11-27)
+- Rewind removed (doesn't fit Midnight Club). R / B is back to the normal camera button.
+
 ## 0.29.0 (2026-11-27)
 - **Fixed**: hub cards, icons and the EXIT tile vanishing. GTA drops script rectangles past a per-frame budget and the vector icons used hundreds; icons and the level ring are now anti-aliased PNG textures drawn by Script Hook V (no budget), gradients are cheaper, and DevMode logs the peak draw count.
 - **Start in your last garage** when loading into Midnight Club (Settings toggle).

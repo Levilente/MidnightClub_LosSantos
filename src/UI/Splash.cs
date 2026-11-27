@@ -22,7 +22,6 @@ namespace MidnightClub.UI
             "Purple blips are street racers. Get right behind one and flash your lights for an outrun battle.",
             "Tune every car in Midnight Hub > Garage > Tuning setup: springs, ride height, grip and brake balance, gearing.",
             "40 Midnight Tokens are hidden on the roads. Find them all for a one-off car.",
-            "Crashed? Hold R (controller B) to rewind the last few seconds.",
             "Win races that start in a district to take it from its crew. Your turf pays every night.",
             "Hold the revs in the green during the countdown for a perfect launch.",
             "Tuck in behind an opponent to catch their slipstream.",
