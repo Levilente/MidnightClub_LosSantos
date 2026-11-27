@@ -42,7 +42,7 @@ namespace MidnightClub.Explore
         {
             var d = Instance != null ? Instance.saves.Data : null;
             if (id.StartsWith("race:elim_")) return Known("race:" + id.Substring(10));
-            if (d == null || id.StartsWith("race:custom_") || id.StartsWith("race:rally_") || id.StartsWith("race:drag_") || id.StartsWith("race:offroad_") || id.StartsWith("race:hill_") || id.StartsWith("race:xc_") || id.StartsWith("race:gym_") || id.StartsWith("race:moto_")) return true;
+            if (d == null || id.StartsWith("race:custom_") || id.StartsWith("race:rally_") || id.StartsWith("race:drag_") || id.StartsWith("race:offroad_") || id.StartsWith("race:hill_") || id.StartsWith("race:xc_") || id.StartsWith("race:gym_") || id.StartsWith("race:moto_") || id.StartsWith("race:crawl_")) return true;
             return Starter.Contains(id) || d.Discovered.Contains(id);
         }
 

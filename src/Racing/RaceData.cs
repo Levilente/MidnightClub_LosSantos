@@ -10,7 +10,7 @@ using MidnightClub.Core;
 
 namespace MidnightClub.Racing
 {
-    public enum RaceType { Sprint, Circuit, TimeTrial, Drift, HeadToHead, Rally, Drag, Elimination, Offroad, CrossCountry, HillClimb, Gymkhana, Moto }
+    public enum RaceType { Sprint, Circuit, TimeTrial, Drift, HeadToHead, Rally, Drag, Elimination, Offroad, CrossCountry, HillClimb, Gymkhana, Moto, Crawl }
     public enum Discipline { Street, Drift, Offroad, Drag, Bikes }
 
     [DataContract]
@@ -29,7 +29,7 @@ namespace MidnightClub.Racing
         public RaceType Kind { get { RaceType t; return Enum.TryParse(Type, true, out t) ? t : RaceType.Sprint; } }
         public Vector3 Start { get { var p = Points[0]; return new Vector3(p[0], p[1], p[2]); } }
         public float StartHeading { get { var p = Points[0]; return p.Length > 3 ? p[3] : 0f; } }
-        public bool HasOpponents { get { var k = Kind; return k != RaceType.TimeTrial && k != RaceType.Drift && k != RaceType.Rally && k != RaceType.HillClimb && k != RaceType.Gymkhana; } }
+        public bool HasOpponents { get { var k = Kind; return k != RaceType.TimeTrial && k != RaceType.Drift && k != RaceType.Rally && k != RaceType.HillClimb && k != RaceType.Gymkhana && k != RaceType.Crawl; } }
         /// <summary>Scored by points (drift, gymkhana) rather than time.</summary>
         public bool Scored { get { return Kind == RaceType.Drift || Kind == RaceType.Gymkhana; } }
         public bool BikesOnly { get { return Kind == RaceType.Moto; } }
@@ -40,7 +40,7 @@ namespace MidnightClub.Racing
                 switch (Kind)
                 {
                     case RaceType.Drift: case RaceType.Gymkhana: return Discipline.Drift;
-                    case RaceType.Rally: case RaceType.Offroad: case RaceType.CrossCountry: case RaceType.HillClimb: return Discipline.Offroad;
+                    case RaceType.Rally: case RaceType.Offroad: case RaceType.CrossCountry: case RaceType.HillClimb: case RaceType.Crawl: return Discipline.Offroad;
                     case RaceType.Drag: return Discipline.Drag;
                     case RaceType.Moto: return Discipline.Bikes;
                 }

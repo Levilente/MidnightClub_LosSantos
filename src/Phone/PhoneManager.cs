@@ -425,6 +425,7 @@ namespace MidnightClub.Phone
             }
             float rx = XR - Ds.Px(0.1f);
             Ds.T("$" + d.Cash.ToString("N0"), rx, ty - 0.006f, 0.75f, Ds.A(Ds.Text, a), Ds.Display, GTA.UI.Alignment.Right);
+            Ds.T(Gameplay.Season.Label, rx, ty + 0.085f, 0.24f, Ds.A(Ds.Amber, a), Ds.Display, GTA.UI.Alignment.Right);
             Ds.T((d.ClubMember ? "MIDNIGHT CLUB MEMBER  ·  " : "") + d.Rep.ToString("N0") + " REP" + (CareerManager.Instance != null ? "  ·  " + CareerManager.Instance.TierName.ToUpperInvariant() : ""), rx, ty + 0.055f, 0.3f, Ds.A(Ds.Muted, a), Ds.Display, GTA.UI.Alignment.Right);
             return a;
         }

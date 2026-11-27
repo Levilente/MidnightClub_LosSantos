@@ -217,7 +217,7 @@ namespace MidnightClub.Racing
 
         private static string TypeLabel(RaceDefinition r)
         {
-            switch (r.Kind) { case RaceType.Circuit: return "Circuit"; case RaceType.TimeTrial: return "Time trial"; case RaceType.Drift: return "Drift challenge"; case RaceType.HeadToHead: return "Head-to-head"; case RaceType.Rally: return "Rally stage"; case RaceType.Drag: return "Drag race"; case RaceType.Elimination: return "Elimination"; case RaceType.Offroad: return "Off-road race"; case RaceType.CrossCountry: return "Cross country"; case RaceType.HillClimb: return "Hill climb"; case RaceType.Gymkhana: return "Gymkhana"; case RaceType.Moto: return "Bike race"; default: return "Sprint"; }
+            switch (r.Kind) { case RaceType.Circuit: return "Circuit"; case RaceType.TimeTrial: return "Time trial"; case RaceType.Drift: return "Drift challenge"; case RaceType.HeadToHead: return "Head-to-head"; case RaceType.Rally: return "Rally stage"; case RaceType.Drag: return "Drag race"; case RaceType.Elimination: return "Elimination"; case RaceType.Offroad: return "Off-road race"; case RaceType.CrossCountry: return "Cross country"; case RaceType.HillClimb: return "Hill climb"; case RaceType.Gymkhana: return "Gymkhana"; case RaceType.Moto: return "Bike race"; case RaceType.Crawl: return "Rock crawl"; default: return "Sprint"; }
         }
 
         public Menu RacesMenu()
@@ -536,7 +536,7 @@ namespace MidnightClub.Racing
         {
             if (r.TargetTimeSec > 0) return r.TargetTimeSec;
             float km = RouteBuilder.Length(s.Cps, r.Start) / 1000f;
-            return km / (r.Kind == RaceType.Rally ? 74f : r.Kind == RaceType.HillClimb ? 62f : 95f) * 3600f;   // gold = 95 km/h average through traffic
+            return km / (r.Kind == RaceType.Rally ? 74f : r.Kind == RaceType.HillClimb ? 62f : r.Kind == RaceType.Crawl ? 24f : 95f) * 3600f;   // gold = 95 km/h average through traffic
         }
         private float DriftTarget(RaceDefinition r, RaceSession s) { return r.TargetScore > 0 ? r.TargetScore : RouteBuilder.Length(s.Cps, r.Start) * 12f; }
 

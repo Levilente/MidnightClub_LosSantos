@@ -185,6 +185,8 @@ namespace MidnightClub.Racing
             Slipstream();
             if (Def.Kind == RaceType.Rally || Def.Kind == RaceType.HillClimb) PaceNotes();
             if (Def.Kind == RaceType.Gymkhana) Gymkhana(now);
+            if (Def.Kind == RaceType.Crawl && Player.Car != null && Player.Car.Exists() && Player.Car.IsUpsideDown && !Player.Finished) { UI.Shard.Mid("ROLLED OVER", "Crawls are about control. Try again.", UI.Shard.Red, 3000); Aborted = true; Done = true; return; }
+            if (Def.Kind == RaceType.Crawl) UI.Ds.T("ROCK CRAWL  ·  DON'T ROLL IT", 0.5f, 0.04f, 0.3f, UI.Ds.Amber, UI.Ds.Display, Alignment.Center);
             if (!Player.Finished && Player.Car != null && Player.Car.Exists()) { Recording.Model = Player.Car.Model.Hash; Recording.Record(Player.Car, now - StartTime); }
             if (Rival != null) Rival.Play(now - StartTime);
             DrawSplit(now);
@@ -524,7 +526,7 @@ namespace MidnightClub.Racing
             get
             {
                 switch (Def.Kind) { case RaceType.Circuit: return "CIRCUIT"; case RaceType.TimeTrial: return "TIME TRIAL"; case RaceType.Drift: return "DRIFT"; case RaceType.HeadToHead: return "HEAD TO HEAD"; }
-                switch (Def.Kind) { case RaceType.Rally: return "RALLY STAGE"; case RaceType.Drag: return "DRAG RACE"; case RaceType.Elimination: return "ELIMINATION"; case RaceType.Offroad: return "TRAIL RACE"; case RaceType.CrossCountry: return "CROSS COUNTRY"; case RaceType.HillClimb: return "HILL CLIMB"; case RaceType.Gymkhana: return "GYMKHANA"; case RaceType.Moto: return "BIKE RACE"; }
+                switch (Def.Kind) { case RaceType.Rally: return "RALLY STAGE"; case RaceType.Drag: return "DRAG RACE"; case RaceType.Elimination: return "ELIMINATION"; case RaceType.Offroad: return "TRAIL RACE"; case RaceType.CrossCountry: return "CROSS COUNTRY"; case RaceType.HillClimb: return "HILL CLIMB"; case RaceType.Gymkhana: return "GYMKHANA"; case RaceType.Moto: return "BIKE RACE"; case RaceType.Crawl: return "ROCK CRAWL"; }
                 return "SPRINT";
             }
         }

@@ -217,6 +217,7 @@ namespace MidnightClub.Career
             if (saves.Data == null) return;
             WeeklyBump(kind, amount, max);
             if (Story.Instance != null) Story.Instance.Track(kind, amount, max);
+            if (Gameplay.LiveEvents.Instance != null) Gameplay.LiveEvents.Instance.Track(kind, amount, max);
             if (Disciplines.Instance != null)
             {
                 if (kind == "outrun") Disciplines.Instance.Add(Racing.Discipline.Street, 180, kind);

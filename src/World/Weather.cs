@@ -41,9 +41,10 @@ namespace MidnightClub.WorldSim
             if (!cfg.DynamicWeather || Racing.RaceManager.IsRacing) return;
             if (Game.GameTime < nextChange) return;
             nextChange = Game.GameTime + 360000 + rnd.Next(240000);
-            int total = 0; foreach (int w in Next[cur]) total += w;
-            int r = rnd.Next(total), n = 0;
-            for (int i = 0; i < Types.Length; i++) { r -= Next[cur][i]; if (r < 0) { n = i; break; } }
+            var wts = new int[Types.Length]; int total = 0;
+            for (int i = 0; i < Types.Length; i++) { wts[i] = Next[cur][i] > 0 || Gameplay.Season.WeatherBias(i) > 0 && i != 5 ? Next[cur][i] + Gameplay.Season.WeatherBias(i) : 0; total += wts[i]; }
+            int r = rnd.Next(Math.Max(1, total)), n = 0;
+            for (int i = 0; i < Types.Length; i++) { r -= wts[i]; if (r < 0) { n = i; break; } }
             if (n == cur) return;
             cur = n;
             Function.Call(Hash.SET_WEATHER_TYPE_OVERTIME_PERSIST, Types[n], 45f);

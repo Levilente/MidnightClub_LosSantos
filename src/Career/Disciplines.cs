@@ -38,6 +38,7 @@ namespace MidnightClub.Career
         public void Add(Discipline d, long xp, string why)
         {
             if (saves.Data == null || xp <= 0) return;
+            xp = (long)(xp * Gameplay.Season.XpMult(d));
             int before = Level(d);
             long v = Xp(d) + xp;
             saves.Data.DisciplineXp.RemoveAll(x => x.Key == d.ToString()); saves.Data.DisciplineXp.Add(new KeyValue { Key = d.ToString(), Value = v.ToString() }); saves.IsDirty = true;

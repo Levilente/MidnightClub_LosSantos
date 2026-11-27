@@ -73,6 +73,7 @@ namespace MidnightClub
                 new Career.Disciplines(saves, money);
                 Career.Crew.Init(saves);
                 new Racing.Series(saves, money, races, stack);
+                new Gameplay.LiveEvents(saves, money);
                 new Career.Story(saves, money) { stack = stack };
                 EventBus.Subscribe<MidnightTickEvent>(e =>
                 {

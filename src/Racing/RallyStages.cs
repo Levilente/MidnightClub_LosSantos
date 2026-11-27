@@ -38,7 +38,7 @@ namespace MidnightClub.Racing
             if (l == null) return;
             foreach (var r in l)
             {
-                try { var z = GTA.World.GetZoneLocalizedName(r.Start); if (!string.IsNullOrEmpty(z)) r.Name = z + " " + (r.Type == "Drag" ? "Drag Strip" : r.Type == "Gymkhana" ? "Gymkhana" : r.Type == "Offroad" ? "Trail Race" : r.Type == "HillClimb" ? "Hill Climb" : r.Type == "CrossCountry" ? "Cross Country" : "Rally Stage"); } catch { }
+                try { var z = GTA.World.GetZoneLocalizedName(r.Start); if (!string.IsNullOrEmpty(z)) r.Name = z + " " + (r.Type == "Drag" ? "Drag Strip" : r.Type == "Gymkhana" ? "Gymkhana" : r.Type == "Offroad" ? "Trail Race" : r.Type == "HillClimb" ? "Hill Climb" : r.Type == "Crawl" ? "Rock Crawl" : r.Type == "CrossCountry" ? "Cross Country" : "Rally Stage"); } catch { }
                 races.AddCustom(r);
             }
             Log.Info("Rally stages: " + l.Count);
@@ -88,6 +88,7 @@ namespace MidnightClub.Racing
             all.AddRange(Dirt(777, 6, 2000f, 4500f, 0.5f, 0f, "Offroad", "offroad_", 5, 2600, 110));
             all.AddRange(Dirt(9091, 5, 1500f, 4000f, 0.35f, 110f, "HillClimb", "hill_", 0, 2600, 110));
             all.AddRange(Cross(5150, 5));
+            all.AddRange(Dirt(31337, 4, 500f, 1400f, 0.6f, 70f, "Crawl", "crawl_", 0, 4500, 180));
             return all;
         }
 
