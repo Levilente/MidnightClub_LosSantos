@@ -73,6 +73,7 @@ namespace MidnightClub.Persistence
             foreach (var v in d.Vehicles) { if (v.Mods == null) v.Mods = new System.Collections.Generic.List<ModEntry>(); if (v.Stats == null) v.Stats = new VehicleStats(); if (v.Toggles == null) v.Toggles = new System.Collections.Generic.List<int>(); if (v.BuildHistory == null) v.BuildHistory = new System.Collections.Generic.List<string>(); if (v.DriftTyres && v.TyreCompound == 0) { v.TyreCompound = 4; v.DriftTyres = false; } }
             if (d.WeeklyProgress == null) d.WeeklyProgress = new System.Collections.Generic.List<KeyValue>();
             if (d.WeeklyDone == null) d.WeeklyDone = new System.Collections.Generic.List<string>();
+            if (d.Licenses == null) d.Licenses = new System.Collections.Generic.List<KeyValue>();
             if (d.Turf == null) d.Turf = new System.Collections.Generic.List<KeyValue>();
             if (d.SpeedTrapRecords == null) d.SpeedTrapRecords = new System.Collections.Generic.List<KeyValue>();
             if (d.MeetShowoffs == null) d.MeetShowoffs = new System.Collections.Generic.List<string>();
