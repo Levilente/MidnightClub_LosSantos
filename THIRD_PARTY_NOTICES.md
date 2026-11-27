@@ -44,3 +44,6 @@ which is extracted from Grand Theft Auto V game data (c) Rockstar Games. Convert
 
 ## Lucide icons (res/ui/li_*.png)
 Line icons rendered from the Lucide icon font (https://lucide.dev), ISC License, Copyright (c) Lucide Contributors 2022; portions MIT, Copyright (c) 2013-2022 Cole Bemis (Feather).
+
+## Barlow / Barlow Condensed (launcher/fonts)
+By Jeremy Tribby, SIL Open Font License 1.1 (via Fontsource).

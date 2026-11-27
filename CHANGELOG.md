@@ -1,4 +1,11 @@
 # Changelog
+## 0.37.0 (2026-11-27): new launcher, new logo
+- **Launcher 2.0** (MidnightClubLauncher.exe): a modern glass app in the mod's design language: real frosted-glass cards over a city backdrop, light / dark / auto theme (follows the mod's Theme setting, Auto follows Windows), rounded Windows 11 window, Barlow fonts, Lucide icons.
+  - **Play**: big Play Midnight Club / Story Mode buttons, system check (GTA V Enhanced, Script Hook V, ScriptHookVDotNet, MidnightClub.dll, settings file) and your career at a glance (cash, REP, story chapter, last played).
+  - **Settings** right in the app instead of opening config.ini: Driving, Cameras, Display, World, Police, Controls (click a key and press the new one), Advanced. Toggles, sliders, segmented choices, reset per page; every change is saved to config.ini instantly.
+  - **About** page and a mod-folder shortcut.
+- **New logo** (Midnight Club Los Santos, by Turbomotive) in the launcher, the Hub, the welcome screen, the loading / starting screen, the race lobby and photo mode.
+
 ## 0.36.0 (2026-11-27): new design system (glass, light / dark)
 - **Design system** (docs\DESIGN.md, made with the ui-ux-pro-max skill): frosted glass surfaces with hairline borders and highlights, rounded corners everywhere (anti-aliased corner textures), one shape language, five category colours, **light and dark theme** (Settings > Display > Theme: Auto follows the in-game clock).
 - **Button prompts** redrawn: real keycaps (keyboard) or coloured A / B / X / Y, bumpers, triggers and d-pad (controller), switching with the last input device, on a glass capsule. Context prompts ("Enter garage", "Browse the offer"...) use the same style instead of GTA's help box.

@@ -218,6 +218,10 @@ namespace MidnightClub.UI
         /// <summary>Wordmark: MIDNIGHT (white) CLUB (violet), condensed, with a thin rule and LOS SANTOS tag.</summary>
         public static void Logo(float x, float y, float size, float alpha = 1f, Alignment align = Alignment.Left, bool tag = true)
         {
+            // the Midnight Club: Los Santos logo (res/ui/logo.png, 499 x 135); text wordmark only as a fallback
+            float logoH = 0.078f * size, logoW = Px(logoH * 499f / 135f);
+            float logoX = align == Alignment.Right ? x - logoW : align == Alignment.Center ? x - logoW / 2f : x;
+            if (Textures.DrawBox("logo", logoX, y - 0.008f * size, logoW, logoH, A(Color.White, alpha))) return;
             float s1 = size, w1 = Width("MIDNIGHT", s1, Display), w2 = Width("CLUB", s1, Display), gap = Px(0.006f * size);
             float total = w1 + gap + w2, x0 = align == Alignment.Right ? x - total : align == Alignment.Center ? x - total / 2 : x;
             T("MIDNIGHT", x0, y, s1, A(Text, alpha), Display);
