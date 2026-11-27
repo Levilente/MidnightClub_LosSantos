@@ -54,7 +54,7 @@ namespace MidnightClub.Rivals
             EventBus.Subscribe<TierUpEvent>(e =>
             {
                 foreach (var p in Profiles.Where(p => p.UnlockTier == e.Tier))
-                    Notification.PostTicker("~p~" + p.Name + "~s~ (" + p.Archetype + ") has heard about you. F6 > Rivals.", true, false);
+                    UI.Toast.Post("~p~" + p.Name + "~s~ (" + p.Archetype + ") has heard about you. F6 > Rivals.");
             });
         }
 
@@ -143,7 +143,7 @@ namespace MidnightClub.Rivals
             GTA.UI.Screen.FadeIn(300);
             var spec = new RivalSpec { Id = p.Id, Name = p.Name, Car = car, Skill = 1.0f + 0.06f * stage + 0.03f * p.BaseCarTier };
             if (p.Style == RaceType.Drift) spec.DriftTarget = 9000f * (1 + stage * 0.35f);
-            Notification.PostTicker("~p~" + p.Name + "~s~: " + Taunt(p, stage), true, false);
+            UI.Toast.Post("~p~" + p.Name + "~s~: " + Taunt(p, stage));
             races.StartRivalRace(race, spec);
         }
 
@@ -258,7 +258,7 @@ namespace MidnightClub.Rivals
             if (pinkRival != null && e.RivalId == pinkRival) { var pp = Profiles.FirstOrDefault(x => x.Id == pinkRival); if (pp != null) { OnPinkFinished(pp, e); return; } }
             var p = Profiles.FirstOrDefault(x => x.Id == e.RivalId); if (p == null) return;
             var st = State(p.Id);
-            if (!e.Won) { st.Losses++; saves.IsDirty = true; Notification.PostTicker("~p~" + p.Name + "~s~: Better luck next time.", true, false); return; }
+            if (!e.Won) { st.Losses++; saves.IsDirty = true; UI.Toast.Post("~p~" + p.Name + "~s~: Better luck next time."); return; }
             st.Wins++;
             money.Earn(Prize(st.Stage), RepPrize(st.Stage), "rival", "Beat " + p.Name + " (stage " + (st.Stage + 1) + ")", "rival:" + p.Id + ":" + st.Stage);
             st.Stage++;
@@ -272,8 +272,8 @@ namespace MidnightClub.Rivals
                     rec.Nickname = p.Name.Split(' ')[0] + "'s " + car.DisplayName;
                     rec.Mods.AddRange(new[] { new ModEntry(11, 3), new ModEntry(12, 2), new ModEntry(13, 2), new ModEntry(15, 2) });
                     rec.Toggles.Add(18);
-                    if (garages.AssignToFreeGarage(rec)) { saves.Data.Vehicles.Add(rec); Notification.PostTicker("~p~" + p.Name + "~s~ handed over the keys: ~g~" + rec.Nickname + "~s~ is in " + garages.GarageName(rec.GarageId) + ".", true, false); }
-                    else { money.Earn(car.BasePrice / 2, 0, "rival", p.Name + "'s car (no garage space, sold)", "rival-car:" + p.Id); Notification.PostTicker("No garage space for " + p.Name + "'s car, so it was sold for you.", true, false); }
+                    if (garages.AssignToFreeGarage(rec)) { saves.Data.Vehicles.Add(rec); UI.Toast.Post("~p~" + p.Name + "~s~ handed over the keys: ~g~" + rec.Nickname + "~s~ is in " + garages.GarageName(rec.GarageId) + "."); }
+                    else { money.Earn(car.BasePrice / 2, 0, "rival", p.Name + "'s car (no garage space, sold)", "rival-car:" + p.Id); UI.Toast.Post("No garage space for " + p.Name + "'s car, so it was sold for you."); }
                 }
                 EventBus.Publish(new RivalDefeatedEvent(p.Id));
                 if (p.Id == "president")

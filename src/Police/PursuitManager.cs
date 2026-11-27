@@ -90,7 +90,7 @@ namespace MidnightClub.Police
             if (Rec != null) Rec.Heat = Math.Min(5f, Rec.Heat + 0.5f);
             if (firstCar != null) Recruit(firstCar, firstDriver, false);
             Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "Out_Of_Area", "DLC_Lowrider_Relay_Race_Sounds", true);
-            Notification.PostTicker("~r~POLICE PURSUIT~s~: " + why, true, false);
+            UI.Toast.Post("~r~POLICE PURSUIT~s~: " + why);
             Log.Info("Pursuit started (" + why + "), heat " + Heat.ToString("0.0"));
         }
 
@@ -101,7 +101,7 @@ namespace MidnightClub.Police
             int elapsed = now - startedAt;
             int target = elapsed > 150000 ? 4 : elapsed > 90000 ? 3 : elapsed > 40000 ? 2 : 1;
             if (Heat >= 3.5f) target = Math.Min(4, target + 1);
-            if (target > Level) { Level = target; Notification.PostTicker("~r~Pursuit level " + Level + "~s~" + (Level == 3 ? ": helicopter inbound." : Level == 4 ? ": citywide pursuit." : "."), true, false); }
+            if (target > Level) { Level = target; UI.Toast.Post("~r~Pursuit level " + Level + "~s~" + (Level == 3 ? ": helicopter inbound." : Level == 4 ? ": citywide pursuit." : ".")); }
 
             // bounty: time under pursuit, disabled units
             bounty += Game.LastFrameTime * 12f * Level;
@@ -162,7 +162,7 @@ namespace MidnightClub.Police
                 {
                     b.Hit = true;
                     if (Function.Call<bool>(Hash.GET_VEHICLE_TYRES_CAN_BURST, car)) for (int i = 0; i < 8; i++) Function.Call(Hash.SET_VEHICLE_TYRE_BURST, car, i, false, 1000f);
-                    Notification.PostTicker("~r~Spike strip!~s~ Gas stations fix your tyres.", true, false);
+                    UI.Toast.Post("~r~Spike strip!~s~ Gas stations fix your tyres.");
                 }
                 if (!b.Passed && along > 15f && d < 60f)
                 {
@@ -215,7 +215,7 @@ namespace MidnightClub.Police
                 }
                 b.Blip = UI.BlipRegistry.Own(World.CreateBlip(pos)); b.Blip.Sprite = BlipSprite.PoliceStation; b.Blip.Color = BlipColor.Red; b.Blip.Name = "Roadblock";
                 blocks.Add(b);
-                Notification.PostTicker("~r~Roadblock ahead!~s~ Find a way around.", true, false);
+                UI.Toast.Post("~r~Roadblock ahead!~s~ Find a way around.");
             }
             catch (Exception ex) { Log.Error("Roadblock", ex); }
         }

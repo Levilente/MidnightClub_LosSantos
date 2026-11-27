@@ -189,7 +189,7 @@ namespace MidnightClub.Phone
             if (action != null && action.StartsWith("race:") && Explore.Discovery.Instance != null) Explore.Discovery.Instance.Reveal(action, false);
             saves.IsDirty = true;
             Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "Text_Arrive_Tone", "Phone_SoundSet_Default", true);
-            Notification.PostTicker("~p~" + from + "~s~: " + subject, false, false);
+            UI.Toast.Post("~p~" + from + "~s~: " + subject);
         }
 
         public void News(string headline, string body)
@@ -251,7 +251,7 @@ namespace MidnightClub.Phone
             if (x.Action.StartsWith("race:"))
             {
                 var r = races.Race(x.Action.Substring(5));
-                if (r != null) m.Add(new MenuItem("Set GPS to the start", () => { Function.Call(Hash.SET_NEW_WAYPOINT, r.Start.X, r.Start.Y); Notification.PostTicker("GPS set to " + r.Name + ".", true, false); }));
+                if (r != null) m.Add(new MenuItem("Set GPS to the start", () => { Function.Call(Hash.SET_NEW_WAYPOINT, r.Start.X, r.Start.Y); UI.Toast.Post("GPS set to " + r.Name + "."); }));
             }
             m.Add(new MenuItem("Delete", () => { saves.Data.Messages.Remove(x); saves.IsDirty = true; stack.Pop(); }));
             return m;

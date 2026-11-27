@@ -440,6 +440,6 @@ namespace MidnightClub.Garages
 
         public VehicleInfo Info(OwnedVehicle r) { return r.ModelHash != 0 ? registry.Get(r.ModelHash) : registry.Get(r.Model); }
 
-        private static void Notify(string s) { Notification.PostTicker(s, true, false); }
+        private static void Notify(string s) { UI.Toast.Post(s); }
     }
 }

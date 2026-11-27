@@ -68,7 +68,7 @@ namespace MidnightClub.Core
         public void Enter()
         {
             var reason = WhyCannotEnter();
-            if (reason != null) { Notification.PostTicker("~r~Midnight Club~s~ unavailable: " + reason + ".", true, false); return; }
+            if (reason != null) { UI.Toast.Post("~r~Midnight Club~s~ unavailable: " + reason + "."); return; }
 
             SetState(GameMode.ENTERING_MIDNIGHT_CLUB);
             try
@@ -151,8 +151,8 @@ namespace MidnightClub.Core
                 SetState(GameMode.MIDNIGHT_CLUB);
                 if (startGarage != null && !needCreator) { Script.Wait(0); Garages.EnterOnStart(startGarage); }
                 else Screen.FadeIn(cfg.TransitionFadeMs);
-                Notification.PostTicker(isNew ? "~p~MIDNIGHT CLUB~s~: welcome to the streets. ~b~" + cfg.ToggleKey + "~s~ (or hold ~INPUT_NEXT_CAMERA~ on a controller) returns to Story Mode. Phone: ~INPUT_PHONE~."
-                                              : "~p~MIDNIGHT CLUB~s~: welcome back.", true, false);
+                UI.Toast.Post(isNew ? "~p~MIDNIGHT CLUB~s~: welcome to the streets. ~b~" + cfg.ToggleKey + "~s~ (or hold ~INPUT_NEXT_CAMERA~ on a controller) returns to Story Mode. Phone: ~INPUT_PHONE~."
+                                              : "~p~MIDNIGHT CLUB~s~: welcome back.");
             }
             catch (Exception ex)
             {
@@ -260,7 +260,7 @@ namespace MidnightClub.Core
             SetState(GameMode.ERROR_RECOVERY);
             RestoreStory();
             SetState(GameMode.STORY_MODE);
-            try { Screen.FadeIn(500); Notification.PostTicker("~r~" + message, true, false); } catch { }
+            try { Screen.FadeIn(500); UI.Toast.Post("~r~" + message); } catch { }
         }
 
         /// <summary>Called when scripts are reloaded/aborted or the game shuts down: no waiting allowed.</summary>
@@ -339,7 +339,7 @@ namespace MidnightClub.Core
         private bool Stopped(string what)
         {
             var v = vehicles.Current;
-            if (v != null && v.Exists() && v.Speed > 1.5f) { Notification.PostTicker("Stop the car to " + what + ".", true, false); return false; }
+            if (v != null && v.Exists() && v.Speed > 1.5f) { UI.Toast.Post("Stop the car to " + what + "."); return false; }
             return true;
         }
 
@@ -347,7 +347,7 @@ namespace MidnightClub.Core
         {
             if (!InMidnightClub) return;
             SnapshotProfile();
-            Notification.PostTicker(saves.Save() ? "~p~MIDNIGHT CLUB~s~: progress saved." : "~r~Save failed~s~ (see log).", true, false);
+            UI.Toast.Post(saves.Save() ? "~p~MIDNIGHT CLUB~s~: progress saved." : "~r~Save failed~s~ (see log).");
         }
 
         public void EditCharacter()
@@ -370,7 +370,7 @@ namespace MidnightClub.Core
         {
             if (!InMidnightClub || rec == null || rec.Id == saves.Data.CurrentVehicleId) return false;
             if (!Stopped("switch cars")) return false;
-            if (!cfg.DevMode) { Notification.PostTicker("Drive into one of your ~g~garages~s~ to swap cars.", true, false); return false; }
+            if (!cfg.DevMode) { UI.Toast.Post("Drive into one of your ~g~garages~s~ to swap cars."); return false; }
             var ped = Game.Player.Character;
             var old = vehicles.Current;
             var pos = old != null && old.Exists() ? old.Position : ped.Position;
@@ -389,7 +389,7 @@ namespace MidnightClub.Core
             catch (Exception ex)
             {
                 Log.Error("Switching vehicle failed", ex);
-                Notification.PostTicker("~r~Could not spawn that car~s~ (see log).", true, false);
+                UI.Toast.Post("~r~Could not spawn that car~s~ (see log).");
                 RecoverVehicle("Restored your car");
                 return false;
             }
@@ -400,7 +400,7 @@ namespace MidnightClub.Core
         {
             if (text == null) return;
             text = text.Trim().ToUpperInvariant();
-            if (text.Length == 0 || text.Length > 8) { Notification.PostTicker("Plates hold 1-8 characters.", true, false); return; }
+            if (text.Length == 0 || text.Length > 8) { UI.Toast.Post("Plates hold 1-8 characters."); return; }
             rec.Plate = text; saves.IsDirty = true;
             Police.PursuitManager.CoolDownIdentity(rec, 1f);
             if (rec.Id == saves.Data.CurrentVehicleId && vehicles.Current != null && vehicles.Current.Exists()) vehicles.Current.Mods.LicensePlate = text;
@@ -414,7 +414,7 @@ namespace MidnightClub.Core
             if (!saves.TryBeginTransaction("dev-" + rec.Id)) return;
             if (Garages != null) Garages.AssignToFreeGarage(rec);
             saves.Data.Vehicles.Add(rec); saves.IsDirty = true;
-            Notification.PostTicker("~y~DEV~s~: added " + info.Name + " to My vehicles.", true, false);
+            UI.Toast.Post("~y~DEV~s~: added " + info.Name + " to My vehicles.");
         }
 
         private void RecoverVehicle(string why)
@@ -439,7 +439,7 @@ namespace MidnightClub.Core
 
                 long cost = Money != null ? Money.ChargeUpTo(cfg.RecoveryCost, "repair", "Tow & repair") : 0;
                 Screen.FadeIn(400);
-                Notification.PostTicker("~p~MIDNIGHT CLUB~s~: " + why + ". Repair & recovery: ~r~-$" + cost, true, false);
+                UI.Toast.Post("~p~MIDNIGHT CLUB~s~: " + why + ". Repair & recovery: ~r~-$" + cost);
                 Log.Info("Vehicle recovered (" + why + "), charged " + cost);
             }
             catch (Exception ex)

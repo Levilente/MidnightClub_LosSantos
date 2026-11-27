@@ -122,7 +122,7 @@ namespace MidnightClub.UI
                 foreach (var g in Garages.Definitions.OrderBy(x => Garages.Owned(x.Id) == null).ThenBy(x => x.Price))
                 {
                     var def = g; bool owned = Garages.Owned(def.Id) != null;
-                    m.Add(new MenuItem(def.Name, () => { Function.Call(Hash.SET_NEW_WAYPOINT, def.Position.X, def.Position.Y); GTA.UI.Notification.PostTicker("GPS set to " + def.Name + ".", true, false); })
+                    m.Add(new MenuItem(def.Name, () => { Function.Call(Hash.SET_NEW_WAYPOINT, def.Position.X, def.Position.Y); MidnightClub.UI.Toast.Post("GPS set to " + def.Name + "."); })
                     {
                         Value = () => owned ? Garages.Used(def.Id) + " / " + Garages.Capacity(def.Id) : "$" + def.Price.ToString("N0"),
                         Description = () => def.KindLabel + (owned ? ", owned." : ", for sale.") + " Select to set GPS."
@@ -163,7 +163,7 @@ namespace MidnightClub.UI
                 foreach (var dl in Dealers.Definitions)
                 {
                     var def = dl;
-                    m.Add(new MenuItem(def.Name, () => { Function.Call(Hash.SET_NEW_WAYPOINT, def.Position.X, def.Position.Y); GTA.UI.Notification.PostTicker("GPS set to " + def.Name + ".", true, false); })
+                    m.Add(new MenuItem(def.Name, () => { Function.Call(Hash.SET_NEW_WAYPOINT, def.Position.X, def.Position.Y); MidnightClub.UI.Toast.Post("GPS set to " + def.Name + "."); })
                     {
                         Value = () => Dealers.Stock(def).Count + " cars",
                         Description = () => def.Tagline + " New stock in " + Dealers.DaysUntilRotation(def) + " day(s). Select to set GPS."
@@ -242,7 +242,7 @@ namespace MidnightClub.UI
             m.Add(new MenuItem("Order for $" + item.Price.ToString("N0"), () =>
             {
                 var err = Dealers.Purchase(item, "special order");
-                if (err != null) GTA.UI.Notification.PostTicker("~r~" + err, true, false);
+                if (err != null) MidnightClub.UI.Toast.Post("~r~" + err);
                 stack.Pop();
             }) { Description = () => "Special orders cost 35% more than the showroom price ($" + info.BasePrice.ToString("N0") + ") and are delivered to your first garage with space." });
             m.Add(new MenuItem("Your cash") { Value = () => "$" + saves.Data.Cash.ToString("N0") });

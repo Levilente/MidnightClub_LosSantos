@@ -56,7 +56,7 @@ namespace MidnightClub.Dealerships
         public void Run()
         {
             stock = mgr.Stock(d);
-            if (stock.Count == 0) { Notification.PostTicker(d.Name + " has nothing in stock.", true, false); return; }
+            if (stock.Count == 0) { UI.Toast.Post(d.Name + " has nothing in stock."); return; }
             var ped = Game.Player.Character;
             var own = vehicles.Current;
             if (Cameras.CameraSystem.Instance != null) Cameras.CameraSystem.Instance.Release();

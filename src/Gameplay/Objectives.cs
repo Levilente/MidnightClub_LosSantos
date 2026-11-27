@@ -81,7 +81,7 @@ namespace MidnightClub.Gameplay
             saves.Data.ObjectivesDone.Add(id);
             money.Earn(g.Cash, g.Rep, "objective", "Objective: " + g.Text, "obj:" + id);
             Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "CHECKPOINT_PERFECT", "HUD_MINI_GAME_SOUNDSET", true);
-            Notification.PostTicker("~g~Objective complete~s~: " + g.Text, true, false);
+            UI.Toast.Post("~g~Objective complete~s~: " + g.Text);
             saves.IsDirty = true;
         }
 

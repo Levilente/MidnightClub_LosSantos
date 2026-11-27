@@ -119,7 +119,7 @@ namespace MidnightClub.Dealerships
         {
             foreach (var d in defs)
                 if (day % d.RotationDays == 0)
-                    Notification.PostTicker("~p~" + d.Name + "~s~: new stock has arrived.", false, false);
+                    UI.Toast.Post("~p~" + d.Name + "~s~: new stock has arrived.");
         }
 
         private void Tick()
@@ -281,7 +281,7 @@ namespace MidnightClub.Dealerships
             saves.Save();
             // 9. confirmation
             Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "PROPERTY_PURCHASE", "HUD_AWARDS", true);
-            Notification.PostTicker("~p~MIDNIGHT CLUB~s~: " + item.Info.Name + " delivered to ~g~" + garages.GarageName(rec.GarageId) + "~s~.", true, false);
+            UI.Toast.Post("~p~MIDNIGHT CLUB~s~: " + item.Info.Name + " delivered to ~g~" + garages.GarageName(rec.GarageId) + "~s~.");
             Log.Info("Purchased " + item.Info.Id + " for " + item.Price + " from " + sourceName);
             return null;
         }

@@ -66,7 +66,7 @@ namespace MidnightClub.Factions
                 saves.Data.ClubRep.RemoveAll(x => x.Key == c.Id);
                 saves.Data.ClubRep.Add(new KeyValue { Key = c.Id, Value = (Rep(c.Id) + add).ToString() });
                 int after = Level(c.Id);
-                if (after > before) Notification.PostTicker("~p~" + c.Name + "~s~: you're now level " + after + "." + (after == 2 || after == 4 ? " New discount at their dealership." : ""), true, false);
+                if (after > before) UI.Toast.Post("~p~" + c.Name + "~s~: you're now level " + after + "." + (after == 2 || after == 4 ? " New discount at their dealership." : ""));
             }
             saves.IsDirty = true;
         }

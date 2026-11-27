@@ -35,7 +35,7 @@ namespace MidnightClub.Gameplay
             EventBus.Subscribe<Career.TierUpEvent>(e =>
             {
                 for (int i = 0; i < Names.Length; i++) if (UnlockTier[i] == e.Tier)
-                    { saves.Data.SelectedAbility = Names[i]; Notification.PostTicker("~p~New special ability: " + Names[i].ToUpperInvariant() + "~s~. Press Caps Lock when the meter is full.", true, false); }
+                    { saves.Data.SelectedAbility = Names[i]; UI.Toast.Post("~p~New special ability: " + Names[i].ToUpperInvariant() + "~s~. Press Caps Lock when the meter is full."); }
             });
         }
 
@@ -115,7 +115,7 @@ namespace MidnightClub.Gameplay
             bool press = UI.Input.JustPressed(Control.SpecialAbilityPC) || UI.Input.JustPressed(Control.SpecialAbility);
             if (active == null && press && sel != null)
             {
-                if (style.Meter < 0.999f) { Notification.PostTicker(sel + " isn't charged yet: drive with style.", false, false); }
+                if (style.Meter < 0.999f) { UI.Toast.Post(sel + " isn't charged yet: drive with style."); }
                 else
                 {
                     active = sel; activeLeft = sel == "Zone" ? 6f : sel == "Agro" ? 7f : 0.5f; style.Meter = 0f;

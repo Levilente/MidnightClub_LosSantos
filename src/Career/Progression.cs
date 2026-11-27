@@ -119,8 +119,8 @@ namespace MidnightClub.Career
             var m = new Model(model);
             if (!m.IsValid || !m.IsVehicle) { Log.Warn("Reward car " + model + " not in this game build"); return; }
             var rec = Vehicles.VehicleManager.CreateRecord(model, 0);
-            if (garages.AssignToFreeGarage(rec)) { saves.Data.Vehicles.Add(rec); Notification.PostTicker("~p~" + why + "~s~: a new car is waiting in " + garages.GarageName(rec.GarageId) + ".", true, false); }
-            else { saves.Data.PendingCars.Add(model); Notification.PostTicker("~p~" + why + "~s~: your garages are full. The car will be delivered once you have a free space.", true, false); }
+            if (garages.AssignToFreeGarage(rec)) { saves.Data.Vehicles.Add(rec); UI.Toast.Post("~p~" + why + "~s~: a new car is waiting in " + garages.GarageName(rec.GarageId) + "."); }
+            else { saves.Data.PendingCars.Add(model); UI.Toast.Post("~p~" + why + "~s~: your garages are full. The car will be delivered once you have a free space."); }
             saves.IsDirty = true;
         }
 
@@ -131,7 +131,7 @@ namespace MidnightClub.Career
             var rec = Vehicles.VehicleManager.CreateRecord(model, 0);
             if (!garages.AssignToFreeGarage(rec)) return;
             saves.Data.PendingCars.RemoveAt(0); saves.Data.Vehicles.Add(rec); saves.IsDirty = true;
-            Notification.PostTicker("~p~Delivered~s~: a reward car is now in " + garages.GarageName(rec.GarageId) + ".", true, false);
+            UI.Toast.Post("~p~Delivered~s~: a reward car is now in " + garages.GarageName(rec.GarageId) + ".");
         }
 
         // ------------------------------------------------------------------ road discovery

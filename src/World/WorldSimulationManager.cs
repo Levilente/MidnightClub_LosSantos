@@ -156,7 +156,7 @@ namespace MidnightClub.WorldSim
                     var b = UI.BlipRegistry.Own(World.CreateBlip(s.Pos)); b.Sprite = BlipSprite.CarMeetOrganizer; b.Color = BlipColor.Purple; b.Name = "Car meet: " + s.Name; b.IsShortRange = false;
                     meetBlips.Add(b);
                 }
-                if (tonight.Count > 0) Notification.PostTicker("~p~Car meets tonight:~s~ " + string.Join(", ", tonight.Select(s => s.Name)) + ".", false, false);
+                if (tonight.Count > 0) UI.Toast.Post("~p~Car meets tonight:~s~ " + string.Join(", ", tonight.Select(s => s.Name)) + ".");
             }
             var near = tonight.FirstOrDefault(s => s.Pos.DistanceTo(car.Position) < 250f);
             if (near != activeMeet)
@@ -232,12 +232,12 @@ namespace MidnightClub.WorldSim
             string key = s.Id + ":" + calendar.Day;
             m.Add(new MenuItem("Show off your car", () =>
             {
-                if (saves.Data.MeetShowoffs.Contains(key)) { Notification.PostTicker("You already showed off here tonight.", true, false); return; }
+                if (saves.Data.MeetShowoffs.Contains(key)) { UI.Toast.Post("You already showed off here tonight."); return; }
                 var rec = vehicles.CurrentRecord; var info = rec == null ? null : registry.Get(rec.ModelHash);
                 long rep = 20 + (rec == null ? 0 : Math.Min(150, rec.Stats.ModificationCount * 6 + (rec.FitKit ? 30 : 0))) + (info == null ? 0 : (long)(info.Performance * 60));
                 saves.Data.MeetShowoffs.Add(key);
                 money.Earn(0, rep, "meet", "Showed off at " + s.Name, "meet:" + key);
-                Notification.PostTicker("~p~The crowd likes it.~s~ +" + rep + " REP", true, false);
+                UI.Toast.Post("~p~The crowd likes it.~s~ +" + rep + " REP");
                 EventBus.Publish(new MeetShowoffEvent());
                 stack.Close();
             }) { Value = () => saves.Data.MeetShowoffs.Contains(key) ? "Done" : "", Description = () => "More modifications and a quicker car impress more. Once per meet per night." });
@@ -251,7 +251,7 @@ namespace MidnightClub.WorldSim
             var pinfo = registry.Get(car.Model.Hash);
             var opp = RandomCar(v => pinfo == null || v.Tier == pinfo.Tier) ?? RandomCar(v => true);
             var def = StreetRaceFrom(car.Position, car.Heading, 1500f, 3200f, "Meet challenge", 2500, 120);
-            if (def == null || opp == null) { Notification.PostTicker("Nobody wants to race right now.", true, false); return; }
+            if (def == null || opp == null) { UI.Toast.Post("Nobody wants to race right now."); return; }
             races.StartRivalRace(def, new RivalSpec { Name = RaceManager.DriverNames[rnd.Next(RaceManager.DriverNames.Length)], Car = opp, Skill = 1.0f });
         }
 
@@ -408,7 +408,7 @@ namespace MidnightClub.WorldSim
                     UI.Shard.Mid("SPEED TRAP RECORD", t.Name.ToUpperInvariant() + "  ·  " + (int)kmh + " KM/H", UI.Shard.Blue, 3000);
                     if (Career.Progression.Instance != null) { Career.Progression.Instance.Award(150 + (long)(kmh - rec), "Speed trap"); Career.Progression.Instance.Bump("trap", 1); }
                 }
-                else Notification.PostTicker("~y~SPEED TRAP~s~ " + t.Name + ": " + (int)kmh + " km/h (your record " + (int)rec + ", street record " + (int)street + " by " + holder + ").", false, false);
+                else UI.Toast.Post("~y~SPEED TRAP~s~ " + t.Name + ": " + (int)kmh + " km/h (your record " + (int)rec + ", street record " + (int)street + " by " + holder + ").");
             }
         }
     }

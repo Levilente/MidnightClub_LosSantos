@@ -197,9 +197,9 @@ namespace MidnightClub.Racing
         private Menu RaceOptions(RaceDefinition r)
         {
             var m = new Menu(r.Name, TypeLabel(r));
-            m.Add(new MenuItem("Race now", () => { if (!Available(r)) { Notification.PostTicker("~r~Not available yet.", true, false); return; } stack.Close(); StartNow(r); })
+            m.Add(new MenuItem("Race now", () => { if (!Available(r)) { UI.Toast.Post("~r~Not available yet."); return; } stack.Close(); StartNow(r); })
             { Enabled = Available(r), Value = () => r.EntryFee > 0 ? "$" + r.EntryFee.ToString("N0") : "Free", Description = () => "Fast travel to the start line and go." });
-            m.Add(new MenuItem("Set GPS", () => { Function.Call(Hash.SET_NEW_WAYPOINT, r.Start.X, r.Start.Y); stack.Close(); Notification.PostTicker("GPS set to " + r.Name + ".", true, false); }));
+            m.Add(new MenuItem("Set GPS", () => { Function.Call(Hash.SET_NEW_WAYPOINT, r.Start.X, r.Start.Y); stack.Close(); UI.Toast.Post("GPS set to " + r.Name + "."); }));
             if (BestTime(r.Id) > 0) m.Add(new MenuItem("Your best") { Value = () => RaceSession.FormatTime((int)BestTime(r.Id)), Enabled = false });
             return m;
         }
@@ -208,7 +208,7 @@ namespace MidnightClub.Racing
         {
             var car = vehicles.Current; if (car == null) return;
             var list = lib.Races.Where(r => Available(r) && Explore.Discovery.Known("race:" + r.Id) && r.Points.Count >= 2).ToList();
-            if (list.Count == 0) { Notification.PostTicker("No race available right now.", true, false); return; }
+            if (list.Count == 0) { UI.Toast.Post("No race available right now."); return; }
             var pick = list[new Random().Next(list.Count)];
             stack.Close(); StartNow(pick);
         }
@@ -255,7 +255,7 @@ namespace MidnightClub.Racing
                     bool can = saves.Data.Rep >= c.RequiredRep;
                     m.Add(new MenuItem(pr != null ? "Enter again" : "Enter championship", () =>
                     {
-                        if (!money.TrySpend(c.EntryFee, "race", c.Name + " entry", "champ:" + c.Id + ":" + saves.Data.RacesStarted)) { Notification.PostTicker("~r~Not enough cash.", true, false); return; }
+                        if (!money.TrySpend(c.EntryFee, "race", c.Name + " entry", "champ:" + c.Id + ":" + saves.Data.RacesStarted)) { UI.Toast.Post("~r~Not enough cash."); return; }
                         saves.Data.Championships.RemoveAll(x => x.Id == c.Id);
                         var np = new ChampionshipProgress { Id = c.Id };
                         np.Points.Add(new KeyValue { Key = "You", Value = "0" });
@@ -296,9 +296,9 @@ namespace MidnightClub.Racing
             var car = vehicles.Current; var ped = Game.Player.Character;
             if (car == null || !car.Exists()) return;
             if (!string.IsNullOrEmpty(r.Classes) && !r.Classes.Split(',').Any(c => c.Trim().Equals(car.ClassType.ToString(), StringComparison.OrdinalIgnoreCase)))
-            { Notification.PostTicker("~r~Wrong car class.~s~ Allowed: " + r.Classes, true, false); return; }
+            { UI.Toast.Post("~r~Wrong car class.~s~ Allowed: " + r.Classes); return; }
             if (champ == null && rivalSpec == null && r.EntryFee > 0 && !money.TrySpend(r.EntryFee, "race", r.Name + " entry", "race-fee:" + r.Id + ":" + saves.Data.RacesStarted))
-            { Notification.PostTicker("~r~Not enough cash~s~ for the entry fee.", true, false); return; }
+            { UI.Toast.Post("~r~Not enough cash~s~ for the entry fee."); return; }
             saves.Data.RacesStarted++;
             if (Cameras.CameraSystem.Instance != null) Cameras.CameraSystem.Instance.Release();
             Screen.FadeOut(500); Script.Wait(550);
@@ -308,7 +308,7 @@ namespace MidnightClub.Racing
             if (lap == null)
             {
                 Screen.FadeIn(500);
-                Notification.PostTicker("~r~Couldn't plot this route~s~ (GPS found no road path). Entry fee refunded.", true, false);
+                UI.Toast.Post("~r~Couldn't plot this route~s~ (GPS found no road path). Entry fee refunded.");
                 if (champ == null && r.EntryFee > 0) money.Earn(r.EntryFee, 0, "race", "Refund " + r.Name, "race-refund:" + r.Id + ":" + saves.Data.RacesStarted);
                 return;
             }

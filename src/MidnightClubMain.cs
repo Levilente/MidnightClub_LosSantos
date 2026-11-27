@@ -166,7 +166,7 @@ namespace MidnightClub
                 }
                 else if (!modes.InMidnightClub) welcomePending = 0;
                 if (modes.InMidnightClub) menu.Tick();
-                if (modes.InMidnightClub) Shard.Tick();
+                if (modes.InMidnightClub) { Shard.Tick(); UI.Toast.Tick(); }
                 if (modes.InMidnightClub && cfg.ShowHud && !phone.IsVisible && !menu.IsOpen) hud.Draw(saves.Data, vehicles);
             }
             catch (Exception ex)
