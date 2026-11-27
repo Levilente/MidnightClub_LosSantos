@@ -151,11 +151,12 @@ namespace MidnightClub.Cameras
                 if (l.Sprung || impulse)
                 {
                     float k = Math.Max(1f, l.SpringK), c = Math.Max(0.05f, l.SpringD) * 2f * (float)Math.Sqrt(k);
-                    int steps = Math.Max(1, Math.Min(12, (int)Math.Ceiling(dt * Math.Sqrt(k) * 4f)));
+                    int steps = Math.Max(2, Math.Min(16, (int)Math.Ceiling(dt * Math.Sqrt(k) * 6f)));
                     float h = dt / steps;
                     if (impulse) l.Vel += target * 6f;   // kick the spring
                     var goal = impulse ? Vector3.Zero : target;
-                    for (int s = 0; s < steps; s++) { var acc = (goal - l.Pos) * k - l.Vel * c; l.Vel += acc * h; l.Pos += l.Vel * h; }
+                    for (int s = 0; s < steps; s++) { l.Vel = (l.Vel + (goal - l.Pos) * (k * h)) / (1f + c * h); l.Pos += l.Vel * h; }
+                    if (float.IsNaN(l.Pos.X) || float.IsNaN(l.Pos.Y) || float.IsNaN(l.Pos.Z) || l.Pos.Length() > 50f) { l.Pos = Vector3.Zero; l.Vel = Vector3.Zero; }
                     val = l.Pos;
                 }
                 else val = target;
@@ -168,8 +169,11 @@ namespace MidnightClub.Cameras
                     case "FOV": o.Fov += val.X; break;
                 }
             }
+            o.CarXyz = Clamp(o.CarXyz, 1.5f); o.CamXyz = Clamp(o.CamXyz, 1.5f); o.CarYpr = Clamp(o.CarYpr, 12f); o.CamYpr = Clamp(o.CamYpr, 12f);
+            o.Fov = Math.Max(-15f, Math.Min(40f, o.Fov));
             return o;
         }
+        private static Vector3 Clamp(Vector3 v, float m) { return new Vector3(Math.Max(-m, Math.Min(m, v.X)), Math.Max(-m, Math.Min(m, v.Y)), Math.Max(-m, Math.Min(m, v.Z))); }
 
         public void Reset() { foreach (var l in layers) { l.Pos = Vector3.Zero; l.Vel = Vector3.Zero; l.LastInput = 0f; } }
     }

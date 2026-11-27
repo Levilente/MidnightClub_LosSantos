@@ -250,7 +250,7 @@ namespace MidnightClub.Cameras
             var lookLocal = new Vector3((float)(-Math.Sin(lr) * p.LookAhead), (float)(Math.Cos(lr) * p.LookAhead), p.TargetHeight - groundOff - lookPitch * 0.04f);
             var camW = car.GetOffsetPosition(local); var tgtW = car.GetOffsetPosition(lookLocal);
             var d = tgtW - camW;
-            float pitch = (float)(Math.Atan2(d.Z, Math.Sqrt(d.X * d.X + d.Y * d.Y)) * 180.0 / Math.PI) + o.CarYpr.Y + o.CamYpr.Y;
+            float pitch = (float)(Math.Atan2(d.Z, Math.Sqrt(d.X * d.X + d.Y * d.Y)) * 180.0 / Math.PI) - (o.CarYpr.Y + o.CamYpr.Y);
             float yawW = (float)(Math.Atan2(-d.X, d.Y) * 180.0 / Math.PI) + o.CamYpr.X;
             float roll = o.CarYpr.Z * 0.6f + o.CamYpr.Z;
             if (BoostShake > 0f) { pitch += Noise(31f) * BoostShake * 0.4f; yawW += Noise(23f) * BoostShake * 0.3f; }
@@ -279,17 +279,19 @@ namespace MidnightClub.Cameras
                 if (!driverHidden) { Function.Call(Hash.SET_ENTITY_VISIBLE, ped, false, false); driverHidden = true; hiddenPed = ped.Handle; }
                 Function.Call(Hash.SET_ENTITY_LOCALLY_INVISIBLE, ped);
             }
-            float layerScale = mode == CameraMode.Cockpit ? 1f : 0.6f;
-            local += new Vector3(o.CarXyz.X + o.CamXyz.X, o.CarXyz.Z + o.CamXyz.Z, o.CarXyz.Y + o.CamXyz.Y) * layerScale;
+            bool cockpit = mode == CameraMode.Cockpit;
+            float layerScale = cockpit ? 0.7f : 0f;   // hood / bumper / roof: rigidly fixed to the body, only the speed FOV moves
+            local += new Vector3(o.CarXyz.X + o.CamXyz.X, -(o.CarXyz.Z + o.CamXyz.Z), o.CarXyz.Y + o.CamXyz.Y) * layerScale;
             Function.Call(Hash.ATTACH_CAM_TO_ENTITY, cam, car, local.X, local.Y, local.Z, true);
             attached = true;
             // rotation follows the body exactly (pitch AND roll), plus look and the layer rotations
             var r = car.Rotation;
-            float pitch = r.X + p.Pitch + lookPitch * 0.6f + (o.CarYpr.Y + o.CamYpr.Y) * layerScale;
+            float pitch = r.X + p.Pitch + lookPitch * 0.6f - (o.CarYpr.Y + o.CamYpr.Y) * layerScale;   // Forza pitch sign is opposite to GTA's
             float roll = r.Y + (o.CarYpr.Z + o.CamYpr.Z) * layerScale;
             float yaw = r.Z + ry + (o.CarYpr.X + o.CamYpr.X) * layerScale;
             Function.Call(Hash.SET_CAM_ROT, cam, pitch, roll, yaw, 2);
-            fov = SmoothDamp(fov, Clamp(p.BaseFov + o.Fov * 0.5f + BoostFov, 30f, 115f), ref fovVel, 0.25f, dt);
+            float speedFov = (float)Math.Pow(Clamp(car.Speed * 3.6f / 300f, 0f, 1f), 1.2) * 14f * cfg.CameraFovScale;
+            fov = SmoothDamp(fov, Clamp(p.BaseFov + (cockpit ? o.Fov * 0.4f : speedFov) + BoostFov * 0.5f, 30f, 115f), ref fovVel, 0.25f, dt);
             cam.FieldOfView = fov;
         }
 
