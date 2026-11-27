@@ -221,7 +221,7 @@ namespace MidnightClub.Vehicles
             try
             {
                 var p = For(car); Current = cfg.SimcadeEnabled ? p : null;
-                Apply(car, p, cfg.SimcadeEnabled ? FitmentManager.CompoundGrip[Math.Max(0, Math.Min(4, rec.TyreCompound))] : 1f, cfg.SimcadeEnabled, rec.Tune);
+                Apply(car, p, cfg.SimcadeEnabled ? (float)Math.Round(FitmentManager.CompoundGrip[Math.Max(0, Math.Min(4, rec.TyreCompound))] * WorldSim.Weather.GripMult * 50f) / 50f : 1f, cfg.SimcadeEnabled, rec.Tune);
                 if (cfg.SimcadeEnabled) Assists(car, p);
             }
             catch (Exception ex) { Log.Error("Simcade", ex); cfg.SimcadeEnabled = false; Restore(); }
