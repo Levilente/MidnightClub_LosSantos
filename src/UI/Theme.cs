@@ -48,9 +48,8 @@ namespace MidnightClub.UI
         /// <summary>Panel with a soft vertical gradient and a neon accent on the left.</summary>
         public static void Card(float x, float y, float w, float h, bool accent = true)
         {
-            Sprite("commonmenu", "gradient_bgd", x, y, w, h, Color.FromArgb(235, 255, 255, 255));
-            Rect(x, y, w, h, Color.FromArgb(120, 8, 6, 18));
-            if (accent) Rect(x, y, 0.0035f, h, Purple);
+            Kit.Glass(x, y, w, h, Th.R_Lg, 1f, true);
+            if (accent) Kit.Pill(x + Ds.Px(Th.Px(10f)), y + Th.Px(10f), Ds.Px(Th.Px(4f)), h - Th.Px(20f), Th.Accent);
         }
 
         public static void StatBar(string label, float v, float x, float y, float w)
@@ -79,26 +78,7 @@ namespace MidnightClub.UI
         private static Scaleform sf;
         private static string lastKey;
 
-        public static void Draw(params object[] pairs)   // Control, label, Control, label, ...
-        {
-            if (sf == null) sf = Scaleform.RequestMovie("instructional_buttons");
-            if (!sf.IsLoaded) return;
-            var key = (Game.LastInputMethod == InputMethod.GamePad ? "p" : "k") + string.Join("|", pairs.Select(p => p.ToString()));
-            if (key != lastKey)
-            {
-                lastKey = key;
-                sf.CallFunction("CLEAR_ALL");
-                sf.CallFunction("SET_CLEAR_SPACE", 200);
-                for (int i = 0, slot = 0; i + 1 < pairs.Length; i += 2, slot++)
-                {
-                    var c = (Control)pairs[i];
-                    string glyph = Function.Call<string>(Hash.GET_CONTROL_INSTRUCTIONAL_BUTTONS_STRING, 2, (int)c, true);
-                    sf.CallFunction("SET_DATA_SLOT", slot, glyph, (string)pairs[i + 1]);
-                }
-                sf.CallFunction("SET_BACKGROUND_COLOUR", 0, 0, 0, 90);
-                sf.CallFunction("DRAW_INSTRUCTIONAL_BUTTONS", -1);
-            }
-            sf.Render2D();
-        }
+        /// <summary>Button prompts (now the Midnight Club prompt bar with real keycaps / pad buttons, see Kit.Prompts).</summary>
+        public static void Draw(params object[] pairs) { Kit.Prompts(pairs); }
     }
 }

@@ -272,9 +272,9 @@ namespace MidnightClub.Dealerships
                     if (UI.Input.JustPressed(Control.FrontendCancel) || Game.IsKeyPressed(Keys.Back)) break;
                     if (!ped.IsInVehicle(car)) ped.SetIntoVehicle(car, VehicleSeat.Driver);
                     int s = (end - Game.GameTime) / 1000;
-                    Rect(0.4f, 0.04f, 0.2f, 0.07f, Panel);
-                    Text("TEST DRIVE  " + s / 60 + ":" + (s % 60).ToString("00"), 0.5f, 0.045f, 0.5f, Purple, Font.ChaletComprimeCologne, Alignment.Center);
-                    Text(item.Info.Name + "   ·   " + (int)(car.Speed * 3.6f) + " KM/H", 0.5f, 0.085f, 0.3f, Color.White, Font.ChaletLondon, Alignment.Center);
+                    Kit.Glass(0.4f, 0.04f, 0.2f, Th.Px(84f), Th.R_Lg, 1f, true);
+                    Ds.TM("TEST DRIVE  " + s / 60 + ":" + (s % 60).ToString("00"), 0.5f, 0.04f + Th.Px(28f), 0.5f, Th.Accent, Ds.Display, Alignment.Center);
+                    Ds.TM(item.Info.Name + "   ·   " + (int)(car.Speed * 3.6f) + " KM/H", 0.5f, 0.04f + Th.Px(60f), 0.3f, Th.Text, Ds.Body, Alignment.Center);
                     Buttons.Draw(Control.FrontendCancel, "End test drive");
                     Script.Wait(0);
                 }
@@ -299,7 +299,7 @@ namespace MidnightClub.Dealerships
             var item = stock[index]; var v = item.Info; bool sold = mgr.IsSold(item);
             var promo = mgr.PromoClass(d); int days = mgr.DaysUntilRotation(d);
             Studio.Title(d.Tagline.ToUpperInvariant(), d.Name.ToUpperInvariant(), "$" + saves.Data.Cash.ToString("N0"));
-            Theme.Text("NEW STOCK IN " + days + (days == 1 ? " DAY" : " DAYS") + (promo.HasValue ? "  ·  " + VehicleRegistry.ClassName(promo.Value).ToUpperInvariant() + " -15%" : ""), 0.95f, 0.085f, 0.26f, promo.HasValue ? Theme.Gold : Theme.TextDim, Font.ChaletLondon, Alignment.Right);
+            Theme.Text("NEW STOCK IN " + days + (days == 1 ? " DAY" : " DAYS") + (promo.HasValue ? "  ·  " + VehicleRegistry.ClassName(promo.Value).ToUpperInvariant() + " -15%" : ""), 0.955f, 0.125f, 0.26f, promo.HasValue ? Th.Amber : Th.Sub, Font.ChaletLondon, Alignment.Right);
             var right = new System.Collections.Generic.List<string>();
             right.Add(sold ? "SOLD" : "$" + item.Price.ToString("N0"));
             right.Add(item.ListPrice > item.Price ? "WAS $" + item.ListPrice.ToString("N0") : "PRICE");
@@ -316,7 +316,7 @@ namespace MidnightClub.Dealerships
             if (note != null && Game.GameTime < noteUntil)
             {
                 Theme.Card(0.36f, 0.14f, 0.28f, 0.05f);
-                Theme.Text(note, 0.5f, 0.152f, 0.3f, Color.White, Font.ChaletLondon, Alignment.Center, 0.26f);
+                Ds.TM(note, 0.5f, 0.165f, 0.3f, Th.Text, Ds.Body, Alignment.Center);
             }
             if (!menus.IsOpen) Buttons.Draw(Control.FrontendAccept, "Buy", Control.FrontendCancel, "Leave", Control.FrontendX, "Test drive", Control.LookLeftRight, "Look around", Control.FrontendRt, "Zoom", Control.FrontendRight, "", Control.FrontendLeft, "Browse");
         }

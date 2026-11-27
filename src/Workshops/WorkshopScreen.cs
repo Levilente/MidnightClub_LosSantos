@@ -821,109 +821,130 @@ namespace MidnightClub.Workshops
         private static readonly Color White = Color.FromArgb(255, 245, 245, 245), Dim = Color.FromArgb(255, 170, 170, 175), Ink = Color.FromArgb(255, 18, 18, 22);
         private static readonly Font Cond = Font.ChaletComprimeCologne;
 
+        private static readonly string[] TabIcons = { "award", "palette", "car-front", "gauge", "disc-3", "sparkles" };
+
         private void DrawShop(Menu m)
         {
             m.Clamp();
-            var dark = Color.FromArgb(255, 10, 10, 14);
-            UI.Ds.HGrad(0f, 0f, 0.5f, 1f, UI.Ds.A(dark, 0.72f), UI.Ds.A(dark, 0f), 20);
-            UI.Studio.Fade(true, 0.22f, 150);
-            float x = 0.045f, y = 0.055f;
+            if (m.VisibleRows > 8) { m.VisibleRows = 8; m.Clamp(); }
+            var acc = UI.Th.Accent;
+            UI.Ds.HGrad(0f, 0f, 0.42f, 1f, UI.Ds.A(UI.Ds.Bg, 0.55f), UI.Ds.A(UI.Ds.Bg, 0f), 8);
+            float x = 0.04f, y = 0.045f, lw = 0.27f;
             bool root = menus.Depth == 1;
+            // header card: shop + specialty, then the tab control (root) or breadcrumb (inside a category)
+            float hh = UI.Th.Px(root ? 128f : 92f);
+            UI.Kit.Glass(x, y, lw, hh, UI.Th.R_Lg);
+            float ix = x + UI.Ds.Px(UI.Th.Px(20f)), iw = lw - UI.Ds.Px(UI.Th.Px(40f));
             if (root)
             {
-                UI.Ds.T(w.Name.ToUpperInvariant(), x, y, 0.78f, White, Cond);
-                // tab bar
-                float tx = x, ty = y + 0.058f, th = 0.03f;
-                Key(tx, ty + 0.004f, "LB"); tx += UI.Ds.Px(0.032f);
+                UI.Ds.TM(UI.Ds.Fit(w.Name.ToUpperInvariant(), 0.62f, iw * 0.62f, Cond), ix, y + UI.Th.Px(30f), 0.62f, UI.Th.Text, Cond);
+                if (w.Specialty != null) { float cw2 = UI.Ds.Width(w.Specialty.ToUpperInvariant(), 0.22f, Cond) + UI.Ds.Px(UI.Th.Px(16f)); UI.Kit.Chip(w.Specialty.ToUpperInvariant(), x + lw - UI.Ds.Px(UI.Th.Px(20f)) - cw2, y + UI.Th.Px(30f), UI.Ds.A(UI.Th.Amber, 0.2f), UI.Th.Amber, 0.22f); }
+                // tabs: icon buttons in a row, the active one is an accent pill with its name below the row
+                float ty = y + UI.Th.Px(60f), th = UI.Th.Px(40f), tcy = ty + th / 2f;
+                float kq = UI.Ds.Px(UI.Th.Px(30f));
+                UI.Kit.KeyHint(Control.FrontendLb, "", ix, tcy);
+                float slotW = (iw - 2 * kq - UI.Ds.Px(UI.Th.Px(16f))) / TabNames.Length, sx = ix + kq + UI.Ds.Px(UI.Th.Px(8f));
                 for (int i = 0; i < TabNames.Length; i++)
                 {
-                    float tw = UI.Ds.Width(TabNames[i], 0.36f, Cond) + UI.Ds.Px(0.02f);
-                    bool sel = i == curTab;
-                    UI.Ds.Rect(tx, ty, tw, th, sel ? White : Color.FromArgb(150, 20, 20, 26));
-                    UI.Ds.T(TabNames[i], tx + tw / 2, ty + 0.0015f, 0.36f, sel ? Ink : (i == w.DiscountTab ? UI.Ds.Amber : Dim), Cond, Alignment.Center);
-                    tx += tw + UI.Ds.Px(0.004f);
+                    bool on = i == curTab; float bx = sx + i * slotW + UI.Ds.Px(UI.Th.Px(3f)), bw = slotW - UI.Ds.Px(UI.Th.Px(6f));
+                    if (on) UI.Kit.Round(bx, ty, bw, th, UI.Th.R_Md, acc);
+                    else UI.Kit.Round(bx, ty, bw, th, UI.Th.R_Md, UI.Th.Track);
+                    UI.Textures.Draw("li_" + TabIcons[i], bx + bw / 2f, tcy, UI.Th.Px(20f), on ? UI.Th.On(acc) : (i == w.DiscountTab ? UI.Th.Amber : UI.Th.Sub));
                 }
-                Key(tx + UI.Ds.Px(0.004f), ty + 0.004f, "RB");
-                y = ty + 0.06f;
+                UI.Kit.KeyHint(Control.FrontendRb, "", sx + TabNames.Length * slotW + UI.Ds.Px(UI.Th.Px(6f)), tcy);
+                string tn = TabNames[Math.Max(0, Math.Min(5, curTab))] + (w.DiscountTab == curTab ? "   ·   SPECIALTY -15%" : "");
+                UI.Ds.TM(tn, ix, y + hh - UI.Th.Px(16f), 0.26f, w.DiscountTab == curTab ? UI.Th.Amber : UI.Th.Sub, Cond);
             }
             else
             {
-                string crumb = TabNames[Math.Max(0, Math.Min(5, curTab))] + " /";
-                UI.Ds.T(crumb, x, y, 0.42f, Dim, Cond);
-                UI.Ds.T((m.Title ?? "").ToUpperInvariant(), x, y + 0.03f, 0.82f, White, Cond);
-                y += 0.11f;
+                UI.Ds.TM(w.Name.ToUpperInvariant() + "  /  " + TabNames[Math.Max(0, Math.Min(5, curTab))], ix, y + UI.Th.Px(26f), 0.24f, acc, Cond);
+                UI.Ds.TM(UI.Ds.Fit((m.Title ?? "").ToUpperInvariant(), 0.72f, iw, Cond), ix, y + UI.Th.Px(60f), 0.72f, UI.Th.Text, Cond);
             }
-            // list
-            float lw = 0.215f, rh = 0.043f;
+            y += hh + UI.Th.Px(12f);
+            // list card
+            float rh = UI.Th.Px(48f), pad = UI.Th.Px(10f);
             int first = m.Scroll, n = Math.Min(m.VisibleRows, m.Items.Count - first);
-            float target = y + (m.Selected - first) * rh;
-            listSel = listSel < 0 ? target : UI.Ds.Damp(listSel, target, 28f);
+            float ch = Math.Max(1, n) * rh + 2 * pad;
+            UI.Kit.Glass(x, y, lw, ch, UI.Th.R_Lg);
+            float rx = x + UI.Ds.Px(pad), rw = lw - 2 * UI.Ds.Px(pad);
+            float target = y + pad + (m.Selected - first) * rh;
+            listSel = listSel < 0 ? target : UI.Ds.Damp(listSel, target, 36f);
+            if (m.Items.Count > 0) UI.Kit.Round(rx, listSel, rw, rh - UI.Th.Px(4f), UI.Th.R_Md, acc);
             for (int i = 0; i < n; i++)
             {
-                var it = m.Items[first + i]; float ry = y + i * rh;
-                UI.Ds.HGrad(x, ry, lw, rh - 0.003f, Color.FromArgb(120, 30, 30, 36), Color.FromArgb(0, 30, 30, 36), 10);
-                UI.Ds.Rect(x, ry + rh - 0.003f, lw, 0.001f, Color.FromArgb(60, 255, 255, 255));
-            }
-            if (m.Items.Count > 0) UI.Ds.HGrad(x, listSel, lw, rh - 0.003f, Color.FromArgb(240, 245, 245, 245), Color.FromArgb(200, 225, 225, 228), 8);
-            for (int i = 0; i < n; i++)
-            {
-                var it = m.Items[first + i]; bool sel = first + i == m.Selected; float ry = y + i * rh;
+                var it = m.Items[first + i]; bool sel = first + i == m.Selected; float cy = y + pad + i * rh + (rh - UI.Th.Px(4f)) / 2f;
                 bool onBar = sel && Math.Abs(listSel - target) < rh * 0.5f;
                 string label = Clean(it.Label).Replace("  [EXCLUSIVE]", "");
-                var c = onBar ? Ink : !it.Enabled ? Color.FromArgb(255, 110, 110, 115) : White;
-                UI.Ds.T(UI.Ds.Fit(label, 0.36f, lw - UI.Ds.Px(0.05f)), x + UI.Ds.Px(0.009f), ry + 0.0075f, 0.36f, c, Font.ChaletLondon);
-                if (it.Label.Contains("[EXCLUSIVE]")) UI.Ds.Rect(x + lw - UI.Ds.Px(0.012f), ry + 0.014f, UI.Ds.Px(0.006f), 0.012f, UI.Ds.Cyan);
-                if (!m.IsShopList && it.Value != null)
-                {
-                    string v = Clean(it.Value());
-                    if (!string.IsNullOrEmpty(v)) UI.Ds.T(UI.Ds.Fit(v, 0.27f, lw * 0.4f), x + lw - UI.Ds.Px(0.008f), ry + 0.011f, 0.27f, onBar ? Ink : Dim, Font.ChaletLondon, Alignment.Right);
-                }
+                var fg = onBar ? UI.Th.On(acc) : !it.Enabled ? UI.Th.Faint : UI.Th.Text;
+                string v = it.Value != null ? Clean(it.Value()) : "";
+                bool owned = v.Contains("INSTALLED") || v.Contains("CURRENT") || v.Contains("FITTED");
+                float vw = owned ? UI.Ds.Px(UI.Th.Px(30f)) : string.IsNullOrEmpty(v) ? 0f : Math.Min(rw * 0.42f, UI.Ds.Width(v, 0.3f, Cond));
+                UI.Ds.TM(UI.Ds.Fit(label, 0.34f, rw - vw - UI.Ds.Px(UI.Th.Px(40f))), rx + UI.Ds.Px(UI.Th.Px(14f)), cy, 0.34f, fg);
+                float vx = rx + rw - UI.Ds.Px(UI.Th.Px(14f));
+                if (owned) UI.Textures.Draw("li_list-checks", vx - UI.Ds.Px(UI.Th.Px(10f)), cy, UI.Th.Px(20f), onBar ? fg : UI.Th.Green);
+                else if (!string.IsNullOrEmpty(v)) UI.Ds.TM(UI.Ds.Fit(v, 0.3f, rw * 0.42f, Cond), vx, cy, 0.3f, onBar ? fg : UI.Th.Sub, Cond, Alignment.Right);
+                if (it.Label.Contains("[EXCLUSIVE]")) UI.Kit.Pill(rx + UI.Ds.Px(UI.Th.Px(4f)), cy - UI.Th.Px(8f), UI.Ds.Px(UI.Th.Px(4f)), UI.Th.Px(16f), UI.Th.Cyan);
             }
-            if (m.Items.Count > m.VisibleRows || !m.IsShopList)
-                UI.Ds.T((m.Selected + 1) + "  /  " + m.Items.Count, x, y + n * rh + 0.012f, 0.36f, Dim, Cond);
-            // part detail (bottom left)
+            if (m.Items.Count > m.VisibleRows)
+            {
+                float th2 = rh * m.VisibleRows;
+                UI.Kit.Pill(x + lw + UI.Ds.Px(UI.Th.Px(6f)), y + pad, UI.Ds.Px(UI.Th.Px(4f)), th2, UI.Th.Track);
+                UI.Kit.Pill(x + lw + UI.Ds.Px(UI.Th.Px(6f)), y + pad + th2 * first / m.Items.Count, UI.Ds.Px(UI.Th.Px(4f)), th2 * m.VisibleRows / m.Items.Count, acc);
+            }
+            y += ch + UI.Th.Px(12f);
+            // purchase / info card
             var cur = m.Items.Count > 0 ? m.Items[m.Selected] : null;
-            if (m.IsShopList && cur != null)
+            if (cur != null)
             {
                 string v = cur.Value != null ? Clean(cur.Value()) : "";
                 bool owned = v.Contains("INSTALLED") || v.Contains("CURRENT") || v.Contains("FITTED");
-                bool excl = cur.Label.Contains("[EXCLUSIVE]"), disc = w.DiscountTab == curTab;
-                float dy = 0.70f;
-                if (excl || disc) { UI.Ds.Rect(x, dy - 0.04f, UI.Ds.Width(excl ? "EXCLUSIVE" : "SPECIALTY -15%", 0.34f, Cond) + UI.Ds.Px(0.014f), 0.03f, UI.Ds.Cyan); UI.Ds.T(excl ? "EXCLUSIVE" : "SPECIALTY -15%", x + UI.Ds.Px(0.007f), dy - 0.0385f, 0.34f, Ink, Cond); }
-                UI.Ds.T(owned ? "OWNED" : (v.StartsWith("$") ? v : (v.Length > 0 ? v.ToUpperInvariant() : "")), x, dy, 0.95f, White, Cond);
-                UI.Ds.T(Clean(cur.Label).Replace("  [EXCLUSIVE]", "").ToUpperInvariant(), x, dy + 0.07f, 0.55f, White, Cond);
-                UI.Ds.T((m.Selected + 1) + "  /  " + m.Items.Count, x, dy + 0.115f, 0.36f, Dim, Cond);
-                UI.Ds.Rect(x, dy + 0.155f, 0.3f, 0.001f, Color.FromArgb(80, 255, 255, 255));
-                UI.Ds.T(owned ? "Installed" : "Not owned", x + UI.Ds.Px(0.004f), dy + 0.165f, 0.32f, Dim, Font.ChaletLondon);
-                if (cur.Description != null) { var d = Clean(cur.Description()); if (!string.IsNullOrEmpty(d)) UI.Ds.T(d, x + UI.Ds.Px(0.004f), dy + 0.195f, 0.27f, Dim, Font.ChaletLondon, Alignment.Left, 0.32f); }
+                string d = cur.Description != null ? Clean(cur.Description()) : null;
+                if (m.IsShopList || !string.IsNullOrEmpty(d))
+                {
+                    int lines = string.IsNullOrEmpty(d) ? 0 : 1 + (int)(UI.Ds.Width(d, 0.28f) / (lw - UI.Ds.Px(UI.Th.Px(40f))));
+                    float bh = (m.IsShopList ? UI.Th.Px(84f) : UI.Th.Px(20f)) + lines * UI.Th.Px(28f) + UI.Th.Px(10f);
+                    bh = Math.Min(bh, 0.955f - UI.Th.Px(80f) - y);
+                    if (bh > UI.Th.Px(40f))
+                    {
+                        UI.Kit.Glass(x, y, lw, bh, UI.Th.R_Lg);
+                        float by2 = y + UI.Th.Px(14f);
+                        if (m.IsShopList)
+                        {
+                            string price = owned ? "OWNED" : v.StartsWith("$") ? v.Split(' ')[0] : (v.Length > 0 ? v.ToUpperInvariant() : "");
+                            UI.Ds.TM(price, ix, by2 + UI.Th.Px(22f), 0.85f, owned ? UI.Th.Green : UI.Th.Text, Cond);
+                            bool excl = cur.Label.Contains("[EXCLUSIVE]");
+                            if (excl) UI.Kit.Chip("EXCLUSIVE", x + lw - UI.Ds.Px(UI.Th.Px(20f)) - UI.Ds.Width("EXCLUSIVE", 0.22f, Cond) - UI.Ds.Px(UI.Th.Px(16f)), by2 + UI.Th.Px(22f), UI.Ds.A(UI.Th.Cyan, 0.2f), UI.Th.Cyan, 0.22f);
+                            by2 += UI.Th.Px(52f);
+                        }
+                        if (!string.IsNullOrEmpty(d)) UI.Ds.T(d, ix, by2, 0.28f, UI.Th.Sub, Font.ChaletLondon, Alignment.Left, lw - UI.Ds.Px(UI.Th.Px(40f)));
+                    }
+                }
             }
-            else if (cur != null && cur.Description != null)
-            {
-                var d = Clean(cur.Description());
-                if (!string.IsNullOrEmpty(d)) UI.Ds.T(d, x, 0.86f, 0.3f, Dim, Font.ChaletLondon, Alignment.Left, 0.3f);
-            }
-            // cash (top right)
-            UI.Ds.T("$" + saves.Data.Cash.ToString("N0"), 0.955f, 0.045f, 0.62f, White, Cond, Alignment.Right);
-            // shop card (top right, on arrival)
+            // cash capsule (top right)
+            string cash = "$" + saves.Data.Cash.ToString("N0");
+            float cwid = UI.Ds.Width(cash, 0.56f, Cond) + UI.Ds.Px(UI.Th.Px(44f)), chh = UI.Th.Px(50f);
+            UI.Kit.Glass(0.96f - cwid, 0.045f, cwid, chh, chh * 1080f / 2f);
+            UI.Ds.TM(cash, 0.96f - cwid / 2f, 0.045f + chh / 2f, 0.56f, UI.Th.Text, Cond, Alignment.Center);
+            // shop card on arrival
             if (Game.GameTime < shopCardUntil)
             {
-                float a = UI.Ds.Clamp01((shopCardUntil - Game.GameTime) / 500f), cx = 0.70f, cw = 0.255f, cy = 0.1f;
-                UI.Ds.Rect(cx, cy, cw, 0.14f, UI.Ds.A(Color.FromArgb(235, 22, 24, 34), a));
-                UI.Ds.T(w.Name.ToUpperInvariant(), cx + UI.Ds.Px(0.012f), cy + 0.008f, 0.5f, UI.Ds.A(White, a), Cond);
-                UI.Ds.T(w.Description ?? "", cx + UI.Ds.Px(0.012f), cy + 0.048f, 0.28f, UI.Ds.A(White, a), Font.ChaletLondon, Alignment.Left, cw - UI.Ds.Px(0.024f));
-                UI.Ds.T("SPECIALTY", cx + UI.Ds.Px(0.012f), cy + 0.112f, 0.34f, UI.Ds.A(White, a), Cond);
-                UI.Ds.T((w.Specialty ?? "").ToUpperInvariant(), cx + cw - UI.Ds.Px(0.012f), cy + 0.112f, 0.34f, UI.Ds.A(White, a), Cond, Alignment.Right);
+                float a = UI.Ds.Clamp01((shopCardUntil - Game.GameTime) / 500f), cw = 0.25f, cx = 0.96f - cw, cy0 = 0.045f + chh + UI.Th.Px(12f);
+                int lines = 1 + (int)(UI.Ds.Width(w.Description ?? "", 0.28f) / (cw - UI.Ds.Px(UI.Th.Px(40f))));
+                float bh = UI.Th.Px(66f) + lines * UI.Th.Px(28f);
+                UI.Kit.Glass(cx, cy0, cw, bh, UI.Th.R_Lg, a);
+                UI.Ds.TM(w.Name.ToUpperInvariant(), cx + UI.Ds.Px(UI.Th.Px(20f)), cy0 + UI.Th.Px(28f), 0.5f, UI.Ds.A(UI.Th.Text, a), Cond);
+                UI.Ds.T(w.Description ?? "", cx + UI.Ds.Px(UI.Th.Px(20f)), cy0 + UI.Th.Px(50f), 0.28f, UI.Ds.A(UI.Th.Sub, a), Font.ChaletLondon, Alignment.Left, cw - UI.Ds.Px(UI.Th.Px(40f)));
             }
             DrawStatCard(m);
             if (note != null && Game.GameTime < noteUntil)
             {
-                float nw = UI.Ds.Width(Clean(note), 0.34f) + UI.Ds.Px(0.03f);
-                UI.Ds.Rect(0.5f - nw / 2, 0.055f, nw, 0.038f, Color.FromArgb(230, 22, 24, 34));
-                UI.Ds.T(Clean(note), 0.5f, 0.06f, 0.34f, White, Font.ChaletLondon, Alignment.Center);
+                string nt = Clean(note); float nw = UI.Ds.Width(nt, 0.32f) + UI.Ds.Px(UI.Th.Px(48f)), nh = UI.Th.Px(48f);
+                UI.Kit.Glass(0.5f - nw / 2, 0.045f, nw, nh, nh * 1080f / 2f, 1f, true);
+                UI.Ds.TM(nt, 0.5f, 0.045f + nh / 2f, 0.32f, UI.Th.Text, Font.ChaletLondon, Alignment.Center);
             }
             bool adjust = cur != null && cur.Enabled && cur.OnAdjust != null;
-            if (root) Buttons.Draw(Control.FrontendAccept, "Select", Control.FrontendCancel, "Exit", Control.FrontendRb, "", Control.FrontendLb, "Category");
-            else if (adjust) Buttons.Draw(Control.FrontendAccept, "Select", Control.FrontendCancel, "Back", Control.FrontendRight, "", Control.FrontendLeft, "Adjust");
+            if (root) Buttons.Draw(Control.FrontendLb, "", Control.FrontendRb, "Category", Control.FrontendAccept, "Select", Control.FrontendCancel, "Exit");
+            else if (adjust) Buttons.Draw(Control.FrontendLeft, "", Control.FrontendRight, "Adjust", Control.FrontendAccept, "Select", Control.FrontendCancel, "Back");
             else Buttons.Draw(Control.FrontendAccept, m.IsShopList ? "Buy" : "Select", Control.FrontendCancel, "Back");
         }
 
@@ -962,29 +983,28 @@ namespace MidnightClub.Workshops
         {
             var st = Stats(false);
             baseStats = Stats(true);
-            float x0 = 0.37f, x1 = 0.955f, top = 0.765f, h = 0.11f;
-            UI.Ds.Rect(x0 - UI.Ds.Px(0.012f), top, x1 - x0 + UI.Ds.Px(0.024f), h, Color.FromArgb(200, 14, 14, 20));
-            UI.Ds.Rect(x0 - UI.Ds.Px(0.012f), top, x1 - x0 + UI.Ds.Px(0.024f), 0.003f, UI.Ds.Violet);
+            float x0 = 0.35f, x1 = 0.96f, h = UI.Th.Px(118f), top = 1f - UI.Th.Px(96f) - h;
+            UI.Kit.Glass(x0, top, x1 - x0, h, UI.Th.R_Lg);
+            float ix = x0 + UI.Ds.Px(UI.Th.Px(22f)), iw = x1 - x0 - UI.Ds.Px(UI.Th.Px(44f));
             string head = (info != null ? info.Make.ToUpperInvariant() + "  " : "") + Title().ToUpperInvariant();
-            if (Simcade.Active) { var pr = Simcade.Instance.For(car); head += "   ·   " + pr.Archetype.ToUpperInvariant() + " HANDLING"; }
             int road = (int)Math.Round((st[0] * 0.35f + st[1] * 0.35f + st[2] * 0.3f) * 100f);
             int off = (int)Math.Round((st[0] * 0.25f + st[1] * 0.3f + st[3] * 0.45f) * 100f);
-            string rating = "ROAD " + road + "   ·   OFF-ROAD " + off;
-            float rw = UI.Ds.Width(rating, 0.34f, Cond);
-            UI.Ds.TM(UI.Ds.Fit(head, 0.34f, x1 - x0 - rw - UI.Ds.Px(0.03f), Cond), x0, top + 0.024f, 0.34f, White, Cond);
-            UI.Ds.TM(rating, x1, top + 0.024f, 0.34f, UI.Ds.Violet, Cond, Alignment.Right);
+            float chipW = UI.Ds.Width("ROAD " + road, 0.26f, Cond) + UI.Ds.Width("OFF-ROAD " + off, 0.26f, Cond) + UI.Ds.Px(UI.Th.Px(48f));
+            UI.Ds.TM(UI.Ds.Fit(head, 0.4f, iw - chipW - UI.Ds.Px(UI.Th.Px(140f)), Cond), ix, top + UI.Th.Px(28f), 0.4f, UI.Th.Text, Cond);
+            float cx = x1 - UI.Ds.Px(UI.Th.Px(22f)) - chipW;
+            if (Simcade.Active) { var pr = Simcade.Instance.For(car); string an = pr.Archetype.ToUpperInvariant(); UI.Kit.Chip(an, cx - UI.Ds.Width(an, 0.24f, Cond) - UI.Ds.Px(UI.Th.Px(28f)), top + UI.Th.Px(28f), UI.Th.Track, UI.Th.Sub, 0.24f); }
+            cx += UI.Kit.Chip("ROAD " + road, cx, top + UI.Th.Px(28f), UI.Th.Accent, UI.Th.On(UI.Th.Accent), 0.26f) + UI.Ds.Px(UI.Th.Px(8f));
+            UI.Kit.Chip("OFF-ROAD " + off, cx, top + UI.Th.Px(28f), UI.Th.Amber, UI.Th.On(UI.Th.Amber), 0.26f);
             string[] names = { "SPEED", "ACCELERATION", "HANDLING", "OFF-ROAD", "STRENGTH" };
-            float gap = UI.Ds.Px(0.016f), cw = (x1 - x0 - gap * 4) / 5f;
+            float gap = UI.Ds.Px(UI.Th.Px(20f)), cw = (iw - gap * 4) / 5f;
             for (int i = 0; i < 5; i++)
             {
-                float px = x0 + i * (cw + gap), v = st[i], b = baseStats != null ? baseStats[i] : v;
-                float ly = top + 0.06f, by = top + 0.084f;
-                UI.Ds.TM(names[i], px, ly, 0.27f, Dim, Cond);
-                UI.Ds.TM(v.ToString("0.0"), px + cw, ly, 0.34f, v > b + 0.05f ? UI.Ds.Lime : v < b - 0.05f ? UI.Ds.Red : White, Cond, Alignment.Right);
-                UI.Ds.Rect(px, by, cw, 0.005f, Color.FromArgb(80, 255, 255, 255));
-                UI.Ds.Rect(px, by, cw * Math.Min(v, b) / 10f, 0.005f, White);
-                if (v > b) UI.Ds.Rect(px + cw * b / 10f, by, cw * (v - b) / 10f, 0.005f, UI.Ds.Lime);
-                else if (v < b) UI.Ds.Rect(px + cw * v / 10f, by, cw * (b - v) / 10f, 0.005f, UI.Ds.Red);
+                float px = ix + i * (cw + gap), v = st[i], b = baseStats != null ? baseStats[i] : v;
+                float ly = top + UI.Th.Px(66f), by = top + UI.Th.Px(88f), bh = UI.Th.Px(7f);
+                UI.Ds.TM(names[i], px, ly, 0.24f, UI.Th.Sub, Cond);
+                UI.Ds.TM(v.ToString("0.0"), px + cw, ly, 0.34f, v > b + 0.05f ? UI.Th.Green : v < b - 0.05f ? UI.Th.Red : UI.Th.Text, Cond, Alignment.Right);
+                UI.Kit.Bar(px, by, cw, bh, Math.Max(v, b) / 10f, v > b ? UI.Th.Green : v < b ? UI.Th.Red : UI.Th.Text);
+                UI.Kit.Pill(px, by, Math.Max(UI.Ds.Px(bh), cw * Math.Min(v, b) / 10f), bh, UI.Th.Text);
             }
         }
 

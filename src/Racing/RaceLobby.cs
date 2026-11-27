@@ -39,61 +39,87 @@ namespace MidnightClub.Racing
                     }
                     float a = Ds.EaseOut((Game.GameTime - start) / 450f);
                     var disc = r.Discipline; var dc = disc == Discipline.Drift ? Ds.Amber : disc == Discipline.Offroad ? Color.FromArgb(255, 251, 146, 60) : disc == Discipline.Drag ? Ds.Lime : disc == Discipline.Bikes ? Ds.Cyan : Ds.Red;
-                    Ds.HGrad(0f, 0f, 0.5f, 1f, Ds.A(Ds.Bg, 0.92f * a), Ds.A(Ds.Bg, 0f), 10);
-                    Ds.HGrad(0.62f, 0f, 0.38f, 1f, Ds.A(Ds.Bg, 0f), Ds.A(Ds.Bg, 0.9f * a), 8);
-                    // event (left)
-                    float x = 0.05f;
-                    Ds.Logo(x, 0.05f, 0.8f, a, GTA.UI.Alignment.Left, false);
-                    Ds.Tag(Career.Disciplines.Name(disc).ToUpperInvariant() + "  ·  " + typeLabel.ToUpperInvariant(), x, 0.17f, dc, Ds.Bg, 0.28f, a);
-                    Ds.T(Ds.Fit(r.Name.ToUpperInvariant(), 1.0f, 0.42f, Ds.Display), x, 0.2f, 1.0f, Ds.A(Ds.Text, a), Ds.Display);
-                    float y = 0.3f;
-                    Action<string, string> row = (k, v) => { Ds.T(k, x, y, 0.28f, Ds.A(Ds.Muted, a), Ds.Display); Ds.T(v, x + 0.2f, y, 0.28f, Ds.A(Ds.Text, a), Ds.Display); y += 0.032f; };
-                    row("DISTANCE", (len / 1000f).ToString("0.0") + " KM" + (r.Lapped ? "  ·  " + r.Laps + " LAPS" : ""));
-                    row("REWARD", "$" + r.CashReward.ToString("N0") + "  ·  " + r.RepReward + " REP");
-                    if (r.LevelNeeded > 0) row("LEVEL", Career.Disciplines.Name(disc) + " " + r.LevelNeeded + "+");
-                    var turf = Explore.Turf.At(r.Start); if (turf != null && r.HasOpponents) row("TURF", turf.Name.ToUpperInvariant());
-                    if (r.HotPursuit) row("POLICE", "HOT PURSUIT  ·  +50% REWARD");
-                    if (rivalName != null) row("RIVAL", rivalName.ToUpperInvariant() + " SET THE TIME TO BEAT");
-                    if (r.BikesOnly) row("VEHICLES", "MOTORCYCLES ONLY");
+                    Ds.HGrad(0f, 0f, 0.5f, 1f, Ds.A(Ds.Bg, 0.7f * a), Ds.A(Ds.Bg, 0f), 8);
+                    Ds.HGrad(0.62f, 0f, 0.38f, 1f, Ds.A(Ds.Bg, 0f), Ds.A(Ds.Bg, 0.7f * a), 8);
+                    // event card (left)
+                    float x = 0.045f, cw = Ds.Px(Th.Px(620f));
+                    Ds.Logo(x, 0.045f, 0.7f, a, GTA.UI.Alignment.Left, false);
+                    float y = 0.125f;
+                    var rows = new List<KeyValuePair<string, string>>();
+                    rows.Add(new KeyValuePair<string, string>("DISTANCE", (len / 1000f).ToString("0.0") + " KM" + (r.Lapped ? "  ·  " + r.Laps + " LAPS" : "")));
+                    rows.Add(new KeyValuePair<string, string>("REWARD", "$" + r.CashReward.ToString("N0") + "  ·  " + r.RepReward + " REP"));
+                    if (r.LevelNeeded > 0) rows.Add(new KeyValuePair<string, string>("LEVEL", Career.Disciplines.Name(disc) + " " + r.LevelNeeded + "+"));
+                    var turf = Explore.Turf.At(r.Start); if (turf != null && r.HasOpponents) rows.Add(new KeyValuePair<string, string>("TURF", turf.Name.ToUpperInvariant()));
+                    if (r.HotPursuit) rows.Add(new KeyValuePair<string, string>("POLICE", "HOT PURSUIT  ·  +50% REWARD"));
+                    if (rivalName != null) rows.Add(new KeyValuePair<string, string>("RIVAL", rivalName.ToUpperInvariant() + " SET THE TIME"));
+                    if (r.BikesOnly) rows.Add(new KeyValuePair<string, string>("VEHICLES", "MOTORCYCLES ONLY"));
+                    float eh = Th.Px(150f) + rows.Count * Th.Px(34f);
+                    Kit.Glass(x, y, cw, eh, Th.R_Lg + 4f, a);
+                    float ix = x + Ds.Px(Th.Px(26f));
+                    Kit.Chip(Career.Disciplines.Name(disc).ToUpperInvariant() + "  ·  " + typeLabel.ToUpperInvariant(), ix, y + Th.Px(32f), Ds.A(dc, a), Ds.A(Th.On(dc), a), 0.26f);
+                    Ds.TM(Ds.Fit(r.Name.ToUpperInvariant(), 1.0f, cw - Ds.Px(Th.Px(52f)), Ds.Display), ix, y + Th.Px(84f), 1.0f, Ds.A(Th.Text, a), Ds.Display);
+                    float ry = y + Th.Px(134f);
+                    foreach (var kv in rows)
+                    {
+                        Ds.TM(kv.Key, ix, ry, 0.26f, Ds.A(Th.Sub, a), Ds.Display);
+                        Ds.TM(kv.Value, ix + Ds.Px(Th.Px(150f)), ry, 0.3f, Ds.A(Th.Text, a), Ds.Display);
+                        ry += Th.Px(34f);
+                    }
+                    y += eh + Th.Px(14f);
                     // your car
-                    y += 0.02f;
                     int pi = PerformanceIndex.Of(me);
-                    Ds.T("YOUR CAR", x, y, 0.24f, Ds.A(Ds.Muted, a), Ds.Display); y += 0.026f;
-                    float bw = PerformanceIndex.Badge(pi, x, y + 0.004f, 0.03f, a);
-                    Ds.T(Ds.Fit(me != null ? (me.Nickname ?? me.Model).ToUpperInvariant() : "", 0.5f, 0.3f, Ds.Display), x + bw + Ds.Px(0.012f), y - 0.004f, 0.5f, Ds.A(Ds.Text, a), Ds.Display);
-                    y += 0.06f;
+                    float ch2 = Th.Px(78f);
+                    Kit.Glass(x, y, cw, ch2, Th.R_Lg, a);
+                    Ds.TM("YOUR CAR", ix, y + Th.Px(22f), 0.24f, Ds.A(Th.Sub, a), Ds.Display);
+                    float bw = PerformanceIndex.Badge(pi, ix, y + Th.Px(38f), 0.028f, a);
+                    Ds.TM(Ds.Fit(me != null ? (me.Nickname ?? me.Model).ToUpperInvariant() : "", 0.5f, cw - bw - Ds.Px(Th.Px(70f)), Ds.Display), ix + bw + Ds.Px(Th.Px(12f)), y + Th.Px(53f), 0.5f, Ds.A(Th.Text, a), Ds.Display);
+                    y += ch2 + Th.Px(14f);
                     // wager + crew
                     if (r.HasOpponents)
                     {
-                        Ds.Rect(x, y, Ds.Px(0.42f), 0.05f, Ds.A(Ds.Surface, 0.92f * a)); Ds.Rect(x, y, Ds.Px(0.004f), 0.05f, Ds.A(Ds.Pink, a));
-                        Ds.T("SIDE BET", x + Ds.Px(0.016f), y + 0.012f, 0.3f, Ds.A(Ds.Pink, a), Ds.Display);
-                        Ds.T("‹  " + (Wagers[wi] == 0 ? "NONE" : "$" + Wagers[wi].ToString("N0")) + "  ›", x + Ds.Px(0.4f), y + 0.01f, 0.36f, Ds.A(Ds.Text, a), Ds.Display, GTA.UI.Alignment.Right);
-                        Ds.T("WIN: DOUBLE  ·  PODIUM: MONEY BACK", x + Ds.Px(0.016f), y + 0.056f, 0.22f, Ds.A(Ds.Faint, a), Ds.Display);
-                        y += 0.085f;
+                        float wh = Th.Px(72f);
+                        Kit.Glass(x, y, cw, wh, Th.R_Lg, a);
+                        Kit.Pill(x + Ds.Px(Th.Px(10f)), y + Th.Px(12f), Ds.Px(Th.Px(4f)), wh - Th.Px(24f), Ds.A(Th.Amber, a));
+                        Ds.TM("SIDE BET", ix, y + Th.Px(24f), 0.3f, Ds.A(Th.Amber, a), Ds.Display);
+                        Ds.TM("WIN: DOUBLE  ·  PODIUM: MONEY BACK", ix, y + Th.Px(50f), 0.22f, Ds.A(Th.Sub, a), Ds.Display);
+                        float vx = x + cw - Ds.Px(Th.Px(24f));
+                        string wv = Wagers[wi] == 0 ? "NONE" : "$" + Wagers[wi].ToString("N0");
+                        Textures.Draw("li_chevron-right", vx - Ds.Px(Th.Px(8f)), y + wh / 2f, Th.Px(22f), Ds.A(Th.Text, a));
+                        Ds.TM(wv, vx - Ds.Px(Th.Px(26f)), y + wh / 2f, 0.44f, Ds.A(Th.Text, a), Ds.Display, GTA.UI.Alignment.Right);
+                        Textures.Draw("li_chevron-left", vx - Ds.Px(Th.Px(40f)) - Ds.Width(wv, 0.44f, Ds.Display), y + wh / 2f, Th.Px(22f), Ds.A(Th.Text, a));
+                        y += wh + Th.Px(14f);
                         if (Career.Crew.Hired)
                         {
-                            Ds.Rect(x, y, Ds.Px(0.42f), 0.05f, Ds.A(Ds.Surface, 0.92f * a)); Ds.Rect(x, y, Ds.Px(0.004f), 0.05f, Ds.A(Ds.Cyan, a));
-                            Ds.T("CREW  ·  " + Career.Crew.Name.ToUpperInvariant() + " (" + Career.Crew.Role.ToUpperInvariant() + ")", x + Ds.Px(0.016f), y + 0.012f, 0.3f, Ds.A(Ds.Cyan, a), Ds.Display);
-                            Ds.T(crew ? "RIDING ALONG" : "STAYING HOME", x + Ds.Px(0.4f), y + 0.012f, 0.3f, Ds.A(crew ? Ds.Text : Ds.Faint, a), Ds.Display, GTA.UI.Alignment.Right);
+                            Kit.Glass(x, y, cw, Th.Px(60f), Th.R_Lg, a);
+                            Kit.Pill(x + Ds.Px(Th.Px(10f)), y + Th.Px(12f), Ds.Px(Th.Px(4f)), Th.Px(36f), Ds.A(Th.Cyan, a));
+                            Ds.TM("CREW  ·  " + Career.Crew.Name.ToUpperInvariant() + " (" + Career.Crew.Role.ToUpperInvariant() + ")", ix, y + Th.Px(30f), 0.3f, Ds.A(Th.Cyan, a), Ds.Display);
+                            Kit.Toggle(x + cw - Ds.Px(Th.Px(24f)) - Ds.Px(Th.Px(40f)), y + Th.Px(30f), crew, Th.Cyan);
                         }
                     }
                     // grid (right)
                     if (names != null)
                     {
-                        float gx = 0.67f, gy = 0.17f, gw = Ds.Px(0.5f);
-                        Ds.T("STARTING GRID", gx, gy, 0.28f, Ds.A(Ds.Muted, a), Ds.Display); gy += 0.04f;
+                        float gw = Ds.Px(Th.Px(560f)), gx = 0.955f - gw, gy = 0.125f, rh = Th.Px(62f);
+                        Kit.Glass(gx, gy, gw, Th.Px(56f) + names.Count * rh + Th.Px(10f), Th.R_Lg + 4f, a);
+                        Ds.TM("STARTING GRID", gx + Ds.Px(Th.Px(24f)), gy + Th.Px(30f), 0.3f, Ds.A(Th.Sub, a), Ds.Display);
+                        gy += Th.Px(56f);
                         for (int i = 0; i < names.Count; i++)
                         {
                             float ra = Ds.EaseOut((Game.GameTime - start - 120 - i * 70) / 350f) * a; if (ra <= 0) continue;
-                            float yy = gy + i * 0.058f;
-                            Ds.Rect(gx, yy, gw, 0.05f, Ds.A(Ds.Surface, 0.9f * ra));
+                            float yy = gy + i * rh;
+                            Kit.Round(gx + Ds.Px(Th.Px(10f)), yy, gw - Ds.Px(Th.Px(20f)), rh - Th.Px(6f), Th.R_Md, Ds.A(Th.Track, ra));
+                            Ds.TM((i + 2).ToString(), gx + Ds.Px(Th.Px(34f)), yy + (rh - Th.Px(6f)) / 2f, 0.44f, Ds.A(Th.Sub, ra), Ds.Display, GTA.UI.Alignment.Center);
                             int opi = PerformanceIndex.Of(cars[i]);
-                            float bw2 = PerformanceIndex.Badge(opi, gx + Ds.Px(0.01f), yy + 0.012f, 0.026f, ra);
-                            Ds.T(names[i].ToUpperInvariant(), gx + Ds.Px(0.02f) + bw2, yy + 0.004f, 0.32f, Ds.A(Ds.Text, ra), Ds.Display);
-                            Ds.T(Ds.Fit(cars[i].Name.ToUpperInvariant(), 0.24f, gw - bw2 - Ds.Px(0.04f), Ds.Display), gx + Ds.Px(0.02f) + bw2, yy + 0.028f, 0.24f, Ds.A(Ds.Muted, ra), Ds.Display);
+                            float bw2 = PerformanceIndex.Badge(opi, gx + Ds.Px(Th.Px(56f)), yy + Th.Px(16f), 0.026f, ra);
+                            float tx2 = gx + Ds.Px(Th.Px(68f)) + bw2;
+                            Ds.TM(names[i].ToUpperInvariant(), tx2, yy + Th.Px(18f), 0.32f, Ds.A(Th.Text, ra), Ds.Display);
+                            Ds.TM(Ds.Fit(cars[i].Name.ToUpperInvariant(), 0.24f, gw - bw2 - Ds.Px(Th.Px(100f)), Ds.Display), tx2, yy + Th.Px(40f), 0.24f, Ds.A(Th.Sub, ra), Ds.Display);
                         }
                     }
-                    Buttons.Draw(Control.FrontendAccept, "Start", Control.FrontendCancel, "Back", Control.FrontendRight, r.HasOpponents ? "Side bet" : "", Control.FrontendX, Career.Crew.Hired && r.HasOpponents ? "Crew" : "");
+                    var pp = new List<object> { Control.FrontendAccept, "Start", Control.FrontendCancel, "Back" };
+                    if (r.HasOpponents) { pp.Add(Control.FrontendLeft); pp.Add(""); pp.Add(Control.FrontendRight); pp.Add("Side bet"); }
+                    if (Career.Crew.Hired && r.HasOpponents) { pp.Add(Control.FrontendX); pp.Add("Crew"); }
+                    Buttons.Draw(pp.ToArray());
                     if (Game.GameTime - start > 350)
                     {
                         if (r.HasOpponents)

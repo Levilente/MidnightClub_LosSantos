@@ -193,7 +193,7 @@ namespace MidnightClub.Racing
             if (nearby == null || stack.IsOpen) return;
             var car = vehicles.Current;
             if (car == null || !car.Exists() || car.Speed > 3f) return;
-            Screen.ShowHelpTextThisFrame("~INPUT_CONTEXT~ " + nearby.Name);
+            UI.Kit.Interact(Control.Context, nearby.Name, "Race");
             if (UI.Input.JustPressed(Control.Context)) stack.Open(RaceMenu(nearby, null));
         }
 

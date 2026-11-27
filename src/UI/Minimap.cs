@@ -37,8 +37,6 @@ namespace MidnightClub.UI
                 if (Function.Call<bool>(Hash.IS_RADAR_HIDDEN)) return;
                 float x, y, w, h; Rect(out x, out y, out w, out h);
                 // thin frame
-                var line = Color.FromArgb(70, 255, 255, 255);
-                Ds.Rect(x, y - 0.0015f, w, 0.0015f, line);
                 // road name + heading
                 var ped = Game.Player.Character;
                 if (Game.GameTime - streetAt > 500)
@@ -52,10 +50,15 @@ namespace MidnightClub.UI
                 float hd = ped.IsInVehicle() ? ped.CurrentVehicle.Heading : ped.Heading;
                 string[] dirs = { "N", "NW", "W", "SW", "S", "SE", "E", "NE" };
                 string dir = dirs[(int)Math.Round(((hd % 360f) + 360f) % 360f / 45f) % 8];
-                float ty = y - 0.022f;
-                float dw = Ds.Width(dir, 0.42f, Ds.Display);
-                Ds.TM(dir, x, ty, 0.42f, Color.FromArgb(255, 255, 92, 102), Ds.Display);
-                if (!string.IsNullOrEmpty(street)) Ds.TM(Ds.Fit(street.ToUpperInvariant(), 0.34f, w - dw - Ds.Px(0.012f), Ds.Display), x + dw + Ds.Px(0.008f), ty, 0.34f, Color.FromArgb(235, 255, 255, 255), Ds.Display);
+                float ph = Th.Px(34f), ty = y - ph - Th.Px(8f);
+                float dw = Ds.Width(dir, 0.34f, Ds.Display);
+                string st = string.IsNullOrEmpty(street) ? "" : Ds.Fit(street.ToUpperInvariant(), 0.28f, w - dw - Ds.Px(Th.Px(60f)), Ds.Display);
+                float pw = Ds.Px(Th.Px(12f)) + Ds.Px(Th.Px(30f)) + Ds.Px(Th.Px(10f)) + Ds.Width(st, 0.28f, Ds.Display) + Ds.Px(Th.Px(16f));
+                Kit.Glass(x, ty, Math.Min(w, pw), ph, ph * 1080f / 2f, 0.92f);
+                float bcx = x + Ds.Px(Th.Px(6f)) + Ds.Px(Th.Px(15f)), cy = ty + ph / 2f;
+                Kit.Pill(bcx - Ds.Px(Th.Px(15f)), cy - Th.Px(13f), Ds.Px(Th.Px(30f)), Th.Px(26f), Th.Accent);
+                Ds.TM(dir, bcx, cy, 0.3f, Color.White, Ds.Display, GTA.UI.Alignment.Center);
+                if (st.Length > 0) Ds.TM(st, bcx + Ds.Px(Th.Px(25f)), cy, 0.28f, Th.Text, Ds.Display);
             }
             catch { }
         }

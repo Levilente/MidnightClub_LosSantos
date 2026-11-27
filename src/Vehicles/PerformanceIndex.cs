@@ -40,15 +40,15 @@ namespace MidnightClub.Vehicles
         public static string Label(int pi) { return ClassOf(pi) + " " + pi; }
 
         /// <summary>Draws a class badge (letter block + PI) at x,y; returns its width.</summary>
+        /// <summary>FH-style class badge: rounded capsule, class letter on the class colour, PI on glass.</summary>
         public static float Badge(int pi, float x, float y, float h, float alpha = 1f)
         {
             int c = ClassIndex(pi); var col = ClassColors[c];
-            float lw = Ds.Px(h * 1.05f), nw = Ds.Px(h * 1.9f);
-            Ds.Rect(x, y, lw, h, Ds.A(col, alpha));
-            Ds.T(Classes[c], x + lw / 2f, y - h * 0.08f, h * 13f, Ds.A(Ds.Bg, alpha), Ds.Display, GTA.UI.Alignment.Center);
-            Ds.Rect(x + lw, y, nw, h, Ds.A(Ds.Bg, 0.9f * alpha));
-            Ds.Rect(x + lw, y, nw, Ds.Px(0.0015f) * 0 + 0.002f, Ds.A(col, alpha));
-            Ds.T(pi.ToString(), x + lw + nw / 2f, y - h * 0.08f, h * 13f, Ds.A(Ds.Text, alpha), Ds.Display, GTA.UI.Alignment.Center);
+            float lw = Ds.Px(h * 1.2f), nw = Ds.Px(h * 2.0f), r = h * 1080f * 0.3f, cy = y + h / 2f;
+            MidnightClub.UI.Kit.Round(x, y, lw + nw, h, r, Ds.A(MidnightClub.UI.Th.GlassStrong, alpha));
+            MidnightClub.UI.Kit.Round(x, y, lw, h, r, Ds.A(col, alpha));
+            Ds.TM(Classes[c], x + lw / 2f, cy, h * 13f, Ds.A(MidnightClub.UI.Th.On(col), alpha), Ds.Display, GTA.UI.Alignment.Center);
+            Ds.TM(pi.ToString(), x + lw + nw / 2f, cy, h * 13f, Ds.A(MidnightClub.UI.Th.Text, alpha), Ds.Display, GTA.UI.Alignment.Center);
             return lw + nw;
         }
     }

@@ -37,35 +37,38 @@ namespace MidnightClub.UI
             Hud.HideComponentThisFrame(HudComponent.AreaName);
             Hud.HideComponentThisFrame(HudComponent.StreetName);
 
-            // top right: level ring, rolling cash, REP + tier (no wordmark)
-            float rx = hx, cy = hy + 0.03f;
+            // top right: glass capsule with level ring, rolling cash, REP + tier (no wordmark)
             var pr = Career.Progression.Instance;
-            float ringD = 0.058f, ringX = rx - Ds.Px(ringD / 2f);
-            if (pr != null)
-            {
-                xpShown = Ds.Damp(xpShown, pr.LevelProgress, 5f);
-                Textures.Draw("ring_100", ringX, cy, ringD, Color.FromArgb(55, 255, 255, 255));
-                VectorIcons.Ring(ringX, cy, ringD, 0.006f, Ds.Clamp01(xpShown), Coral);
-                Ds.TM(pr.Level.ToString(), ringX, cy - 0.003f, 0.62f, Color.White, Ds.Display, Alignment.Center);
-                Ds.TM("LEVEL", ringX, cy + 0.017f, 0.16f, Color.FromArgb(200, 255, 255, 255), Ds.Display, Alignment.Center);
-            }
-            float tx = rx - Ds.Px(ringD) - Ds.Px(0.012f);
             if (cashShown < 0) cashShown = d.Cash;
             cashShown = Math.Abs(d.Cash - cashShown) < 1f ? d.Cash : Ds.Damp(cashShown, d.Cash, 6f);
-            Ds.TM("$" + ((long)Math.Round(cashShown)).ToString("N0"), tx, cy - 0.009f, 0.58f, Color.White, Ds.Display, Alignment.Right);
-            string tier = Career.CareerManager.Instance != null ? Career.CareerManager.Instance.TierName.ToUpperInvariant() : "";
-            float tw = Ds.Width(tier, 0.24f, Ds.Display);
-            Ds.TM(tier, tx, cy + 0.02f, 0.24f, Color.FromArgb(190, 255, 255, 255), Ds.Display, Alignment.Right);
-            Ds.TM(d.Rep.ToString("N0") + " REP  ·", tx - tw - Ds.Px(0.006f), cy + 0.02f, 0.24f, Coral, Ds.Display, Alignment.Right);
+            string cash = "$" + ((long)Math.Round(cashShown)).ToString("N0");
+            string sub = d.Rep.ToString("N0") + " REP  ·  " + (Career.CareerManager.Instance != null ? Career.CareerManager.Instance.TierName.ToUpperInvariant() : "");
+            float ch = Th.Px(56f), ringD = Th.Px(42f);
+            float tcw = Math.Max(Ds.Width(cash, 0.54f, Ds.Display), Ds.Width(sub, 0.22f, Ds.Display));
+            float cw = Ds.Px(Th.Px(14f)) + Ds.Px(ringD) + Ds.Px(Th.Px(12f)) + tcw + Ds.Px(Th.Px(22f));
+            float rx = hx, cx0 = rx - cw, cy0 = hy, cy = cy0 + ch / 2f;
+            bool racing = Racing.RaceManager.IsRacing;   // the race card owns the top right during races
+            if (!racing) Kit.Glass(cx0, cy0, cw, ch, ch * 1080f / 2f, 0.92f);
+            float rcx = cx0 + Ds.Px(Th.Px(12f)) + Ds.Px(ringD / 2f);
+            if (pr != null && !racing)
+            {
+                xpShown = Ds.Damp(xpShown, pr.LevelProgress, 5f);
+                Textures.Draw("ring_100", rcx, cy, ringD, Th.Track);
+                VectorIcons.Ring(rcx, cy, ringD, 0.006f, Ds.Clamp01(xpShown), Coral);
+                Ds.TM(pr.Level.ToString(), rcx, cy, 0.44f, Th.Text, Ds.Display, Alignment.Center);
+            }
+            float tx = rcx + Ds.Px(ringD / 2f) + Ds.Px(Th.Px(12f));
+            if (!racing) { Ds.TM(cash, tx, cy - Th.Px(8f), 0.54f, Th.Text, Ds.Display); Ds.TM(sub, tx, cy + Th.Px(14f), 0.22f, Th.Sub, Ds.Display); }
             float xa = (Game.GameTime - xpAt) / 1000f;
-            if (xpText != null && xa < 2.2f) Ds.TM(xpText, tx, cy + 0.05f - Ds.EaseOut(Math.Min(1f, xa / 0.3f)) * 0.006f, 0.3f, Ds.A(Coral, xa > 1.6f ? (2.2f - xa) / 0.6f : 1f), Ds.Display, Alignment.Right);
+            if (xpText != null && xa < 2.2f) Kit.Chip(xpText, rx - Ds.Width(xpText, 0.26f, Ds.Display) - Ds.Px(Th.Px(16f)), cy0 + ch + Th.Px(20f) - Ds.EaseOut(Math.Min(1f, xa / 0.3f)) * Th.Px(6f), Ds.A(Coral, xa > 1.6f ? (2.2f - xa) / 0.6f : 1f), Ds.A(Color.White, xa > 1.6f ? (2.2f - xa) / 0.6f : 1f), 0.26f);
+            tx = rx;
             Minimap.Draw();
             float age = (Game.GameTime - deltaAt) / 1000f;
             if (deltaText != null && age < 3.2f)
             {
                 float a = age < 0.2f ? age / 0.2f : age > 2.6f ? (3.2f - age) / 0.6f : 1f;
                 float rise = Ds.EaseOut(Math.Min(1f, age / 0.35f)) * 0.012f;
-                Ds.T(deltaText, tx, hy + 0.1f - rise, 0.34f, Ds.A(deltaColor, a), Ds.Display, Alignment.Right);
+                Ds.T(deltaText, rx, hy + Th.Px(110f) - rise, 0.4f, Ds.A(deltaColor, a), Ds.Display, Alignment.Right);
             }
             var v = vehicles.Current;
             if (v != null && v.Exists() && Game.Player.Character.IsInVehicle(v)) Speedo(v, vehicles.CurrentRecord);

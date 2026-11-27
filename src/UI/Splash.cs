@@ -52,14 +52,17 @@ namespace MidnightClub.UI
             {
                 float t = (Game.GameTime - start) / (float)ms, e = Ds.EaseOut(Math.Min(1f, (Game.GameTime - start) / 600f));
                 Ds.Rect(0f, 0f, 1f, 1f, Ds.Bg);
-                Ds.VGrad(0f, 0.25f, 1f, 0.5f, Ds.A(Ds.Bg, 0f), Ds.A(Color.FromArgb(255, 40, 14, 78), 0.9f), 20);
-                Ds.VGrad(0f, 0.5f, 1f, 0.25f, Ds.A(Color.FromArgb(255, 40, 14, 78), 0.9f), Ds.A(Ds.Bg, 0f), 20);
+                var glow = Th.Light ? Color.FromArgb(255, 255, 214, 222) : Color.FromArgb(255, 70, 14, 30);
+                Ds.VGrad(0f, 0.25f, 1f, 0.25f, Ds.A(Ds.Bg, 0f), Ds.A(glow, 0.9f), 12);
+                Ds.VGrad(0f, 0.5f, 1f, 0.25f, Ds.A(glow, 0.9f), Ds.A(Ds.Bg, 0f), 12);
                 Ds.Logo(0.5f, 0.38f - (1f - e) * 0.02f, 2.2f, e, Alignment.Center, true);
-                Ds.T(tip, 0.5f, 0.64f, 0.32f, Ds.A(Ds.Muted, e), Ds.Body, Alignment.Center, 0.5f);
+                float tw2 = Math.Min(0.5f, Ds.Width(tip, 0.32f)) + Ds.Px(Th.Px(60f)), th2 = Th.Px(64f);
+                Kit.Glass(0.5f - tw2 / 2f, 0.62f, tw2, th2, Th.R_Lg, e);
+                Textures.Draw("li_sparkles", 0.5f - tw2 / 2f + Ds.Px(Th.Px(28f)), 0.62f + th2 / 2f, Th.Px(22f), Ds.A(Th.Accent, e));
+                Ds.TM(Ds.Fit(tip, 0.32f, 0.5f), 0.5f + Ds.Px(Th.Px(12f)), 0.62f + th2 / 2f, 0.32f, Ds.A(Th.Text, e), Ds.Body, Alignment.Center);
                 float bw = 0.22f;
                 Ds.Streaks(0f, 0.3f, 1f, 0.4f, Ds.Violet, 0.6f * e, 22, 0.7f);
-                Ds.Skew(0.5f - bw / 2, 0.88f, bw, 0.005f, Ds.Px(0.0015f), Ds.Stroke);
-                Ds.Skew(0.5f - bw / 2, 0.88f, bw * Ds.EaseInOut(t), 0.005f, Ds.Px(0.0015f), Ds.Violet);
+                Kit.Bar(0.5f - bw / 2, 0.88f, bw, Th.Px(6f), Ds.EaseInOut(t), Th.Accent);
                 Ds.T("LOADING", 0.5f, 0.892f, 0.24f, Ds.Faint, Ds.Body, Alignment.Center);
                 Script.Wait(0);
             }

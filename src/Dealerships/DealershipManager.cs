@@ -224,8 +224,8 @@ namespace MidnightClub.Dealerships
             if (Workshops.WorkshopManager.Instance != null && Workshops.WorkshopManager.Instance.IsBusy) return;
             var car = vehicles.Current;
             if (car != null && car.Exists() && ped.IsInVehicle(car) && car.Speed > 2.5f) return;
-            if (nearCar >= 0) Screen.ShowHelpTextThisFrame("~INPUT_CONTEXT~ Look at this car  ·  " + nearby.Name);
-            else Screen.ShowHelpTextThisFrame("~INPUT_CONTEXT~ Browse " + nearby.Name + "'s offer");
+            if (nearCar >= 0) UI.Kit.Interact(Control.Context, "Look at this car", nearby.Name);
+            else UI.Kit.Interact(Control.Context, "Browse the offer", nearby.Name);
             if (UI.Input.JustPressed(Control.Context)) OpenShowroom(nearby, Math.Max(0, nearCar));
         }
 

@@ -1,4 +1,11 @@
 # Changelog
+## 0.36.0 (2026-11-27): new design system (glass, light / dark)
+- **Design system** (docs\DESIGN.md, made with the ui-ux-pro-max skill): frosted glass surfaces with hairline borders and highlights, rounded corners everywhere (anti-aliased corner textures), one shape language, five category colours, **light and dark theme** (Settings > Display > Theme: Auto follows the in-game clock).
+- **Button prompts** redrawn: real keycaps (keyboard) or coloured A / B / X / Y, bumpers, triggers and d-pad (controller), switching with the last input device, on a glass capsule. Context prompts ("Enter garage", "Browse the offer"...) use the same style instead of GTA's help box.
+- **Hub**: segmented tab bar with Q / E keycaps and a colour per tab, glass tiles with colour icon badges and a focus ring, profile capsule (level ring, cash, REP), info and objective cards. Sub-screens: list card with toggles / sliders and a detail card.
+- **Every other screen** in the same style: side menus (garages, showrooms...), garage / showroom car card, workshop (icon tab bar, list, purchase card, stat strip with rounded bars), race lobby, race HUD (race card, progress track, standings tower, ghost split), welcome screen, loading screen, toasts, banners (replace GTA's shards), objective capsule, minimap road-name capsule, world labels, PI class badges, camera label.
+- The speedometer stays pixel-exact to the reference.
+
 ## 0.35.0 (2026-11-27): polish pass
 - **Input**: one key press = one step everywhere (Q / E no longer skip two tabs); menus react instantly and repeat while a direction is held; timing uses the real clock, so the slowed-down world behind menus no longer makes them sluggish.
 - **No more ghost numbers**: speedometer digits and other textures are drawn from per-use sprite slots and cleared the frame they stop being used. Digit textures carry padding, so the tops and bottoms are no longer cut off.

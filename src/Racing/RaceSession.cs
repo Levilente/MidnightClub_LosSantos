@@ -342,12 +342,12 @@ namespace MidnightClub.Racing
             if (!splitValid || now - splitShownAt > 2600) return;
             float a = Math.Min(1f, (2600 - (now - splitShownAt)) / 400f);
             bool ahead = splitDelta <= 0;
+            var c = ahead ? UI.Th.Green : UI.Th.Red;
             string s = (ahead ? "-" : "+") + (Math.Abs(splitDelta) / 1000f).ToString("0.00");
-            float w = UI.Ds.Px(0.13f), x = 0.5f - w / 2f, y = 0.2f;
-            UI.Ds.Rect(x, y, w, 0.05f, UI.Ds.A(UI.Ds.Bg, 0.8f * a));
-            UI.Ds.Rect(x, y + 0.046f, w, 0.004f, UI.Ds.A(ahead ? UI.Ds.Lime : UI.Ds.Red, a));
-            UI.Ds.T("GHOST", x + UI.Ds.Px(0.01f), y + 0.006f, 0.22f, UI.Ds.A(UI.Ds.Muted, a), UI.Ds.Display);
-            UI.Ds.T(s, x + w - UI.Ds.Px(0.01f), y + 0.004f, 0.55f, UI.Ds.A(ahead ? UI.Ds.Lime : UI.Ds.Red, a), UI.Ds.Display, Alignment.Right);
+            float h = UI.Th.Px(52f), w = UI.Ds.Width(s, 0.6f, UI.Ds.Display) + UI.Ds.Width("GHOST", 0.24f, UI.Ds.Display) + UI.Ds.Px(UI.Th.Px(60f)), x = 0.5f - w / 2f, y = 0.17f;
+            UI.Kit.Glass(x, y, w, h, h * 1080f / 2f, a, true);
+            UI.Kit.Chip("GHOST", x + UI.Ds.Px(UI.Th.Px(10f)), y + h / 2f, UI.Ds.A(c, 0.2f * a), UI.Ds.A(c, a), 0.24f);
+            UI.Ds.TM(s, x + w - UI.Ds.Px(UI.Th.Px(20f)), y + h / 2f, 0.6f, UI.Ds.A(c, a), UI.Ds.Display, Alignment.Right);
         }
 
         // ------------------------------------------------------------------ gymkhana (Ken Block style)
@@ -746,29 +746,42 @@ namespace MidnightClub.Racing
             int pos = order.IndexOf(Player) + 1;
             int t = Running ? Game.GameTime - StartTime : 0;
             if (Player.Finished) t = Player.FinishTime;
-            float xr = 0.965f, y = 0.05f;
-            // position block
+            var acc = UI.Th.Accent;
+            // race card (top right): event name, position, lap, time, checkpoint
+            float cw = UI.Ds.Px(UI.Th.Px(300f)), xr = 0.97f, x = xr - cw, y = 0.04f;
+            float h = UI.Th.Px(Def.HasOpponents ? 196f : 150f) + (Def.Lapped ? UI.Th.Px(0f) : 0f) + (Def.Scored ? UI.Th.Px(70f) : 0f);
+            UI.Kit.Glass(x, y, cw, h, UI.Th.R_Lg + 2f);
+            float ix = x + UI.Ds.Px(UI.Th.Px(20f)), ir = xr - UI.Ds.Px(UI.Th.Px(20f)), yy = y + UI.Th.Px(26f);
+            UI.Ds.TM(UI.Ds.Fit(Def.Name.ToUpperInvariant(), 0.26f, cw - UI.Ds.Px(UI.Th.Px(40f)), UI.Ds.Display), ix, yy, 0.26f, acc, UI.Ds.Display);
+            yy += UI.Th.Px(18f);
             if (Def.HasOpponents)
             {
-                UI.Ds.T(pos.ToString(), xr - UI.Ds.Px(0.055f), y - 0.01f, 1.5f, UI.Ds.Text, UI.Ds.Display, Alignment.Right);
-                UI.Ds.T(Ord(pos), xr - UI.Ds.Px(0.052f), y + 0.012f, 0.42f, Color.FromArgb(255, 255, 92, 102), UI.Ds.Display);
-                UI.Ds.T("/" + Racers.Count, xr, y + 0.05f, 0.42f, UI.Ds.Muted, UI.Ds.Display, Alignment.Right);
-                y += 0.12f;
+                UI.Ds.T(pos.ToString(), ix, yy - UI.Th.Px(6f), 1.6f, UI.Th.Text, UI.Ds.Display);
+                float pw = UI.Ds.Width(pos.ToString(), 1.6f, UI.Ds.Display);
+                UI.Ds.TM(Ord(pos), ix + pw + UI.Ds.Px(UI.Th.Px(4f)), yy + UI.Th.Px(24f), 0.42f, acc, UI.Ds.Display);
+                UI.Ds.TM("/ " + Racers.Count(r => !r.IsCrew), ix + pw + UI.Ds.Px(UI.Th.Px(4f)), yy + UI.Th.Px(52f), 0.36f, UI.Th.Sub, UI.Ds.Display);
+                if (Def.Lapped) { UI.Ds.TM("LAP", ir, yy + UI.Th.Px(20f), 0.24f, UI.Th.Sub, UI.Ds.Display, Alignment.Right); UI.Ds.TM(Math.Min(Def.Laps, LapOf(Player)) + " / " + Def.Laps, ir, yy + UI.Th.Px(48f), 0.6f, UI.Th.Text, UI.Ds.Display, Alignment.Right); }
+                yy += UI.Th.Px(86f);
             }
-            UI.Ds.T(Def.Name.ToUpperInvariant(), xr, y, 0.26f, Color.FromArgb(220, 255, 255, 255), UI.Ds.Display, Alignment.Right); y += 0.026f;
-            if (Def.Lapped) { UI.Ds.T("LAP  " + Math.Min(Def.Laps, LapOf(Player)) + " / " + Def.Laps, xr, y, 0.44f, UI.Ds.Text, UI.Ds.Display, Alignment.Right); y += 0.036f; }
-            UI.Ds.T(FormatTime(t), xr, y, 0.5f, UI.Ds.Text, UI.Ds.Display, Alignment.Right); y += 0.04f;
-            UI.Ds.T("CHECKPOINT  " + Math.Min(Player.Cp + 1, Cps.Count) + " / " + Cps.Count, xr, y, 0.26f, UI.Ds.Muted, UI.Ds.Display, Alignment.Right); y += 0.03f;
+            else if (Def.Lapped) { UI.Ds.TM("LAP  " + Math.Min(Def.Laps, LapOf(Player)) + " / " + Def.Laps, ir, yy + UI.Th.Px(10f), 0.36f, UI.Th.Text, UI.Ds.Display, Alignment.Right); }
+            UI.Ds.Rect(ix, yy, cw - UI.Ds.Px(UI.Th.Px(40f)), UI.Th.Px(1f), UI.Th.Line);
+            yy += UI.Th.Px(30f);
+            UI.Ds.TM(FormatTime(t), ix, yy, 0.62f, UI.Th.Text, UI.Ds.Display);
+            UI.Kit.Chip("CP " + Math.Min(Player.Cp + 1, Cps.Count) + " / " + Cps.Count, ir - UI.Ds.Width("CP " + Math.Min(Player.Cp + 1, Cps.Count) + " / " + Cps.Count, 0.24f, UI.Ds.Display) - UI.Ds.Px(UI.Th.Px(16f)), yy, UI.Th.Track, UI.Th.Sub, 0.24f);
+            yy += UI.Th.Px(34f);
             if (Def.Scored)
             {
-                UI.Ds.T(((long)DriftScore).ToString("N0"), xr, y, 0.6f, UI.Ds.Amber, UI.Ds.Display, Alignment.Right); y += 0.045f;
-                if (driftChain > 0) UI.Ds.T("+" + ((long)PendingDrift).ToString("N0") + "  x" + DriftCombo.ToString("0.0"), xr, y, 0.36f, UI.Ds.Text, UI.Ds.Display, Alignment.Right);
+                UI.Ds.Rect(ix, yy, cw - UI.Ds.Px(UI.Th.Px(40f)), UI.Th.Px(1f), UI.Th.Line);
+                yy += UI.Th.Px(32f);
+                UI.Ds.TM(((long)DriftScore).ToString("N0"), ix, yy, 0.66f, UI.Th.Amber, UI.Ds.Display);
+                if (driftChain > 0) UI.Kit.Chip("+" + ((long)PendingDrift).ToString("N0") + "  x" + DriftCombo.ToString("0.0"), ir - UI.Ds.Width("+" + ((long)PendingDrift).ToString("N0") + "  x" + DriftCombo.ToString("0.0"), 0.28f, UI.Ds.Display) - UI.Ds.Px(UI.Th.Px(16f)), yy, UI.Th.Amber, UI.Th.On(UI.Th.Amber), 0.28f);
             }
-            // route progress strip (all racers as dots on one line)
+            // route progress (top centre): every racer on one rounded track
             if (Running && Cps.Count > 1 && Def.Kind != RaceType.Drag)
             {
-                float pw = UI.Ds.Px(0.42f), px = 0.5f - pw / 2f, py = 0.018f;
-                UI.Ds.Rect(px, py, pw, 0.004f, UI.Ds.A(UI.Ds.Stroke, 0.9f));
+                float pw = UI.Ds.Px(0.42f), px = 0.5f - pw / 2f, py = 0.03f, ph = UI.Th.Px(34f);
+                UI.Kit.Glass(px - UI.Ds.Px(UI.Th.Px(16f)), py, pw + UI.Ds.Px(UI.Th.Px(32f)), ph, ph * 1080f / 2f);
+                float ty = py + ph / 2f - UI.Th.Px(3f);
                 Func<Racer, float> frac = r =>
                 {
                     if (r.Finished) return 1f;
@@ -776,26 +789,29 @@ namespace MidnightClub.Racing
                     float seg = Math.Max(1f, prev.DistanceTo(Cps[cp])), d = r.Car != null && r.Car.Exists() ? r.Car.Position.DistanceTo(Cps[cp]) : seg;
                     return Math.Max(0f, Math.Min(1f, (cp + Math.Max(0f, 1f - d / seg)) / Cps.Count));
                 };
-                UI.Ds.Rect(px, py, pw * frac(Player), 0.004f, Color.White);
-                foreach (var r in Racers) if (!r.IsPlayer && !r.Out) UI.Ds.Rect(px + pw * frac(r) - UI.Ds.Px(0.003f), py - 0.004f, UI.Ds.Px(0.006f), 0.012f, Color.FromArgb(200, 255, 255, 255));
-                UI.Ds.Rect(px + pw * frac(Player) - UI.Ds.Px(0.005f), py - 0.007f, UI.Ds.Px(0.01f), 0.018f, Color.FromArgb(255, 255, 92, 102));
+                UI.Kit.Bar(px, ty, pw, UI.Th.Px(6f), frac(Player), acc);
+                foreach (var r in Racers) if (!r.IsPlayer && !r.Out) UI.Textures.Draw("disc", px + pw * frac(r), ty + UI.Th.Px(3f), UI.Th.Px(12f), r.IsCrew ? UI.Th.Cyan : UI.Th.Text);
+                UI.Textures.Draw("disc", px + pw * frac(Player), ty + UI.Th.Px(3f), UI.Th.Px(18f), acc);
             }
             // standings tower (left)
             if (Def.HasOpponents && Racers.Count > 1)
             {
-                float x = 0.03f, ty = 0.28f, w = UI.Ds.Px(0.19f), rh = 0.03f;
-                for (int i = 0; i < order.Count && i < 8; i++)
+                float x0 = 0.03f, ty = 0.27f, w = UI.Ds.Px(UI.Th.Px(260f)), rh = UI.Th.Px(36f), pad = UI.Th.Px(8f);
+                int n = Math.Min(8, order.Count);
+                UI.Kit.Glass(x0, ty, w, n * rh + 2 * pad, UI.Th.R_Lg);
+                for (int i = 0; i < n; i++)
                 {
-                    var r = order[i]; bool me = r.IsPlayer;
-                    UI.Ds.Rect(x, ty + i * rh, w, rh - 0.003f, me ? Color.FromArgb(235, 255, 92, 102) : UI.Ds.A(UI.Ds.Bg, 0.6f));
-                    UI.Ds.Rect(x, ty + i * rh, UI.Ds.Px(0.026f), rh - 0.003f, me ? UI.Ds.A(Color.White, 0.18f) : UI.Ds.A(UI.Ds.Surface2, 0.9f));
-                    UI.Ds.T((i + 1).ToString(), x + UI.Ds.Px(0.013f), ty + i * rh + 0.004f, 0.3f, Color.White, UI.Ds.Display, Alignment.Center);
-                    UI.Ds.T(UI.Ds.Fit((me ? "YOU" : r.Name).ToUpperInvariant(), 0.28f, w - UI.Ds.Px(0.09f), UI.Ds.Display), x + UI.Ds.Px(0.034f), ty + i * rh + 0.005f, 0.28f, me ? Color.White : UI.Ds.Text, UI.Ds.Display);
+                    var r = order[i]; bool me = r.IsPlayer; float ry = ty + pad + i * rh, cy = ry + (rh - UI.Th.Px(4f)) / 2f;
+                    float rx = x0 + UI.Ds.Px(pad), rw = w - 2 * UI.Ds.Px(pad);
+                    if (me) UI.Kit.Round(rx, ry, rw, rh - UI.Th.Px(4f), UI.Th.R_Sm + 2f, acc);
+                    var fg = me ? UI.Th.On(acc) : UI.Th.Text;
+                    UI.Ds.TM((i + 1).ToString(), rx + UI.Ds.Px(UI.Th.Px(16f)), cy, 0.32f, me ? fg : UI.Th.Sub, UI.Ds.Display, Alignment.Center);
+                    UI.Ds.TM(UI.Ds.Fit((me ? "YOU" : r.Name).ToUpperInvariant(), 0.3f, rw - UI.Ds.Px(UI.Th.Px(100f)), UI.Ds.Display), rx + UI.Ds.Px(UI.Th.Px(36f)), cy, 0.3f, fg, UI.Ds.Display);
                     string gap = r.Finished ? "FIN" : me ? "" : Gap(r);
-                    if (gap != "") UI.Ds.T(gap, x + w - UI.Ds.Px(0.008f), ty + i * rh + 0.005f, 0.26f, me ? Color.White : UI.Ds.Muted, UI.Ds.Display, Alignment.Right);
+                    if (gap != "") UI.Ds.TM(gap, rx + rw - UI.Ds.Px(UI.Th.Px(10f)), cy, 0.28f, me ? fg : UI.Th.Sub, UI.Ds.Display, Alignment.Right);
                 }
             }
-            if (quitHeld > 0) Screen.ShowHelpTextThisFrame("Keep holding ~INPUT_FRONTEND_CANCEL~ to quit the race.");
+            if (quitHeld > 0) UI.Kit.Interact(Control.FrontendCancel, "Keep holding to quit the race");
         }
 
         private float seg = -1f;

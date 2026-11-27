@@ -21,6 +21,7 @@ namespace MidnightClub.UI
             try
             {
                 dir = Path.Combine(baseDir, "ui"); Directory.CreateDirectory(dir);
+                try { var cd = Path.Combine(dir, "copies"); if (Directory.Exists(cd)) Directory.Delete(cd, true); } catch { }
                 var asm = Assembly.GetExecutingAssembly();
                 foreach (var res in asm.GetManifestResourceNames())
                 {
@@ -69,7 +70,19 @@ namespace MidnightClub.UI
             string key = name + (centred ? "@c" : "@b");
             int n; useCount.TryGetValue(key, out n); useCount[key] = n + 1;
             List<Slot> list; if (!slots.TryGetValue(key, out list)) slots[key] = list = new List<Slot>();
-            while (list.Count <= n) list.Add(new Slot { Sp = new CustomSprite(Path.Combine(dir, name + ".png"), new SizeF(64, 64), PointF.Empty, Color.White, 0f, centred) });
+            while (list.Count <= n)
+            {
+                // Script Hook V allows 64 on-screen instances per texture: every 60 uses get their own copy of the file
+                int copy = list.Count / 60;
+                string file = Path.Combine(dir, name + ".png");
+                if (copy > 0)
+                {
+                    string cf = Path.Combine(dir, "copies", name + "__" + copy + ".png");
+                    if (!File.Exists(cf)) { Directory.CreateDirectory(Path.Combine(dir, "copies")); File.Copy(file, cf, true); }
+                    file = cf;
+                }
+                list.Add(new Slot { Sp = new CustomSprite(file, new SizeF(64, 64), PointF.Empty, Color.White, 0f, centred) });
+            }
             var s = list[n]; s.Frame = frame; s.Live = true; return s.Sp;
         }
 

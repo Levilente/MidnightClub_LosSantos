@@ -225,7 +225,7 @@ namespace MidnightClub.Garages
             if (note != null && Game.GameTime < noteUntil)
             {
                 Theme.Card(0.36f, 0.14f, 0.28f, 0.05f);
-                Theme.Text(note, 0.5f, 0.152f, 0.3f, Color.White, Font.ChaletLondon, Alignment.Center, 0.26f);
+                Ds.TM(note, 0.5f, 0.165f, 0.3f, Th.Text, Ds.Body, Alignment.Center);
             }
             if (!menus.IsOpen)
             {

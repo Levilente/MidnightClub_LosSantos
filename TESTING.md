@@ -2,6 +2,13 @@
 
 Tick items off or note what happened. Logs: `scripts\MidnightClub\MidnightClub.log` and `ScriptHookVDotNet.log`; Claude can read them from the game folder.
 
+## 0.36.0
+- Settings > Display > Theme: Auto / Dark / Light switches every screen live; text readable in both.
+- Rounded corners: no seams or double-dark edges between corner pieces and panel bodies (1080p and 1440p).
+- Prompts bottom right show keycaps on keyboard and pad buttons after touching the controller.
+- Context prompts (garage, dealership, race start, car meet) appear as a capsule low in the centre.
+- Race: race card top right (no profile capsule during races), progress track top centre, standings left.
+
 ## 0.35.0
 - Hub: Q / E moves exactly one tab; holding a direction scrolls; no shard / toast over the hub.
 - Speedometer at changing speed / revs: no doubled digits, digit tops and bottoms complete.

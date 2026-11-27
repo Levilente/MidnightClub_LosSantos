@@ -93,14 +93,17 @@ namespace MidnightClub.Gameplay
             if (g != null && !RaceManager.IsRacing && !stackOpen() && !Function.Call<bool>(Hash.IS_HELP_MESSAGE_BEING_DISPLAYED) && !Police.PursuitManager.AnyActive)
             {
                 // Top-centre pill: clear of help text (top-left), the feed (bottom-left) and the button bar (bottom-right).
-                // FH-style objective pill: coral accent bar, small label, the goal, all centred on one line
-                float h = 0.04f, cy = 0.016f + h / 2f;
-                float lw = UI.Ds.Width("OBJECTIVE", 0.24f, UI.Ds.Display), tw = UI.Ds.Width(g.Text, 0.3f);
-                float w = UI.Ds.Px(0.012f) + lw + UI.Ds.Px(0.016f) + tw + UI.Ds.Px(0.02f), x = 0.5f - w / 2;
-                UI.Ds.Rect(x, 0.016f, w, h, System.Drawing.Color.FromArgb(215, 14, 12, 20));
-                UI.Ds.Rect(x, 0.016f, UI.Ds.Px(0.004f), h, System.Drawing.Color.FromArgb(255, 255, 92, 102));
-                UI.Ds.TM("OBJECTIVE", x + UI.Ds.Px(0.014f), cy, 0.24f, System.Drawing.Color.FromArgb(255, 255, 92, 102), UI.Ds.Display);
-                UI.Ds.TM(g.Text, x + UI.Ds.Px(0.014f) + lw + UI.Ds.Px(0.016f), cy, 0.3f, UI.Ds.Text);
+                // objective capsule: glass pill, accent icon badge, label chip, the goal
+                float h = UI.Th.Px(50f), y0 = UI.Th.Px(18f), cy = y0 + h / 2f;
+                float tw = UI.Ds.Width(g.Text, 0.3f), lw = UI.Ds.Width("OBJECTIVE", 0.22f, UI.Ds.Display) + UI.Ds.Px(UI.Th.Px(16f));
+                float w = UI.Ds.Px(UI.Th.Px(52f)) + lw + UI.Ds.Px(UI.Th.Px(12f)) + tw + UI.Ds.Px(UI.Th.Px(22f)), x = 0.5f - w / 2;
+                UI.Kit.Glass(x, y0, w, h, h * 1080f / 2f, 1f, true);
+                float bs = UI.Th.Px(34f), bcx = x + UI.Ds.Px(UI.Th.Px(8f)) + UI.Ds.Px(bs / 2f);
+                UI.Kit.Round(bcx - UI.Ds.Px(bs / 2f), cy - bs / 2f, UI.Ds.Px(bs), bs, 17f, UI.Th.Accent);
+                UI.Textures.Draw("li_target", bcx, cy, bs * 0.6f, System.Drawing.Color.White);
+                float cxp = x + UI.Ds.Px(UI.Th.Px(52f));
+                UI.Kit.Chip("OBJECTIVE", cxp, cy, UI.Ds.A(UI.Th.Accent, 0.18f), UI.Th.Accent, 0.22f);
+                UI.Ds.TM(g.Text, cxp + lw + UI.Ds.Px(UI.Th.Px(12f)), cy, 0.3f, UI.Th.Text);
             }
             if (Game.GameTime < nextMilestoneCheck) return;
             nextMilestoneCheck = Game.GameTime + 5000;

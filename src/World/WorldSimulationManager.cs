@@ -222,7 +222,7 @@ namespace MidnightClub.WorldSim
         {
             if (activeMeet == null || Busy) return;
             if (car.Position.DistanceTo(activeMeet.Pos) > 22f || car.Speed > 2f) return;
-            Screen.ShowHelpTextThisFrame("~INPUT_CONTEXT~ Car meet: " + activeMeet.Name);
+            UI.Kit.Interact(Control.Context, activeMeet.Name, "Car meet");
             if (UI.Input.JustPressed(Control.Context)) stack.Open(MeetMenu(activeMeet));
         }
 
@@ -307,7 +307,7 @@ namespace MidnightClub.WorldSim
             if (challenger == null) return;
             if (!challenger.Exists()) { challenger = null; return; }
             if (Game.GameTime > challengeUntil || car.Speed > 6f || Busy) { DismissChallenger(); return; }
-            Screen.ShowHelpTextThisFrame("A racer revs next to you. ~INPUT_CONTEXT~ Accept street race");
+            UI.Kit.Interact(Control.Context, "Accept street race", "A racer revs next to you");
             if (UI.Input.JustPressed(Control.Context))
             {
                 var info = registry.Get(challenger.Model.Hash);

@@ -13,21 +13,21 @@ namespace MidnightClub.UI
     public static class Ds
     {
         // palette (night city, violet + electric cyan, with app accents)
-        public static readonly Color Bg = Color.FromArgb(255, 9, 8, 14);
-        public static readonly Color Surface = Color.FromArgb(255, 19, 17, 28);
-        public static readonly Color Surface2 = Color.FromArgb(255, 29, 26, 42);
-        public static readonly Color Stroke = Color.FromArgb(255, 46, 42, 64);
-        public static readonly Color Violet = Color.FromArgb(255, 255, 84, 112);      // the one accent (hot coral), matches the speedometer
+        public static Color Bg { get { return Th.Light ? Color.FromArgb(255, 236, 238, 243) : Color.FromArgb(255, 9, 10, 14); } }
+        public static Color Surface { get { return Th.Glass; } }
+        public static Color Surface2 { get { return Th.Raised; } }
+        public static Color Stroke { get { return Th.Track; } }
+        public static Color Violet { get { return Th.Accent; } }
         public static readonly Color VioletDeep = Color.FromArgb(255, 150, 30, 52);
-        public static readonly Color Cyan = Color.FromArgb(255, 34, 211, 238);
+        public static Color Cyan { get { return Th.Cyan; } }
         public static readonly Color Pink = Color.FromArgb(255, 244, 114, 182);
-        public static readonly Color Lime = Color.FromArgb(255, 163, 230, 53);
-        public static readonly Color Amber = Color.FromArgb(255, 251, 191, 36);
-        public static readonly Color Red = Color.FromArgb(255, 248, 72, 94);
+        public static Color Lime { get { return Th.Green; } }
+        public static Color Amber { get { return Th.Amber; } }
+        public static Color Red { get { return Th.Red; } }
         public static readonly Color Blue = Color.FromArgb(255, 96, 165, 250);
-        public static readonly Color Text = Color.FromArgb(255, 244, 242, 250);
-        public static readonly Color Muted = Color.FromArgb(255, 150, 145, 172);
-        public static readonly Color Faint = Color.FromArgb(255, 92, 88, 112);
+        public static Color Text { get { return Th.Text; } }
+        public static Color Muted { get { return Th.Sub; } }
+        public static Color Faint { get { return Th.Faint; } }
 
         public const Font Display = Font.ChaletComprimeCologne;
         public const Font Body = Font.ChaletLondon;
@@ -114,9 +114,10 @@ namespace MidnightClub.UI
         public static void Skew(float x, float y, float w, float h, float slant, Color c)
         {
             if (c.A == 0 || w <= 0 || h <= 0) return;
-            Rect(x + slant * 0.5f, y, w, h, c);
+            // the design language is rounded now: every former slanted shape becomes a soft-cornered one
+            Kit.Round(x + slant * 0.5f, y, w, h, Math.Min(h * 1080f / 2f, Th.R_Md), c);
         }
-        public static void Dot(float cx, float cy, float d, Color c) { Skew(cx - Px(d) / 2f, cy - d / 2f, Px(d) * 0.8f, d, Px(d * 0.3f), c); }
+        public static void Dot(float cx, float cy, float d, Color c) { Textures.Draw("disc", cx, cy, d, c); }
 
         /// <summary>Slant that matches a 14 degree lean for a given height.</summary>
         public static float SlantFor(float h) { return Px(h * 0.25f); }
@@ -124,6 +125,7 @@ namespace MidnightClub.UI
         /// <summary>A light band sweeping across a skewed bar every 'period' seconds.</summary>
         public static void Shine(float x, float y, float w, float h, float slant, float period, float alpha)
         {
+            return;   // no sweeping shine: calmer, glassier look
             float t = (Game.GameTime % (int)(period * 1000)) / 1000f / 0.55f;
             if (t > 1f) return;
             float bw = Px(0.03f), bx = x + (w - bw) * EaseInOut(t);
@@ -133,10 +135,8 @@ namespace MidnightClub.UI
         /// <summary>Small skewed tag with text (used for kickers, chips and badges). Returns its width.</summary>
         public static float Tag(string s, float x, float y, Color bg, Color fg, float scale = 0.24f, float alpha = 1f)
         {
-            float h = Eff(scale) * 0.085f + 0.006f, sl = SlantFor(h), w = Width(s, scale, Display) + Px(0.016f);
-            Skew(x, y, w, h, sl, A(bg, alpha));
-            TM(s, x + sl / 2 + w / 2, y + h / 2f, scale, A(fg, alpha), Display, Alignment.Center);
-            return w + sl;
+            float h = Eff(scale) * 0.075f + Th.Px(8f);
+            return Kit.Chip(s, x, y + h / 2f, A(bg, alpha), A(Th.On(bg), alpha), scale);
         }
 
         /// <summary>Racing stripes: a thick and a thin skewed line.</summary>

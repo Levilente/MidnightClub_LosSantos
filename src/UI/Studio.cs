@@ -62,62 +62,70 @@ namespace MidnightClub.UI
         /// <summary>Vertical darkening strip (bottom or top of the screen), drawn as stacked rects for a smooth fade.</summary>
         public static void Fade(bool bottom, float height, int maxAlpha)
         {
-            const int steps = 24;
+            const int steps = 10;
+            var bg = Ds.Bg;
             for (int i = 0; i < steps; i++)
             {
-                float t = (i + 0.5f) / steps;                     // 0 at the edge of the screen
-                int a = (int)(maxAlpha * Math.Pow(1f - t, 1.6));
+                float t = (i + 0.5f) / steps;
+                int a = (int)(maxAlpha * 0.8f * Math.Pow(1f - t, 1.6));
                 float h = height / steps, y = bottom ? 1f - (i + 1) * h : i * h;
-                Ds.Rect(0f, y, 1f, h, Color.FromArgb(a, 4, 3, 10));
+                Ds.Rect(0f, y, 1f, h, Color.FromArgb(a, bg.R, bg.G, bg.B));
             }
         }
 
-        /// <summary>Compact horizontal stat: label above, thin bar below.</summary>
+        /// <summary>Compact stat: label, value, rounded bar.</summary>
         public static void MiniStat(string label, float v, float x, float y, float w)
         {
             v = v < 0.03f ? 0.03f : v > 1f ? 1f : v;
-            Theme.Text(label, x, y, 0.24f, Theme.TextDim);
-            Theme.Text(((int)Math.Round(v * 10f * 10f) / 10f).ToString("0.0"), x + w, y - 0.004f, 0.3f, Color.White, GTA.UI.Font.ChaletComprimeCologne, GTA.UI.Alignment.Right);
-            Ds.Skew(x, y + 0.028f, w, 0.006f, Ds.Px(0.0016f), Color.FromArgb(70, 255, 255, 255));
-            Ds.Skew(x, y + 0.028f, w * v, 0.006f, Ds.Px(0.0016f), Ds.Violet);
+            Ds.TM(label, x, y + Th.Px(10f), 0.24f, Th.Sub, Ds.Display);
+            Ds.TM((Math.Round(v * 100f) / 10f).ToString("0.0"), x + w, y + Th.Px(10f), 0.3f, Th.Text, Ds.Display, GTA.UI.Alignment.Right);
+            Kit.Bar(x, y + Th.Px(26f), w, Th.Px(6f), v, Th.Accent);
         }
 
-        /// <summary>NFS-style bottom block: kicker, big car name, subtitle, four stats, details on the right.</summary>
+        /// <summary>Bottom car card (garage / showroom): chip + counter, big car name, subtitle, four stats, details right.</summary>
         public static void CarStrip(string kicker, string name, string sub, float[] stats, string[] rightLines, string counter)
         {
-            Fade(true, 0.34f, 235);
-            float x = 0.05f, y = 0.735f;
-            float kw = Ds.Tag(kicker, x, y, Ds.Violet, Ds.Text, 0.26f);
-            if (counter != null) Ds.T(counter, x + kw + Ds.Px(0.008f), y - 0.001f, 0.28f, Ds.Muted, Ds.Display);
-            Theme.Text(name, x - 0.002f, y + 0.022f, 1.05f, Color.White, GTA.UI.Font.ChaletComprimeCologne);
-            Ds.Stripes(x, y + 0.1f, 0.09f, Ds.Violet, Ds.Cyan);
-            Theme.Text(sub, x, y + 0.114f, 0.3f, Color.FromArgb(230, 255, 255, 255));
+            float x = 0.045f, w = 0.91f, h = Th.Px(190f), y = 1f - Th.Px(100f) - h;
+            Kit.Glass(x, y, w, h, Th.R_Lg + 4f);
+            float ix = x + Ds.Px(Th.Px(28f));
+            float kw = Kit.Chip(kicker, ix, y + Th.Px(30f), Th.Accent, Th.On(Th.Accent), 0.24f);
+            if (counter != null) Ds.TM(counter, ix + kw + Ds.Px(Th.Px(12f)), y + Th.Px(30f), 0.28f, Th.Sub, Ds.Display);
+            Ds.TM(Ds.Fit(name, 1.0f, w * 0.55f, Ds.Display), ix, y + Th.Px(78f), 1.0f, Th.Text, Ds.Display);
+            Ds.TM(sub, ix, y + Th.Px(116f), 0.28f, Th.Sub, Ds.Display);
             if (stats != null)
             {
                 string[] labels = { "SPEED", "ACCELERATION", "BRAKING", "HANDLING" };
-                float sx = x, sw = 0.105f;
-                for (int i = 0; i < 4 && i < stats.Length; i++) MiniStat(labels[i], stats[i], sx + i * (sw + 0.018f), y + 0.155f, sw);
+                float sw = Ds.Px(Th.Px(170f)), gap = Ds.Px(Th.Px(22f));
+                for (int i = 0; i < 4 && i < stats.Length; i++) MiniStat(labels[i], stats[i], ix + i * (sw + gap), y + Th.Px(136f), sw);
             }
             if (rightLines != null)
             {
-                float ry = y + 0.03f;
+                float rx = x + w - Ds.Px(Th.Px(28f)), ry = y + Th.Px(42f);
                 for (int i = 0; i < rightLines.Length; i++)
                 {
-                    if (string.IsNullOrEmpty(rightLines[i])) { ry += 0.012f; continue; }
+                    if (string.IsNullOrEmpty(rightLines[i])) { ry += Th.Px(10f); continue; }
                     bool big = i == 0;
-                    Theme.Text(rightLines[i], 0.95f, ry, big ? 0.62f : 0.27f, big ? Color.White : Theme.TextDim, big ? GTA.UI.Font.ChaletComprimeCologne : GTA.UI.Font.ChaletLondon, GTA.UI.Alignment.Right);
-                    ry += big ? 0.055f : 0.026f;
+                    Ds.TM(rightLines[i], rx, ry, big ? 0.62f : 0.26f, big ? Th.Text : Th.Sub, big ? Ds.Display : Ds.Body, GTA.UI.Alignment.Right);
+                    ry += big ? Th.Px(44f) : Th.Px(26f);
                 }
             }
         }
 
-        /// <summary>Small top-left title: kicker + title, over a soft top fade.</summary>
+        /// <summary>Screen title (top left) + optional value capsule (top right).</summary>
         public static void Title(string kicker, string title, string right)
         {
-            Fade(false, 0.14f, 150);
-            Ds.TM(kicker, 0.05f, 0.05f, 0.24f, Ds.Violet, Ds.Display);
-            Ds.TM(title, 0.05f, 0.088f, 0.62f, Color.White, Ds.Display);
-            if (right != null) Ds.TM(right, 0.95f, 0.07f, 0.5f, Color.White, Ds.Display, GTA.UI.Alignment.Right);
+            Fade(false, 0.14f, 120);
+            float x = 0.045f, y = 0.045f, h = Th.Px(68f);
+            float tw = Math.Max(Ds.Width(title, 0.62f, Ds.Display), Ds.Width(kicker, 0.24f, Ds.Display)) + Ds.Px(Th.Px(48f));
+            Kit.Glass(x, y, tw, h, Th.R_Lg);
+            Ds.TM(kicker, x + Ds.Px(Th.Px(22f)), y + Th.Px(22f), 0.24f, Th.Accent, Ds.Display);
+            Ds.TM(title, x + Ds.Px(Th.Px(22f)), y + Th.Px(46f), 0.62f, Th.Text, Ds.Display);
+            if (right != null)
+            {
+                float rw = Ds.Width(right, 0.5f, Ds.Display) + Ds.Px(Th.Px(44f)), rh2 = Th.Px(50f);
+                Kit.Glass(0.955f - rw, y + Th.Px(9f), rw, rh2, rh2 * 1080f / 2f);
+                Ds.TM(right, 0.955f - rw / 2f, y + Th.Px(9f) + rh2 / 2f, 0.5f, Th.Text, Ds.Display, GTA.UI.Alignment.Center);
+            }
         }
     }
 }

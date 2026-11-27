@@ -175,6 +175,9 @@ namespace MidnightClub.Phone
             G(num("Car weight feel", "Weight", () => cfg.SimcadeWeight, v => cfg.SimcadeWeight = v, 0f, 1.5f, 0.1f, "Simcade"), "Driving", "mountain-snow");
             G(num("Steering assist", "SteeringAssist", () => cfg.SimcadeSteerAssist, v => cfg.SimcadeSteerAssist = v, 0f, 1.5f, 0.1f, "Simcade"), "Driving", "route");
             G(num("Stability assist", "StabilityAssist", () => cfg.SimcadeStability, v => cfg.SimcadeStability = v, 0f, 1.5f, 0.1f, "Simcade"), "Driving", "shield");
+            string[] themes = { "Auto", "Dark", "Light" };
+            Action<int> setTheme = d => { int i = Math.Max(0, Array.IndexOf(themes, cfg.UiTheme)); i = (i + d + 3) % 3; cfg.UiTheme = themes[i]; Config.Save("HUD", "Theme", cfg.UiTheme); Th.Mode = (UiMode)i; };
+            G(new MenuItem("Theme", () => setTheme(1)) { Value = () => cfg.UiTheme, OnAdjust = setTheme, Description = () => "Auto follows the in-game clock: light glass by day, dark at night." }, "Display", "palette");
             G(flag("HUD", "Show", () => cfg.ShowHud, v => cfg.ShowHud = v, "HUD"), "Display", "monitor");
             G(flag("Speed effects", "SpeedEffects", () => cfg.SpeedEffects, v => cfg.SpeedEffects = v, "HUD"), "Display", "flame");
             G(flag("Welcome screen", "WelcomeScreen", () => cfg.ShowWelcome, v => cfg.ShowWelcome = v, "HUD"), "Display", "sparkles");
@@ -201,7 +204,7 @@ namespace MidnightClub.Phone
             Func<OwnedVehicle> car = () => saves.Data.Vehicles.FirstOrDefault(v => v.Id == saves.Data.CurrentVehicleId);
             Func<OwnedVehicle, string> carName = r => r == null ? "No car" : (string.IsNullOrEmpty(r.Nickname) ? r.Model : r.Nickname).ToUpperInvariant();
             // ---------------- RACES
-            var tRaces = new App { Name = "Races", Icon = "flag", Accent = Ds.Violet };
+            var tRaces = new App { Name = "Races", Icon = "flag", Accent = Th.Red };
             tRaces.Tiles.Add(new Tile { Title = "Race events", Icon = "flag", W = 2, H = 2, Open = () => this.races.RacesMenu(),
                 Desc = "Every event in the city, grouped by discipline: street, drift, off-road, drag and bikes. Pick one to set your GPS.",
                 Head = () => this.races.Races.Count(r => this.races.Available(r)) + " EVENTS OPEN",
@@ -215,7 +218,7 @@ namespace MidnightClub.Phone
             tRaces.Tiles.Add(T("Route creator", "route", "Drive a route, drop checkpoints and race it against the clock or AI.", () => RouteCreator.Instance != null ? RouteCreator.Instance.MyRoutes() : null, () => "Build your own"));
             apps.Add(tRaces);
             // ---------------- GARAGE
-            var garage = new App { Name = "Garage", Icon = "car", Accent = Ds.Violet };
+            var garage = new App { Name = "Garage", Icon = "car", Accent = Th.Cyan };
             garage.Tiles.Add(new Tile { Title = "My vehicles", Icon = "car-front", W = 2, H = 2, Open = () => menu.MyVehicles(),
                 Desc = "Spawn, swap, rename and sell your cars and bikes.", Thumb = () => car() != null ? car().Model : null,
                 Head = () => carName(car()), Meta = () => saves.Data.Vehicles.Count + (saves.Data.Vehicles.Count == 1 ? " car" : " cars") + (car() != null ? "  ·  " + Career.Mastery.Label(car()) : "") });
@@ -232,7 +235,7 @@ namespace MidnightClub.Phone
                 () => saves.Data.PhotosTaken > 0 ? saves.Data.PhotosTaken + " shots" : "New"));
             apps.Add(garage);
             // ---------------- CAREER
-            var career = new App { Name = "Career", Icon = "trophy", Accent = Ds.Violet, Badge = () => { int n = saves.Data.Wheelspins + saves.Data.SuperWheelspins; return n > 0 ? n.ToString() : null; } };
+            var career = new App { Name = "Career", Icon = "trophy", Accent = Th.Amber, Badge = () => { int n = saves.Data.Wheelspins + saves.Data.SuperWheelspins; return n > 0 ? n.ToString() : null; } };
             career.Tiles.Add(new Tile { Title = "Story", Icon = "book-marked", W = 2, H = 2, Open = () => Career.Story.Instance != null ? Career.Story.Instance.Menu() : null,
                 Desc = "From nobody to the Midnight Club. Each chapter unlocks a new series, new cars and new rivals.",
                 Head = () => Career.Story.Instance != null && Career.Story.Instance.Current != null ? "CHAPTER " + (saves.Data.StoryChapter + 1) + "  " + Career.Story.Instance.Current.Title.ToUpperInvariant() : "STORY COMPLETE",
@@ -251,7 +254,7 @@ namespace MidnightClub.Phone
             career.Tiles.Add(T("Bank", "landmark", "Income, spending and loans.", () => menu.Finances(), () => "$" + saves.Data.Cash.ToString("N0")));
             apps.Add(career);
             // ---------------- WORLD
-            var world = new App { Name = "World", Icon = "compass", Accent = Ds.Violet, Badge = () => { int n = saves.Data.Messages.Count(m => !m.Read); return n > 0 ? n.ToString() : null; } };
+            var world = new App { Name = "World", Icon = "compass", Accent = Th.Green, Badge = () => { int n = saves.Data.Messages.Count(m => !m.Read); return n > 0 ? n.ToString() : null; } };
             world.Tiles.Add(new Tile { Title = "Exploration", Icon = "map", W = 2, H = 2, Open = () => Progression.Instance != null ? Progression.Instance.ProgressMenu() : null,
                 Desc = "Roads driven, places discovered, hidden events found.",
                 Head = () => Progression.Instance != null ? Progression.Instance.RoadPercent.ToString("0.0") + "% OF ROADS DRIVEN" : "",
@@ -268,7 +271,7 @@ namespace MidnightClub.Phone
             world.Tiles.Add(T("Calendar", "calendar-days", "Day of the week and when dealer stock rotates.", CalendarApp, () => calendar.DayName));
             apps.Add(world);
             // ---------------- SETTINGS
-            var set = new App { Name = "Settings", Icon = "settings", Accent = Ds.Violet };
+            var set = new App { Name = "Settings", Icon = "settings", Accent = Th.Violet };
             set.Tiles.Add(T("Driving", "gauge", "Driving model (arcade, simcade, simulation) and assists.", () => SettingsMenu("Driving"), () => DrivingLabel(), 2, 1));
             set.Tiles.Add(T("Cameras", "eye", "Midnight Club cameras and speed FOV.", () => SettingsMenu("Camera"), () => Config.Current.CustomCameras ? "Custom" : "Game"));
             set.Tiles.Add(T("Display", "monitor", "HUD, speed effects and the welcome screen.", () => SettingsMenu("Display"), () => Config.Current.ShowHud ? "HUD on" : "HUD off"));
@@ -278,7 +281,7 @@ namespace MidnightClub.Phone
             set.Tiles.Add(T("Save game", "save", "Progress also saves automatically.", () => { menu.Modes.SaveNow(); UI.Shard.Mid("SAVED", "", UI.Shard.Green, 1500); return null; }, () => ""));
             apps.Add(set);
             // ---------------- EXIT
-            var exit = new App { Name = "Exit", Icon = "power", Accent = Ds.Red };
+            var exit = new App { Name = "Exit", Icon = "power", Accent = Th.Red };
             exit.Tiles.Add(T("Story mode", "log-out", "Back to Franklin, Michael and Trevor. Midnight Club keeps your progress; F7 brings you back.",
                 () => { Leave(); menu.Modes.Exit(); return null; }, () => "Progress is saved", 2, 2));
             exit.Tiles.Add(T("Save game", "save", "Saves now.", () => { menu.Modes.SaveNow(); UI.Shard.Mid("SAVED", "", UI.Shard.Green, 1500); return null; }, () => ""));
@@ -524,25 +527,31 @@ namespace MidnightClub.Phone
             Theme.FullscreenFrame();
             Function.Call(Hash.HIDE_HUD_AND_RADAR_THIS_FRAME);
             float a = Ds.EaseOut(openT);
-            Ds.HGrad(0f, 0f, 1f, 1f, Ds.A(Color.FromArgb(255, 9, 8, 14), 0.92f * a), Ds.A(Color.FromArgb(255, 9, 8, 14), 0.55f * a), 10);
-            Ds.VGrad(0f, 0.82f, 1f, 0.18f, Ds.A(Ds.Bg, 0f), Ds.A(Ds.Bg, 0.8f * a), 6);
-            // top bar
-            float ty = 0.05f - (1f - a) * 0.02f;
-            Ds.Logo(X0, ty, 0.95f, a, GTA.UI.Alignment.Left, true);
+            // the world is blurred behind (MenuMGIn); a theme scrim + a soft floor keep text readable
+            Ds.Rect(0f, 0f, 1f, 1f, Ds.A(Th.Scrim, a));
+            Ds.VGrad(0f, 0.7f, 1f, 0.3f, Ds.A(Ds.Bg, 0f), Ds.A(Ds.Bg, 0.55f * a), 5);
+            float ty = 0.048f - (1f - a) * 0.02f;
+            Ds.Logo(X0, ty, 0.8f, a, GTA.UI.Alignment.Left, false);
+            // profile capsule (top right): level ring · cash · REP / tier
             var d = saves.Data;
-            float ringD = 0.07f, ringX = XR - Ds.Px(ringD / 2f), ringY = ty + 0.035f;
+            string cash = "$" + d.Cash.ToString("N0");
+            string sub = d.Rep.ToString("N0") + " REP  ·  " + (CareerManager.Instance != null ? CareerManager.Instance.TierName.ToUpperInvariant() : "");
+            float h = Th.Px(64f), ringD = Th.Px(50f);
+            float tw = Math.Max(Ds.Width(cash, 0.62f, Ds.Display), Ds.Width(sub, 0.24f, Ds.Display));
+            float w = Ds.Px(Th.Px(20f)) + Ds.Px(ringD) + Ds.Px(Th.Px(14f)) + tw + Ds.Px(Th.Px(24f));
+            float x = XR - w, y = ty - Th.Px(6f);
+            Kit.Glass(x, y, w, h, h * 1080f / 2f, a);
+            float rcx = x + Ds.Px(Th.Px(14f)) + Ds.Px(ringD / 2f), rcy = y + h / 2f;
             if (Progression.Instance != null)
             {
-                Textures.Draw("ring_100", ringX, ringY, ringD, Ds.A(Color.FromArgb(50, 255, 255, 255), a));
-                VectorIcons.Ring(ringX, ringY, ringD, 0.007f, Progression.Instance.LevelProgress, Ds.A(Ds.Violet, a));
-                Ds.TM(Progression.Instance.Level.ToString(), ringX, ringY - 0.004f, 0.7f, Ds.A(Ds.Text, a), Ds.Display, GTA.UI.Alignment.Center);
-                Ds.TM("LEVEL", ringX, ringY + 0.02f, 0.16f, Ds.A(Ds.Muted, a), Ds.Display, GTA.UI.Alignment.Center);
+                Textures.Draw("ring_100", rcx, rcy, ringD, Ds.A(Th.Track, a));
+                VectorIcons.Ring(rcx, rcy, ringD, 0.006f, Progression.Instance.LevelProgress, Ds.A(Th.Accent, a));
+                Ds.TM(Progression.Instance.Level.ToString(), rcx, rcy, 0.5f, Ds.A(Th.Text, a), Ds.Display, GTA.UI.Alignment.Center);
             }
-            float rx = XR - Ds.Px(ringD) - Ds.Px(0.016f);
-            Ds.TM("$" + d.Cash.ToString("N0"), rx, ty + 0.022f, 0.72f, Ds.A(Ds.Text, a), Ds.Display, GTA.UI.Alignment.Right);
-            string sub = d.Rep.ToString("N0") + " REP" + (CareerManager.Instance != null ? "  ·  " + CareerManager.Instance.TierName.ToUpperInvariant() : "") + (d.ClubMember ? "  ·  MEMBER" : "");
-            Ds.TM(sub, rx, ty + 0.058f, 0.26f, Ds.A(Ds.Muted, a), Ds.Display, GTA.UI.Alignment.Right);
-            Ds.TM(Gameplay.Season.Label, rx, ty + 0.082f, 0.22f, Ds.A(Ds.Violet, a), Ds.Display, GTA.UI.Alignment.Right);
+            float tx = rcx + Ds.Px(ringD / 2f) + Ds.Px(Th.Px(14f));
+            Ds.TM(cash, tx, rcy - Th.Px(10f), 0.62f, Ds.A(Th.Text, a), Ds.Display);
+            Ds.TM(sub, tx, rcy + Th.Px(16f), 0.24f, Ds.A(Th.Sub, a), Ds.Display);
+            Ds.TM(Gameplay.Season.Label, x - Ds.Px(Th.Px(16f)), rcy, 0.26f, Ds.A(Th.Amber, a), Ds.Display, GTA.UI.Alignment.Right);
             return a;
         }
 
@@ -558,126 +567,141 @@ namespace MidnightClub.Phone
 
         private void TabBar(float a, bool interactive)
         {
-            float y = 0.16f, x = X0;
+            // segmented glass control: Q [tabs] E, and EXIT as a separate red pill on the right
+            float y = 0.135f, h = Th.Px(48f), cy = y + h / 2f;
+            int n = apps.Count - 1;
+            float padX = Ds.Px(Th.Px(18f)), gap = Ds.Px(Th.Px(6f)), iw = Ds.Px(Th.Px(26f));
+            var widths = new float[n]; float total = 0f;
+            for (int i = 0; i < n; i++) { widths[i] = padX * 2 + iw + Ds.Width(apps[i].Name.ToUpperInvariant(), 0.42f, Ds.Display); total += widths[i] + gap; }
+            float kq = Ds.Px(Th.Px(34f));
+            float bw = total - gap + Ds.Px(Th.Px(12f)) + (interactive ? 2 * (kq + Ds.Px(Th.Px(10f))) : 0f);
+            float x = X0;
+            Kit.Glass(x, y, bw, h, h * 1080f / 2f, a);
+            float cx = x + Ds.Px(Th.Px(6f));
+            if (interactive) { Kit.KeyHint(Control.FrontendLb, "", cx + Ds.Px(Th.Px(6f)), cy); cx += kq + Ds.Px(Th.Px(10f)); }
             float selX = 0f, selW = 0f;
-            for (int i = 0; i < apps.Count; i++)
-            {
-                var t = apps[i]; bool on = i == tab; bool exit = i == apps.Count - 1;
-                string nm = t.Name.ToUpperInvariant();
-                float tw = Ds.Width(nm, 0.5f, Ds.Display), iw = Ds.Px(0.03f);
-                if (exit) x = Math.Max(x, XR - tw - iw);
-                var c = on ? Color.White : exit ? Ds.Mix(Ds.Red, Ds.Muted, 0.35f) : Ds.Muted;
-                Icon(t.Icon, x + iw * 0.4f, y + 0.021f, 0.024f, Ds.A(on ? t.Accent : c, a));
-                Ds.TM(nm, x + iw, y + 0.021f, 0.5f, Ds.A(c, a), Ds.Display);
-                string b = t.Badge != null ? t.Badge() : null;
-                if (b != null) { Ds.Rect(x + iw + tw + Ds.Px(0.004f), y + 0.004f, Ds.Px(0.008f), 0.008f, Ds.A(Ds.Red, a)); }
-                if (on) { selX = x; selW = iw + tw; }
-                x += iw + tw + Ds.Px(0.032f);
-            }
+            for (int i = 0; i < n; i++) { if (i == tab) { selX = cx; selW = widths[i]; } cx += widths[i] + gap; }
             if (tabBarK < 0f) tabBarK = selX;
-            tabBarK = Ds.Damp(tabBarK, selX, 18f);
-            Ds.Rect(X0, y + 0.047f, XR - X0, 0.0015f, Ds.A(Ds.Stroke, a));
-            Ds.Rect(tabBarK, y + 0.0455f, selW, 0.0045f, Ds.A(apps[tab].Accent, a));
+            tabBarK = Ds.Damp(tabBarK, selX, 22f);
+            if (tab < n) Kit.Pill(tabBarK, y + Th.Px(5f), selW, h - Th.Px(10f), Ds.A(apps[tab].Accent, a));
+            cx = x + Ds.Px(Th.Px(6f)) + (interactive ? kq + Ds.Px(Th.Px(10f)) : 0f);
+            for (int i = 0; i < n; i++)
+            {
+                var t = apps[i]; bool on = i == tab && Math.Abs(tabBarK - cx) < Ds.Px(Th.Px(20f));
+                var c = on ? Th.On(t.Accent) : Th.Sub;
+                Icon(t.Icon, cx + padX + iw * 0.45f, cy, Th.Px(22f), Ds.A(on ? c : t.Accent, a));
+                Ds.TM(t.Name.ToUpperInvariant(), cx + padX + iw, cy, 0.42f, Ds.A(on ? c : Th.Text, a), Ds.Display);
+                string b = t.Badge != null ? t.Badge() : null;
+                if (b != null) Kit.Badge(b, cx + widths[i] - Ds.Px(Th.Px(6f)), y + Th.Px(6f), Th.Red);
+                cx += widths[i] + gap;
+            }
+            if (interactive) Kit.KeyHint(Control.FrontendRb, "", cx + Ds.Px(Th.Px(2f)), cy);
+            // EXIT pill
+            var ex = apps[n]; bool exOn = tab == n;
+            float ew = Ds.Px(Th.Px(28f)) + Ds.Px(Th.Px(26f)) + Ds.Width("EXIT", 0.42f, Ds.Display), exx = XR - ew;
+            if (exOn) Kit.Pill(exx, y, ew, h, Ds.A(Th.Red, a)); else Kit.Glass(exx, y, ew, h, h * 1080f / 2f, a);
+            Icon("power", exx + Ds.Px(Th.Px(26f)), cy, Th.Px(22f), Ds.A(exOn ? Color.White : Th.Red, a));
+            Ds.TM("EXIT", exx + Ds.Px(Th.Px(44f)), cy, 0.42f, Ds.A(exOn ? Color.White : Th.Text, a), Ds.Display);
+        }
+
+        /// <summary>Rounded icon badge: accent square with a white icon (the colourful bit of every tile and row).</summary>
+        private static void IconBadge(string icon, float cx, float cy, float size, Color accent, float a)
+        {
+            Kit.Round(cx - Ds.Px(size / 2f), cy - size / 2f, Ds.Px(size), size, size * 1080f * 0.28f, Ds.A(accent, a));
+            Icon(icon, cx, cy, size * 0.58f, Ds.A(Th.On(accent), a));
         }
 
         private void DrawHub()
         {
             float a = Backdrop();
             TabBar(a, true);
-            tabT = Ds.Damp(tabT, 1f, 10f);
+            tabT = Ds.Damp(tabT, 1f, 12f);
             var app = apps[tab];
             int selIdx = Math.Min(tabSel[tab], app.Tiles.Count - 1);
-            float ent = Ds.EaseOut(tabT), ea0 = a * Ds.Clamp01(tabT * 1.6f);
-            // horizontal scroll: keep the selected tile on screen, peek at the next column
+            float ent = Ds.EaseOut(tabT), ea0 = a * Ds.Clamp01(tabT * 1.8f);
             var st = app.Tiles[selIdx];
             float sx0 = st.Col * (UW + TGX), sx1 = sx0 + st.W * UW + (st.W - 1) * TGX, view = XR - X0;
             float want = scrollX;
             if (sx1 - want > view - UW * 0.35f) want = sx1 - view + UW * 0.35f;
             if (sx0 - want < 0f) want = sx0;
             if (st.Col == 0) want = 0f;
-            scrollX = tabT < 0.05f ? want : Ds.Damp(scrollX, want, 12f);
+            scrollX = tabT < 0.05f ? want : Ds.Damp(scrollX, want, 14f);
+            float R = Th.R_Lg + 2f;
             for (int i = 0; i < app.Tiles.Count; i++)
             {
                 var t = app.Tiles[i]; bool on = i == selIdx;
-                t.K = Ds.Damp(t.K, on ? 1f : 0f, 16f);
+                t.K = Ds.Damp(t.K, on ? 1f : 0f, 18f);
                 float k = t.K;
-                float x = X0 + t.Col * (UW + TGX) - scrollX + (1f - ent) * Ds.Px(0.04f) * (1 + t.Col * 0.3f);
+                float x = X0 + t.Col * (UW + TGX) - scrollX + (1f - ent) * Ds.Px(0.03f) * (1 + t.Col * 0.25f);
                 float y = MY + t.Row * (UH + GAP);
                 float w = t.W * UW + (t.W - 1) * TGX, h = t.H * UH + (t.H - 1) * GAP;
                 if (x > 1.02f || x + w < -0.02f) continue;
                 float edge = Math.Min(Ds.Clamp01(1f - (X0 - x) / UW), Ds.Clamp01(1f - (x + w - XR) / (UW * 1.2f)));
-                float ea = ea0 * (0.25f + 0.75f * edge);
-                float g = 0.006f * k; x -= Ds.Px(g); y -= g; w += Ds.Px(2 * g); h += 2 * g;
+                float ea = ea0 * (0.3f + 0.7f * edge);
+                float g = Th.Px(5f) * k; x -= Ds.Px(g); y -= g; w += Ds.Px(2 * g); h += 2 * g;
                 bool big = t.W == 2 && t.H == 2;
-                Ds.Rect(x, y, w, h, Ds.A(Color.FromArgb(232, 18, 16, 27), ea));
-                if (k > 0.01f) Ds.VGrad(x, y, w, h, Ds.A(Color.FromArgb(255, 58, 56, 70), k * ea), Ds.A(Color.FromArgb(255, 30, 28, 38), k * ea), 6);
-                // picture: the current car on the garage tile, a big watermark icon on other feature tiles
+                Kit.Glass(x, y, w, h, R, ea, k > 0.5f);
+                if (k > 0.02f) Kit.Focus(x, y, w, h, R, app.Accent, k * ea);
                 string thumb = t.Thumb != null ? t.Thumb() : null;
                 bool pic = false;
                 if (thumb != null)
                 {
-                    float iw = w * 0.92f, ih = Math.Min(h * 0.62f, iw * Ds.Aspect * 0.5f);
-                    pic = CarThumbs.Draw(thumb, x + (w - iw) / 2f, y + 0.02f + (h * 0.62f - ih) / 2f, iw, ih, Ds.A(Color.White, ea));
+                    float iw = w * 0.9f, ih = Math.Min(h * 0.6f, iw * Ds.Aspect * 0.5f);
+                    pic = CarThumbs.Draw(thumb, x + (w - iw) / 2f, y + Th.Px(16f) + (h * 0.6f - ih) / 2f, iw, ih, Ds.A(Color.White, ea));
                 }
-                if (!pic && big) Icon(t.Icon, x + w * 0.66f, y + h * 0.4f, h * 0.62f, Ds.A(Color.White, (0.06f + 0.08f * k) * ea));
-                if (!pic) Icon(t.Icon, x + Ds.Px(big ? 0.05f : 0.038f), y + (big ? 0.055f : 0.045f), big ? 0.055f : 0.042f, Ds.A(Color.White, (0.75f + 0.25f * k) * ea));
-                if (k > 0.02f)
-                {
-                    float bt = 0.003f;
-                    Ds.Rect(x, y, w, bt, Ds.A(Color.White, k * ea)); Ds.Rect(x, y + h - bt, w, bt, Ds.A(Color.White, k * ea));
-                    Ds.Rect(x, y, Ds.Px(bt), h, Ds.A(Color.White, k * ea)); Ds.Rect(x + w - Ds.Px(bt), y, Ds.Px(bt), h, Ds.A(Color.White, k * ea));
-                }
-                Ds.Rect(x, y + h - 0.005f, w * (0.18f + 0.82f * k), 0.005f, Ds.A(app.Accent, (0.6f + 0.4f * k) * ea));
-                float tx = x + Ds.Px(0.018f), tw = w - Ds.Px(0.036f);
+                if (!pic && big) Icon(t.Icon, x + w * 0.68f, y + h * 0.4f, h * 0.6f, Ds.A(app.Accent, (0.08f + 0.06f * k) * ea));
+                float bs = big ? Th.Px(56f) : Th.Px(44f);
+                if (!pic) IconBadge(t.Icon, x + Ds.Px(Th.Px(20f)) + Ds.Px(bs / 2f), y + Th.Px(20f) + bs / 2f, bs, app.Accent, ea);
+                float tx = x + Ds.Px(Th.Px(20f)), tw = w - Ds.Px(Th.Px(40f));
                 string meta = t.Meta != null ? t.Meta() : "";
                 if (big)
                 {
                     string head = t.Head != null ? t.Head() : null;
-                    if (!string.IsNullOrEmpty(head)) Ds.TM(Ds.Fit(head, 0.36f, tw, Ds.Display), tx, y + h - 0.112f, 0.36f, Ds.A(app.Accent, ea), Ds.Display);
-                    Ds.TM(Ds.Fit(t.Title.ToUpperInvariant(), 0.95f, tw, Ds.Display), tx, y + h - 0.062f, 0.95f, Ds.A(Color.White, ea), Ds.Display);
-                    Ds.TM(Ds.Fit(Clean(meta), 0.3f, tw), tx, y + h - 0.022f, 0.3f, Ds.A(k > 0.5f ? Color.FromArgb(235, 255, 255, 255) : Ds.Muted, ea));
+                    if (!string.IsNullOrEmpty(head)) Kit.Chip(Ds.Fit(head, 0.26f, tw - Ds.Px(Th.Px(20f)), Ds.Display), tx, y + h - Th.Px(112f), Ds.A(app.Accent, ea), Ds.A(Th.On(app.Accent), ea));
+                    Ds.TM(Ds.Fit(t.Title.ToUpperInvariant(), 0.95f, tw, Ds.Display), tx, y + h - Th.Px(66f), 0.95f, Ds.A(Th.Text, ea), Ds.Display);
+                    Ds.TM(Ds.Fit(Clean(meta), 0.3f, tw), tx, y + h - Th.Px(26f), 0.3f, Ds.A(Th.Sub, ea));
                 }
                 else
                 {
-                    Ds.TM(Ds.Fit(t.Title.ToUpperInvariant(), 0.55f, tw, Ds.Display), tx, y + h - 0.056f, 0.55f, Ds.A(Color.White, ea), Ds.Display);
-                    Ds.TM(Ds.Fit(Clean(meta), 0.27f, tw), tx, y + h - 0.024f, 0.27f, Ds.A(k > 0.5f ? Color.FromArgb(235, 255, 255, 255) : Ds.Muted, ea));
+                    Ds.TM(Ds.Fit(t.Title.ToUpperInvariant(), 0.52f, tw, Ds.Display), tx, y + h - Th.Px(58f), 0.52f, Ds.A(Th.Text, ea), Ds.Display);
+                    Ds.TM(Ds.Fit(Clean(meta), 0.27f, tw), tx, y + h - Th.Px(26f), 0.27f, Ds.A(Th.Sub, ea));
                 }
                 string b = t.Badge != null ? t.Badge() : null;
-                if (b != null)
-                {
-                    float bw = Ds.Px(0.03f);
-                    Ds.Rect(x + w - bw - Ds.Px(0.012f), y + 0.012f, bw, 0.03f, Ds.A(Ds.Mix(Ds.Red, Color.White, 0.2f * Ds.Pulse(1.4f)), ea));
-                    Ds.TM(b, x + w - bw / 2 - Ds.Px(0.012f), y + 0.027f, 0.38f, Ds.A(Color.White, ea), Ds.Display, GTA.UI.Alignment.Center);
-                }
+                if (b != null) Kit.Badge(b, x + w - Ds.Px(Th.Px(24f)), y + Th.Px(24f), Th.Red);
             }
-            // scroll hint
+            // scroll indicator
             int cols = app.Tiles.Max(t => t.Col + t.W);
             float total = cols * UW + (cols - 1) * TGX;
+            float iy = MY + 2 * UH + GAP + Th.Px(22f);
             if (total > XR - X0 + 0.001f)
             {
-                float trk = XR - X0, ty = MY + 2 * UH + GAP + 0.012f;
-                Ds.Rect(X0, ty, trk, 0.003f, Ds.A(Ds.Stroke, a));
-                Ds.Rect(X0 + trk * scrollX / total, ty, trk * trk / total, 0.003f, Ds.A(app.Accent, a));
+                float trk = Ds.Px(Th.Px(120f)), tx0 = (X0 + XR) / 2f - trk / 2f;
+                Kit.Bar(tx0, iy - Th.Px(8f), trk, Th.Px(5f), 1f, Th.Track);
+                float k0 = scrollX / total, k1 = Math.Min(1f, (scrollX + XR - X0) / total);
+                Kit.Pill(tx0 + trk * k0, iy - Th.Px(8f), trk * (k1 - k0), Th.Px(5f), Ds.A(app.Accent, a));
             }
-            // info strip: the selected tile explained
-            float iy = MY + 2 * UH + GAP + 0.035f;
-            Ds.Rect(X0, iy, Ds.Px(0.004f), 0.085f, Ds.A(app.Accent, a));
-            Ds.T(st.Title.ToUpperInvariant(), X0 + Ds.Px(0.018f), iy - 0.006f, 0.6f, Ds.A(Color.White, a), Ds.Display);
-            Ds.T(st.Desc ?? "", X0 + Ds.Px(0.018f), iy + 0.042f, 0.33f, Ds.A(Ds.Muted, a), Ds.Body, GTA.UI.Alignment.Left, 0.55f);
-            // next objective, right side
-            string head2 = null, line = null; Color hc = Ds.Violet;
-            if (Career.Story.Instance != null && Career.Story.Instance.NextGoalText != null) { head2 = "STORY  ·  CHAPTER " + (saves.Data.StoryChapter + 1); line = Career.Story.Instance.NextGoalText; hc = Ds.Amber; }
+            // info card: the selected tile explained
+            float ih2 = Th.Px(92f), cw = 0.55f;
+            Kit.Glass(X0, iy, cw, ih2, Th.R_Lg, a);
+            IconBadge(st.Icon, X0 + Ds.Px(Th.Px(22f)) + Ds.Px(Th.Px(22f)), iy + ih2 / 2f, Th.Px(44f), app.Accent, a);
+            float itx = X0 + Ds.Px(Th.Px(84f));
+            Ds.TM(st.Title.ToUpperInvariant(), itx, iy + Th.Px(30f), 0.5f, Ds.A(Th.Text, a), Ds.Display);
+            Ds.T(st.Desc ?? "", itx, iy + Th.Px(48f), 0.3f, Ds.A(Th.Sub, a), Ds.Body, GTA.UI.Alignment.Left, cw - Ds.Px(Th.Px(100f)));
+            // next objective card
+            string head2 = null, line = null; Color hc = Th.Violet;
+            if (Career.Story.Instance != null && Career.Story.Instance.NextGoalText != null) { head2 = "STORY  ·  CHAPTER " + (saves.Data.StoryChapter + 1); line = Career.Story.Instance.NextGoalText; hc = Th.Amber; }
             else if (Gameplay.Objectives.CurrentText != null) { head2 = "NEXT OBJECTIVE"; line = Gameplay.Objectives.CurrentText; }
-            else if (Progression.Instance != null && Progression.Instance.Today.Any(c => !Progression.Instance.Done(c))) { var dc = Progression.Instance.Today.First(c => !Progression.Instance.Done(c)); head2 = "DAILY CHALLENGE"; line = dc.Text; hc = Ds.Pink; }
+            else if (Progression.Instance != null && Progression.Instance.Today.Any(c => !Progression.Instance.Done(c))) { var dc = Progression.Instance.Today.First(c => !Progression.Instance.Done(c)); head2 = "DAILY CHALLENGE"; line = dc.Text; hc = Th.Green; }
             if (line != null)
             {
-                float ox = 0.66f, ow = XR - ox;
-                Ds.Rect(ox, iy, ow, 0.085f, Ds.A(Color.FromArgb(200, 18, 16, 27), a));
-                Ds.Rect(ox, iy, Ds.Px(0.004f), 0.085f, Ds.A(hc, a));
-                Ds.T(head2, ox + Ds.Px(0.018f), iy + 0.01f, 0.26f, Ds.A(hc, a), Ds.Display);
-                Ds.T(Clean(line), ox + Ds.Px(0.018f), iy + 0.032f, 0.32f, Ds.A(Ds.Text, a), Ds.Body, GTA.UI.Alignment.Left, ow - Ds.Px(0.03f));
+                float ox = X0 + cw + Ds.Px(Th.Px(16f)), ow = XR - ox;
+                Kit.Glass(ox, iy, ow, ih2, Th.R_Lg, a);
+                IconBadge("target", ox + Ds.Px(Th.Px(44f)), iy + ih2 / 2f, Th.Px(44f), hc, a);
+                float ox2 = ox + Ds.Px(Th.Px(84f));
+                Kit.Chip(head2, ox2, iy + Th.Px(28f), Ds.A(hc, 0.2f * a), Ds.A(hc, a), 0.22f);
+                Ds.T(Clean(line), ox2, iy + Th.Px(46f), 0.3f, Ds.A(Th.Text, a), Ds.Body, GTA.UI.Alignment.Left, ow - Ds.Px(Th.Px(100f)));
             }
-            if (IsOpen) Buttons.Draw(Control.FrontendAccept, "Open", Control.FrontendCancel, "Close", Control.FrontendRb, "", Control.FrontendLb, "Tabs");
+            if (IsOpen) Buttons.Draw(Control.FrontendLb, "", Control.FrontendRb, "Tabs", Control.FrontendAccept, "Open", Control.FrontendCancel, "Close");
         }
 
         // ---------------------------------------------------------------- sub-screens (any Menu): list + detail panel
@@ -685,79 +709,82 @@ namespace MidnightClub.Phone
         {
             openT = Ds.Step(openT, 1f, 5f);
             if (m != lastMenu) { lastMenu = m; screenT = 0f; listSel = -1f; }
-            screenT = Ds.Damp(screenT, 1f, 12f);
-            float a = Backdrop() * Ds.Clamp01(screenT * 1.4f), off = (1f - Ds.EaseOut(screenT)) * Ds.Px(0.03f);
+            screenT = Ds.Damp(screenT, 1f, 14f);
+            float a = Backdrop() * Ds.Clamp01(screenT * 1.6f), off = (1f - Ds.EaseOut(screenT)) * Ds.Px(0.025f);
             TabBar(a, false);
             m.VisibleRows = 8; m.Clamp();
-            var acc = current != null ? current.Accent : Ds.Violet;
+            var acc = current != null ? current.Accent : Th.Accent;
             string icon = currentTile != null ? currentTile.Icon : current != null ? current.Icon : "settings";
-            float x = X0 + off, w = 0.4f, y = 0.235f;
-            // header: breadcrumb + title
+            float x = X0 + off, w = 0.4f, y = 0.215f;
+            // header: icon badge, breadcrumb, title, counter
+            IconBadge(icon, x + Ds.Px(Th.Px(28f)), y + Th.Px(34f), Th.Px(56f), acc, a);
+            float hx = x + Ds.Px(Th.Px(74f));
             string crumb = (current != null ? current.Name.ToUpperInvariant() : "") + (currentTile != null && !string.Equals(currentTile.Title, m.Title, StringComparison.OrdinalIgnoreCase) ? "  /  " + currentTile.Title.ToUpperInvariant() : "");
-            Ds.T(crumb, x, y - 0.004f, 0.28f, Ds.A(acc, a), Ds.Display);
-            Ds.T(Ds.Fit((m.Title ?? "").ToUpperInvariant(), 0.9f, w, Ds.Display), x - 0.001f, y + 0.014f, 0.9f, Ds.A(Ds.Text, a), Ds.Display);
-            if (!string.IsNullOrEmpty(m.Subtitle)) Ds.T(Ds.Fit(Clean(m.Subtitle), 0.3f, w * 0.8f), x, y + 0.082f, 0.3f, Ds.A(Ds.Muted, a));
-            if (m.Items.Count > 0) Ds.T((m.Selected + 1) + " / " + m.Items.Count, x + w, y + 0.082f, 0.28f, Ds.A(Ds.Faint, a), Ds.Display, GTA.UI.Alignment.Right);
-            float ly = y + 0.12f, rh = 0.052f;
+            Ds.TM(crumb, hx, y + Th.Px(14f), 0.26f, Ds.A(acc, a), Ds.Display);
+            Ds.TM(Ds.Fit((m.Title ?? "").ToUpperInvariant(), 0.85f, w - Ds.Px(Th.Px(80f)), Ds.Display), hx, y + Th.Px(46f), 0.85f, Ds.A(Th.Text, a), Ds.Display);
+            if (m.Items.Count > 0) Kit.Chip((m.Selected + 1) + " / " + m.Items.Count, x + w - Ds.Px(Th.Px(70f)), y + Th.Px(46f), Ds.A(Th.Track, a), Ds.A(Th.Sub, a), 0.24f);
+            // list card
+            float ly = y + Th.Px(96f), rh = Th.Px(54f), pad = Th.Px(10f);
             int first = m.Scroll, n = Math.Min(m.VisibleRows, m.Items.Count - first);
-            if (m.Items.Count == 0) Ds.T("NOTHING HERE YET", x, ly + 0.01f, 0.4f, Ds.A(Ds.Faint, a), Ds.Display);
-            float target = ly + (m.Selected - first) * rh;
-            listSel = listSel < 0 ? target : Ds.Damp(listSel, target, 26f);
-            for (int i = 0; i < n; i++) Ds.Rect(x, ly + i * rh, w, rh - 0.005f, Ds.A(Color.FromArgb(205, 18, 16, 27), a));
-            if (m.Items.Count > 0)
-            {
-                Ds.HGrad(x, listSel, w, rh - 0.005f, Ds.A(acc, a), Ds.A(Ds.Mix(acc, Color.FromArgb(255, 18, 16, 27), 0.6f), a), 8);
-                Ds.Rect(x, listSel, Ds.Px(0.003f), rh - 0.005f, Ds.A(Color.White, a));
-            }
+            float ch = Math.Max(1, n) * rh + 2 * pad;
+            Kit.Glass(x, ly, w, ch, Th.R_Lg, a);
+            if (m.Items.Count == 0) Ds.TM("NOTHING HERE YET", x + Ds.Px(Th.Px(24f)), ly + ch / 2f, 0.4f, Ds.A(Th.Faint, a), Ds.Display);
+            float rx = x + Ds.Px(pad), rw = w - 2 * Ds.Px(pad);
+            float target = ly + pad + (m.Selected - first) * rh;
+            listSel = listSel < 0 ? target : Ds.Damp(listSel, target, 34f);
+            if (m.Items.Count > 0) Kit.Round(rx, listSel, rw, rh - Th.Px(4f), Th.R_Md, Ds.A(acc, a));
             for (int i = 0; i < n; i++)
             {
-                var it = m.Items[first + i]; bool s = first + i == m.Selected; float yy = ly + i * rh;
-                bool onBar = s && Math.Abs(listSel - target) < rh * 0.5f;
+                var it = m.Items[first + i]; bool sel = first + i == m.Selected; float yy = ly + pad + i * rh, cy = yy + (rh - Th.Px(4f)) / 2f;
+                bool onBar = sel && Math.Abs(listSel - target) < rh * 0.5f;
+                var fg = onBar ? Th.On(acc) : !it.Enabled ? Th.Faint : Th.Text;
+                var fg2 = onBar ? Ds.A(Th.On(acc), 0.85f) : Th.Sub;
                 string v = it.Value != null ? Clean(it.Value()) : null;
-                float lx = x + Ds.Px(0.016f);
-                if (it.Icon != null) { Icon(it.Icon, x + Ds.Px(0.026f), yy + (rh - 0.005f) / 2f, 0.026f, Ds.A(onBar ? Color.White : Ds.Mix(acc, Ds.Muted, 0.4f), a)); lx = x + Ds.Px(0.05f); }
-                float vw = string.IsNullOrEmpty(v) ? 0 : Math.Min(w * 0.42f, Ds.Width(v, 0.34f, Ds.Display) + (s && it.OnAdjust != null ? Ds.Px(0.03f) : 0));
-                var lc = !it.Enabled ? Ds.Faint : onBar ? Color.White : Color.FromArgb(255, 222, 218, 236);
-                Ds.TM(Ds.Fit(Clean(it.Label), 0.37f, x + w - lx - vw - Ds.Px(0.02f)), lx, yy + (rh - 0.005f) / 2f, 0.37f, Ds.A(lc, a));
-                if (!string.IsNullOrEmpty(v))
+                float lx = rx + Ds.Px(Th.Px(16f));
+                if (it.Icon != null) { Icon(it.Icon, lx + Ds.Px(Th.Px(11f)), cy, Th.Px(22f), Ds.A(onBar ? fg : acc, a)); lx += Ds.Px(Th.Px(36f)); }
+                else if (!it.Enabled) { Icon("lock", lx + Ds.Px(Th.Px(9f)), cy, Th.Px(18f), Ds.A(Th.Faint, a)); lx += Ds.Px(Th.Px(30f)); }
+                bool isToggle = v == "On" || v == "Off";
+                float vw = string.IsNullOrEmpty(v) ? 0 : isToggle ? Ds.Px(Th.Px(44f)) : Math.Min(rw * 0.42f, Ds.Width(v, 0.32f, Ds.Display) + (sel && it.OnAdjust != null ? Ds.Px(Th.Px(44f)) : 0));
+                Ds.TM(Ds.Fit(Clean(it.Label), 0.36f, rx + rw - lx - vw - Ds.Px(Th.Px(28f))), lx, cy, 0.36f, Ds.A(fg, a));
+                float vx = rx + rw - Ds.Px(Th.Px(16f));
+                if (isToggle) Kit.Toggle(vx - Ds.Px(Th.Px(40f)), cy, v == "On", onBar ? Color.FromArgb(255, 255, 255, 255) : acc);
+                else if (!string.IsNullOrEmpty(v))
                 {
-                    float vx = x + w - Ds.Px(0.012f);
-                    if (s && it.OnAdjust != null && it.Enabled)
+                    if (sel && it.OnAdjust != null && it.Enabled)
                     {
-                        Icon("chevron-right", vx - Ds.Px(0.006f), yy + (rh - 0.005f) / 2f, 0.02f, Ds.A(Color.White, a));
-                        Icon("chevron-left", vx - Ds.Px(0.026f) - Math.Min(w * 0.38f, Ds.Width(v, 0.34f, Ds.Display)), yy + (rh - 0.005f) / 2f, 0.02f, Ds.A(Color.White, a));
-                        Ds.TM(Ds.Fit(v, 0.34f, w * 0.38f, Ds.Display), vx - Ds.Px(0.018f), yy + (rh - 0.005f) / 2f, 0.34f, Ds.A(Color.White, a), Ds.Display, GTA.UI.Alignment.Right);
+                        float vwid = Math.Min(rw * 0.36f, Ds.Width(v, 0.32f, Ds.Display));
+                        Icon("chevron-right", vx - Ds.Px(Th.Px(6f)), cy, Th.Px(20f), Ds.A(fg, a));
+                        Icon("chevron-left", vx - Ds.Px(Th.Px(30f)) - vwid, cy, Th.Px(20f), Ds.A(fg, a));
+                        Ds.TM(Ds.Fit(v, 0.32f, rw * 0.36f, Ds.Display), vx - Ds.Px(Th.Px(20f)), cy, 0.32f, Ds.A(fg, a), Ds.Display, GTA.UI.Alignment.Right);
                     }
-                    else Ds.TM(Ds.Fit(v, 0.34f, w * 0.42f, Ds.Display), vx, yy + (rh - 0.005f) / 2f, 0.34f, Ds.A(onBar ? Color.White : Ds.Muted, a), Ds.Display, GTA.UI.Alignment.Right);
+                    else Ds.TM(Ds.Fit(v, 0.32f, rw * 0.42f, Ds.Display), vx, cy, 0.32f, Ds.A(fg2, a), Ds.Display, GTA.UI.Alignment.Right);
                 }
             }
             if (m.Items.Count > m.VisibleRows)
             {
-                float th = rh * m.VisibleRows - 0.005f, bh = th * m.VisibleRows / m.Items.Count, by = ly + th * first / m.Items.Count;
-                Ds.Rect(x + w + Ds.Px(0.008f), ly, Ds.Px(0.003f), th, Ds.A(Ds.Stroke, a));
-                Ds.Rect(x + w + Ds.Px(0.008f), by, Ds.Px(0.003f), bh, Ds.A(acc, a));
+                float th = rh * m.VisibleRows, bh = th * m.VisibleRows / m.Items.Count, by = ly + pad + th * first / m.Items.Count;
+                Kit.Pill(x + w + Ds.Px(Th.Px(8f)), ly + pad, Ds.Px(Th.Px(4f)), th, Ds.A(Th.Track, a));
+                Kit.Pill(x + w + Ds.Px(Th.Px(8f)), by, Ds.Px(Th.Px(4f)), bh, Ds.A(acc, a));
             }
-            // detail panel: big icon, the item, its value and what it does
+            // detail card
             var cur = m.Items.Count > 0 ? m.Items[m.Selected] : null;
-            float px = x + w + Ds.Px(0.04f), pw = XR - px, py = ly, ph = rh * 8f - 0.005f;
-            Ds.Rect(px, py, pw, ph, Ds.A(Color.FromArgb(190, 18, 16, 27), a));
-            Ds.Rect(px, py, pw, 0.004f, Ds.A(acc, a));
-            Icon(icon, px + pw * 0.72f, py + ph * 0.46f, ph * 0.7f, Ds.A(acc, 0.06f * a));
+            float px = x + w + Ds.Px(Th.Px(32f)), pw = XR - px, py = ly, ph = Math.Max(ch, Th.Px(330f));
+            Kit.Glass(px, py, pw, ph, Th.R_Lg, a);
+            Icon(icon, px + pw * 0.78f, py + ph * 0.58f, ph * 0.62f, Ds.A(acc, 0.07f * a));
             if (cur != null)
             {
-                float dx = px + Ds.Px(0.03f), dw = pw - Ds.Px(0.06f);
-                Icon(cur.Icon ?? icon, dx + Ds.Px(0.035f), py + 0.075f, 0.07f, Ds.A(acc, a));
-                Ds.T(Ds.Fit(Clean(cur.Label).ToUpperInvariant(), 0.8f, dw, Ds.Display), dx, py + 0.13f, 0.8f, Ds.A(Color.White, a), Ds.Display);
+                float dx = px + Ds.Px(Th.Px(28f)), dw = pw - Ds.Px(Th.Px(56f));
+                IconBadge(cur.Icon ?? icon, dx + Ds.Px(Th.Px(32f)), py + Th.Px(58f), Th.Px(64f), cur.Enabled ? acc : Th.Faint, a);
+                Ds.TM(Ds.Fit(Clean(cur.Label).ToUpperInvariant(), 0.78f, dw, Ds.Display), dx, py + Th.Px(130f), 0.78f, Ds.A(Th.Text, a), Ds.Display);
                 string v = cur.Value != null ? Clean(cur.Value()) : null;
-                float dy = py + 0.2f;
-                if (!string.IsNullOrEmpty(v)) { Ds.T(Ds.Fit(v, 0.6f, dw, Ds.Display), dx, dy, 0.6f, Ds.A(acc, a), Ds.Display); dy += 0.06f; }
+                float dy = py + Th.Px(168f);
+                if (!string.IsNullOrEmpty(v)) { Kit.Chip(Ds.Fit(v, 0.32f, dw * 0.8f, Ds.Display), dx, dy, Ds.A(acc, 0.18f * a), Ds.A(Th.Light ? Th.Text : acc, a), 0.32f); dy += Th.Px(34f); }
                 string desc = cur.Description != null ? cur.Description() : null;
-                if (!string.IsNullOrEmpty(desc)) Ds.T(Clean(desc), dx, dy, 0.34f, Ds.A(Ds.Muted, a), Ds.Body, GTA.UI.Alignment.Left, dw);
-                if (!cur.Enabled) Ds.T("NOT AVAILABLE YET", dx, py + ph - 0.05f, 0.3f, Ds.A(Ds.Faint, a), Ds.Display);
-                else if (cur.OnAdjust != null) Ds.T("LEFT / RIGHT TO CHANGE", dx, py + ph - 0.05f, 0.3f, Ds.A(Ds.Faint, a), Ds.Display);
+                if (!string.IsNullOrEmpty(desc)) Ds.T(Clean(desc), dx, dy, 0.32f, Ds.A(Th.Sub, a), Ds.Body, GTA.UI.Alignment.Left, dw);
+                if (!cur.Enabled) Kit.Chip("NOT AVAILABLE YET", dx, py + ph - Th.Px(34f), Ds.A(Th.Track, a), Ds.A(Th.Sub, a), 0.24f);
             }
-            if (cur != null && cur.Enabled && cur.OnAdjust != null) Buttons.Draw(Control.FrontendAccept, "Select", Control.FrontendCancel, "Back", Control.FrontendRight, "", Control.FrontendLeft, "Change");
-            else Buttons.Draw(Control.FrontendAccept, "Select", Control.FrontendCancel, "Back", Control.FrontendDown, "Navigate");
+            if (cur != null && cur.Enabled && cur.OnAdjust != null) Buttons.Draw(Control.FrontendLeft, "", Control.FrontendRight, "Change", Control.FrontendAccept, "Select", Control.FrontendCancel, "Back");
+            else Buttons.Draw(Control.FrontendUp, "", Control.FrontendDown, "Navigate", Control.FrontendAccept, "Select", Control.FrontendCancel, "Back");
         }
 
         /// <summary>Strips GTA colour tokens (~p~ etc.) that would clash with the phone palette.</summary>

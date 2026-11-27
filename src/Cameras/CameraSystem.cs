@@ -191,7 +191,11 @@ namespace MidnightClub.Cameras
         private void DrawLabel()
         {
             string n = mode == CameraMode.GameDefault ? "GAME DEFAULT" : Profiles[(int)mode].Name.ToUpperInvariant();
-            UI.Ds.T("CAMERA  ·  " + n, 0.5f, 0.88f, 0.34f, UI.Ds.Text, UI.Ds.Display, Alignment.Center);
+            float w = UI.Ds.Width(n, 0.36f, UI.Ds.Display) + UI.Ds.Width("CAMERA", 0.24f, UI.Ds.Display) + UI.Ds.Px(UI.Th.Px(84f)), h = UI.Th.Px(46f), x = 0.5f - w / 2f, y = 0.86f;
+            UI.Kit.Glass(x, y, w, h, h * 1080f / 2f, 1f, true);
+            UI.Textures.Draw("li_eye", x + UI.Ds.Px(UI.Th.Px(24f)), y + h / 2f, UI.Th.Px(20f), UI.Th.Accent);
+            UI.Ds.TM("CAMERA", x + UI.Ds.Px(UI.Th.Px(44f)), y + h / 2f, 0.24f, UI.Th.Sub, UI.Ds.Display);
+            UI.Ds.TM(n, x + w - UI.Ds.Px(UI.Th.Px(20f)), y + h / 2f, 0.36f, UI.Th.Text, UI.Ds.Display, Alignment.Right);
         }
 
         private void UpdateLook(float dt)
