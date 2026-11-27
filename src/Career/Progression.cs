@@ -39,6 +39,8 @@ namespace MidnightClub.Career
                 if (pos == 1 && e.Race.HasOpponents) Bump("win", 1);
                 if (pos > 0) Bump("race", 1);
             });
+            EventBus.Subscribe<ModeChangedEvent>(e => { if (e.To == GameMode.MIDNIGHT_CLUB) loginPending = Game.GameTime + 9000; });
+            EventBus.Subscribe<MidnightTickEvent>(e => { if (loginPending > 0 && Game.GameTime > loginPending) { loginPending = 0; DailyLogin(); } });
             EventBus.Subscribe<Rivals.RivalDefeatedEvent>(e => Award(2500, "Rival dethroned"));
             EventBus.Subscribe<Police.PursuitEndedEvent>(e => { if (e.Escaped) { Award(150 * e.Level, "Escaped the police"); Bump("escape", 1); } });
             EventBus.Subscribe<MeetShowoffEvent>(e => Award(250, "Car meet"));
@@ -94,6 +96,22 @@ namespace MidnightClub.Career
             }
             EventBus.Publish(new LevelUpEvent(level));
             Log.Info("Level up: " + level);
+        }
+
+        private int loginPending;
+        /// <summary>Daily streak: the first session each real-world day pays out, more for consecutive days (max 7).</summary>
+        private void DailyLogin()
+        {
+            var d = saves.Data; if (d == null) return;
+            int today = int.Parse(DateTime.Now.ToString("yyyyMMdd"));
+            if (d.LastLoginDay == today) return;
+            int yesterday = int.Parse(DateTime.Now.AddDays(-1).ToString("yyyyMMdd"));
+            d.LoginStreak = d.LastLoginDay == yesterday ? Math.Min(d.LoginStreak + 1, 99) : 1;
+            d.LastLoginDay = today; saves.IsDirty = true;
+            int k = Math.Min(7, d.LoginStreak); long cash = 2000L * k;
+            money.Earn(cash, 25L * k, "login", "Daily streak day " + d.LoginStreak, "login:" + today);
+            Award(150 * k, "Daily streak");
+            UI.Shard.Mid("DAILY STREAK  ·  DAY " + d.LoginStreak, "+$" + cash.ToString("N0") + (k < 7 ? "  ·  come back tomorrow for more" : "  ·  max bonus"), UI.Shard.Gold, 4500);
         }
 
         public void GiveCar(string model, string why)
