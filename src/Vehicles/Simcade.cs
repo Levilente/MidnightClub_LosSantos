@@ -31,7 +31,7 @@ namespace MidnightClub.Vehicles
             public float Spring = 1f, Damping = 1f, Travel = 1f, AntiRoll = 1f, Inertia = 1f;
             public float Grip, SlipAngle, Wheelspin, SteerLock, HighSpeedSteer, Stability, SpinAngle, DriftSustain, Downforce, AirControl, ComDrop, Brakes;
         }
-        private sealed class Stock { public float TMax, TMin, TLat, LowLoss, Steer, Brake, SForce, SComp, SReb, SUp, SLow, Arb, RollF, RollR, BiasT, BiasB, Raise, FlatVel, DriveF, Mass, DriveBias, ArbBias, SuspBias, TLoss; public Vector3 Com, Inertia; }
+        private sealed class Stock { public float TMax, TMin, TLat, LowLoss, Steer, Brake, SForce, SComp, SReb, SUp, SLow, Arb, RollF, RollR, BiasT, BiasB, Raise, FlatVel, DriveF, Mass, DriveBias, ArbBias, SuspBias, TLoss, MaxVel, DriveInertia, ClutchUp, ClutchDown; public int Gears; public Vector3 Com, Inertia; }
 
         private readonly VehicleManager vehicles; private readonly VehicleRegistry registry; private readonly Config cfg;
         private readonly string file;
@@ -54,18 +54,18 @@ namespace MidnightClub.Vehicles
         // speed-sensitive steering). Muscle and classic cars wallow, modern supercars stay tight.
         private static readonly Dictionary<string, float[]> Base = new Dictionary<string, float[]>
         {   //            grip   slip  spin   lock  hiSteer stab  spinAng sustain down  air   com    brake | spring damp  travel arb   inertia
-            { "Super",   new[] { 1.02f, 18f, 0.90f, 1.00f, 0.62f, 0.55f, 30f, 0.00f, 0.45f, 0.40f, -0.03f, 1.05f, 0.95f, 0.95f, 1.00f, 0.90f, 1.08f } },
-            { "AWD",     new[] { 1.00f, 18f, 0.70f, 1.00f, 0.65f, 0.50f, 32f, 0.00f, 0.20f, 0.40f, -0.02f, 1.00f, 0.92f, 0.90f, 1.05f, 0.80f, 1.10f } },
-            { "Sports",  new[] { 0.97f, 20f, 1.15f, 1.02f, 0.66f, 0.40f, 38f, 0.05f, 0.15f, 0.35f, -0.02f, 1.00f, 0.90f, 0.88f, 1.08f, 0.75f, 1.10f } },
-            { "Tuner",   new[] { 0.96f, 21f, 1.20f, 1.05f, 0.68f, 0.35f, 44f, 0.10f, 0.10f, 0.35f, -0.02f, 1.00f, 0.92f, 0.90f, 1.05f, 0.80f, 1.08f } },
-            { "Drift",   new[] { 0.93f, 24f, 1.30f, 1.20f, 0.72f, 0.25f, 60f, 0.35f, 0.05f, 0.35f, -0.01f, 0.97f, 0.95f, 0.92f, 1.00f, 0.85f, 1.05f } },
-            { "Muscle",  new[] { 0.92f, 21f, 1.75f, 0.97f, 0.63f, 0.33f, 42f, 0.10f, 0.00f, 0.30f,  0.02f, 0.86f, 0.80f, 0.70f, 1.22f, 0.55f, 1.18f } },
-            { "Luxury",  new[] { 0.95f, 18f, 0.95f, 0.98f, 0.64f, 0.50f, 32f, 0.00f, 0.00f, 0.30f,  0.01f, 0.96f, 0.80f, 0.72f, 1.18f, 0.65f, 1.15f } },
-            { "Classic", new[] { 0.95f, 21f, 1.20f, 0.98f, 0.65f, 0.40f, 40f, 0.05f, 0.00f, 0.30f,  0.00f, 0.95f, 0.92f, 0.90f, 1.05f, 0.85f, 1.05f } },
-            { "FWD",     new[] { 0.97f, 17f, 0.90f, 1.00f, 0.66f, 0.50f, 34f, 0.00f, 0.00f, 0.35f, -0.02f, 0.98f, 0.88f, 0.85f, 1.10f, 0.75f, 1.08f } },
-            { "Street",  new[] { 0.95f, 19f, 1.05f, 1.00f, 0.66f, 0.45f, 36f, 0.05f, 0.00f, 0.35f, -0.01f, 0.95f, 0.85f, 0.82f, 1.12f, 0.70f, 1.12f } },
-            { "Heavy",   new[] { 0.92f, 17f, 0.90f, 0.95f, 0.62f, 0.55f, 30f, 0.00f, 0.00f, 0.30f,  0.00f, 0.90f, 0.82f, 0.80f, 1.15f, 0.60f, 1.18f } },
-            { "Rally",   new[] { 0.95f, 22f, 1.05f, 1.03f, 0.68f, 0.40f, 46f, 0.15f, 0.00f, 0.45f, -0.01f, 0.95f, 0.85f, 0.85f, 1.25f, 0.70f, 1.10f } },
+            { "Super",   new[] { 1.02f, 11f, 0.90f, 1.00f, 0.62f, 0.55f, 30f, 0.00f, 0.45f, 0.40f, -0.03f, 1.05f, 0.95f, 0.95f, 1.00f, 0.90f, 1.04f } },
+            { "AWD",     new[] { 1.00f, 11.5f, 0.70f, 1.00f, 0.65f, 0.50f, 32f, 0.00f, 0.20f, 0.40f, -0.02f, 1.00f, 0.92f, 0.90f, 1.05f, 0.80f, 1.04f } },
+            { "Sports",  new[] { 0.97f, 12f, 1.15f, 1.02f, 0.66f, 0.40f, 38f, 0.05f, 0.15f, 0.35f, -0.02f, 1.00f, 0.90f, 0.88f, 1.08f, 0.75f, 1.04f } },
+            { "Tuner",   new[] { 0.96f, 12.5f, 1.20f, 1.05f, 0.68f, 0.35f, 44f, 0.10f, 0.10f, 0.35f, -0.02f, 1.00f, 0.92f, 0.90f, 1.05f, 0.80f, 1.04f } },
+            { "Drift",   new[] { 0.93f, 14f, 1.30f, 1.20f, 0.72f, 0.25f, 60f, 0.35f, 0.05f, 0.35f, -0.01f, 0.97f, 0.95f, 0.92f, 1.00f, 0.85f, 1.04f } },
+            { "Muscle",  new[] { 0.92f, 14f, 1.75f, 0.97f, 0.63f, 0.33f, 42f, 0.10f, 0.00f, 0.30f, 0.02f, 0.86f, 0.80f, 0.70f, 1.22f, 0.55f, 1.04f } },
+            { "Luxury",  new[] { 0.95f, 12f, 0.95f, 0.98f, 0.64f, 0.50f, 32f, 0.00f, 0.00f, 0.30f, 0.01f, 0.96f, 0.80f, 0.72f, 1.18f, 0.65f, 1.04f } },
+            { "Classic", new[] { 0.95f, 14f, 1.20f, 0.98f, 0.65f, 0.40f, 40f, 0.05f, 0.00f, 0.30f, 0.00f, 0.95f, 0.92f, 0.90f, 1.05f, 0.85f, 1.04f } },
+            { "FWD",     new[] { 0.97f, 11f, 0.90f, 1.00f, 0.66f, 0.50f, 34f, 0.00f, 0.00f, 0.35f, -0.02f, 0.98f, 0.88f, 0.85f, 1.10f, 0.75f, 1.04f } },
+            { "Street",  new[] { 0.95f, 12.5f, 1.05f, 1.00f, 0.66f, 0.45f, 36f, 0.05f, 0.00f, 0.35f, -0.01f, 0.95f, 0.85f, 0.82f, 1.12f, 0.70f, 1.04f } },
+            { "Heavy",   new[] { 0.92f, 12f, 0.90f, 0.95f, 0.62f, 0.55f, 30f, 0.00f, 0.00f, 0.30f, 0.00f, 0.90f, 0.82f, 0.80f, 1.15f, 0.60f, 1.04f } },
+            { "Rally",   new[] { 0.95f, 13.5f, 1.05f, 1.03f, 0.68f, 0.40f, 46f, 0.15f, 0.00f, 0.45f, -0.01f, 0.95f, 0.85f, 0.85f, 1.25f, 0.70f, 1.04f } },
         };
 
         public Profile For(Vehicle car)
@@ -130,12 +130,12 @@ namespace MidnightClub.Vehicles
                 if (ini == null)
                 {
                     ini = ScriptSettings.Load(file);
-                    if (ini.GetValue("_meta", "Version", 0) < 3)
+                    if (ini.GetValue("_meta", "Version", 0) < 4)
                     {
                         // 0.21: new GTA VI-style base tuning; old per-model values would override it
                         try { if (File.Exists(file)) File.Copy(file, file + ".v1.bak", true); File.Delete(file); } catch { }
-                        ini = ScriptSettings.Load(file); ini.SetValue("_meta", "Version", 3); ini.Save();
-                        Log.Info("simcade.ini reset for the GTA VI-style tuning (old file kept as simcade.ini.v1.bak)");
+                        ini = ScriptSettings.Load(file); ini.SetValue("_meta", "Version", 4); ini.Save();
+                        Log.Info("simcade.ini reset for the 0.38 tyre model (old file kept as simcade.ini.v1.bak)");
                     }
                 }
                 string sec = Name(car);
@@ -165,7 +165,7 @@ namespace MidnightClub.Vehicles
         private void Apply(Vehicle car, Profile p, float compound, bool simcade, OwnedVehicle tune)
         {
             int hash = car.Model.Hash;
-            string tk = (simcade ? "S" : "-") + Setup.Key(tune);
+            string tk = (simcade ? "S" : "-") + (Drivetrain.Enabled ? "D" : "") + Setup.Key(tune) + "|" + Function.Call<int>(Hash.GET_VEHICLE_MOD, car, 13) + (tune != null && tune.Toggles != null && tune.Toggles.Contains(18) ? "T" : "");
             if (appliedModel == hash && appliedCompound == compound && appliedTune == tk) return;
             Restore();
             var h = car.HandlingData; if (h == null || !h.IsValid) return;
@@ -173,7 +173,8 @@ namespace MidnightClub.Vehicles
                 SForce = h.SuspensionForce, SComp = h.SuspensionCompressionDamping, SReb = h.SuspensionReboundDamping, SUp = h.SuspensionUpperLimit, SLow = h.SuspensionLowerLimit,
                 Arb = h.AntiRollBarForce, RollF = h.RollCenterHeightFront, RollR = h.RollCenterHeightRear, Inertia = h.InertiaMultiplier,
                 BiasT = h.TractionBiasFront, BiasB = h.BrakeBiasFront, Raise = h.SuspensionRaise, FlatVel = h.InitialDriveMaxFlatVelocity, DriveF = h.InitialDriveForce,
-                Mass = h.Mass, DriveBias = h.DriveBiasFront, ArbBias = h.AntiRollBarBiasFront, SuspBias = h.SuspensionBiasFront, TLoss = h.TractionLossMultiplier };
+                Mass = h.Mass, DriveBias = h.DriveBiasFront, ArbBias = h.AntiRollBarBiasFront, SuspBias = h.SuspensionBiasFront, TLoss = h.TractionLossMultiplier,
+                MaxVel = h.InitialDriveMaxVelocity, DriveInertia = h.DriveInertia, ClutchUp = h.ClutchChangeRateScaleUpShift, ClutchDown = h.ClutchChangeRateScaleDownShift, Gears = h.InitialDriveGears };
             float k = simcade ? cfg.SimcadeIntensity : 0f;
             float grip = 1f + (p.Grip * compound - 1f) * k;
             h.TractionCurveMax = s.TMax * grip;
@@ -195,7 +196,16 @@ namespace MidnightClub.Vehicles
             h.InertiaMultiplier = s.Inertia * (1f + (p.Inertia - 1f) * wgt);
             h.TractionBiasFront = s.BiasT; h.BrakeBiasFront = s.BiasB; h.SuspensionRaise = s.Raise; h.InitialDriveMaxFlatVelocity = s.FlatVel; h.InitialDriveForce = s.DriveF;
             h.Mass = s.Mass; h.DriveBiasFront = s.DriveBias; h.AntiRollBarBiasFront = s.ArbBias; h.SuspensionBiasFront = s.SuspBias; h.TractionLossMultiplier = s.TLoss;
+            h.InitialDriveMaxVelocity = s.MaxVel; h.DriveInertia = s.DriveInertia; h.ClutchChangeRateScaleUpShift = s.ClutchUp; h.ClutchChangeRateScaleDownShift = s.ClutchDown; h.InitialDriveGears = s.Gears;
+            // a touch more front grip in the balance: GTA cars push wide with softer, heavier simcade suspension
+            if (simcade && s.DriveBias < 0.9f) h.TractionBiasFront = Math.Min(0.6f, s.BiasT + 0.025f * k);
             if (tune != null) Setup.Apply(h, tune);
+            if (simcade && Drivetrain.Enabled)
+            {
+                var info = registry.Get(hash);
+                var spec = Drivetrain.For(car, info, p.Archetype, p.Year, tune != null && tune.Toggles != null && tune.Toggles.Contains(18));
+                Drivetrain.ApplyHandling(h, spec, tune, info, h.InitialDriveMaxFlatVelocity, s.DriveInertia, s.ClutchUp, s.ClutchDown, Function.Call<int>(Hash.GET_VEHICLE_MOD, car, 13));
+            }
             appliedModel = hash; appliedCompound = compound; appliedTune = tk;
         }
 
@@ -214,10 +224,12 @@ namespace MidnightClub.Vehicles
                   h.SuspensionForce = s.SForce; h.SuspensionCompressionDamping = s.SComp; h.SuspensionReboundDamping = s.SReb; h.SuspensionUpperLimit = s.SUp; h.SuspensionLowerLimit = s.SLow;
                   h.AntiRollBarForce = s.Arb; h.RollCenterHeightFront = s.RollF; h.RollCenterHeightRear = s.RollR; h.InertiaMultiplier = s.Inertia;
                   h.TractionBiasFront = s.BiasT; h.BrakeBiasFront = s.BiasB; h.SuspensionRaise = s.Raise; h.InitialDriveMaxFlatVelocity = s.FlatVel; h.InitialDriveForce = s.DriveF;
-                  h.Mass = s.Mass; h.DriveBiasFront = s.DriveBias; h.AntiRollBarBiasFront = s.ArbBias; h.SuspensionBiasFront = s.SuspBias; h.TractionLossMultiplier = s.TLoss; }
+                  h.Mass = s.Mass; h.DriveBiasFront = s.DriveBias; h.AntiRollBarBiasFront = s.ArbBias; h.SuspensionBiasFront = s.SuspBias; h.TractionLossMultiplier = s.TLoss;
+                  h.InitialDriveMaxVelocity = s.MaxVel; h.DriveInertia = s.DriveInertia; h.ClutchChangeRateScaleUpShift = s.ClutchUp; h.ClutchChangeRateScaleDownShift = s.ClutchDown; h.InitialDriveGears = s.Gears; }
             }
             catch (Exception ex) { Log.Error("Simcade restore", ex); }
             appliedModel = 0; appliedCompound = -1f; appliedTune = null;
+            Drivetrain.Off();
         }
 
         // ------------------------------------------------------------------ live assists
@@ -234,6 +246,12 @@ namespace MidnightClub.Vehicles
                 var p = For(car); Current = cfg.SimcadeEnabled ? p : null;
                 Apply(car, p, cfg.SimcadeEnabled ? (float)Math.Round(FitmentManager.CompoundGrip[Math.Max(0, Math.Min(4, rec.TyreCompound))] * WorldSim.Weather.GripMult * 50f) / 50f : 1f, cfg.SimcadeEnabled, rec);
                 if (cfg.SimcadeEnabled) Assists(car, p);
+                if (Drivetrain.Enabled)
+                {
+                    var spec = Drivetrain.For(car, registry.Get(car.Model.Hash), p.Archetype, p.Year, rec.Toggles != null && rec.Toggles.Contains(18));
+                    Drivetrain.Tick(car, spec, rec, cfg.InversePower, Math.Min(0.05f, Game.LastFrameTime));
+                }
+                else Drivetrain.Off();
             }
             catch (Exception ex) { Log.Error("Simcade", ex); cfg.SimcadeEnabled = false; Restore(); }
         }
@@ -268,7 +286,7 @@ namespace MidnightClub.Vehicles
             var wv = car.WorldRotationVelocity;
             // anti-spin: past the car's spin angle, damp the yaw that is making the slide worse
             float spin = p.SpinAngle;
-            if (abs > spin * 0.75f)
+            if (cfg.SimcadeStability > 0.3f && abs > spin * 0.75f)
             {
                 bool worsening = Math.Sign(wv.Z) == -Math.Sign(slip);   // nose rotating away from the direction of travel
                 float over = Math.Min(1f, (abs - spin * 0.75f) / (spin * 0.5f));
@@ -277,9 +295,7 @@ namespace MidnightClub.Vehicles
             }
             float throttle = Function.Call<float>(Hash.GET_CONTROL_NORMAL, 0, (int)Control.VehicleAccelerate);
             var nv = v;
-            // drift sustain: while sliding on throttle, scrub less speed
-            if (p.DriftSustain > 0f && abs > 12f && abs < spin && throttle > 0.3f && speed > 8f)
-                nv += Vector3.Normalize(v) * (p.DriftSustain * k * 1.2f * throttle * dt);
+            // (no drift sustain: holding a slide comes from the drivetrain - inverse power + differential)
             // downforce: grows with speed squared
             if (p.Downforce > 0f && speed > 25f)
                 nv += new Vector3(0, 0, -p.Downforce * k * 3.5f * (speed / 60f) * (speed / 60f) * dt);

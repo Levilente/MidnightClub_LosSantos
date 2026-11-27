@@ -157,7 +157,9 @@ namespace MidnightClub.UI
             Box("spd_frame", 0f, 0f, RefW, RefH, Color.White);
             int step = Math.Max(0, Math.Min(50, (int)Math.Round(rpmShown * 50f))) * 2;
             Box("spd_rev_" + step.ToString("000"), 0f, 0f, RefW, RefH, Color.White);
-            int rpmNum = (int)Math.Round(rpmShown * 9000f / 100f) * 100;
+            var dts = Vehicles.Drivetrain.Current;
+            float rpmReal = dts != null ? dts.Idle + Math.Max(0f, Math.Min(1f, (rpmShown - 0.2f) / 0.8f)) * (dts.Redline - dts.Idle) : rpmShown * 9000f;
+            int rpmNum = (int)Math.Round(rpmReal / 100f) * 100;
             string rpmTxt = rpmNum.ToString();
             Glyphs("gs", rpmTxt, 195f, 57f, 2, RevRed);
             float tw = 0f; foreach (char ch in rpmTxt) tw += GAdv("gs", ch);

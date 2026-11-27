@@ -1,4 +1,12 @@
 # Changelog
+## 0.38.0 (2026-11-27): real drivetrain, drift physics
+- **Less understeer**: tyre peak slip angles brought down to real-tyre values (11-14° instead of 18-24°, which made every car lazy to turn in), rotational inertia capped, a touch more front grip in the balance. simcade.ini is reset once (old file kept as simcade.ini.v1.bak).
+- **No artificial assists in Simulation**: the anti-spin yaw damper only runs in Arcade / Simcade; the old "drift sustain" push is gone everywhere.
+- **Inverse power** (setting, on by default): GTA cuts drive force when the car is sideways; that cut is given back on the driven axle, scaled by throttle, gear and the slide angle, so drifts are held on the throttle like in real life.
+- **Differential model**: acceleration lock (race diff tuning, or the car's stock LSD / open diff) decides power oversteer: a locked rear axle breaks both tyres loose together, an open diff loses drive to the inside wheel in hard corners. Deceleration lock decides whether the car turns in or stays calm when you lift.
+- **Real drivetrain** (setting, on by default): every car gets a gearbox fitting its era (4 / 5 / 6 speeds), real ratios, final drive, redline and tyre radius, and a torque curve (NA high-rev, turbo plateau, big-block muscle, classic, diesel-like heavy). GTA's flat-velocity limiter and hard speed cap are moved out of the way: top speed now comes from power against drag. Engine inertia and shift speed per car (old automatics slow, modern dual-clutch quick; transmission upgrades shift faster). The speedometer shows real rpm.
+- **Gearbox upgrades**: Race gearbox = final drive (shorter: more force, lower top speed). New **Full race gearbox** (needs the race gearbox): a ratio for every gear, tuned in Hub > Garage > Tuning setup > Gear ratios.
+
 ## 0.37.0 (2026-11-27): new launcher, new logo
 - **Launcher 2.0** (MidnightClubLauncher.exe): a modern glass app in the mod's design language: real frosted-glass cards over a city backdrop, light / dark / auto theme (follows the mod's Theme setting, Auto follows Windows), rounded Windows 11 window, Barlow fonts, Lucide icons.
   - **Play**: big Play Midnight Club / Story Mode buttons, system check (GTA V Enhanced, Script Hook V, ScriptHookVDotNet, MidnightClub.dll, settings file) and your career at a glance (cash, REP, story chapter, last played).

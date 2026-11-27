@@ -2,6 +2,12 @@
 
 Tick items off or note what happened. Logs: `scripts\MidnightClub\MidnightClub.log` and `ScriptHookVDotNet.log`; Claude can read them from the game folder.
 
+## 0.38.0
+- Simulation driving model: turn-in is sharper, no hidden yaw damping; a RWD car with throttle can be held in a drift (counter-steer + throttle). Toggle Inverse power off to feel the difference.
+- Race diff at high acceleration lock: power oversteer; low lock: inside wheel spins in tight corners.
+- Real drivetrain: each car pulls through its gears and keeps accelerating past GTA's old limiter speed until drag wins; the RPM readout follows the car's redline. MidnightClub.log lists each car's gearbox ("Drivetrain ...").
+- Workshop > Performance > Drivetrain: Full race gearbox; Tuning setup > Gear ratios shows each gear's ratio.
+
 ## 0.36.0
 - Settings > Display > Theme: Auto / Dark / Light switches every screen live; text readable in both.
 - Rounded corners: no seams or double-dark edges between corner pieces and panel bodies (1080p and 1440p).

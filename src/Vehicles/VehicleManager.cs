@@ -139,8 +139,9 @@ namespace MidnightClub.Vehicles
         {
             var v = Current; var r = CurrentRecord;
             if (v == null || r == null || !v.Exists()) return;
-            float pw = 1f + 0.06f * r.EcuLevel + Setup.PowerBonus(r, v) + Setup.SwapPower(r.EngineSound);
-            if (pw > 1.001f) Function.Call(Hash.SET_VEHICLE_CHEAT_POWER_INCREASE, v, pw);   // ECU tune: +6 % power per stage
+            float pw = (1f + 0.06f * r.EcuLevel + Setup.PowerBonus(r, v) + Setup.SwapPower(r.EngineSound)) * (Drivetrain.Current != null ? Drivetrain.TorqueMult : 1f);
+            bool boosted = Gameplay.Abilities.NosActive || (Gameplay.StyleSystem.Instance != null && Gameplay.StyleSystem.Instance.Slipstreaming);
+            if (!boosted && (Math.Abs(pw - 1f) > 0.001f || Drivetrain.Current != null)) Function.Call(Hash.SET_VEHICLE_CHEAT_POWER_INCREASE, v, pw);   // ECU (+6 %/stage), parts, torque curve
             var p = v.Position;
             if (hasLastPos)
             {

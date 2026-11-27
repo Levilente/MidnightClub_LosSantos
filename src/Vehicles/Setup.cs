@@ -19,7 +19,7 @@ namespace MidnightClub.Vehicles
         {
             I("Tyres", "Front pressure", null, v => (30f + v * 0.4f).ToString("0.0") + " psi"),
             I("Tyres", "Rear pressure", null, v => (30f + v * 0.4f).ToString("0.0") + " psi"),
-            I("Gearing", "Final drive", "gearbox", v => (3.55f - v * 0.07f).ToString("0.00") + " : 1"),
+            I("Gearing", "Final drive", "gearbox", v => ((Drivetrain.Current != null ? Drivetrain.Current.Final : 3.55f) * (1f - 0.02f * v)).ToString("0.00") + " : 1"),
             I("Alignment", "Front camber", "springs", v => (-1.0f + v * 0.25f).ToString("0.0") + "°"),
             I("Alignment", "Rear camber", "springs", v => (-0.8f + v * 0.2f).ToString("0.0") + "°"),
             I("Alignment", "Front toe", "springs", v => (v * 0.05f).ToString("+0.00;-0.00;0.00") + "°"),
@@ -39,7 +39,21 @@ namespace MidnightClub.Vehicles
             I("Differential", "Deceleration lock", "diff", v => (25 + v * 2.5f).ToString("0") + "%"),
             I("Differential", "Centre balance (AWD)", "diff", v => (65 + v * 3).ToString() + "% rear"),
             I("Steering", "Steering lock", null, v => (38f + v * 1.5f).ToString("0") + "°"),
+            G(1), G(2), G(3), G(4), G(5), G(6),
         };
+        public const int FinalDriveIndex = 2, GearIndex0 = 22;
+        private static Item G(int n)
+        {
+            return I("Gear ratios", "Gear " + n, "gearbox2", v =>
+            {
+                var s = Drivetrain.Current;
+                if (s == null) return (1f - 0.03f * v).ToString("x0.00");
+                if (n > s.Gears) return "-";
+                return (s.Ratios[n - 1] * (1f - 0.03f * v)).ToString("0.00") + " : 1";
+            });
+        }
+        /// <summary>A tuning value (-10..10), 0 when the part it needs isn't installed.</summary>
+        public static int TuneValue(OwnedVehicle r, int i) { if (r == null || i < 0 || i >= Count || !Has(r, Items[i].Part)) return 0; return Math.Max(-10, Math.Min(10, Get(r)[i])); }
         private static Item I(string g, string n, string p, Func<int, string> s) { return new Item { Group = g, Name = n, Part = p, Show = s }; }
         public static int Count { get { return Items.Length; } }
 
@@ -49,7 +63,8 @@ namespace MidnightClub.Vehicles
             new Part { Id = "springs", Name = "Race springs & dampers", Desc = "Adjustable coilovers: unlocks springs, ride height, damping and alignment tuning.", Price = 9000, Pi = 8 },
             new Part { Id = "arb", Name = "Race anti-roll bars", Desc = "Adjustable front and rear bars.", Price = 4500, Pi = 4 },
             new Part { Id = "diff", Name = "Race differential", Desc = "Limited-slip diff with adjustable lock (and centre balance on AWD).", Price = 7500, Pi = 6 },
-            new Part { Id = "gearbox", Name = "Race gearbox", Desc = "Adjustable final drive: acceleration or top speed.", Price = 8000, Pi = 6 },
+            new Part { Id = "gearbox", Name = "Race gearbox", Desc = "Adjustable final drive: shorter for acceleration, longer for top speed.", Price = 8000, Pi = 6 },
+            new Part { Id = "gearbox2", Name = "Full race gearbox", Desc = "Dog-box with a ratio for every gear: tune each gear on top of the final drive.", Price = 16000, Pi = 5, Needs = "gearbox" },
             new Part { Id = "brakes", Name = "Race brake kit", Desc = "Adjustable balance and pressure, better bite.", Price = 6000, Pi = 5 },
             new Part { Id = "aero", Name = "Adjustable aero", Desc = "Splitter and wing with adjustable downforce: grip at speed, costs top speed.", Price = 11000, Pi = 10 },
             new Part { Id = "weight1", Name = "Weight reduction: street", Desc = "-4% weight.", Price = 5000, Pi = 8 },
@@ -79,8 +94,8 @@ namespace MidnightClub.Vehicles
             float pf = V(0), pr = V(1);
             h.TractionCurveMax *= 1f - 0.004f * (pf + pr) - 0.0015f * (pf * pf + pr * pr) / 10f;
             h.TractionBiasFront = Clamp(h.TractionBiasFront - 0.004f * (pf - pr), 0.36f, 0.64f);
-            // gearing
-            h.InitialDriveMaxFlatVelocity *= 1f + 0.025f * V(2); h.InitialDriveForce *= 1f - 0.02f * V(2);
+            // gearing (with the real drivetrain the final drive and gear ratios are applied by Drivetrain)
+            if (!Drivetrain.Enabled) { h.InitialDriveMaxFlatVelocity *= 1f + 0.025f * V(2); h.InitialDriveForce *= 1f - 0.02f * V(2); }
             // alignment: negative camber = more cornering grip, less braking; toe out = sharper turn-in; caster = stability
             float camber = -(V(3) + V(4)) / 2f;
             h.TractionCurveLateral *= 1f - 0.006f * camber; h.TractionCurveMin *= 1f + 0.004f * camber; h.BrakeForce *= 1f - 0.004f * Math.Abs(camber);
@@ -189,7 +204,8 @@ namespace MidnightClub.Vehicles
             switch (i)
             {
                 case 0: case 1: return "Lower pressure: more grip, softer response. Front lower than rear = less understeer.";
-                case 2: return "Shorter (higher number): quicker acceleration. Longer: more top speed.";
+                case 2: return "Shorter (higher number): more force at the wheels, quicker acceleration, lower top speed. Longer: the opposite.";
+                case 22: case 23: case 24: case 25: case 26: case 27: return "Shorter gear (higher number): more pull in that gear, it runs out of revs sooner. The top gear sets the top-speed gearing.";
                 case 3: case 4: return "More negative camber: more cornering grip, a little less braking and straight-line grip.";
                 case 5: return "Toe out: sharper turn-in. Toe in: calmer on the straights.";
                 case 6: return "More caster: more stable at speed, heavier steering.";

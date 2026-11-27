@@ -305,8 +305,8 @@ namespace MidnightClub.Workshops
             m.Add(new MenuItem("Drivetrain", () => menus.Push(PerfCat("Drivetrain", "default", c =>
             {
                 AddModMenu(c, "Transmission", 13, 0.045, "default");
-                c.Add(PartItem("gearbox")); c.Add(PartItem("diff")); c.Add(PartItem("awd")); c.Add(PartItem("rwd"));
-            }))) { Value = () => owned(new[] { "gearbox", "diff", "awd", "rwd" }), Description = () => "Gearbox, differential and drivetrain conversions." });
+                c.Add(PartItem("gearbox")); c.Add(PartItem("gearbox2")); c.Add(PartItem("diff")); c.Add(PartItem("awd")); c.Add(PartItem("rwd"));
+            }))) { Value = () => owned(new[] { "gearbox", "gearbox2", "diff", "awd", "rwd" }), Description = () => "Gearbox, differential and drivetrain conversions." });
             m.Add(new MenuItem("Suspension & chassis", () => menus.Push(PerfCat("Suspension & chassis", "side", c =>
             {
                 AddModMenu(c, "Suspension", 15, 0.03, "side");

@@ -169,8 +169,10 @@ namespace MidnightClub.Phone
             Func<int> curModel = () => { for (int i = 0; i < 3; i++) if (Math.Abs(cfg.SimcadeIntensity - mv[i][0]) < 0.01f && Math.Abs(cfg.SimcadeSteerAssist - mv[i][1]) < 0.01f && Math.Abs(cfg.SimcadeStability - mv[i][2]) < 0.01f) return i; return -1; };
             Action<int> setModel = i => { cfg.SimcadeIntensity = mv[i][0]; cfg.SimcadeSteerAssist = mv[i][1]; cfg.SimcadeStability = mv[i][2]; cfg.SimcadeWeight = mv[i][3]; Config.Save("Simcade", "Intensity", mv[i][0]); Config.Save("Simcade", "SteeringAssist", mv[i][1]); Config.Save("Simcade", "StabilityAssist", mv[i][2]); Config.Save("Simcade", "Weight", mv[i][3]); };
             G(new MenuItem("Driving model", () => setModel((Math.Max(0, curModel()) + 1) % 3)) { Value = () => curModel() < 0 ? "Custom" : models[curModel()], OnAdjust = d => setModel(((curModel() < 0 ? 1 : curModel()) + d + 3) % 3),
-                Description = () => "Arcade: grippy and forgiving. Simcade: weight, roll and era-correct handling with light assists. Simulation: full weight transfer, almost no assists." }, "Driving", "gauge");
+                Description = () => "Arcade: grippy and forgiving. Simcade: weight, roll and era-correct handling with light assists. Simulation: full weight transfer, no anti-spin assist." }, "Driving", "gauge");
             G(flag("Simcade handling", "Enabled", () => cfg.SimcadeEnabled, v => cfg.SimcadeEnabled = v, "Simcade"), "Driving", "car");
+            G(flag("Real drivetrain", "RealDrivetrain", () => cfg.RealDrivetrain, v => cfg.RealDrivetrain = v, "Simcade"), "Driving", "gauge");
+            G(flag("Inverse power", "InversePower", () => cfg.InversePower, v => cfg.InversePower = v, "Simcade"), "Driving", "flame");
             G(num("Handling intensity", "Intensity", () => cfg.SimcadeIntensity, v => cfg.SimcadeIntensity = v, 0f, 1.5f, 0.1f, "Simcade"), "Driving", "sliders-horizontal");
             G(num("Car weight feel", "Weight", () => cfg.SimcadeWeight, v => cfg.SimcadeWeight = v, 0f, 1.5f, 0.1f, "Simcade"), "Driving", "mountain-snow");
             G(num("Steering assist", "SteeringAssist", () => cfg.SimcadeSteerAssist, v => cfg.SimcadeSteerAssist = v, 0f, 1.5f, 0.1f, "Simcade"), "Driving", "route");

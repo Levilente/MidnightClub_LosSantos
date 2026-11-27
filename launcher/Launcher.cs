@@ -243,12 +243,14 @@ namespace MidnightClubLauncher
             float[][] mv = { new[] { 0.7f, 1.4f, 1.5f, 0.6f }, new[] { 1f, 1f, 1f, 1f }, new[] { 1.3f, 0.35f, 0.25f, 1.3f } };
             drive.Items.Add(new Setting
             {
-                Label = "Driving model", Desc = "Arcade: grippy and forgiving. Simcade: weight, roll and era-correct handling. Simulation: full weight transfer, almost no assists.",
+                Label = "Driving model", Desc = "Arcade: grippy and forgiving. Simcade: weight, roll and era-correct handling. Simulation: full weight transfer, no anti-spin assist.",
                 Icon = "car-front", Kind = Kind.Choice, Options = new[] { "Arcade", "Simcade", "Simulation" },
                 GetChoice = c => { for (int i = 0; i < 3; i++) if (Math.Abs(c.GetF("Simcade", "Intensity", 1f) - mv[i][0]) < 0.01f && Math.Abs(c.GetF("Simcade", "SteeringAssist", 1f) - mv[i][1]) < 0.01f && Math.Abs(c.GetF("Simcade", "StabilityAssist", 1f) - mv[i][2]) < 0.01f) return i; return -1; },
                 SetChoice = (c, i) => { c.Set("Simcade", "Intensity", Fs(mv[i][0])); c.Set("Simcade", "SteeringAssist", Fs(mv[i][1])); c.Set("Simcade", "StabilityAssist", Fs(mv[i][2])); c.Set("Simcade", "Weight", Fs(mv[i][3])); }
             });
             drive.Items.Add(T("Simcade", "Enabled", "Simcade handling", "Era-correct weight, roll and grip for every car. Off: GTA's stock handling.", "car-front", true));
+            drive.Items.Add(T("Simcade", "RealDrivetrain", "Real drivetrain", "Real gears, final drive, redline and torque curve per car. No artificial top-speed limit.", "gauge", true));
+            drive.Items.Add(T("Simcade", "InversePower", "Inverse power", "Gives back the drive GTA cuts when you're sideways: hold drifts on the throttle.", "sparkles", true));
             drive.Items.Add(S("Simcade", "Intensity", "Handling intensity", "How strongly the simcade model changes the car.", "gauge", 0f, 1.5f, 0.1f, 1f));
             drive.Items.Add(S("Simcade", "Weight", "Weight feel", "Weight transfer under braking and turning in.", "gauge", 0f, 1.5f, 0.1f, 1f));
             drive.Items.Add(S("Simcade", "SteeringAssist", "Steering assist", "Counter-steer help when the rear steps out.", "gauge", 0f, 1.5f, 0.1f, 1f));
