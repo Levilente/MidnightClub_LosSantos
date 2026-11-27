@@ -73,6 +73,8 @@ namespace MidnightClub.Racing
             for (int i = 0; i < sprints.Count; i += 3)
             {
                 var s = sprints[i];
+                var mo = sprints[(i + 1) % sprints.Count];
+                lib.Races.Add(new RaceDefinition { Id = "moto_" + mo.Id, Name = mo.Name.Replace("Sprint", "").Trim() + " Bike Race", Type = "Moto", Laps = 1, Opponents = Math.Max(3, mo.Opponents - 1), Points = mo.Points, CashReward = (long)(mo.CashReward * 1.2), RepReward = (long)(mo.RepReward * 1.2), RequiredRep = 0, Tier = 1 + (i / 3) % 4 });
                 lib.Races.Add(new RaceDefinition { Id = "elim_" + s.Id, Name = s.Name.Replace("Sprint", "").Trim() + " Elimination", Type = "Elimination", Laps = 1, Opponents = Math.Max(4, s.Opponents), Points = s.Points, CashReward = (long)(s.CashReward * 1.4), RepReward = (long)(s.RepReward * 1.4), RequiredRep = s.RequiredRep, NightOnly = s.NightOnly, Tier = s.Tier });
             }
         }
@@ -134,8 +136,9 @@ namespace MidnightClub.Racing
                 var b = UI.BlipRegistry.Own(World.CreateBlip(r.Start));
                 bool open = Available(r);
                 b.Sprite = BlipSprite.RaceCar; b.IsShortRange = true; b.Scale = 0.8f;
-                b.Color = !open ? BlipColor.White : r.Kind == RaceType.Drift ? BlipColor.Yellow2 : r.Kind == RaceType.TimeTrial ? BlipColor.Blue : r.Kind == RaceType.Rally ? BlipColor.Orange : r.Kind == RaceType.Drag ? BlipColor.Green : BlipColor.Red;
-                if (r.Kind == RaceType.Rally) b.Sprite = BlipSprite.OffRoadRaceFinish;
+                var dsc = r.Discipline;
+                b.Color = !open ? BlipColor.White : dsc == Discipline.Drift ? BlipColor.Yellow2 : r.Kind == RaceType.TimeTrial ? BlipColor.Blue : dsc == Discipline.Offroad ? BlipColor.Orange : dsc == Discipline.Drag ? BlipColor.Green : dsc == Discipline.Bikes ? BlipColor.Blue2 : BlipColor.Red;
+                if (dsc == Discipline.Offroad) b.Sprite = BlipSprite.OffRoadRaceFinish; else if (dsc == Discipline.Bikes) b.Sprite = BlipSprite.RaceBike;
                 b.Name = open ? "Race: " + r.Name : "Race (locked)";
                 blips[r.Id] = b;
             }
@@ -314,6 +317,7 @@ namespace MidnightClub.Racing
         {
             var car = vehicles.Current; var ped = Game.Player.Character;
             if (car == null || !car.Exists()) return;
+            if (r.BikesOnly && !car.Model.IsBike) { UI.Toast.Post("~r~Bike races need a motorcycle.~s~ Two Wheel Fury Motorsport in Del Perro sells them; swap at your garage."); return; }
             if (!string.IsNullOrEmpty(r.Classes) && !r.Classes.Split(',').Any(c => c.Trim().Equals(car.ClassType.ToString(), StringComparison.OrdinalIgnoreCase)))
             { UI.Toast.Post("~r~Wrong car class.~s~ Allowed: " + r.Classes); return; }
             if (champ == null && rivalSpec == null && r.EntryFee > 0 && !money.TrySpend(r.EntryFee, "race", r.Name + " entry", "race-fee:" + r.Id + ":" + saves.Data.RacesStarted))
@@ -364,8 +368,10 @@ namespace MidnightClub.Racing
             string[] tiers = { "D", "C", "B", "A", "S", "X" };
             int ti = Array.IndexOf(tiers, tier); if (r.Kind == RaceType.HeadToHead) ti = Math.Min(5, ti + 1);
             bool bikes = pinfo != null && pinfo.Class == VehicleClass.Motorcycles;
-            var pool = registry.All.Where(v => v.Enabled && (v.Class == VehicleClass.Motorcycles) == bikes && v.Class != VehicleClass.OpenWheel && v.Class != VehicleClass.OffRoad && v.Class != VehicleClass.SUVs)
+            bool dirt = r.Discipline == Discipline.Offroad;
+            var pool = registry.All.Where(v => v.Enabled && (v.Class == VehicleClass.Motorcycles) == bikes && v.Class != VehicleClass.OpenWheel && (dirt ? (v.Class == VehicleClass.OffRoad || v.Class == VehicleClass.SUVs || bikes) : (v.Class != VehicleClass.OffRoad && v.Class != VehicleClass.SUVs)))
                 .Where(v => Math.Abs(Array.IndexOf(tiers, v.Tier) - ti) <= 0).ToList();
+            if (pool.Count < 3 && dirt) pool = registry.All.Where(v => v.Enabled && v.Class == VehicleClass.OffRoad).ToList();
             if (pool.Count < 3) pool = registry.All.Where(v => v.Enabled && v.Class == VehicleClass.Sports).ToList();
             var rnd = new Random(saves.Data.RacesStarted * 31 + 7);
             return Enumerable.Range(0, n).Select(_ => pool[rnd.Next(pool.Count)]).ToList();

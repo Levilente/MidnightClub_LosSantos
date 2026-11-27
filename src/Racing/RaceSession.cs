@@ -110,6 +110,7 @@ namespace MidnightClub.Racing
         {
             IntroEnd = Game.GameTime + 4600; CountdownEnd = IntroEnd + 3500; Freeze(true); ShowCheckpoint();
             Active = this;
+            if (Def.Kind == RaceType.Gymkhana) SpawnPillars();
         }
 
         // ------------------------------------------------------------------ per frame
@@ -142,7 +143,8 @@ namespace MidnightClub.Racing
             if (now - StartTime < 900) Countdown(now - StartTime > 0 ? -(now - StartTime) : 0);
             LaunchBoost(now);
             Slipstream();
-            if (Def.Kind == RaceType.Rally) PaceNotes();
+            if (Def.Kind == RaceType.Rally || Def.Kind == RaceType.HillClimb) PaceNotes();
+            if (Def.Kind == RaceType.Gymkhana) Gymkhana(now);
             if (!Player.Finished && Player.Car != null && Player.Car.Exists()) { Recording.Model = Player.Car.Model.Hash; Recording.Record(Player.Car, now - StartTime); }
             if (Rival != null) Rival.Play(now - StartTime);
             DrawSplit(now);
@@ -153,7 +155,7 @@ namespace MidnightClub.Racing
             {
                 float radius = p.Cp == Cps.Count - 1 ? 14f : 13f;
                 if (p.Car.Position.DistanceTo(Cps[p.Cp]) < radius) Advance(p, now);
-                if (Def.Kind == RaceType.Drift) Drift(p.Car);
+                if (Def.Scored) Drift(p.Car);
             }
 
             Takedowns(now);
@@ -306,6 +308,61 @@ namespace MidnightClub.Racing
             UI.Ds.T(s, x + w - UI.Ds.Px(0.01f), y + 0.004f, 0.55f, UI.Ds.A(ahead ? UI.Ds.Lime : UI.Ds.Red, a), UI.Ds.Display, Alignment.Right);
         }
 
+        // ------------------------------------------------------------------ gymkhana (Ken Block style)
+        private readonly List<Vector3> pillars = new List<Vector3>(); private readonly List<Prop> pillarProps = new List<Prop>();
+        private int donutPillar = -1; private float donutAcc, lastYaw; private readonly Dictionary<int, int> proxAt = new Dictionary<int, int>();
+        public int Donuts;
+        private void SpawnPillars()
+        {
+            var end = Cps[Cps.Count - 1]; var dir = end - Def.Start; dir.Z = 0; float len = dir.Length(); if (len < 100f) return; dir.Normalize();
+            var right = new Vector3(dir.Y, -dir.X, 0);
+            var m = new Model("prop_roadcone02a"); m.Request(2000);
+            int k = 0;
+            for (float along = 70f; along < len - 50f; along += 75f, k++)
+            {
+                var p = Def.Start + dir * along + right * ((k % 2 == 0) ? 4.5f : -4.5f);
+                float gz; if (World.GetGroundHeight(p + new Vector3(0, 0, 4f), out gz)) p.Z = gz;
+                pillars.Add(p);
+                var pr = World.CreateProp(m, p, false, true); if (pr != null) { pr.IsPersistent = true; Function.Call(Hash.FREEZE_ENTITY_POSITION, pr, true); pillarProps.Add(pr); }
+            }
+            m.MarkAsNoLongerNeeded();
+        }
+        private void Gymkhana(int now)
+        {
+            var car = Player.Car; if (car == null || !car.Exists() || Player.Finished) return;
+            int left = 90000 - (now - StartTime);
+            UI.Ds.T("TIME LEFT  " + Math.Max(0, left / 1000) + "s  ·  DONUTS " + Donuts, 0.5f, 0.04f, 0.32f, left < 15000 ? UI.Ds.Red : UI.Ds.Text, UI.Ds.Display, Alignment.Center);
+            if (left <= 0) { BankDrift(); Player.Finished = true; Player.FinishTime = now - StartTime; Player.Cp = Cps.Count; ClearCheckpoint(); return; }
+            for (int i = 0; i < pillars.Count; i++)
+            {
+                var p = pillars[i]; float pulse = 0.6f + 0.4f * (float)Math.Sin(now / 200.0 + i);
+                Function.Call(Hash.DRAW_MARKER, 1, p.X, p.Y, p.Z - 0.2f, 0f, 0f, 0f, 0f, 0f, 0f, 1.6f, 1.6f, 3.5f, 251, 191, 36, (int)(90 * pulse) + 40, false, false, 2, false, 0, 0, false);
+                Function.Call(Hash.DRAW_MARKER, 25, p.X, p.Y, p.Z + 0.05f, 0f, 0f, 0f, 0f, 0f, 0f, 20f, 20f, 1f, 251, 191, 36, i == donutPillar ? 120 : 45, false, false, 2, false, 0, 0, false);
+            }
+            // nearest pillar
+            int near = -1; float nd = 11f;
+            for (int i = 0; i < pillars.Count; i++) { float d = car.Position.DistanceTo2D(pillars[i]); if (d < nd) { nd = d; near = i; } }
+            float yaw = car.Heading;
+            if (near != donutPillar) { donutPillar = near; donutAcc = 0f; lastYaw = yaw; }
+            else if (near >= 0)
+            {
+                float dy = yaw - lastYaw; if (dy > 180f) dy -= 360f; if (dy < -180f) dy += 360f; lastYaw = yaw;
+                donutAcc += dy;
+                if (Math.Abs(donutAcc) >= 360f)
+                {
+                    donutAcc -= Math.Sign(donutAcc) * 360f; Donuts++;
+                    float pts = 1500f * Math.Max(1f, DriftCombo); DriftScore += pts;
+                    Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "CHECKPOINT_PERFECT", "HUD_MINI_GAME_SOUNDSET", true);
+                    UI.Shard.Mid("DONUT", "+" + ((int)pts).ToString("N0"), UI.Shard.Gold, 1200);
+                }
+            }
+            for (int i = 0; i < pillars.Count; i++)
+            {
+                float d = car.Position.DistanceTo2D(pillars[i]); int t;
+                if (d < 3.2f && car.Speed > 11f && (!proxAt.TryGetValue(i, out t) || now - t > 3000)) { proxAt[i] = now; DriftScore += 300f; UI.Toast.Post("~y~CLOSE CALL~s~  +300"); }
+            }
+        }
+
         // ------------------------------------------------------------------ elimination
         private int nextElim, elimCount;
         public bool PlayerEliminated;
@@ -427,7 +484,8 @@ namespace MidnightClub.Racing
             get
             {
                 switch (Def.Kind) { case RaceType.Circuit: return "CIRCUIT"; case RaceType.TimeTrial: return "TIME TRIAL"; case RaceType.Drift: return "DRIFT"; case RaceType.HeadToHead: return "HEAD TO HEAD"; }
-                return Def.Type == "Rally" ? "RALLY STAGE" : Def.Type == "Drag" ? "DRAG RACE" : Def.Type == "Elimination" ? "ELIMINATION" : "SPRINT";
+                switch (Def.Kind) { case RaceType.Rally: return "RALLY STAGE"; case RaceType.Drag: return "DRAG RACE"; case RaceType.Elimination: return "ELIMINATION"; case RaceType.Offroad: return "TRAIL RACE"; case RaceType.CrossCountry: return "CROSS COUNTRY"; case RaceType.HillClimb: return "HILL CLIMB"; case RaceType.Gymkhana: return "GYMKHANA"; case RaceType.Moto: return "BIKE RACE"; }
+                return "SPRINT";
             }
         }
         private void Intro(int now)
@@ -657,7 +715,7 @@ namespace MidnightClub.Racing
             if (Def.Lapped) { UI.Ds.T("LAP  " + Math.Min(Def.Laps, LapOf(Player)) + " / " + Def.Laps, xr, y, 0.44f, UI.Ds.Text, UI.Ds.Display, Alignment.Right); y += 0.036f; }
             UI.Ds.T(FormatTime(t), xr, y, 0.5f, UI.Ds.Text, UI.Ds.Display, Alignment.Right); y += 0.04f;
             UI.Ds.T("CHECKPOINT  " + Math.Min(Player.Cp + 1, Cps.Count) + " / " + Cps.Count, xr, y, 0.26f, UI.Ds.Muted, UI.Ds.Display, Alignment.Right); y += 0.03f;
-            if (Def.Kind == RaceType.Drift)
+            if (Def.Scored)
             {
                 UI.Ds.T(((long)DriftScore).ToString("N0"), xr, y, 0.6f, UI.Ds.Amber, UI.Ds.Display, Alignment.Right); y += 0.045f;
                 if (driftChain > 0) UI.Ds.T("+" + ((long)PendingDrift).ToString("N0") + "  x" + DriftCombo.ToString("0.0"), xr, y, 0.36f, UI.Ds.Text, UI.Ds.Display, Alignment.Right);
@@ -718,6 +776,8 @@ namespace MidnightClub.Racing
         // ------------------------------------------------------------------ cleanup
         public void Cleanup()
         {
+            foreach (var pr in pillarProps) try { if (pr.Exists()) pr.Delete(); } catch { }
+            pillarProps.Clear();
             if (Rival != null) Rival.Delete();
             if (finStart >= 0) EndCinematic();
             if (introCam != null) { Function.Call(Hash.RENDER_SCRIPT_CAMS, false, false, 0, true, false, 0); try { introCam.Delete(); } catch { } introCam = null; }

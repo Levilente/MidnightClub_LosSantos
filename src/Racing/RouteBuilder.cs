@@ -22,6 +22,7 @@ namespace MidnightClub.Racing
             if (cache.TryGetValue(r.Id, out cached)) return cached;
             var pts = new List<Vector3>();
             foreach (var p in r.Points) pts.Add(new Vector3(p[0], p[1], p[2]));
+            if (r.Kind == RaceType.CrossCountry) { var free = pts.GetRange(1, pts.Count - 1); cache[r.Id] = free; return free; }   // no roads: cut across
             if (r.Lapped) pts.Add(pts[0]);
 
             var all = new List<Vector3>();

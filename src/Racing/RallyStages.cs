@@ -38,7 +38,7 @@ namespace MidnightClub.Racing
             if (l == null) return;
             foreach (var r in l)
             {
-                try { var z = GTA.World.GetZoneLocalizedName(r.Start); if (!string.IsNullOrEmpty(z)) r.Name = z + (r.Type == "Drag" ? " Drag Strip" : " Rally Stage"); } catch { }
+                try { var z = GTA.World.GetZoneLocalizedName(r.Start); if (!string.IsNullOrEmpty(z)) r.Name = z + " " + (r.Type == "Drag" ? "Drag Strip" : r.Type == "Gymkhana" ? "Gymkhana" : r.Type == "Offroad" ? "Trail Race" : r.Type == "HillClimb" ? "Hill Climb" : r.Type == "CrossCountry" ? "Cross Country" : "Rally Stage"); } catch { }
                 races.AddCustom(r);
             }
             Log.Info("Rally stages: " + l.Count);
@@ -49,7 +49,7 @@ namespace MidnightClub.Racing
         {
             var outList = new List<RaceDefinition>();
             var rnd = new Random(1402); int n = RoadGraph.Count; var used = new List<Vector3>();
-            for (int attempt = 0; attempt < 3000 && outList.Count < 5; attempt++)
+            for (int attempt = 0; attempt < 4000 && outList.Count < 8; attempt++)
             {
                 int a = rnd.Next(n); var f = RoadGraph.Flags(a);
                 if ((f & RoadGraph.NodeFlags.Gps) == 0 || (f & (RoadGraph.NodeFlags.Gravel | RoadGraph.NodeFlags.Water | RoadGraph.NodeFlags.Junction)) != 0) continue;
@@ -71,7 +71,10 @@ namespace MidnightClub.Racing
                 }
                 if (!straight || total > L * 1.04f) continue;
                 float h = (float)(Math.Atan2(-dir.X, dir.Y) * 180.0 / Math.PI);
-                outList.Add(new RaceDefinition { Id = "drag_" + outList.Count, Name = "Drag Strip", Type = "Drag", Laps = 1, Opponents = 1, Points = new List<float[]> { new[] { pa.X, pa.Y, pa.Z, h }, new[] { pb.X, pb.Y, pb.Z, 0f } }, CashReward = 3500, RepReward = 140, Tier = 1 });
+                int ix = outList.Count; bool gym = ix >= 5;
+                var pl = new List<float[]> { new[] { pa.X, pa.Y, pa.Z, h }, new[] { pb.X, pb.Y, pb.Z, 0f } };
+                if (gym) outList.Add(new RaceDefinition { Id = "gym_" + (ix - 5), Name = "Gymkhana", Type = "Gymkhana", Laps = 1, Opponents = 0, Points = pl, CashReward = 6000 + 3000 * (ix - 5), RepReward = 220, Tier = 1 + (ix - 5), TargetScore = 14000 + 6000 * (ix - 5) });
+                else outList.Add(new RaceDefinition { Id = "drag_" + ix, Name = "Drag Strip", Type = "Drag", Laps = 1, Opponents = 1, Points = pl, CashReward = 3500 + 2500 * (ix / 2), RepReward = 140 + 60 * (ix / 2), Tier = 1 + ix / 2 });
                 used.Add(pa);
             }
             return outList;
@@ -79,34 +82,87 @@ namespace MidnightClub.Racing
 
         private static List<RaceDefinition> Build()
         {
+            var all = new List<RaceDefinition>();
+            if (!RoadGraph.EnsureLoaded()) return all;
+            all.AddRange(Dirt(4242, 9, 2500f, 6500f, 0.55f, 0f, "Rally", "rally_", 0, 2200, 90));
+            all.AddRange(Dirt(777, 6, 2000f, 4500f, 0.5f, 0f, "Offroad", "offroad_", 5, 2600, 110));
+            all.AddRange(Dirt(9091, 5, 1500f, 4000f, 0.35f, 110f, "HillClimb", "hill_", 0, 2600, 110));
+            all.AddRange(Cross(5150, 5));
+            return all;
+        }
+
+        /// <summary>Dirt / back-road routes. minClimb > 0: the finish must be that many metres above the start.</summary>
+        private static List<RaceDefinition> Dirt(int seed, int count, float minLen, float maxLen, float dirtShare, float minClimb, string type, string prefix, int opponents, int cashPerKm, int repPerKm)
+        {
             var outList = new List<RaceDefinition>();
-            if (!RoadGraph.EnsureLoaded()) return outList;
-            var rnd = new Random(4242); int n = RoadGraph.Count; var used = new List<Vector3>();
-            for (int attempt = 0; attempt < 600 && outList.Count < 8; attempt++)
+            var rnd = new Random(seed); int n = RoadGraph.Count; var used = new List<Vector3>();
+            for (int attempt = 0; attempt < 900 && outList.Count < count; attempt++)
             {
                 int a = rnd.Next(n);
-                if ((RoadGraph.Flags(a) & RoadGraph.NodeFlags.Gravel) == 0) continue;
+                var fa = RoadGraph.Flags(a);
+                if ((fa & (RoadGraph.NodeFlags.Gravel | RoadGraph.NodeFlags.Backroad)) == 0 || (fa & RoadGraph.NodeFlags.Water) != 0) continue;
+                if (minClimb <= 0 && (fa & RoadGraph.NodeFlags.Gravel) == 0) continue;
                 var pa = RoadGraph.Pos(a);
                 if (used.Any(u => u.DistanceTo2D(pa) < 900f)) continue;
-                // a gravel end point 2-4.5 km away
                 int b = -1;
-                for (int k = 0; k < 80; k++) { int c = rnd.Next(n); if ((RoadGraph.Flags(c) & RoadGraph.NodeFlags.Gravel) == 0) continue; float d = RoadGraph.Pos(c).DistanceTo2D(pa); if (d > 2000f && d < 4500f) { b = c; break; } }
+                for (int k = 0; k < 120; k++)
+                {
+                    int c = rnd.Next(n); var fc = RoadGraph.Flags(c);
+                    if ((fc & (RoadGraph.NodeFlags.Gravel | RoadGraph.NodeFlags.Backroad)) == 0) continue;
+                    var pc = RoadGraph.Pos(c); float d = pc.DistanceTo2D(pa);
+                    if (d < minLen * 0.6f || d > maxLen * 0.8f) continue;
+                    if (minClimb > 0 && pc.Z - pa.Z < minClimb) continue;
+                    b = c; break;
+                }
                 if (b < 0) continue;
                 var route = RoadGraph.RouteRally(pa, RoadGraph.Pos(b));
                 if (route == null || route.Count < 20) continue;
                 float len = 0; for (int i = 1; i < route.Count; i++) len += route[i].DistanceTo(route[i - 1]);
-                if (len < 2500f || len > 6500f) continue;
+                if (len < minLen || len > maxLen) continue;
                 int dirt = 0; foreach (var p in route) { int idx = RoadGraph.NearestIndex(p); if (idx >= 0 && (RoadGraph.Flags(idx) & (RoadGraph.NodeFlags.Gravel | RoadGraph.NodeFlags.Backroad)) != 0 && (RoadGraph.Flags(idx) & RoadGraph.NodeFlags.Freeway) == 0) dirt++; }
-                if (dirt < route.Count * 0.55f) continue;
-                // via points every ~300 m so the race router follows this exact line
+                if (dirt < route.Count * dirtShare) continue;
                 var pts = new List<float[]>(); float acc = 0;
                 float h0 = (float)(Math.Atan2(-(route[3].X - route[0].X), route[3].Y - route[0].Y) * 180.0 / Math.PI);
                 pts.Add(new[] { route[0].X, route[0].Y, route[0].Z, h0 });
                 for (int i = 1; i < route.Count - 1; i++) { acc += route[i].DistanceTo(route[i - 1]); if (acc >= 300f) { pts.Add(new[] { route[i].X, route[i].Y, route[i].Z, 0f }); acc = 0; } }
                 var last = route[route.Count - 1]; pts.Add(new[] { last.X, last.Y, last.Z, 0f });
-                string name = Names[outList.Count % Names.Length];
-                float km = len / 1000f;
-                outList.Add(new RaceDefinition { Id = "rally_" + outList.Count, Name = name + " Stage", Type = "Rally", Laps = 1, Opponents = 0, Points = pts, CashReward = (long)(km * 2200), RepReward = (long)(km * 90), Tier = 2, RequiredRep = 0 });
+                float km = len / 1000f; int tier = 1 + outList.Count * 4 / Math.Max(1, count);
+                outList.Add(new RaceDefinition { Id = prefix + outList.Count, Name = type, Type = type, Laps = 1, Opponents = opponents, Points = pts, CashReward = (long)(km * cashPerKm * (1 + 0.25 * (tier - 1))), RepReward = (long)(km * repPerKm), Tier = tier, RequiredRep = 0 });
+                used.Add(pa);
+            }
+            return outList;
+        }
+
+        /// <summary>Cross country (Forza Horizon): far-apart checkpoints on dirt with no road to follow; cut across the terrain.</summary>
+        private static List<RaceDefinition> Cross(int seed, int count)
+        {
+            var outList = new List<RaceDefinition>();
+            var rnd = new Random(seed); int n = RoadGraph.Count; var used = new List<Vector3>();
+            for (int attempt = 0; attempt < 2000 && outList.Count < count; attempt++)
+            {
+                int a = rnd.Next(n); if ((RoadGraph.Flags(a) & RoadGraph.NodeFlags.Gravel) == 0) continue;
+                var pa = RoadGraph.Pos(a); if (used.Any(u => u.DistanceTo2D(pa) < 1500f)) continue;
+                var pts = new List<float[]>(); var cur = pa; double heading = rnd.NextDouble() * Math.PI * 2;
+                bool ok = true;
+                for (int k = 0; k < 6 && ok; k++)
+                {
+                    int found = -1;
+                    for (int t = 0; t < 60; t++)
+                    {
+                        double ang = heading + (rnd.NextDouble() - 0.5) * 1.4; float dist = 450f + (float)rnd.NextDouble() * 350f;
+                        var target = cur + new Vector3((float)Math.Cos(ang) * dist, (float)Math.Sin(ang) * dist, 0);
+                        int c = RoadGraph.Nearest(target, 120f);
+                        if (c < 0 || (RoadGraph.Flags(c) & (RoadGraph.NodeFlags.Gravel | RoadGraph.NodeFlags.Backroad)) == 0 || (RoadGraph.Flags(c) & RoadGraph.NodeFlags.Water) != 0) continue;
+                        var pc = RoadGraph.Pos(c); if (Math.Abs(pc.Z - cur.Z) > 90f || pc.DistanceTo2D(cur) < 350f) continue;
+                        found = c; heading = Math.Atan2(pc.Y - cur.Y, pc.X - cur.X); break;
+                    }
+                    if (found < 0) { ok = false; break; }
+                    if (pts.Count == 0) { float h0 = (float)(Math.Atan2(-(Math.Cos(heading)), Math.Sin(heading)) * 180.0 / Math.PI); pts.Add(new[] { cur.X, cur.Y, cur.Z, (float)(Math.Atan2(-Math.Cos(heading), Math.Sin(heading)) * 180.0 / Math.PI) }); }
+                    cur = RoadGraph.Pos(found); pts.Add(new[] { cur.X, cur.Y, cur.Z, 0f });
+                }
+                if (!ok || pts.Count < 5) continue;
+                int tier = 1 + outList.Count * 4 / count;
+                outList.Add(new RaceDefinition { Id = "xc_" + outList.Count, Name = "Cross Country", Type = "CrossCountry", Laps = 1, Opponents = 5, Points = pts, CashReward = 9000 + 3000 * tier, RepReward = 350, Tier = tier });
                 used.Add(pa);
             }
             return outList;
