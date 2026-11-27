@@ -183,7 +183,7 @@ namespace MidnightClub.UI
         { if (c.A > 2) new TextElement(s ?? "", new PointF(x * 1280f, y * 720f), Eff(scale), c, f, a, false, false, wrap * 1280f).ScaledDraw(); }
 
         /// <summary>Offset from a text's draw y to the visual middle of its capitals, per font (measured in game).</summary>
-        public static float MidOffset(float scale, Font f) { return Eff(scale) * (f == Display ? 0.042f : 0.05f); }
+        public static float MidOffset(float scale, Font f) { float e = Eff(scale); return f == Display ? (2.05f + 32.9f * e) / 1080f : (2.25f + 35.2f * e) / 1080f; }   // measured in game (text calibration card)
         /// <summary>Text vertically centred on cy.</summary>
         public static void TM(string s, float x, float cy, float scale, Color c, Font f = Body, Alignment a = Alignment.Left)
         { T(s, x, cy - MidOffset(scale, f), scale, c, f, a); }
