@@ -16,7 +16,8 @@ namespace MidnightClub.Economy
     public sealed class TransactionManager
     {
         private readonly SaveManager saves;
-        public TransactionManager(SaveManager saves) { this.saves = saves; }
+        public static TransactionManager Instance { get; private set; }
+        public TransactionManager(SaveManager saves) { this.saves = saves; Instance = this; }
 
         public long Cash { get { return saves.Data == null ? 0 : saves.Data.Cash; } }
         public long Rep { get { return saves.Data == null ? 0 : saves.Data.Rep; } }

@@ -35,6 +35,8 @@ namespace MidnightClub.Vehicles
     /// data\vehicles.ini can override price / enabled / dealership / tier per model.</summary>
     public sealed class VehicleRegistry
     {
+        public static VehicleRegistry Instance { get; private set; }
+        public VehicleRegistry() { Instance = this; }
         private readonly Dictionary<int, VehicleInfo> byHash = new Dictionary<int, VehicleInfo>();
         private readonly Dictionary<string, VehicleInfo> byId = new Dictionary<string, VehicleInfo>(StringComparer.OrdinalIgnoreCase);
         public IEnumerable<VehicleInfo> All { get { return byHash.Values; } }

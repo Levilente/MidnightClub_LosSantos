@@ -35,6 +35,7 @@ namespace MidnightClub.Persistence
         [DataMember] public string LastGarageId;
         [DataMember] public int LastLoginDay, LoginStreak;
         [DataMember] public float BestJumpM;
+        [DataMember] public int Wheelspins, SuperWheelspins;
         [DataMember] public List<KeyValue> Licenses = new List<KeyValue>();   // test index -> medal 1..3
         [DataMember] public int WeeklyId; [DataMember] public List<KeyValue> WeeklyProgress = new List<KeyValue>(); [DataMember] public List<string> WeeklyDone = new List<string>();
         [DataMember] public List<KeyValue> Turf = new List<KeyValue>();   // district id -> control 0..100

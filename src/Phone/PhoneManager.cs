@@ -147,10 +147,12 @@ namespace MidnightClub.Phone
                     Sub("Progress", () => Progression.Instance != null ? Progression.Instance.ProgressMenu() : null, () => Progression.Instance != null ? "Level " + Progression.Instance.Level : ""),
                     Sub("Goals", () => MilestonesMenu != null ? MilestonesMenu() : null, () => saves.Data.MilestonesDone.Count + " / 13"),
                     Sub("Special ability", () => AbilityMenu != null ? AbilityMenu() : null, () => Gameplay.Abilities.Instance != null && Gameplay.Abilities.Instance.Selected != null ? Gameplay.Abilities.Instance.Selected : ""),
+                    Sub("Wheelspins", () => Gameplay.Wheelspin.Menu(saves, Economy.TransactionManager.Instance, Vehicles.VehicleRegistry.Instance, stack, () => { stack.Close(); IsOpen = false; openT = 0f; Effects(false); }), () => (saves.Data.Wheelspins + saves.Data.SuperWheelspins) > 0 ? (saves.Data.Wheelspins + saves.Data.SuperWheelspins) + " to spin" : "None"),
                     Sub("Records", Records, () => saves.Data.RaceHistory.Count(r => r.Position == 1) + " wins"),
                     Sub("Turf war", () => Explore.Turf.Instance != null ? Explore.Turf.Instance.TurfMenu() : null, () => Explore.Turf.Instance != null ? Explore.Turf.Instance.Owned + " / " + Explore.Turf.Districts.Length + " districts" : ""),
                     Sub("Bank", () => menu.Finances(), () => "$" + saves.Data.Cash.ToString("N0")) }),
-                Meta = () => (CareerManager.Instance != null ? "TIER " + CareerManager.Instance.Tier : "") + (Progression.Instance != null ? "  ·  LEVEL " + Progression.Instance.Level : "") });
+                Meta = () => (CareerManager.Instance != null ? "TIER " + CareerManager.Instance.Tier : "") + (Progression.Instance != null ? "  ·  LEVEL " + Progression.Instance.Level : ""),
+                Badge = () => { int n = saves.Data.Wheelspins + saves.Data.SuperWheelspins; return n > 0 ? n.ToString() : null; } });
             apps.Add(new App { Name = "Social", Icon = "social", Accent = Ds.Violet, Open = () => Category("Social", "social", new[] {
                     Sub("Messages", Inbox, () => saves.Data.Messages.Count(m => !m.Read) + " unread"),
                     Sub("Street buzz", NewsApp, null),

@@ -87,7 +87,9 @@ namespace MidnightClub.Career
         {
             saves.Data.LevelRewarded = level;
             var r = Rewards.FirstOrDefault(x => x.Level == level);
-            Shard.Big("LEVEL " + level, r != null ? r.Text : "", Shard.Purple, 5500);
+            bool super = level % 5 == 0;
+            if (super) saves.Data.SuperWheelspins++; else saves.Data.Wheelspins++;
+            Shard.Big("LEVEL " + level, (r != null ? r.Text + "  ·  " : "") + (super ? "SUPER WHEELSPIN" : "WHEELSPIN"), Shard.Purple, 5500);
             if (r != null)
             {
                 if (r.Cash > 0) money.Earn(r.Cash, 0, "level", "Level " + level + " reward", "lvl:" + level);
