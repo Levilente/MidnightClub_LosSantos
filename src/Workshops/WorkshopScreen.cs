@@ -300,7 +300,7 @@ namespace MidnightClub.Workshops
             {
                 c.Add(Toggle("Turbo", 18, Disc(2500 + bp * 8 / 100, 3)));
                 c.Add(PartItem("als"));
-                c.Add(new MenuItem("Nitrous kit", () => menus.Push(Nitrous())) { Value = () => rec.NosLevel == 0 ? "None" : "Stage " + rec.NosLevel, Description = () => "Hold Sprint (keyboard) or the boost button (controller) to fire. Bigger stages: more power, longer burn, faster refill." });
+                c.Add(new MenuItem("Nitrous kit", () => menus.Push(Nitrous())) { Value = () => rec.NosLevel == 0 ? "None" : "Stage " + rec.NosLevel, Description = () => "Hold Shift (keyboard) or RB / R1 (controller) to fire. Bigger stages: more power, longer burn, faster refill." });
             }))) { Value = () => (rec.Toggles != null && rec.Toggles.Contains(18) ? "Turbo" : "N/A") + (rec.NosLevel > 0 ? " + NOS" : ""), Description = () => "Turbo, anti-lag and nitrous." });
             m.Add(new MenuItem("Drivetrain", () => menus.Push(PerfCat("Drivetrain", "default", c =>
             {

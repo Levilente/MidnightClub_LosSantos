@@ -203,8 +203,13 @@ namespace MidnightClub.Cameras
             float x = Game.GetControlValueNormalized(Control.LookLeftRight), y = Game.GetControlValueNormalized(Control.LookUpDown);
             if (Game.LastInputMethod == InputMethod.GamePad)
             {
-                lookYaw += (-x * 160f - lookYaw) * Math.Min(1f, dt * 10f);
-                lookPitch += (-y * 25f - lookPitch) * Math.Min(1f, dt * 10f);
+                // snap look over the whole stick circle (Forza style): up = ahead, right = right, down = behind,
+                // left = left, diagonals in between. Released: back to the front.
+                float mag = (float)Math.Sqrt(x * x + y * y), want = 0f;
+                if (mag > 0.3f) want = -(float)(Math.Atan2(x, -y) * 180.0 / Math.PI);   // GTA: stick up = negative y
+                lookYaw += DeltaAngle(lookYaw, want) * Math.Min(1f, dt * 12f);
+                if (lookYaw > 180f) lookYaw -= 360f; if (lookYaw < -180f) lookYaw += 360f;
+                lookPitch += (0f - lookPitch) * Math.Min(1f, dt * 10f);
                 return;
             }
             if (Math.Abs(x) > 0.02f || Math.Abs(y) > 0.02f)
@@ -278,7 +283,7 @@ namespace MidnightClub.Cameras
             var local = mode == CameraMode.Bumper ? bumperLocal : mode == CameraMode.Hood ? hoodLocal : mode == CameraMode.Roof ? roofLocal : cockpitLocal;
             bool behind = Game.IsControlPressed(Control.VehicleLookBehind);
             float maxLook = mode == CameraMode.Cockpit ? 110f : 70f;
-            float ry = behind ? 180f : Clamp(lookYaw, -maxLook, maxLook);
+            float ry = behind || Math.Abs(lookYaw) > 150f ? 180f : Clamp(lookYaw, -maxLook, maxLook);
             if (mode == CameraMode.Cockpit)
             {
                 if (!driverHidden) { Function.Call(Hash.SET_ENTITY_VISIBLE, ped, false, false); driverHidden = true; hiddenPed = ped.Handle; }
