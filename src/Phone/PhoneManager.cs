@@ -133,6 +133,7 @@ namespace MidnightClub.Phone
                     Sub("My vehicles", () => menu.MyVehicles(), () => saves.Data.Vehicles.Count.ToString()),
                     Sub("Properties", () => menu.GarageList(), () => saves.Data.Garages.Count + " owned"),
                     Sub("Vehicle catalogue", () => menu.Catalogue(), null),
+                    Sub("Tuning setup", () => Vehicles.Tuning.Menu(Vehicles.VehicleManager.Instance, stack, saves), () => Vehicles.VehicleManager.Instance != null && Vehicles.VehicleManager.Instance.CurrentRecord != null && Vehicles.Tuning.Any(Vehicles.VehicleManager.Instance.CurrentRecord.Tune) ? "Custom" : "Stock"),
                     Sub("Photo mode", () => { stack.Close(); IsOpen = false; openT = 0f; Effects(false); Gameplay.PhotoMode.Run(saves, Vehicles.VehicleManager.Instance); return null; }, () => saves.Data.PhotosTaken > 0 ? saves.Data.PhotosTaken + " shots" : "New") }),
                 Meta = () => saves.Data.Vehicles.Count + (saves.Data.Vehicles.Count == 1 ? " CAR" : " CARS") + CurrentCarName() });
             apps.Add(new App { Name = "Dealers", Icon = "dealers", Accent = Ds.Amber, Open = () => menu.DealerList(),
