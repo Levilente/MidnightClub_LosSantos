@@ -252,6 +252,22 @@ namespace MidnightClub.Garages
         }
 
         // ------------------------------------------------------------------ inside
+        /// <summary>The garage the session should start in: the last one you used, else the current car's home.</summary>
+        public GarageDefinition StartGarage()
+        {
+            if (saves.Data == null) return null;
+            var id = saves.Data.LastGarageId; if (id == null || Owned(id) == null) { var cur = CurrentRecord(); id = cur != null ? cur.GarageId : null; }
+            return id != null && Owned(id) != null ? Def(id) : null;
+        }
+
+        /// <summary>Loading into Midnight Club: start inside your last garage, with your cars around you.</summary>
+        public void EnterOnStart(GarageDefinition g)
+        {
+            try { if (g != null && !IsInside) Enter(g); }
+            catch (Exception ex) { Log.Error("Start in garage", ex); }
+            if (!IsInside && Screen.IsFadedOut) Screen.FadeIn(500);
+        }
+
         private void Enter(GarageDefinition g)
         {
             var cur = CurrentRecord();
@@ -272,6 +288,7 @@ namespace MidnightClub.Garages
             if (!saves.Data.Vehicles.Any(v => v.GarageId == g.Id)) { Notify("No cars stored here."); return; }
 
             IsInside = true;
+            saves.Data.LastGarageId = g.Id;
             EventBus.Publish(new GarageEnteredEvent());
             if (Cameras.CameraSystem.Instance != null) Cameras.CameraSystem.Instance.Release();
             var ped = Game.Player.Character;

@@ -46,6 +46,7 @@ namespace MidnightClub.UI
         /// <summary>Draws the icon centred at (cx, cy) (screen fractions), size = icon height as a screen-height fraction.</summary>
         public static void Draw(string id, float cx, float cy, float size, Color c)
         {
+            if (id != null && Textures.Draw("icon_" + id, cx, cy, size, c)) return;
             S[] shapes; if (id == null || !set.TryGetValue(id, out shapes) || c.A == 0) return;
             int resW, resH; Ds.Resolution(out resW, out resH);
             int px = Math.Max(8, (int)Math.Round(size * resH));
@@ -60,6 +61,7 @@ namespace MidnightClub.UI
         public static void Ring(float cx, float cy, float size, float thickness, float progress, Color c)
         {
             progress = Math.Max(0f, Math.Min(1f, progress)); if (progress <= 0.005f) return;
+            if (Textures.Draw("ring_" + ((int)Math.Round(progress * 50) * 2).ToString("000"), cx, cy, size, c)) return;
             int pct = (int)Math.Round(progress * 100);
             string key = "ring:" + pct + ":" + (int)(thickness * 1000);
             S[] shapes;

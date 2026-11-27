@@ -32,6 +32,7 @@ namespace MidnightClub.Persistence
         [DataMember] public int StreetRacesWon;
         [DataMember] public int PhotosTaken;
         [DataMember] public bool ClubMember;
+        [DataMember] public string LastGarageId;
         [DataMember] public List<KeyValue> Turf = new List<KeyValue>();   // district id -> control 0..100
         [DataMember] public List<PhoneMessage> Messages = new List<PhoneMessage>();
         [DataMember] public List<NewsItem> News = new List<NewsItem>();

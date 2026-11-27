@@ -110,6 +110,7 @@ namespace MidnightClub.Phone
             m.Add(flag("HUD", "Show", () => cfg.ShowHud, v => cfg.ShowHud = v, "HUD"));
             m.Add(flag("Welcome screen", "WelcomeScreen", () => cfg.ShowWelcome, v => cfg.ShowWelcome = v, "HUD"));
             m.Add(flag("Always night", "AlwaysNight", () => cfg.AlwaysNight, v => cfg.AlwaysNight = v, "World"));
+            m.Add(flag("Start in your last garage", "StartInGarage", () => cfg.StartInGarage, v => cfg.StartInGarage = v, "Gameplay"));
             m.Add(flag("Rewind (hold R / B)", "Rewind", () => cfg.Rewind, v => cfg.Rewind = v, "Gameplay"));
             m.Add(flag("Police", "Enabled", () => cfg.PoliceEnabled, v => cfg.PoliceEnabled = v, "Police"));
             return m;
@@ -386,9 +387,9 @@ namespace MidnightClub.Phone
             Theme.FullscreenFrame();
             Function.Call(Hash.HIDE_HUD_AND_RADAR_THIS_FRAME);
             float a = Ds.EaseOut(openT);
-            Ds.HGrad(0f, 0f, 1f, 1f, Ds.A(Color.FromArgb(255, 9, 8, 14), 0.92f * a), Ds.A(Color.FromArgb(255, 9, 8, 14), 0.55f * a), 32);
-            Ds.VGrad(0f, 0.82f, 1f, 0.18f, Ds.A(Ds.Bg, 0f), Ds.A(Ds.Bg, 0.8f * a), 12);
-            Ds.Streaks(0f, 0.15f, 1f, 0.7f, Ds.Violet, 0.25f * a, 18, 0.25f);
+            Ds.HGrad(0f, 0f, 1f, 1f, Ds.A(Color.FromArgb(255, 9, 8, 14), 0.92f * a), Ds.A(Color.FromArgb(255, 9, 8, 14), 0.55f * a), 10);
+            Ds.VGrad(0f, 0.82f, 1f, 0.18f, Ds.A(Ds.Bg, 0f), Ds.A(Ds.Bg, 0.8f * a), 6);
+            Ds.Streaks(0f, 0.15f, 1f, 0.7f, Ds.Violet, 0.25f * a, 8, 0.25f);
             // top bar
             float ty = 0.05f - (1f - a) * 0.02f;
             Ds.Logo(X0, ty, 0.95f, a, GTA.UI.Alignment.Left, true);
@@ -420,7 +421,7 @@ namespace MidnightClub.Phone
                 float g = 0.007f * k, x = X0 + c * (CW + GX) - Ds.Px(g), y = 0.2f + r * (CH + GY) - g + (1f - ent) * 0.03f, w = CW + Ds.Px(2 * g), h = CH + 2 * g;
                 if (k > 0.02f) Ds.Rect(x - Ds.Px(0.003f), y - 0.003f, w + Ds.Px(0.006f), h + 0.006f, Ds.A(app.Accent, 0.35f * k * ea));
                 Ds.Rect(x, y, w, h, Ds.A(Color.FromArgb(235, 19, 17, 28), ea));
-                if (k > 0.01f) Ds.VGrad(x, y, w, h, Ds.A(app.Accent, k * ea), Ds.A(Ds.Mix(app.Accent, Color.FromArgb(255, 20, 10, 30), 0.55f), k * ea), 20);
+                if (k > 0.01f) Ds.VGrad(x, y, w, h, Ds.A(app.Accent, k * ea), Ds.A(Ds.Mix(app.Accent, Color.FromArgb(255, 20, 10, 30), 0.55f), k * ea), 10);
                 if (k > 0.5f) Ds.Shine(x, y, w, h, 0f, 3f, ea);
                 Ds.Rect(x, y + h - 0.004f, w, 0.004f, Ds.A(app.Accent, (1f - k) * 0.9f * ea));
                 VectorIcons.Draw(app.Icon, x + Ds.Px(0.065f), y + 0.075f, 0.075f + 0.01f * k, Ds.A(Ds.Mix(app.Accent, Color.White, k), ea));

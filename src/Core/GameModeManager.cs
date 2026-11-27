@@ -102,7 +102,9 @@ namespace MidnightClub.Core
 
                 Vector3 pos; float heading;
                 var gi = Garages != null && data.HasPosition ? Garages.InteriorAt(new Vector3(data.PosX, data.PosY, data.PosZ)) : null;
-                if (gi != null) { pos = gi.SpawnOut.Position; heading = gi.SpawnOut.Heading; Log.Info("Saved position was inside " + gi.Id + "; spawning outside"); }
+                var startGarage = cfg.StartInGarage && Garages != null ? Garages.StartGarage() : null;
+                if (startGarage != null) { pos = startGarage.SpawnOut.Position; heading = startGarage.SpawnOut.Heading; Log.Info("Starting in the last garage: " + startGarage.Id); }
+                else if (gi != null) { pos = gi.SpawnOut.Position; heading = gi.SpawnOut.Heading; Log.Info("Saved position was inside " + gi.Id + "; spawning outside"); }
                 else if (data.HasPosition) { pos = new Vector3(data.PosX, data.PosY, data.PosZ); heading = data.Heading; }
                 else
                 {
@@ -147,7 +149,8 @@ namespace MidnightClub.Core
                 saves.Save();
                 lastAutoSave = Game.GameTime;
                 SetState(GameMode.MIDNIGHT_CLUB);
-                Screen.FadeIn(cfg.TransitionFadeMs);
+                if (startGarage != null && !needCreator) { Script.Wait(0); Garages.EnterOnStart(startGarage); }
+                else Screen.FadeIn(cfg.TransitionFadeMs);
                 Notification.PostTicker(isNew ? "~p~MIDNIGHT CLUB~s~: welcome to the streets. ~b~" + cfg.ToggleKey + "~s~ (or hold ~INPUT_NEXT_CAMERA~ on a controller) returns to Story Mode. Phone: ~INPUT_PHONE~."
                                               : "~p~MIDNIGHT CLUB~s~: welcome back.", true, false);
             }

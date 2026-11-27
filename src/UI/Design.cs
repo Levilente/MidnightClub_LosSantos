@@ -84,6 +84,22 @@ namespace MidnightClub.UI
             if (x1 <= x0) x1 = x0 + 1; if (y1 <= y0) y1 = y0 + 1;
             float cx = (x0 + x1) / 2f / resW, cy = (y0 + y1) / 2f / resH, ww = (x1 - x0) / resW, hh = (y1 - y0) / resH;
             Function.Call(Hash.DRAW_RECT, cx, cy, ww, hh, (int)c.R, (int)c.G, (int)c.B, (int)c.A, false);
+            CountRect();
+        }
+
+        // Draw-budget diagnostics: GTA silently drops script rects past a per-frame limit. DevMode logs the peak.
+        private static int rectFrame = -1, rectCount, rectPeak, rectLogAt;
+        private static void CountRect()
+        {
+            int f = Game.FrameCount;
+            if (f != rectFrame) { if (rectCount > rectPeak) rectPeak = rectCount; rectFrame = f; rectCount = 0; }
+            rectCount++;
+            if (Game.GameTime > rectLogAt && rectPeak > 0)
+            {
+                rectLogAt = Game.GameTime + 15000;
+                if (Core.Config.Current != null && Core.Config.Current.DevMode) Core.Log.Info("UI draw budget: peak " + rectPeak + " rects/frame");
+                rectPeak = 0;
+            }
         }
 
         /// <summary>Sharp panel (the design is deliberately corner-free; kept for call-site compatibility).</summary>
