@@ -205,3 +205,11 @@ Tick items off or note what happened. Logs: `scripts\MidnightClub\MidnightClub.l
 - [ ] Live event card top right after a few minutes; Season shown in the Hub top bar.
 - [ ] Dealers > Auction house: bidding works, car delivered when you win.
 - [ ] Settings > Radio station: station set when getting in a car.
+
+## 0.33.0
+- [ ] Enter Midnight Club: the chase cam is active immediately (no cycling needed). Cycle: Bumper, Hood, Roof, Cockpit, Chase near, Chase far, Action, Game.
+- [ ] Hood / roof cams lean with the body in corners; bumper cam looks at the road.
+- [ ] Chase near/far: FOV opens with speed, camera swings and rolls with lateral G, pulls back under acceleration; matches the Forza feel.
+- [ ] After the welcome screen / lobby / photo mode the custom cam comes back by itself.
+- [ ] No HUD blinking or hitches when street racers / police spawn.
+- [ ] New speedometer: rev arc, coral gear, BOOST row on turbo cars, NOS row with a kit.

@@ -751,11 +751,11 @@ namespace MidnightClub.Racing
             if (Def.HasOpponents)
             {
                 UI.Ds.T(pos.ToString(), xr - UI.Ds.Px(0.055f), y - 0.01f, 1.5f, UI.Ds.Text, UI.Ds.Display, Alignment.Right);
-                UI.Ds.T(Ord(pos), xr - UI.Ds.Px(0.052f), y + 0.012f, 0.42f, UI.Ds.Violet, UI.Ds.Display);
+                UI.Ds.T(Ord(pos), xr - UI.Ds.Px(0.052f), y + 0.012f, 0.42f, Color.FromArgb(255, 255, 92, 102), UI.Ds.Display);
                 UI.Ds.T("/" + Racers.Count, xr, y + 0.05f, 0.42f, UI.Ds.Muted, UI.Ds.Display, Alignment.Right);
                 y += 0.12f;
             }
-            UI.Ds.T(Def.Name.ToUpperInvariant(), xr, y, 0.26f, UI.Ds.Violet, UI.Ds.Display, Alignment.Right); y += 0.026f;
+            UI.Ds.T(Def.Name.ToUpperInvariant(), xr, y, 0.26f, Color.FromArgb(220, 255, 255, 255), UI.Ds.Display, Alignment.Right); y += 0.026f;
             if (Def.Lapped) { UI.Ds.T("LAP  " + Math.Min(Def.Laps, LapOf(Player)) + " / " + Def.Laps, xr, y, 0.44f, UI.Ds.Text, UI.Ds.Display, Alignment.Right); y += 0.036f; }
             UI.Ds.T(FormatTime(t), xr, y, 0.5f, UI.Ds.Text, UI.Ds.Display, Alignment.Right); y += 0.04f;
             UI.Ds.T("CHECKPOINT  " + Math.Min(Player.Cp + 1, Cps.Count) + " / " + Cps.Count, xr, y, 0.26f, UI.Ds.Muted, UI.Ds.Display, Alignment.Right); y += 0.03f;
@@ -776,9 +776,9 @@ namespace MidnightClub.Racing
                     float seg = Math.Max(1f, prev.DistanceTo(Cps[cp])), d = r.Car != null && r.Car.Exists() ? r.Car.Position.DistanceTo(Cps[cp]) : seg;
                     return Math.Max(0f, Math.Min(1f, (cp + Math.Max(0f, 1f - d / seg)) / Cps.Count));
                 };
-                UI.Ds.Rect(px, py, pw * frac(Player), 0.004f, UI.Ds.Violet);
-                foreach (var r in Racers) if (!r.IsPlayer && !r.Out) UI.Ds.Rect(px + pw * frac(r) - UI.Ds.Px(0.003f), py - 0.004f, UI.Ds.Px(0.006f), 0.012f, UI.Ds.Pink);
-                UI.Ds.Rect(px + pw * frac(Player) - UI.Ds.Px(0.005f), py - 0.007f, UI.Ds.Px(0.01f), 0.018f, Color.White);
+                UI.Ds.Rect(px, py, pw * frac(Player), 0.004f, Color.White);
+                foreach (var r in Racers) if (!r.IsPlayer && !r.Out) UI.Ds.Rect(px + pw * frac(r) - UI.Ds.Px(0.003f), py - 0.004f, UI.Ds.Px(0.006f), 0.012f, Color.FromArgb(200, 255, 255, 255));
+                UI.Ds.Rect(px + pw * frac(Player) - UI.Ds.Px(0.005f), py - 0.007f, UI.Ds.Px(0.01f), 0.018f, Color.FromArgb(255, 255, 92, 102));
             }
             // standings tower (left)
             if (Def.HasOpponents && Racers.Count > 1)
@@ -787,7 +787,7 @@ namespace MidnightClub.Racing
                 for (int i = 0; i < order.Count && i < 8; i++)
                 {
                     var r = order[i]; bool me = r.IsPlayer;
-                    UI.Ds.Rect(x, ty + i * rh, w, rh - 0.003f, me ? UI.Ds.A(UI.Ds.Violet, 0.92f) : UI.Ds.A(UI.Ds.Bg, 0.72f));
+                    UI.Ds.Rect(x, ty + i * rh, w, rh - 0.003f, me ? Color.FromArgb(235, 255, 92, 102) : UI.Ds.A(UI.Ds.Bg, 0.6f));
                     UI.Ds.Rect(x, ty + i * rh, UI.Ds.Px(0.026f), rh - 0.003f, me ? UI.Ds.A(Color.White, 0.18f) : UI.Ds.A(UI.Ds.Surface2, 0.9f));
                     UI.Ds.T((i + 1).ToString(), x + UI.Ds.Px(0.013f), ty + i * rh + 0.004f, 0.3f, Color.White, UI.Ds.Display, Alignment.Center);
                     UI.Ds.T(UI.Ds.Fit((me ? "YOU" : r.Name).ToUpperInvariant(), 0.28f, w - UI.Ds.Px(0.09f), UI.Ds.Display), x + UI.Ds.Px(0.034f), ty + i * rh + 0.005f, 0.28f, me ? Color.White : UI.Ds.Text, UI.Ds.Display);

@@ -1,4 +1,11 @@
 # Changelog
+## 0.33.0 (2026-11-27): Forza cameras, Forza HUD
+- **Cameras rebuilt from the player's Forza Horizon files** (scripts\MidnightClub\camera\CameraSettings.ini + CameraPhysics.xml, editable / replaceable): chase near / far use Forza's heights above ground, radius and target offsets and yaw springs; every enabled CameraPhysics layer runs (G-forces, speed FOV, slip, suspension pitch / roll, pitch angle, airtime, collision impulses, noise, springs).
+- New **roof cam**; bumper, hood, roof and cockpit follow the body's pitch **and roll**; bumper / hood pitch from the Forza file (no more looking at the sky); **action cam** moved out and up.
+- The Midnight Club camera is active from the first second (no more cycling to "wake it up") and takes the screen back after menus, the lobby, photo mode or the welcome screen. Race intro / finish cinematics no longer fight it.
+- **Hitches / HUD flicker fixed**: ambient spawns (street racers, takeovers, police, meets, barn finds) stream their models without freezing the script; slanted UI shapes are single rects (draw budget).
+- **New HUD** (Forza Horizon style): curved rev arc with red zone and RPM readout, coral gear, big speed, boost gauge for turbo cars (anti-lag spools faster), slim NOS and ability bars; white / coral race HUD and top-right block.
+
 ## 0.32.0 (2026-11-27): deep
 - **Handling revamp**: every car gets an era (pre-war, 60s ... modern) that shapes grip, spring and damper softness, travel, body roll, brakes and steering on top of its archetype. Old cars float and pitch, muscle cars are boaty, luxury saloons waft, modern cars sit flat and stop hard. New **driving model** setting: Arcade / Simcade / Simulation.
 - **Forza-style tuning** per car (Hub > Garage > Tuning): tyre pressures, final drive, camber, toe, caster, anti-roll bars, springs, ride height, rebound / bump, front / rear downforce, brake balance and pressure, diff acceleration / deceleration lock, AWD centre balance, steering lock, in real units, with presets (grip, drift, drag, rally, touge).

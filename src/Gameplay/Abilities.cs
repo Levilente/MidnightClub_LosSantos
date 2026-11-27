@@ -24,6 +24,8 @@ namespace MidnightClub.Gameplay
         private readonly SaveManager saves;
         private readonly VehicleManager vehicles;
         private float nos = 1f; private bool nosOn, fxNos;
+        public static float NosFill { get { return Instance != null ? Instance.nos : 0f; } }
+        public static bool NosActive { get { return Instance != null && Instance.nosOn; } }
         private string active; private float activeLeft; private bool fxZone;
 
         public static Abilities Instance;
@@ -163,23 +165,18 @@ namespace MidnightClub.Gameplay
 
         private void DrawBars(OwnedVehicle rec)
         {
-            float right = 0.965f, bw = UI.Ds.Px(0.2f), x = right - bw, y = 0.94f;
+            // NOS is drawn by the speedometer; this is the special-ability meter row under it (same style)
             var style = StyleSystem.Instance;
-            if (rec.NosLevel > 0)
+            if (style != null && Selected != null && UI.MainHUD.RowY > 0f)
             {
-                UI.Ds.T("NOS", x - UI.Ds.Px(0.008f), y - 0.009f, 0.22f, nosOn ? UI.Ds.Text : UI.Ds.Muted, UI.Ds.Body, Alignment.Right);
-                UI.Ds.Skew(x, y, bw, 0.007f, UI.Ds.Px(0.002f), UI.Ds.Stroke);
-                if (nos > 0.01f) UI.Ds.Skew(x, y, bw * nos, 0.007f, UI.Ds.Px(0.002f), nosOn ? Color.White : UI.Ds.Cyan);
-                y += 0.016f;
-            }
-            if (style != null && Selected != null)
-            {
+                float x = UI.MainHUD.RowX, w = UI.MainHUD.RowW, y = UI.MainHUD.RowY;
                 bool full = style.Meter >= 0.999f;
-                var c = full ? UI.Ds.Mix(UI.Ds.Amber, Color.White, UI.Ds.Pulse(2f) * 0.5f) : UI.Ds.Violet;
-                UI.Ds.T((active ?? Selected).ToUpperInvariant() + (full && active == null ? " READY" : ""), x - UI.Ds.Px(0.008f), y - 0.009f, 0.22f, full ? UI.Ds.Amber : UI.Ds.Muted, UI.Ds.Body, Alignment.Right);
-                UI.Ds.Skew(x, y, bw, 0.007f, UI.Ds.Px(0.002f), UI.Ds.Stroke);
-                if (style.Meter > 0.01f) UI.Ds.Skew(x, y, bw * style.Meter, 0.007f, UI.Ds.Px(0.002f), c);
+                var c = full ? UI.Ds.Mix(UI.Ds.Amber, Color.White, UI.Ds.Pulse(2f) * 0.5f) : Color.White;
+                UI.Ds.T((active ?? Selected).ToUpperInvariant() + (full && active == null ? "  READY" : ""), x, y - 0.012f, 0.3f, full ? UI.Ds.Amber : Color.FromArgb(230, 255, 255, 255), UI.Ds.Display);
+                UI.Ds.Rect(x + UI.Ds.Px(0.065f), y, w - UI.Ds.Px(0.065f), 0.006f, Color.FromArgb(70, 255, 255, 255));
+                if (style.Meter > 0.01f) UI.Ds.Rect(x + UI.Ds.Px(0.065f), y, (w - UI.Ds.Px(0.065f)) * style.Meter, 0.006f, c);
             }
+            UI.MainHUD.RowY = 0f;
         }
 
         private static void Rect(float x, float y, float w, float h, Color c) { Function.Call(Hash.DRAW_RECT, x + w / 2f, y + h / 2f, w, h, c.R, c.G, c.B, c.A, false); }

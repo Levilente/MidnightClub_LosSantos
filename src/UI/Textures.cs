@@ -42,6 +42,23 @@ namespace MidnightClub.UI
 
         public static bool Has(string name) { return ready && available.Contains(name); }
 
+        /// <summary>Draws a texture into a box: x, y = top-left (screen fractions), w = width (screen-width fraction), h = height (screen-height fraction).</summary>
+        public static bool DrawBox(string name, float x, float y, float w, float h, Color c)
+        {
+            if (!Has(name)) return false;
+            if (c.A == 0) return true;
+            try
+            {
+                CustomSprite sp;
+                if (!sprites.TryGetValue(name, out sp)) sprites[name] = sp = new CustomSprite(Path.Combine(dir, name + ".png"), new SizeF(64, 64), PointF.Empty, Color.White, 0f, false);
+                float sw = 720f * Screen.AspectRatio;
+                sp.Size = new SizeF(w * sw, h * 720f); sp.Position = new PointF(x * sw, y * 720f); sp.Color = c;
+                sp.ScaledDraw();
+                return true;
+            }
+            catch (Exception ex) { Log.Error("Texture " + name, ex); available.Remove(name); return false; }
+        }
+
         /// <summary>Draws a square texture centred at (cx, cy) in normalised screen space; size = height fraction.</summary>
         public static bool Draw(string name, float cx, float cy, float size, Color c)
         {
