@@ -32,6 +32,17 @@ namespace MidnightClub
                 var dir = Path.Combine(BaseDirectory, "MidnightClub");
                 Racing.Ghost.Dir = Path.Combine(dir, "ghosts");
                 UI.Textures.Init(dir);
+                Cameras.CameraSystem.DataDir = Path.Combine(dir, "camera");
+                try
+                {   // the Forza camera files live next to the mod so they can be swapped or edited
+                    Directory.CreateDirectory(Cameras.CameraSystem.DataDir);
+                    foreach (var n in new[] { "CameraPhysics.xml", "CameraSettings.ini" })
+                    {
+                        var dst = Path.Combine(Cameras.CameraSystem.DataDir, n);
+                        if (!File.Exists(dst)) using (var src = typeof(MidnightClubMain).Assembly.GetManifestResourceStream("camera." + n)) if (src != null) using (var f = File.Create(dst)) src.CopyTo(f);
+                    }
+                }
+                catch (Exception ex) { Log.Error("Camera files", ex); }
                 Log.Init(dir);
                 Log.Info("Game file version " + Game.FileVersion + ", Enhanced=" + Game.isEnhanced);
                 cfg = Config.Load(dir);

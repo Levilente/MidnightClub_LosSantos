@@ -537,6 +537,7 @@ namespace MidnightClub.Racing
             if (introCam == null)
             {
                 if (Cameras.CameraSystem.Instance != null) Cameras.CameraSystem.Instance.Release();
+                Cameras.CameraSystem.Suspended = true;
                 introCam = World.CreateCamera(car.Position, Vector3.Zero, 40f); introCam.IsActive = true;
                 Function.Call(Hash.RENDER_SCRIPT_CAMS, true, false, 0, true, false, 0);
                 introLen = RouteBuilder.Length(Cps, Def.Start);
@@ -569,7 +570,7 @@ namespace MidnightClub.Racing
                 try { introCam.Delete(); } catch { } introCam = null;
             }
             if (now < IntroEnd) CountdownEnd = now + 3500;
-            IntroEnd = 0;
+            IntroEnd = 0; Cameras.CameraSystem.Suspended = false;
         }
 
         // ------------------------------------------------------------------ takedowns (Burnout-style)
@@ -611,6 +612,7 @@ namespace MidnightClub.Racing
             {
                 finStart = now; finReal = Environment.TickCount; finYaw = car.Heading + 120f;
                 if (Cameras.CameraSystem.Instance != null) Cameras.CameraSystem.Instance.Release();
+                Cameras.CameraSystem.Suspended = true;
                 finCam = World.CreateCamera(car.Position, Vector3.Zero, 38f);
                 finCam.IsActive = true; Function.Call(Hash.RENDER_SCRIPT_CAMS, true, true, 250, true, false, 0);
                 Function.Call(Hash.SET_TIME_SCALE, 0.35f);
@@ -640,7 +642,7 @@ namespace MidnightClub.Racing
             Function.Call(Hash.SET_TIME_SCALE, 1f);
             Function.Call(Hash.RENDER_SCRIPT_CAMS, false, true, 300, true, false, 0);
             try { if (finCam != null) finCam.Delete(); } catch { }
-            finCam = null;
+            finCam = null; Cameras.CameraSystem.Suspended = false;
         }
 
         // ------------------------------------------------------------------ launch control
@@ -823,6 +825,7 @@ namespace MidnightClub.Racing
             if (Rival != null) Rival.Delete();
             if (finStart >= 0) EndCinematic();
             if (introCam != null) { Function.Call(Hash.RENDER_SCRIPT_CAMS, false, false, 0, true, false, 0); try { introCam.Delete(); } catch { } introCam = null; }
+            Cameras.CameraSystem.Suspended = false;
             if (Active == this) Active = null;
             ClearCheckpoint();
             foreach (var r in Racers)
