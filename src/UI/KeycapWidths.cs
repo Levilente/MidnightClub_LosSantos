@@ -83,6 +83,18 @@ namespace MidnightClub.UI
             { "PDLR", 64 },
             { "PSTART", 64 },
             { "PBACK", 64 },
+            { "PSX", 64 },
+            { "PSO", 64 },
+            { "PSQ", 64 },
+            { "PST", 64 },
+            { "PL1", 84 },
+            { "PR1", 84 },
+            { "PL2", 84 },
+            { "PR2", 84 },
+            { "PL3", 84 },
+            { "PR3", 84 },
+            { "POPT", 110 },
+            { "PSHARE", 110 },
         };
     }
 }

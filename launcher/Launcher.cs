@@ -269,6 +269,7 @@ namespace MidnightClubLauncher
 
             var disp = new Category { Name = "Display", Icon = "monitor", Accent = Violet };
             disp.Items.Add(new Setting { Sec = "HUD", Key = "Theme", Label = "Theme", Desc = "Light or dark glass, in game and here. Auto follows the in-game clock (Windows' setting in the launcher).", Icon = "sun-moon", Kind = Kind.Choice, Options = new[] { "Auto", "Dark", "Light" }, Def = "Auto" });
+            disp.Items.Add(new Setting { Sec = "HUD", Key = "ButtonStyle", Label = "Controller buttons", Desc = "Auto shows PlayStation glyphs with a DualShock / DualSense, Xbox otherwise.", Icon = "monitor", Kind = Kind.Choice, Options = new[] { "Auto", "Xbox", "PlayStation" }, Def = "Auto" });
             disp.Items.Add(T("HUD", "Show", "HUD", "Speedometer, minimap and race HUD.", "monitor", true));
             disp.Items.Add(T("HUD", "SpeedEffects", "Speed effects", "Speed lines and edge vignette at high speed.", "sparkles", true));
             disp.Items.Add(T("HUD", "WelcomeScreen", "Welcome screen", "The title card when you switch into Midnight Club.", "sparkles", true));

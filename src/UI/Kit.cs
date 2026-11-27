@@ -77,9 +77,14 @@ namespace MidnightClub.UI
             float R = (float)Math.Round(Math.Min(r * H / 1080f, Math.Min((X1 - X0) / 2f, (Y1 - Y0) / 2f)));
             if (R < 1.5f || !Textures.Has("q_tl")) { Ds.Rect(x, y, w, h, c); return; }
             Func<float, float> fx = v => v / W; Func<float, float> fy = v => v / H;
-            Ds.Rect(fx(X0), fy(Y0 + R), fx(X1 - X0), fy(Y1 - Y0 - 2 * R), c);
-            Ds.Rect(fx(X0 + R), fy(Y0), fx(X1 - X0 - 2 * R), fy(R), c);
-            Ds.Rect(fx(X0 + R), fy(Y1 - R), fx(X1 - X0 - 2 * R), fy(R), c);
+            // one GTA rect for the centre column (where text sits; GTA rects are budgeted per frame), the two side
+            // columns are textures: corner pieces + a plain strip. Text never sits in the radius-wide side columns.
+            Ds.Rect(fx(X0 + R), fy(Y0), fx(X1 - X0 - 2 * R), fy(Y1 - Y0), c);
+            if (Y1 - Y0 - 2 * R > 0.5f)
+            {
+                Textures.DrawBox("px", fx(X0), fy(Y0 + R), fx(R), fy(Y1 - Y0 - 2 * R), c);
+                Textures.DrawBox("px", fx(X1 - R), fy(Y0 + R), fx(R), fy(Y1 - Y0 - 2 * R), c);
+            }
             Textures.DrawBox("q_tl", fx(X0), fy(Y0), fx(R), fy(R), c);
             Textures.DrawBox("q_tr", fx(X1 - R), fy(Y0), fx(R), fy(R), c);
             Textures.DrawBox("q_bl", fx(X0), fy(Y1 - R), fx(R), fy(R), c);
@@ -96,10 +101,11 @@ namespace MidnightClub.UI
             float t = Math.Max(1f, (float)Math.Round(thickPx * H / 1080f));
             if (R < 2f) R = 0f;
             Func<float, float> fx = v => v / W; Func<float, float> fy = v => v / H;
-            Ds.Rect(fx(X0 + R), fy(Y0), fx(X1 - X0 - 2 * R), fy(t), c);
-            Ds.Rect(fx(X0 + R), fy(Y1 - t), fx(X1 - X0 - 2 * R), fy(t), c);
-            Ds.Rect(fx(X0), fy(Y0 + R), fx(t), fy(Y1 - Y0 - 2 * R), c);
-            Ds.Rect(fx(X1 - t), fy(Y0 + R), fx(t), fy(Y1 - Y0 - 2 * R), c);
+            // outlines are textures only (no GTA rect budget): edges are thin strips that never cross text
+            Textures.DrawBox("px", fx(X0 + R), fy(Y0), fx(X1 - X0 - 2 * R), fy(t), c);
+            Textures.DrawBox("px", fx(X0 + R), fy(Y1 - t), fx(X1 - X0 - 2 * R), fy(t), c);
+            Textures.DrawBox("px", fx(X0), fy(Y0 + R), fx(t), fy(Y1 - Y0 - 2 * R), c);
+            Textures.DrawBox("px", fx(X1 - t), fy(Y0 + R), fx(t), fy(Y1 - Y0 - 2 * R), c);
             if (R <= 0f) return;
             // corner rings come in four stroke ratios; pick the one whose stroke matches t
             float ratio = t / R; string q = ratio < 0.095f ? "qo7" : ratio < 0.16f ? "qo12" : ratio < 0.26f ? "qo20" : "qo32";
@@ -115,7 +121,7 @@ namespace MidnightClub.UI
             Round(x, y, w, h, r, Ds.A(strong ? Th.GlassStrong : Th.Glass, alpha));
             Outline(x, y, w, h, r, 1f, Ds.A(Th.Line, alpha));
             float rx = Ds.Px(Th.Px(r));
-            Ds.Rect(x + rx, y + Th.Px(1f), w - 2 * rx, Th.Px(1f), Ds.A(Th.Highlight, alpha));
+            Textures.DrawBox("px", x + rx, y + Th.Px(1f), w - 2 * rx, Th.Px(1f), Ds.A(Th.Highlight, alpha));
         }
 
         /// <summary>Fully rounded pill.</summary>
@@ -163,7 +169,51 @@ namespace MidnightClub.UI
         }
 
         // ------------------------------------------------------------------ button prompts
+        // ---- controller family: PlayStation pads get PlayStation glyphs (like the game itself)
+        public static string ButtonStyle = "Auto";      // Auto / Xbox / PlayStation (config [HUD] ButtonStyle)
+        private static volatile bool sonyPad; private static int padCheckAt = -100000; private static volatile bool checking;
+        public static bool PlayStation
+        {
+            get
+            {
+                if (ButtonStyle == "PlayStation") return true;
+                if (ButtonStyle == "Xbox") return false;
+                int now = Environment.TickCount;
+                if (!checking && now - padCheckAt > 20000)
+                {
+                    padCheckAt = now; checking = true;
+                    System.Threading.ThreadPool.QueueUserWorkItem(_ =>
+                    {
+                        try
+                        {
+                            using (var q = new System.Management.ManagementObjectSearcher("SELECT DeviceID FROM Win32_PnPEntity WHERE DeviceID LIKE '%VID_054C%'"))
+                            using (var r = q.Get()) sonyPad = r.Count > 0;      // Sony: DualShock 4 / DualSense / Edge
+                        }
+                        catch { }
+                        checking = false;
+                    });
+                }
+                return sonyPad;
+            }
+        }
+        private static string Ps(string k)
+        {
+            switch (k)
+            {
+                case "PA": return "PSX"; case "PB": return "PSO"; case "PX": return "PSQ"; case "PY": return "PST";
+                case "PLB": return "PL1"; case "PRB": return "PR1"; case "PLT": return "PL2"; case "PRT": return "PR2";
+                case "PLS": return "PL3"; case "PRS": return "PR3"; case "PSTART": return "POPT"; case "PBACK": return "PSHARE";
+            }
+            return k;
+        }
+
         private static string KeyFor(Control c, bool pad)
+        {
+            string k = KeyFor0(c, pad);
+            return pad && PlayStation ? Ps(k) : k;
+        }
+
+        private static string KeyFor0(Control c, bool pad)
         {
             if (pad)
             {

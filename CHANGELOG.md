@@ -1,4 +1,9 @@
 # Changelog
+## 0.40.0 (2026-11-28): text centring, UI budget, PlayStation glyphs
+- **Text is vertically centred exactly**: per-font offsets measured in game with the new text calibration card (Settings > Display > Text calibration).
+- **Rounded shapes no longer fall apart on busy screens**: a rounded panel now costs one GTA rect (the centre column); its side columns, outlines and highlights are textures, which have no per-frame limit. Toggles, selected rows and chips stay whole.
+- **PlayStation button glyphs**: cross / circle / square / triangle, L1-R3, Options, Create. Settings > Display > Controller buttons: Auto (PlayStation glyphs when a DualShock 4 / DualSense is connected, like the game), Xbox or PlayStation. Also in the launcher.
+
 ## 0.39.0 (2026-11-27): proper lots and grids
 - **Dealership display cars only stand in real parking bays**: when you come near a dealership, the parked cars the map itself places on its car park (GTA's car generators, i.e. the painted bays) are learned as display spots (saved to data\lots.ini, so it's instant next time) and swapped for the current offer. No more cars in doorways, garages or bushes; a dealership without a car park shows its offer only in the showroom. The old guessed spots are gone.
 - **Race starting grids on the road**: rows follow the road backwards from the start line (they bend with the road), every car is lined up with the road's heading, two abreast in the lanes going your way (both lanes on a narrow two-way street), each slot checked to be on tarmac and moved towards the lane centre if not. You start on pole.

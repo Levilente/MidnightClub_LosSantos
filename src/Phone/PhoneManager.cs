@@ -180,6 +180,9 @@ namespace MidnightClub.Phone
             string[] themes = { "Auto", "Dark", "Light" };
             Action<int> setTheme = d => { int i = Math.Max(0, Array.IndexOf(themes, cfg.UiTheme)); i = (i + d + 3) % 3; cfg.UiTheme = themes[i]; Config.Save("HUD", "Theme", cfg.UiTheme); Th.Mode = (UiMode)i; };
             G(new MenuItem("Theme", () => setTheme(1)) { Value = () => cfg.UiTheme, OnAdjust = setTheme, Description = () => "Auto follows the in-game clock: light glass by day, dark at night." }, "Display", "palette");
+            string[] bstyles = { "Auto", "Xbox", "PlayStation" };
+            Action<int> setB = d => { int i = Math.Max(0, Array.IndexOf(bstyles, Kit.ButtonStyle)); i = (i + d + 3) % 3; Kit.ButtonStyle = bstyles[i]; Config.Save("HUD", "ButtonStyle", Kit.ButtonStyle); };
+            G(new MenuItem("Controller buttons", () => setB(1)) { Value = () => Kit.ButtonStyle, OnAdjust = setB, Description = () => "Button glyphs for controllers. Auto shows PlayStation buttons when a DualShock / DualSense is connected, Xbox otherwise." }, "Display", "gamepad-2");
             G(flag("HUD", "Show", () => cfg.ShowHud, v => cfg.ShowHud = v, "HUD"), "Display", "monitor");
             G(new MenuItem("Text calibration", () => TextCalib.On = !TextCalib.On) { Value = () => TextCalib.On ? "On" : "Off", OnAdjust = d => TextCalib.On = !TextCalib.On, Description = () => "Shows a test card for text alignment. Take a screenshot of it and send it to fix text centring exactly." }, "Display", "eye");
             G(flag("Speed effects", "SpeedEffects", () => cfg.SpeedEffects, v => cfg.SpeedEffects = v, "HUD"), "Display", "flame");
