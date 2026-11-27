@@ -37,34 +37,35 @@ namespace MidnightClub.UI
             Hud.HideComponentThisFrame(HudComponent.AreaName);
             Hud.HideComponentThisFrame(HudComponent.StreetName);
 
-            // top right: wordmark, rolling cash, REP + tier
-            float rx = hx;
-            Ds.Logo(rx, hy, 0.62f, 1f, Alignment.Right, false);
-            if (cashShown < 0) cashShown = d.Cash;
-            cashShown = Math.Abs(d.Cash - cashShown) < 1f ? d.Cash : Ds.Damp(cashShown, d.Cash, 6f);
-            Ds.T("$" + ((long)Math.Round(cashShown)).ToString("N0"), rx, hy + 0.045f, 0.5f, Ds.Text, Ds.Display, Alignment.Right);
-            string tier = Career.CareerManager.Instance != null ? Career.CareerManager.Instance.TierName.ToUpperInvariant() : "";
-            float tw = Ds.Width(tier, 0.24f), rw = Ds.Width(d.Rep.ToString("N0") + " REP", 0.27f, Ds.Display);
-            Ds.T(tier, rx, hy + 0.092f, 0.24f, Ds.Muted, Ds.Body, Alignment.Right);
-            Ds.T(d.Rep.ToString("N0") + " REP", rx - tw - Ds.Px(0.012f), hy + 0.089f, 0.27f, Coral, Ds.Display, Alignment.Right);
-            Ds.Dot(rx - tw - Ds.Px(0.006f), hy + 0.1005f, 0.005f, Ds.Faint);
+            // top right: level ring, rolling cash, REP + tier (no wordmark)
+            float rx = hx, cy = hy + 0.03f;
             var pr = Career.Progression.Instance;
+            float ringD = 0.058f, ringX = rx - Ds.Px(ringD / 2f);
             if (pr != null)
             {
-                float bw = Ds.Px(0.13f), by = hy + 0.122f;
-                Ds.T("LV " + pr.Level, rx - bw - Ds.Px(0.008f), by - 0.009f, 0.27f, Ds.Text, Ds.Display, Alignment.Right);
                 xpShown = Ds.Damp(xpShown, pr.LevelProgress, 5f);
-                Ds.Rect(rx - bw, by, bw, 0.004f, Dim);
-                Ds.Rect(rx - bw, by, bw * Ds.Clamp01(xpShown), 0.004f, Color.White);
-                float xa = (Game.GameTime - xpAt) / 1000f;
-                if (xpText != null && xa < 2.2f) Ds.T(xpText, rx, by + 0.008f - Ds.EaseOut(Math.Min(1f, xa / 0.3f)) * 0.006f, 0.27f, Ds.A(Coral, xa > 1.6f ? (2.2f - xa) / 0.6f : 1f), Ds.Display, Alignment.Right);
+                Textures.Draw("ring_100", ringX, cy, ringD, Color.FromArgb(55, 255, 255, 255));
+                VectorIcons.Ring(ringX, cy, ringD, 0.006f, Ds.Clamp01(xpShown), Coral);
+                Ds.TM(pr.Level.ToString(), ringX, cy - 0.003f, 0.62f, Color.White, Ds.Display, Alignment.Center);
+                Ds.TM("LEVEL", ringX, cy + 0.017f, 0.16f, Color.FromArgb(200, 255, 255, 255), Ds.Display, Alignment.Center);
             }
+            float tx = rx - Ds.Px(ringD) - Ds.Px(0.012f);
+            if (cashShown < 0) cashShown = d.Cash;
+            cashShown = Math.Abs(d.Cash - cashShown) < 1f ? d.Cash : Ds.Damp(cashShown, d.Cash, 6f);
+            Ds.TM("$" + ((long)Math.Round(cashShown)).ToString("N0"), tx, cy - 0.009f, 0.58f, Color.White, Ds.Display, Alignment.Right);
+            string tier = Career.CareerManager.Instance != null ? Career.CareerManager.Instance.TierName.ToUpperInvariant() : "";
+            float tw = Ds.Width(tier, 0.24f, Ds.Display);
+            Ds.TM(tier, tx, cy + 0.02f, 0.24f, Color.FromArgb(190, 255, 255, 255), Ds.Display, Alignment.Right);
+            Ds.TM(d.Rep.ToString("N0") + " REP  ·", tx - tw - Ds.Px(0.006f), cy + 0.02f, 0.24f, Coral, Ds.Display, Alignment.Right);
+            float xa = (Game.GameTime - xpAt) / 1000f;
+            if (xpText != null && xa < 2.2f) Ds.TM(xpText, tx, cy + 0.05f - Ds.EaseOut(Math.Min(1f, xa / 0.3f)) * 0.006f, 0.3f, Ds.A(Coral, xa > 1.6f ? (2.2f - xa) / 0.6f : 1f), Ds.Display, Alignment.Right);
+            Minimap.Draw();
             float age = (Game.GameTime - deltaAt) / 1000f;
             if (deltaText != null && age < 3.2f)
             {
                 float a = age < 0.2f ? age / 0.2f : age > 2.6f ? (3.2f - age) / 0.6f : 1f;
                 float rise = Ds.EaseOut(Math.Min(1f, age / 0.35f)) * 0.012f;
-                Ds.T(deltaText, rx, hy + 0.15f - rise, 0.34f, Ds.A(deltaColor, a), Ds.Display, Alignment.Right);
+                Ds.T(deltaText, tx, hy + 0.1f - rise, 0.34f, Ds.A(deltaColor, a), Ds.Display, Alignment.Right);
             }
             var v = vehicles.Current;
             if (v != null && v.Exists() && Game.Player.Character.IsInVehicle(v)) Speedo(v, vehicles.CurrentRecord);
@@ -105,7 +106,7 @@ namespace MidnightClub.UI
             {
                 float adv = GAdv(p, ch); if (adv <= 0f) continue;
                 string n = ch == '.' ? "dot" : ch == '\u2022' ? "bul" : ch.ToString();
-                Box(p + "_" + n, cx, baseline - cap, adv, cap, c);
+                Box(p + "_" + n, cx - cap * 0.08f, baseline - cap * 1.18f, adv + cap * 0.16f, cap * 1.36f, c);   // glyph PNGs carry 18% / 8% padding
                 cx += adv;
             }
         }

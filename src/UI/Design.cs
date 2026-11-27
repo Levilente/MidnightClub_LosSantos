@@ -17,8 +17,8 @@ namespace MidnightClub.UI
         public static readonly Color Surface = Color.FromArgb(255, 19, 17, 28);
         public static readonly Color Surface2 = Color.FromArgb(255, 29, 26, 42);
         public static readonly Color Stroke = Color.FromArgb(255, 46, 42, 64);
-        public static readonly Color Violet = Color.FromArgb(255, 168, 85, 247);
-        public static readonly Color VioletDeep = Color.FromArgb(255, 91, 33, 182);
+        public static readonly Color Violet = Color.FromArgb(255, 255, 84, 112);      // the one accent (hot coral), matches the speedometer
+        public static readonly Color VioletDeep = Color.FromArgb(255, 150, 30, 52);
         public static readonly Color Cyan = Color.FromArgb(255, 34, 211, 238);
         public static readonly Color Pink = Color.FromArgb(255, 244, 114, 182);
         public static readonly Color Lime = Color.FromArgb(255, 163, 230, 53);
@@ -45,6 +45,7 @@ namespace MidnightClub.UI
         }
         /// <summary>Converts a height-relative length to the same on-screen length along x.</summary>
         public static float Px(float h) { return h / Aspect; }
+        public static bool StreaksOn = false;
 
         public static Color A(Color c, float a) { a = a < 0 ? 0 : a > 1 ? 1 : a; return Color.FromArgb((int)(c.A * a), c.R, c.G, c.B); }
         public static Color Mix(Color a, Color b, float t) { t = t < 0 ? 0 : t > 1 ? 1 : t; return Color.FromArgb((int)(a.A + (b.A - a.A) * t), (int)(a.R + (b.R - a.R) * t), (int)(a.G + (b.G - a.G) * t), (int)(a.B + (b.B - a.B) * t)); }
@@ -132,9 +133,9 @@ namespace MidnightClub.UI
         /// <summary>Small skewed tag with text (used for kickers, chips and badges). Returns its width.</summary>
         public static float Tag(string s, float x, float y, Color bg, Color fg, float scale = 0.24f, float alpha = 1f)
         {
-            float h = 0.024f * scale / 0.24f, sl = SlantFor(h), w = Width(s, scale, Display) + Px(0.014f);
+            float h = Eff(scale) * 0.085f + 0.006f, sl = SlantFor(h), w = Width(s, scale, Display) + Px(0.016f);
             Skew(x, y, w, h, sl, A(bg, alpha));
-            T(s, x + sl / 2 + w / 2, y - 0.0005f, scale * 1.05f, A(fg, alpha), Display, Alignment.Center);
+            TM(s, x + sl / 2 + w / 2, y + h / 2f, scale, A(fg, alpha), Display, Alignment.Center);
             return w + sl;
         }
 
@@ -148,6 +149,7 @@ namespace MidnightClub.UI
         /// <summary>Animated horizontal speed streaks inside a region (background energy).</summary>
         public static void Streaks(float x, float y, float w, float h, Color c, float alpha, int count = 14, float speed = 0.6f)
         {
+            if (!StreaksOn) return;      // decorative streaks are off: cleaner, calmer screens
             for (int i = 0; i < count; i++)
             {
                 float seed = (i * 0.618034f) % 1f, len = Px(0.05f + 0.12f * ((i * 0.37f) % 1f));
@@ -173,15 +175,25 @@ namespace MidnightClub.UI
         }
 
         // ---------------------------------------------------------------- type
+        /// <summary>Readable type: small sizes are lifted toward a legible minimum (GTA's 0.25 is ~11 px at 1080p).
+        /// Every text call and every width measurement goes through this, so layout maths stays consistent.</summary>
+        public static float Eff(float scale) { return scale < 0.42f ? 0.42f - (0.42f - scale) * 0.62f : scale; }
+
         public static void T(string s, float x, float y, float scale, Color c, Font f = Body, Alignment a = Alignment.Left, float wrap = 0f)
-        { if (c.A > 2) new TextElement(s ?? "", new PointF(x * 1280f, y * 720f), scale, c, f, a, false, false, wrap * 1280f).ScaledDraw(); }
+        { if (c.A > 2) new TextElement(s ?? "", new PointF(x * 1280f, y * 720f), Eff(scale), c, f, a, false, false, wrap * 1280f).ScaledDraw(); }
+
+        /// <summary>Offset from a text's draw y to the visual middle of its capitals, per font (measured in game).</summary>
+        public static float MidOffset(float scale, Font f) { return Eff(scale) * (f == Display ? 0.042f : 0.05f); }
+        /// <summary>Text vertically centred on cy.</summary>
+        public static void TM(string s, float x, float cy, float scale, Color c, Font f = Body, Alignment a = Alignment.Left)
+        { T(s, x, cy - MidOffset(scale, f), scale, c, f, a); }
 
         public static float Width(string s, float scale, Font f = Body)
         {
             Function.Call(Hash.BEGIN_TEXT_COMMAND_GET_SCREEN_WIDTH_OF_DISPLAY_TEXT, "STRING");
             Function.Call(Hash.ADD_TEXT_COMPONENT_SUBSTRING_PLAYER_NAME, s ?? "");
             Function.Call(Hash.SET_TEXT_FONT, (int)f);
-            Function.Call(Hash.SET_TEXT_SCALE, scale, scale);
+            Function.Call(Hash.SET_TEXT_SCALE, Eff(scale), Eff(scale));
             return Function.Call<float>(Hash.END_TEXT_COMMAND_GET_SCREEN_WIDTH_OF_DISPLAY_TEXT, true);
         }
 

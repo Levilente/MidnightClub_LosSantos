@@ -32,6 +32,7 @@ namespace MidnightClub.Workshops
         private readonly List<Blip> blips = new List<Blip>();
         private WorkshopDefinition nearby;
         public bool IsBusy { get; private set; }
+        public static WorkshopManager Instance { get; private set; }
 
         public static readonly WorkshopDefinition[] All =
         {
@@ -47,6 +48,7 @@ namespace MidnightClub.Workshops
 
         public WorkshopManager(SaveManager saves, TransactionManager money, VehicleRegistry registry, VehicleManager vehicles, MenuStack stack)
         {
+            Instance = this;
             this.saves = saves; this.money = money; this.registry = registry; this.vehicles = vehicles; this.stack = stack;
             EventBus.Subscribe<MidnightTickEvent>(e => Tick());
             EventBus.Subscribe<ModeChangedEvent>(e => { if (e.To == GameMode.MIDNIGHT_CLUB) PlaceBlips(); else { ClearBlips(); CloseDoors(); CloseAllGates(); } });
@@ -121,36 +123,79 @@ namespace MidnightClub.Workshops
                 else if (d > 140f) CloseGates(w);
                 if (d > 90f) continue;
                 if (!Explore.Discovery.Known("ws:" + w.Id)) continue;
-                var ent = Entrance(w);
-                bool inside = d < 5f;
-                // marker outside the door says "drive in"; inside the bay the shop opens once you stop
-                UI.WorldMarker.Draw(inside ? w.Position : ent, 3f, Color.FromArgb(255, 251, 191, 36), MarkerType.Boxes, w.Name, inside ? "Stop to open the shop" : "Drive in  ·  " + (w.Specialty ?? "Mod") + " mod shop", pos.DistanceTo(inside ? w.Position : ent), inside);
-                if (inside) nearby = w;
+                if (d < 9f) nearby = w;
             }
             var car = vehicles.Current;
-            if (nearby == null || stack.IsOpen || car == null || !car.Exists() || !Game.Player.Character.IsInVehicle(car)) { stoppedSince = -1; return; }
-            if (car.Speed > 0.8f) { stoppedSince = -1; Screen.ShowHelpTextThisFrame("Stop in the bay to open " + nearby.Name + "."); return; }
-            if (stoppedSince < 0) stoppedSince = Game.GameTime;
-            if (Game.GameTime - stoppedSince > 600 || UI.Input.JustPressed(Control.Context)) { stoppedSince = -1; Enter(nearby); }
+            var ped = Game.Player.Character;
+            if (cooldownShop != null)
+            {
+                if (car == null || !car.Exists() || car.Position.DistanceTo(cooldownShop.Position) > 13f) cooldownShop = null;
+                else return;
+            }
+            if (nearby == null || stack.IsOpen || car == null || !car.Exists() || !ped.IsInVehicle(car) || car.Driver != ped) return;
+            // like the vanilla shops: roll through the door and the shop takes over (no marker, no button)
+            var toBay = nearby.Position - car.Position; toBay.Z = 0;
+            float dist = toBay.Length();
+            bool heading = Vector3.Dot(car.Velocity, toBay) > 0.5f || Vector3.Dot(car.ForwardVector, toBay) > 0.3f * dist;
+            if (dist < 4.5f || (dist < 8.5f && heading && car.Speed > 0.5f)) Enter(nearby);
         }
-        private int stoppedSince = -1;
+        private WorkshopDefinition cooldownShop;
 
         private void Enter(WorkshopDefinition w)
         {
             IsBusy = true;
-            try { new WorkshopScreen(w, vehicles, registry, saves, money).Run(); }
-            catch (Exception ex) { Log.Error("Workshop failed", ex); }
-            finally { IsBusy = false; leaveBlockUntil = Game.GameTime; }
-            // don't reopen until the car has left the bay
-            while (vehicles.Current != null && vehicles.Current.Exists() && vehicles.Current.Position.DistanceTo(w.Position) < 6f && Game.GameTime - leaveBlockUntil < 30000)
+            var car = vehicles.Current; var ped = Game.Player.Character;
+            Camera cine = null;
+            try
             {
-                Screen.ShowHelpTextThisFrame("Drive out to leave " + w.Name + ".");
-                UI.Shard.Tick();
-                Script.Wait(0);
-                if (Racing.RaceManager.IsRacing) break;
+                Cameras.CameraSystem.Suspended = true;
+                if (Cameras.CameraSystem.Instance != null) Cameras.CameraSystem.Instance.Release();
+                var ent = Entrance(w); var outDir = ent - w.Position; outDir.Z = 0; if (outDir.Length() < 1f) outDir = -car.ForwardVector; outDir.Normalize();
+                var side = new Vector3(-outDir.Y, outDir.X, 0f);
+                // drive-in shot: from inside the bay, looking back at the door
+                cine = Camera.Create(ScriptedCameraNameHash.DefaultScriptedCamera, w.Position - outDir * 3.2f + side * 2.2f + new Vector3(0, 0, 1.5f), Vector3.Zero, 52f, true, EulerRotationOrder.YXZ);
+                cine.PointAt(car);
+                Function.Call(Hash.RENDER_SCRIPT_CAMS, true, true, 700, true, false, 0);
+                Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "Garage_Door_Open", "GTAO_Script_Doors_Faded_Screen_Sounds", true);
+                DriveTo(ped, car, w.Position, 3.2f, 1.4f, 6000);
+                Function.Call(Hash.BRING_VEHICLE_TO_HALT, car, 2.5f, 1, false);
+                Script.Wait(350);
+                Function.Call(Hash.CLEAR_PED_TASKS, ped);
+                cine.Delete(); cine = null;
+                new WorkshopScreen(w, vehicles, registry, saves, money).Run();
+                // drive-out shot: from the forecourt, the car rolls out of the door
+                car = vehicles.Current;
+                if (car != null && car.Exists())
+                {
+                    cine = Camera.Create(ScriptedCameraNameHash.DefaultScriptedCamera, w.Position + outDir * 9f + side * 4.5f + new Vector3(0, 0, 1.6f), Vector3.Zero, 50f, true, EulerRotationOrder.YXZ);
+                    cine.PointAt(car);
+                    Function.Call(Hash.RENDER_SCRIPT_CAMS, true, false, 0, true, false, 0);
+                    DriveTo(ped, car, w.Position + outDir * 10f, 4.5f, 2.5f, 6000);
+                    Function.Call(Hash.CLEAR_PED_TASKS, ped);
+                }
+            }
+            catch (Exception ex) { Log.Error("Workshop failed", ex); }
+            finally
+            {
+                Function.Call(Hash.RENDER_SCRIPT_CAMS, false, true, 800, true, false, 0);
+                if (cine != null && cine.Exists()) cine.Delete();
+                Cameras.CameraSystem.Suspended = false;
+                IsBusy = false; cooldownShop = w;
             }
         }
-        private int leaveBlockUntil;
+
+        /// <summary>Lets the game drive the player's car to a point (shop entry / exit), controls locked, with a timeout.</summary>
+        private static void DriveTo(Ped ped, Vehicle car, Vector3 to, float speed, float stopRange, int timeoutMs)
+        {
+            Function.Call(Hash.TASK_VEHICLE_DRIVE_TO_COORD, ped, car, to.X, to.Y, to.Z, speed, 0, car.Model.Hash, 786603, stopRange, 1f);
+            int t0 = Game.GameTime;
+            while (Game.GameTime - t0 < timeoutMs && car.Exists() && car.Position.DistanceTo2D(to) > stopRange + 0.3f)
+            {
+                Game.DisableAllControlsThisFrame();
+                Function.Call(Hash.HIDE_HUD_AND_RADAR_THIS_FRAME);
+                Script.Wait(0);
+            }
+        }
 
         private readonly Dictionary<string, Vector3> entrances = new Dictionary<string, Vector3>();
         private Vector3 Entrance(WorkshopDefinition w)

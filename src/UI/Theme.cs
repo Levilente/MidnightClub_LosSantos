@@ -12,8 +12,8 @@ namespace MidnightClub.UI
     /// All coordinates are 0..1 screen fractions.</summary>
     public static class Theme
     {
-        public static readonly Color Purple = Color.FromArgb(255, 168, 85, 247);
-        public static readonly Color PurpleDeep = Color.FromArgb(255, 76, 29, 149);
+        public static readonly Color Purple = Color.FromArgb(255, 255, 84, 112);
+        public static readonly Color PurpleDeep = Color.FromArgb(255, 150, 30, 52);
         public static readonly Color Cyan = Color.FromArgb(255, 34, 211, 238);
         public static readonly Color Panel = Color.FromArgb(225, 10, 8, 20);
         public static readonly Color PanelSoft = Color.FromArgb(170, 10, 8, 20);
@@ -34,14 +34,14 @@ namespace MidnightClub.UI
         }
 
         public static void Text(string s, float x, float y, float scale, Color c, Font f = Font.ChaletLondon, Alignment a = Alignment.Left, float wrap = 0f, bool shadow = false)
-        { new TextElement(s ?? "", new PointF(x * 1280f, y * 720f), scale, c, f, a, shadow, false, wrap * 1280f).ScaledDraw(); }
+        { new TextElement(s ?? "", new PointF(x * 1280f, y * 720f), Ds.Eff(scale), c, f, a, shadow, false, wrap * 1280f).ScaledDraw(); }
 
         public static float TextWidth(string s, float scale, Font f = Font.ChaletLondon)
         {
             Function.Call(Hash.BEGIN_TEXT_COMMAND_GET_SCREEN_WIDTH_OF_DISPLAY_TEXT, "STRING");
             Function.Call(Hash.ADD_TEXT_COMPONENT_SUBSTRING_PLAYER_NAME, s ?? "");
             Function.Call(Hash.SET_TEXT_FONT, (int)f);
-            Function.Call(Hash.SET_TEXT_SCALE, scale, scale);
+            Function.Call(Hash.SET_TEXT_SCALE, Ds.Eff(scale), Ds.Eff(scale));
             return Function.Call<float>(Hash.END_TEXT_COMMAND_GET_SCREEN_WIDTH_OF_DISPLAY_TEXT, true);
         }
 

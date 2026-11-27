@@ -1,4 +1,17 @@
 # Changelog
+## 0.35.0 (2026-11-27): polish pass
+- **Input**: one key press = one step everywhere (Q / E no longer skip two tabs); menus react instantly and repeat while a direction is held; timing uses the real clock, so the slowed-down world behind menus no longer makes them sluggish.
+- **No more ghost numbers**: speedometer digits and other textures are drawn from per-use sprite slots and cleared the frame they stop being used. Digit textures carry padding, so the tops and bottoms are no longer cut off.
+- **Readable type**: small text is lifted to a legible minimum everywhere; text in rows, tags and tiles is vertically centred.
+- **Calmer look**: one accent colour (coral, as on the speedometer), no decorative streaks, neutral tile highlights. Side-panel menus (garages, showrooms...) rebuilt and moved below the screen title, so headers no longer overlap.
+- **Free-roam HUD**: the Midnight Club wordmark is gone; level ring, cash and REP / tier in a clean block. Minimap without health, armour and ability bars, with road name and compass heading above it. Banners and toasts wait until menus close.
+- **Chase cameras rebuilt**: world-space follow with critically damped heading and smoothed ride height, so body roll, pitch and suspension bob no longer rock the camera; slight pull-back under acceleration, speed FOV. Cockpit cam: braking moves the head forward, throttle back.
+- **Garages**: sell cars from the Manage menu (70% of the estimated value).
+- **Dealerships**: the current offer is parked on the forecourt with floating price tags; anywhere on the lot you can open the showroom, or stop next to a car to open it on that car. Blips sit on the dealership itself.
+- **Workshops**: no markers outside; roll through the door and the game drives you into the bay with a cinematic camera, the shop opens, and afterwards it drives you back out, like the vanilla shops.
+- **Workshop layout**: the car sits right of the menu; stats moved to a strip along the bottom so they never cover the car while it turns.
+- **Performance upgrades by category**: Engine, Forced induction, Drivetrain, Suspension & chassis, Brakes, Tyres & aero. Race parts sit in their categories instead of a separate list.
+
 ## 0.34.0 (2026-11-27): Forza Hub, exact speedometer, camera fixes
 - **New Hub, Forza Horizon style**: tabs across the top (RACES · GARAGE · CAREER · WORLD · SETTINGS · EXIT, switch with Q / E or LB / RB) and a scrolling mosaic of big and small tiles per tab, each with an icon, a live info line and a short explanation strip; the garage tile shows a picture of your current car. No more long lists of options on one screen.
 - **Sub-screens**: max eight rows with icons, plus a detail panel (big icon, value, what the option does). Settings are split into Driving, Cameras, Display, World and Police pages.

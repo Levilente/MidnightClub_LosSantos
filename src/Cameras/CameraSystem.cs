@@ -133,7 +133,7 @@ namespace MidnightClub.Cameras
                 cam.IsActive = true;
                 Function.Call(Hash.RENDER_SCRIPT_CAMS, true, false, 0, true, false, 0);
                 active = true;
-                camYaw = car.Heading; camYawVel = 0; collide = 99f; fov = p.BaseFov; lastSpeed = car.Speed; lastHeading = car.Heading; lastVel = car.Velocity;
+                camYaw = car.Heading; camYawVel = 0; collide = 99f; pivotInit = false; pull = 0f; fov = p.BaseFov; lastSpeed = car.Speed; lastHeading = car.Heading; lastVel = car.Velocity;
                 pitchAvg = car.Rotation.X; rollAvg = car.Rotation.Y;
                 foreach (var l in layerSets.Values) l.Reset();
             }
@@ -215,49 +215,50 @@ namespace MidnightClub.Cameras
         // ---------------------------------------------------------------- chase (Forza follow cam)
         private void Chase(Vehicle car, CameraProfile p, CamOutput o, float dt)
         {
+            // Calm, world-space follow cam: the camera never inherits the body's roll / pitch / suspension bob (that was
+            // the "drunk" feel). Heading trails with a critically damped spring, height follows a smoothed ride height,
+            // acceleration pulls the camera back a touch, speed widens the FOV. Nothing oscillates.
             float speed = car.Speed;
-            // yaw spring (FollowCam YRotSpringK / D / MaxSpeed): the camera trails the car's heading, shows a bit of drift
-            string sec = p.Layers == "FollowCam2" ? "FollowHighCam" : "FollowLowCam";
-            float k = ForzaSettings.Get(sec + "\\Spring\\YRotSpringK", 8.5f), dr = ForzaSettings.Get(sec + "\\Spring\\YRotSpringD", 1.2f), maxS = ForzaSettings.Get(sec + "\\Spring\\YRotMaxSpeed", 4.05f) * 57.3f;
+            bool far = p.Layers == "FollowCam2";
+            var fwd = car.ForwardVector; var vel = car.Velocity;
             float target = car.Heading;
-            var vel = car.Velocity;
-            if (speed > 4f && Vector3.Dot(vel, car.ForwardVector) > 0f) target = LerpAngle(car.Heading, (float)(Math.Atan2(-vel.X, vel.Y) * 180.0 / Math.PI), 0.3f);
-            float err = DeltaAngle(camYaw, target);
-            camYawVel += (err * k - camYawVel * dr * 2f * (float)Math.Sqrt(k)) * dt;
-            camYawVel = Clamp(camYawVel, -maxS, maxS);
-            camYaw += camYawVel * dt;
+            if (speed > 5f && Vector3.Dot(vel, fwd) > 0f) target = LerpAngle(car.Heading, (float)(Math.Atan2(-vel.X, vel.Y) * 180.0 / Math.PI), 0.35f);   // show a bit of the drift
+            camYaw = SmoothDampAngle(camYaw, target, ref camYawVel, far ? 0.2f : 0.16f, dt);
             float rel = DeltaAngle(car.Heading, camYaw);
-            if (Math.Abs(rel) > 35f) { camYaw = car.Heading + Math.Sign(rel) * 35f; rel = Math.Sign(rel) * 35f; camYawVel *= 0.5f; }
-
+            if (Math.Abs(rel) > 30f) { camYaw = car.Heading + Math.Sign(rel) * 30f; rel = Math.Sign(rel) * 30f; }
             bool behind = Game.IsControlPressed(Control.VehicleLookBehind);
-            float orbit = behind ? 180f : rel + lookYaw + o.CarYpr.X;
-            float radius = halfLen + p.RadiusExtra - o.CarXyz.Z;     // Forza Z = forward: + pulls the camera in
-            float height = p.Height - groundOff + o.CarXyz.Y;
-            var anchor = car.Position + new Vector3(0, 0, 0.4f);
-            var wantWorld = car.GetOffsetPosition(Arm(orbit, radius, o.CarXyz.X, height));
-            var hit = World.Raycast(anchor, wantWorld, IntersectFlags.Map, car);
+            float yaw = behind ? car.Heading + 180f : camYaw + lookYaw;
+            // smoothed pivot height (no suspension bob), slight pull-back under acceleration
+            var pos = car.Position;
+            if (!pivotInit || pos.DistanceTo(pivot) > 12f) { pivot = pos; pivotInit = true; pivotZVel = 0f; }
+            pivot = new Vector3(pos.X, pos.Y, SmoothDamp(pivot.Z, pos.Z, ref pivotZVel, 0.09f, dt));
+            pull = SmoothDamp(pull, Clamp(gLong, -0.8f, 1.2f) * 0.35f, ref pullVel, 0.35f, dt);
+            float radius = halfLen + p.RadiusExtra + pull;
+            float height = p.Height - groundOff;
+            var back = Dir(yaw);
+            var anchor = pos + new Vector3(0, 0, 0.5f);
+            var want = new Vector3(pivot.X, pivot.Y, pivot.Z) - back * radius + new Vector3(0, 0, height);
+            var hit = World.Raycast(anchor, want, IntersectFlags.Map, car);
             float allowed = hit.DidHit ? Math.Max(1.6f, hit.HitPosition.DistanceTo(anchor) - 0.35f) : 99f;
             collide = allowed < collide ? allowed : SmoothDamp(collide, allowed, ref collideVel, 0.45f, dt);
             float arm = Math.Min(radius, collide);
-            var local = Arm(orbit, arm, o.CarXyz.X, height);
-            // camera-space position offsets (Forza X right, Y up, Z forward) rotated by the orbit
-            double orr = orbit * Math.PI / 180.0; float cs = (float)Math.Cos(orr), sn = (float)Math.Sin(orr);
-            local += new Vector3(o.CamXyz.X * cs - o.CamXyz.Z * sn * 0f, o.CamXyz.Z * cs + o.CamXyz.X * sn, o.CamXyz.Y);
+            var camW = new Vector3(pivot.X, pivot.Y, pivot.Z) - back * arm + new Vector3(0, 0, height * Math.Min(1f, arm / Math.Max(0.1f, radius) * 0.4f + 0.6f));
+            // attach in car space (converted so the world position is exact): the engine moves the camera with the car
+            // on the render thread, so there is no script-tick stutter at speed
+            var local = car.GetPositionOffset(camW);
             Function.Call(Hash.ATTACH_CAM_TO_ENTITY, cam, car, local.X, local.Y, local.Z, true);
             attached = true;
-            // look at a point ahead of the car, then add the layer rotations
-            double lr = (behind ? 180f : rel * 0.5f + lookYaw * 0.6f) * Math.PI / 180.0;
-            var lookLocal = new Vector3((float)(-Math.Sin(lr) * p.LookAhead), (float)(Math.Cos(lr) * p.LookAhead), p.TargetHeight - groundOff - lookPitch * 0.04f);
-            var camW = car.GetOffsetPosition(local); var tgtW = car.GetOffsetPosition(lookLocal);
+            var tgtW = new Vector3(pivot.X, pivot.Y, pivot.Z) + back * p.LookAhead + new Vector3(0, 0, p.TargetHeight - groundOff - lookPitch * 0.04f);
             var d = tgtW - camW;
-            float pitch = (float)(Math.Atan2(d.Z, Math.Sqrt(d.X * d.X + d.Y * d.Y)) * 180.0 / Math.PI) - (o.CarYpr.Y + o.CamYpr.Y);
-            float yawW = (float)(Math.Atan2(-d.X, d.Y) * 180.0 / Math.PI) + o.CamYpr.X;
-            float roll = o.CarYpr.Z * 0.6f + o.CamYpr.Z;
-            if (BoostShake > 0f) { pitch += Noise(31f) * BoostShake * 0.4f; yawW += Noise(23f) * BoostShake * 0.3f; }
-            Function.Call(Hash.SET_CAM_ROT, cam, pitch, roll, yawW, 2);
-            fov = SmoothDamp(fov, Clamp(p.BaseFov + o.Fov + BoostFov, 30f, 120f), ref fovVel, 0.25f, dt);
+            float pitch = (float)(Math.Atan2(d.Z, Math.Sqrt(d.X * d.X + d.Y * d.Y)) * 180.0 / Math.PI);
+            float yawW = (float)(Math.Atan2(-d.X, d.Y) * 180.0 / Math.PI);
+            if (BoostShake > 0f) { pitch += Noise(31f) * BoostShake * 0.25f; yawW += Noise(23f) * BoostShake * 0.2f; }
+            Function.Call(Hash.SET_CAM_ROT, cam, pitch, 0f, yawW, 2);
+            float speedFov = (float)Math.Pow(Clamp(speed * 3.6f / 300f, 0f, 1f), 1.25) * 16f * cfg.CameraFovScale;
+            fov = SmoothDamp(fov, Clamp(p.BaseFov + speedFov + BoostFov, 30f, 120f), ref fovVel, 0.35f, dt);
             cam.FieldOfView = fov;
         }
+        private Vector3 pivot; private bool pivotInit; private float pivotZVel, pull, pullVel;
         private float fovVel;
 
         /// <summary>Camera position in car space for an orbit angle (deg, + = left of the car's heading).</summary>
@@ -281,7 +282,7 @@ namespace MidnightClub.Cameras
             }
             bool cockpit = mode == CameraMode.Cockpit;
             float layerScale = cockpit ? 0.7f : 0f;   // hood / bumper / roof: rigidly fixed to the body, only the speed FOV moves
-            local += new Vector3(o.CarXyz.X + o.CamXyz.X, -(o.CarXyz.Z + o.CamXyz.Z), o.CarXyz.Y + o.CamXyz.Y) * layerScale;
+            local += new Vector3(o.CarXyz.X + o.CamXyz.X, (o.CarXyz.Z + o.CamXyz.Z), o.CarXyz.Y + o.CamXyz.Y) * layerScale;   // throttle: head pushed back, braking: forward
             Function.Call(Hash.ATTACH_CAM_TO_ENTITY, cam, car, local.X, local.Y, local.Z, true);
             attached = true;
             // rotation follows the body exactly (pitch AND roll), plus look and the layer rotations

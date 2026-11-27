@@ -153,6 +153,29 @@ namespace MidnightClub.Garages
                 if (cars.Count == 0) { result = r; done = true; return; }   // garage now empty: drive the moved car out
                 index = Math.Min(index, cars.Count - 1); Target(false);
             }) { Description = () => "The car is delivered to the first owned garage with room." });
+            var info0 = mgr.Info(r);
+            Func<long> sellPrice = () => PricingEngine.Round(PricingEngine.EstimatedValue(info0, r.Stats.DistanceKm, r.EngineHealth, r.BodyHealth) * 0.7);
+            m.Add(new MenuItem("Sell", () =>
+            {
+                var c = new Menu("Sell " + mgr.Title(r) + "?", "Buyer offers $" + sellPrice().ToString("N0"));
+                c.Add(new MenuItem("Sell for $" + sellPrice().ToString("N0"), () =>
+                {
+                    long price = sellPrice();
+                    money.Earn(price, 0, "garage", "Sold " + mgr.Title(r), "sell:" + r.Id + ":" + DateTime.UtcNow.Ticks);
+                    saves.Data.Vehicles.Remove(r);
+                    if (saves.Data.CurrentVehicleId == r.Id) saves.Data.CurrentVehicleId = cars.First(kv => kv.Key != r).Key.Id;
+                    int i = cars.FindIndex(kv => kv.Key == r);
+                    if (i >= 0) { if (cars[i].Value.Exists()) cars[i].Value.Delete(); cars.RemoveAt(i); }
+                    saves.IsDirty = true; saves.Save();
+                    Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "PROPERTY_PURCHASE", "HUD_AWARDS", true);
+                    Flash(mgr.Title(r) + " sold for $" + price.ToString("N0") + ".");
+                    menus.Close();
+                    index = Math.Min(index, cars.Count - 1); Target(false);
+                }));
+                c.Add(new MenuItem("Keep it", () => menus.Pop()));
+                menus.Push(c);
+            }) { Enabled = cars.Count > 1, Value = () => "$" + sellPrice().ToString("N0"),
+                 Description = () => cars.Count > 1 ? "Sell to a private buyer for 70% of its estimated value." : "You can't sell the last car in this garage." });
             return m;
         }
 
@@ -229,7 +252,7 @@ namespace MidnightClub.Garages
 
         private static void Text(string s, float x, float y, float scale, Color c, Font f, Alignment a = Alignment.Left, float wrap = 0f)
         {
-            new TextElement(s, new PointF(x * 1280f, y * 720f), scale, c, f, a, false, true, wrap * 1280f).ScaledDraw();
+            new TextElement(s, new PointF(x * 1280f, y * 720f), MidnightClub.UI.Ds.Eff(scale), c, f, a, false, true, wrap * 1280f).ScaledDraw();
         }
 
         private static void Sound(string name) { Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, name, "HUD_FRONTEND_DEFAULT_SOUNDSET", true); }

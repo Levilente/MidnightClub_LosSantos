@@ -41,7 +41,7 @@ namespace MidnightClub.UI
             foreach (var it in items)
             {
                 if (it.Lines < 1.5f && it.Y < 0) it.Lines = Math.Max(1, (float)Math.Ceiling(Ds.Width(it.Plain, 0.3f, Ds.Body) / tw));
-                float h = 0.018f + it.Lines * 0.024f;
+                float h = 0.022f + it.Lines * 0.03f;
                 y -= h + 0.006f;
                 it.Y = it.Y < 0 ? y : Ds.Damp(it.Y, y, 14f);
                 int age = now - it.Born, left = it.Life - age;
@@ -52,7 +52,7 @@ namespace MidnightClub.UI
                 Ds.Rect(x, it.Y, Ds.Px(0.0035f), h, Ds.A(it.Accent, a));
                 float k = Math.Min(1f, age / (float)it.Life);
                 Ds.Rect(x + Ds.Px(0.0035f), it.Y + h - 0.002f, (W - Ds.Px(0.0035f)) * (1f - k), 0.002f, Ds.A(it.Accent, 0.5f * a));
-                Ds.T(it.Text, x + Ds.Px(0.016f), it.Y + 0.008f, 0.3f, Ds.A(Ds.Text, a), Ds.Body, GTA.UI.Alignment.Left, tw);
+                Ds.T(it.Text, x + Ds.Px(0.016f), it.Y + 0.009f, 0.3f, Ds.A(Ds.Text, a), Ds.Body, GTA.UI.Alignment.Left, tw);
             }
         }
     }

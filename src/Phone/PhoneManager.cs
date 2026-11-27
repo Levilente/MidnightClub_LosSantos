@@ -201,7 +201,7 @@ namespace MidnightClub.Phone
             Func<OwnedVehicle> car = () => saves.Data.Vehicles.FirstOrDefault(v => v.Id == saves.Data.CurrentVehicleId);
             Func<OwnedVehicle, string> carName = r => r == null ? "No car" : (string.IsNullOrEmpty(r.Nickname) ? r.Model : r.Nickname).ToUpperInvariant();
             // ---------------- RACES
-            var tRaces = new App { Name = "Races", Icon = "flag", Accent = Ds.Red };
+            var tRaces = new App { Name = "Races", Icon = "flag", Accent = Ds.Violet };
             tRaces.Tiles.Add(new Tile { Title = "Race events", Icon = "flag", W = 2, H = 2, Open = () => this.races.RacesMenu(),
                 Desc = "Every event in the city, grouped by discipline: street, drift, off-road, drag and bikes. Pick one to set your GPS.",
                 Head = () => this.races.Races.Count(r => this.races.Available(r)) + " EVENTS OPEN",
@@ -215,7 +215,7 @@ namespace MidnightClub.Phone
             tRaces.Tiles.Add(T("Route creator", "route", "Drive a route, drop checkpoints and race it against the clock or AI.", () => RouteCreator.Instance != null ? RouteCreator.Instance.MyRoutes() : null, () => "Build your own"));
             apps.Add(tRaces);
             // ---------------- GARAGE
-            var garage = new App { Name = "Garage", Icon = "car", Accent = Ds.Cyan };
+            var garage = new App { Name = "Garage", Icon = "car", Accent = Ds.Violet };
             garage.Tiles.Add(new Tile { Title = "My vehicles", Icon = "car-front", W = 2, H = 2, Open = () => menu.MyVehicles(),
                 Desc = "Spawn, swap, rename and sell your cars and bikes.", Thumb = () => car() != null ? car().Model : null,
                 Head = () => carName(car()), Meta = () => saves.Data.Vehicles.Count + (saves.Data.Vehicles.Count == 1 ? " car" : " cars") + (car() != null ? "  ·  " + Career.Mastery.Label(car()) : "") });
@@ -232,7 +232,7 @@ namespace MidnightClub.Phone
                 () => saves.Data.PhotosTaken > 0 ? saves.Data.PhotosTaken + " shots" : "New"));
             apps.Add(garage);
             // ---------------- CAREER
-            var career = new App { Name = "Career", Icon = "trophy", Accent = Ds.Amber, Badge = () => { int n = saves.Data.Wheelspins + saves.Data.SuperWheelspins; return n > 0 ? n.ToString() : null; } };
+            var career = new App { Name = "Career", Icon = "trophy", Accent = Ds.Violet, Badge = () => { int n = saves.Data.Wheelspins + saves.Data.SuperWheelspins; return n > 0 ? n.ToString() : null; } };
             career.Tiles.Add(new Tile { Title = "Story", Icon = "book-marked", W = 2, H = 2, Open = () => Career.Story.Instance != null ? Career.Story.Instance.Menu() : null,
                 Desc = "From nobody to the Midnight Club. Each chapter unlocks a new series, new cars and new rivals.",
                 Head = () => Career.Story.Instance != null && Career.Story.Instance.Current != null ? "CHAPTER " + (saves.Data.StoryChapter + 1) + "  " + Career.Story.Instance.Current.Title.ToUpperInvariant() : "STORY COMPLETE",
@@ -251,7 +251,7 @@ namespace MidnightClub.Phone
             career.Tiles.Add(T("Bank", "landmark", "Income, spending and loans.", () => menu.Finances(), () => "$" + saves.Data.Cash.ToString("N0")));
             apps.Add(career);
             // ---------------- WORLD
-            var world = new App { Name = "World", Icon = "compass", Accent = Ds.Lime, Badge = () => { int n = saves.Data.Messages.Count(m => !m.Read); return n > 0 ? n.ToString() : null; } };
+            var world = new App { Name = "World", Icon = "compass", Accent = Ds.Violet, Badge = () => { int n = saves.Data.Messages.Count(m => !m.Read); return n > 0 ? n.ToString() : null; } };
             world.Tiles.Add(new Tile { Title = "Exploration", Icon = "map", W = 2, H = 2, Open = () => Progression.Instance != null ? Progression.Instance.ProgressMenu() : null,
                 Desc = "Roads driven, places discovered, hidden events found.",
                 Head = () => Progression.Instance != null ? Progression.Instance.RoadPercent.ToString("0.0") + "% OF ROADS DRIVEN" : "",
@@ -420,7 +420,7 @@ namespace MidnightClub.Phone
         private App current;
         private bool appActive, fxOn;
         private int tab; private readonly int[] tabSel = new int[8]; private float tabT = 1f, scrollX, tabBarK = -1f;
-        private bool prevQ, prevE; private Tile currentTile;
+        private Tile currentTile;
 
         /// <summary>Spatial navigation in the mosaic: the nearest tile whose centre lies in the pressed direction.</summary>
         private static int Neighbour(App app, int from, int dx, int dy)
@@ -491,15 +491,13 @@ namespace MidnightClub.Phone
             {
                 foreach (var c in new[] { Control.Phone, Control.VehicleRadioWheel, Control.VehicleCinCam, Control.VehicleHeadlight, Control.FrontendPauseAlternate, Control.VehicleDuck, Control.VehicleSelectNextWeapon }) Game.DisableControlThisFrame(c);
                 var app = apps[tab]; int old = tabSel[tab], oldTab = tab;
-                bool q = Game.IsKeyPressed(System.Windows.Forms.Keys.Q), e = Game.IsKeyPressed(System.Windows.Forms.Keys.E);
-                if (UI.Input.JustPressed(Control.FrontendLb) || (q && !prevQ)) tab = (tab + apps.Count - 1) % apps.Count;
-                if (UI.Input.JustPressed(Control.FrontendRb) || (e && !prevE)) tab = (tab + 1) % apps.Count;
-                prevQ = q; prevE = e;
+                int td = UI.Input.TabDelta();
+                if (td != 0) tab = (tab + apps.Count + td) % apps.Count;
                 if (tab != oldTab) { tabT = 0f; current = apps[tab]; Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "NAV_LEFT_RIGHT", "HUD_FRONTEND_DEFAULT_SOUNDSET", true); }
                 else
                 {
-                    int dx = UI.Input.JustPressed(Control.FrontendRight) ? 1 : UI.Input.JustPressed(Control.FrontendLeft) ? -1 : 0;
-                    int dy = UI.Input.JustPressed(Control.FrontendDown) ? 1 : UI.Input.JustPressed(Control.FrontendUp) ? -1 : 0;
+                    int dx = UI.Input.Repeat(Control.FrontendRight) ? 1 : UI.Input.Repeat(Control.FrontendLeft) ? -1 : 0;
+                    int dy = UI.Input.Repeat(Control.FrontendDown) ? 1 : UI.Input.Repeat(Control.FrontendUp) ? -1 : 0;
                     if (dx != 0 || dy != 0) tabSel[tab] = Neighbour(app, tabSel[tab], dx, dy);
                     if (tabSel[tab] != old) Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "NAV_UP_DOWN", "HUD_FRONTEND_DEFAULT_SOUNDSET", true);
                 }
@@ -528,28 +526,28 @@ namespace MidnightClub.Phone
             float a = Ds.EaseOut(openT);
             Ds.HGrad(0f, 0f, 1f, 1f, Ds.A(Color.FromArgb(255, 9, 8, 14), 0.92f * a), Ds.A(Color.FromArgb(255, 9, 8, 14), 0.55f * a), 10);
             Ds.VGrad(0f, 0.82f, 1f, 0.18f, Ds.A(Ds.Bg, 0f), Ds.A(Ds.Bg, 0.8f * a), 6);
-            Ds.Streaks(0f, 0.15f, 1f, 0.7f, Ds.Violet, 0.25f * a, 8, 0.25f);
             // top bar
             float ty = 0.05f - (1f - a) * 0.02f;
             Ds.Logo(X0, ty, 0.95f, a, GTA.UI.Alignment.Left, true);
             var d = saves.Data;
-            float ringX = XR - Ds.Px(0.042f), ringY = ty + 0.035f;
+            float ringD = 0.07f, ringX = XR - Ds.Px(ringD / 2f), ringY = ty + 0.035f;
             if (Progression.Instance != null)
             {
-                VectorIcons.Ring(ringX, ringY, 0.084f, 0.008f, 1f, Ds.A(Ds.Stroke, a));
-                VectorIcons.Ring(ringX, ringY, 0.084f, 0.008f, Progression.Instance.LevelProgress, Ds.A(Ds.Violet, a));
-                Ds.T(Progression.Instance.Level.ToString(), ringX, ringY - 0.032f, 0.72f, Ds.A(Ds.Text, a), Ds.Display, GTA.UI.Alignment.Center);
-                Ds.T("LEVEL", ringX, ringY + 0.012f, 0.2f, Ds.A(Ds.Muted, a), Ds.Display, GTA.UI.Alignment.Center);
+                Textures.Draw("ring_100", ringX, ringY, ringD, Ds.A(Color.FromArgb(50, 255, 255, 255), a));
+                VectorIcons.Ring(ringX, ringY, ringD, 0.007f, Progression.Instance.LevelProgress, Ds.A(Ds.Violet, a));
+                Ds.TM(Progression.Instance.Level.ToString(), ringX, ringY - 0.004f, 0.7f, Ds.A(Ds.Text, a), Ds.Display, GTA.UI.Alignment.Center);
+                Ds.TM("LEVEL", ringX, ringY + 0.02f, 0.16f, Ds.A(Ds.Muted, a), Ds.Display, GTA.UI.Alignment.Center);
             }
-            float rx = XR - Ds.Px(0.1f);
-            Ds.T("$" + d.Cash.ToString("N0"), rx, ty - 0.006f, 0.75f, Ds.A(Ds.Text, a), Ds.Display, GTA.UI.Alignment.Right);
-            Ds.T(Gameplay.Season.Label, rx, ty + 0.085f, 0.24f, Ds.A(Ds.Amber, a), Ds.Display, GTA.UI.Alignment.Right);
-            Ds.T((d.ClubMember ? "MIDNIGHT CLUB MEMBER  ·  " : "") + d.Rep.ToString("N0") + " REP" + (CareerManager.Instance != null ? "  ·  " + CareerManager.Instance.TierName.ToUpperInvariant() : ""), rx, ty + 0.055f, 0.3f, Ds.A(Ds.Muted, a), Ds.Display, GTA.UI.Alignment.Right);
+            float rx = XR - Ds.Px(ringD) - Ds.Px(0.016f);
+            Ds.TM("$" + d.Cash.ToString("N0"), rx, ty + 0.022f, 0.72f, Ds.A(Ds.Text, a), Ds.Display, GTA.UI.Alignment.Right);
+            string sub = d.Rep.ToString("N0") + " REP" + (CareerManager.Instance != null ? "  ·  " + CareerManager.Instance.TierName.ToUpperInvariant() : "") + (d.ClubMember ? "  ·  MEMBER" : "");
+            Ds.TM(sub, rx, ty + 0.058f, 0.26f, Ds.A(Ds.Muted, a), Ds.Display, GTA.UI.Alignment.Right);
+            Ds.TM(Gameplay.Season.Label, rx, ty + 0.082f, 0.22f, Ds.A(Ds.Violet, a), Ds.Display, GTA.UI.Alignment.Right);
             return a;
         }
 
         // ---------------------------------------------------------------- hub: tab bar + tile mosaic (Forza Horizon style)
-        private const float UH = 0.215f, GAP = 0.014f, MY = 0.225f;
+        private const float UH = 0.21f, GAP = 0.014f, MY = 0.24f;
         private static float UW { get { return Ds.Px(UH * 1.2f); } }
         private static float TGX { get { return Ds.Px(GAP); } }
 
@@ -560,7 +558,7 @@ namespace MidnightClub.Phone
 
         private void TabBar(float a, bool interactive)
         {
-            float y = 0.148f, x = X0;
+            float y = 0.16f, x = X0;
             float selX = 0f, selW = 0f;
             for (int i = 0; i < apps.Count; i++)
             {
@@ -570,7 +568,7 @@ namespace MidnightClub.Phone
                 if (exit) x = Math.Max(x, XR - tw - iw);
                 var c = on ? Color.White : exit ? Ds.Mix(Ds.Red, Ds.Muted, 0.35f) : Ds.Muted;
                 Icon(t.Icon, x + iw * 0.4f, y + 0.021f, 0.024f, Ds.A(on ? t.Accent : c, a));
-                Ds.T(nm, x + iw, y, 0.5f, Ds.A(c, a), Ds.Display);
+                Ds.TM(nm, x + iw, y + 0.021f, 0.5f, Ds.A(c, a), Ds.Display);
                 string b = t.Badge != null ? t.Badge() : null;
                 if (b != null) { Ds.Rect(x + iw + tw + Ds.Px(0.004f), y + 0.004f, Ds.Px(0.008f), 0.008f, Ds.A(Ds.Red, a)); }
                 if (on) { selX = x; selW = iw + tw; }
@@ -612,7 +610,7 @@ namespace MidnightClub.Phone
                 float g = 0.006f * k; x -= Ds.Px(g); y -= g; w += Ds.Px(2 * g); h += 2 * g;
                 bool big = t.W == 2 && t.H == 2;
                 Ds.Rect(x, y, w, h, Ds.A(Color.FromArgb(232, 18, 16, 27), ea));
-                if (k > 0.01f) Ds.VGrad(x, y, w, h, Ds.A(Ds.Mix(app.Accent, Color.FromArgb(255, 18, 16, 27), 0.15f), k * ea), Ds.A(Ds.Mix(app.Accent, Color.FromArgb(255, 18, 16, 27), 0.7f), k * ea), 8);
+                if (k > 0.01f) Ds.VGrad(x, y, w, h, Ds.A(Color.FromArgb(255, 58, 56, 70), k * ea), Ds.A(Color.FromArgb(255, 30, 28, 38), k * ea), 6);
                 // picture: the current car on the garage tile, a big watermark icon on other feature tiles
                 string thumb = t.Thumb != null ? t.Thumb() : null;
                 bool pic = false;
@@ -622,34 +620,34 @@ namespace MidnightClub.Phone
                     pic = CarThumbs.Draw(thumb, x + (w - iw) / 2f, y + 0.02f + (h * 0.62f - ih) / 2f, iw, ih, Ds.A(Color.White, ea));
                 }
                 if (!pic && big) Icon(t.Icon, x + w * 0.66f, y + h * 0.4f, h * 0.62f, Ds.A(Color.White, (0.06f + 0.08f * k) * ea));
-                if (!pic) Icon(t.Icon, x + Ds.Px(big ? 0.05f : 0.038f), y + (big ? 0.055f : 0.045f), big ? 0.055f : 0.042f, Ds.A(Ds.Mix(app.Accent, Color.White, k), ea));
+                if (!pic) Icon(t.Icon, x + Ds.Px(big ? 0.05f : 0.038f), y + (big ? 0.055f : 0.045f), big ? 0.055f : 0.042f, Ds.A(Color.White, (0.75f + 0.25f * k) * ea));
                 if (k > 0.02f)
                 {
                     float bt = 0.003f;
                     Ds.Rect(x, y, w, bt, Ds.A(Color.White, k * ea)); Ds.Rect(x, y + h - bt, w, bt, Ds.A(Color.White, k * ea));
                     Ds.Rect(x, y, Ds.Px(bt), h, Ds.A(Color.White, k * ea)); Ds.Rect(x + w - Ds.Px(bt), y, Ds.Px(bt), h, Ds.A(Color.White, k * ea));
                 }
-                else Ds.Rect(x, y + h - 0.004f, w, 0.004f, Ds.A(app.Accent, 0.85f * ea));
+                Ds.Rect(x, y + h - 0.005f, w * (0.18f + 0.82f * k), 0.005f, Ds.A(app.Accent, (0.6f + 0.4f * k) * ea));
                 float tx = x + Ds.Px(0.018f), tw = w - Ds.Px(0.036f);
                 string meta = t.Meta != null ? t.Meta() : "";
                 if (big)
                 {
                     string head = t.Head != null ? t.Head() : null;
-                    if (!string.IsNullOrEmpty(head)) Ds.T(Ds.Fit(head, 0.36f, tw, Ds.Display), tx, y + h - 0.125f, 0.36f, Ds.A(k > 0.5f ? Color.White : app.Accent, ea), Ds.Display);
-                    Ds.T(Ds.Fit(t.Title.ToUpperInvariant(), 0.95f, tw, Ds.Display), tx, y + h - 0.1f, 0.95f, Ds.A(Color.White, ea), Ds.Display);
-                    Ds.T(Ds.Fit(Clean(meta), 0.3f, tw), tx, y + h - 0.034f, 0.3f, Ds.A(k > 0.5f ? Color.FromArgb(235, 255, 255, 255) : Ds.Muted, ea));
+                    if (!string.IsNullOrEmpty(head)) Ds.TM(Ds.Fit(head, 0.36f, tw, Ds.Display), tx, y + h - 0.112f, 0.36f, Ds.A(app.Accent, ea), Ds.Display);
+                    Ds.TM(Ds.Fit(t.Title.ToUpperInvariant(), 0.95f, tw, Ds.Display), tx, y + h - 0.062f, 0.95f, Ds.A(Color.White, ea), Ds.Display);
+                    Ds.TM(Ds.Fit(Clean(meta), 0.3f, tw), tx, y + h - 0.022f, 0.3f, Ds.A(k > 0.5f ? Color.FromArgb(235, 255, 255, 255) : Ds.Muted, ea));
                 }
                 else
                 {
-                    Ds.T(Ds.Fit(t.Title.ToUpperInvariant(), 0.55f, tw, Ds.Display), tx, y + h - 0.075f, 0.55f, Ds.A(Color.White, ea), Ds.Display);
-                    Ds.T(Ds.Fit(Clean(meta), 0.27f, tw), tx, y + h - 0.032f, 0.27f, Ds.A(k > 0.5f ? Color.FromArgb(235, 255, 255, 255) : Ds.Muted, ea));
+                    Ds.TM(Ds.Fit(t.Title.ToUpperInvariant(), 0.55f, tw, Ds.Display), tx, y + h - 0.056f, 0.55f, Ds.A(Color.White, ea), Ds.Display);
+                    Ds.TM(Ds.Fit(Clean(meta), 0.27f, tw), tx, y + h - 0.024f, 0.27f, Ds.A(k > 0.5f ? Color.FromArgb(235, 255, 255, 255) : Ds.Muted, ea));
                 }
                 string b = t.Badge != null ? t.Badge() : null;
                 if (b != null)
                 {
                     float bw = Ds.Px(0.03f);
                     Ds.Rect(x + w - bw - Ds.Px(0.012f), y + 0.012f, bw, 0.03f, Ds.A(Ds.Mix(Ds.Red, Color.White, 0.2f * Ds.Pulse(1.4f)), ea));
-                    Ds.T(b, x + w - bw / 2 - Ds.Px(0.012f), y + 0.01f, 0.38f, Ds.A(Color.White, ea), Ds.Display, GTA.UI.Alignment.Center);
+                    Ds.TM(b, x + w - bw / 2 - Ds.Px(0.012f), y + 0.027f, 0.38f, Ds.A(Color.White, ea), Ds.Display, GTA.UI.Alignment.Center);
                 }
             }
             // scroll hint
@@ -693,7 +691,7 @@ namespace MidnightClub.Phone
             m.VisibleRows = 8; m.Clamp();
             var acc = current != null ? current.Accent : Ds.Violet;
             string icon = currentTile != null ? currentTile.Icon : current != null ? current.Icon : "settings";
-            float x = X0 + off, w = 0.4f, y = 0.215f;
+            float x = X0 + off, w = 0.4f, y = 0.235f;
             // header: breadcrumb + title
             string crumb = (current != null ? current.Name.ToUpperInvariant() : "") + (currentTile != null && !string.Equals(currentTile.Title, m.Title, StringComparison.OrdinalIgnoreCase) ? "  /  " + currentTile.Title.ToUpperInvariant() : "");
             Ds.T(crumb, x, y - 0.004f, 0.28f, Ds.A(acc, a), Ds.Display);
@@ -720,17 +718,17 @@ namespace MidnightClub.Phone
                 if (it.Icon != null) { Icon(it.Icon, x + Ds.Px(0.026f), yy + (rh - 0.005f) / 2f, 0.026f, Ds.A(onBar ? Color.White : Ds.Mix(acc, Ds.Muted, 0.4f), a)); lx = x + Ds.Px(0.05f); }
                 float vw = string.IsNullOrEmpty(v) ? 0 : Math.Min(w * 0.42f, Ds.Width(v, 0.34f, Ds.Display) + (s && it.OnAdjust != null ? Ds.Px(0.03f) : 0));
                 var lc = !it.Enabled ? Ds.Faint : onBar ? Color.White : Color.FromArgb(255, 222, 218, 236);
-                Ds.T(Ds.Fit(Clean(it.Label), 0.37f, x + w - lx - vw - Ds.Px(0.02f)), lx, yy + 0.011f, 0.37f, Ds.A(lc, a));
+                Ds.TM(Ds.Fit(Clean(it.Label), 0.37f, x + w - lx - vw - Ds.Px(0.02f)), lx, yy + (rh - 0.005f) / 2f, 0.37f, Ds.A(lc, a));
                 if (!string.IsNullOrEmpty(v))
                 {
                     float vx = x + w - Ds.Px(0.012f);
                     if (s && it.OnAdjust != null && it.Enabled)
                     {
-                        Icon("chevron-right", vx - Ds.Px(0.006f), yy + 0.0235f, 0.02f, Ds.A(Color.White, a));
-                        Icon("chevron-left", vx - Ds.Px(0.026f) - Math.Min(w * 0.38f, Ds.Width(v, 0.34f, Ds.Display)), yy + 0.0235f, 0.02f, Ds.A(Color.White, a));
-                        Ds.T(Ds.Fit(v, 0.34f, w * 0.38f, Ds.Display), vx - Ds.Px(0.018f), yy + 0.012f, 0.34f, Ds.A(Color.White, a), Ds.Display, GTA.UI.Alignment.Right);
+                        Icon("chevron-right", vx - Ds.Px(0.006f), yy + (rh - 0.005f) / 2f, 0.02f, Ds.A(Color.White, a));
+                        Icon("chevron-left", vx - Ds.Px(0.026f) - Math.Min(w * 0.38f, Ds.Width(v, 0.34f, Ds.Display)), yy + (rh - 0.005f) / 2f, 0.02f, Ds.A(Color.White, a));
+                        Ds.TM(Ds.Fit(v, 0.34f, w * 0.38f, Ds.Display), vx - Ds.Px(0.018f), yy + (rh - 0.005f) / 2f, 0.34f, Ds.A(Color.White, a), Ds.Display, GTA.UI.Alignment.Right);
                     }
-                    else Ds.T(Ds.Fit(v, 0.34f, w * 0.42f, Ds.Display), vx, yy + 0.012f, 0.34f, Ds.A(onBar ? Color.White : Ds.Muted, a), Ds.Display, GTA.UI.Alignment.Right);
+                    else Ds.TM(Ds.Fit(v, 0.34f, w * 0.42f, Ds.Display), vx, yy + (rh - 0.005f) / 2f, 0.34f, Ds.A(onBar ? Color.White : Ds.Muted, a), Ds.Display, GTA.UI.Alignment.Right);
                 }
             }
             if (m.Items.Count > m.VisibleRows)

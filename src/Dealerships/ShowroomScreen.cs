@@ -26,6 +26,7 @@ namespace MidnightClub.Dealerships
         private readonly MenuStack menus = new MenuStack();
         private List<StockItem> stock;
         private int index;
+        public int StartIndex;
         private Vehicle shown;
         private Camera cam;
         private Vector3 spot; private float spin;
@@ -56,6 +57,7 @@ namespace MidnightClub.Dealerships
         public void Run()
         {
             stock = mgr.Stock(d);
+            index = Math.Max(0, Math.Min(StartIndex, stock.Count - 1));
             if (stock.Count == 0) { UI.Toast.Post(d.Name + " has nothing in stock."); return; }
             var ped = Game.Player.Character;
             var own = vehicles.Current;
@@ -330,6 +332,6 @@ namespace MidnightClub.Dealerships
         private void Flash(string s) { note = s; noteUntil = Game.GameTime + 4000; }
         private static void Rect(float x, float y, float w, float h, Color c) { Function.Call(Hash.DRAW_RECT, x + w / 2f, y + h / 2f, w, h, c.R, c.G, c.B, c.A, false); }
         private static void Text(string s, float x, float y, float scale, Color c, Font f, Alignment a = Alignment.Left, float wrap = 0f)
-        { new TextElement(s, new PointF(x * 1280f, y * 720f), scale, c, f, a, false, true, wrap * 1280f).ScaledDraw(); }
+        { new TextElement(s, new PointF(x * 1280f, y * 720f), MidnightClub.UI.Ds.Eff(scale), c, f, a, false, true, wrap * 1280f).ScaledDraw(); }
     }
 }

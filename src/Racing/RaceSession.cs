@@ -815,7 +815,7 @@ namespace MidnightClub.Racing
 
         private static void Rect(float x, float y, float w, float h, Color c) { Function.Call(Hash.DRAW_RECT, x + w / 2f, y + h / 2f, w, h, c.R, c.G, c.B, c.A, false); }
         private static void Text(string s, float x, float y, float scale, Color c, Font f, Alignment a = Alignment.Left)
-        { new TextElement(s, new PointF(x * 1280f, y * 720f), scale, c, f, a, true, true).ScaledDraw(); }
+        { new TextElement(s, new PointF(x * 1280f, y * 720f), MidnightClub.UI.Ds.Eff(scale), c, f, a, true, true).ScaledDraw(); }
 
         // ------------------------------------------------------------------ cleanup
         public void Cleanup()

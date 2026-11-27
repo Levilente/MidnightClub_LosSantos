@@ -44,5 +44,20 @@ namespace MidnightClub.UI
             Ds.T(label.ToUpperInvariant(), x, y - 0.03f, 0.42f, Ds.A(Color.White, la), Ds.Display, Alignment.Center);
             if (!string.IsNullOrEmpty(action)) Ds.T(action.ToUpperInvariant(), x, y + 0.004f, 0.25f, Ds.A(inRange ? c : Ds.Muted, la), Ds.Display, Alignment.Center);
         }
+
+        /// <summary>Floating price tag over a world position (display cars): name + price on a dark pill, no marker.</summary>
+        public static void Label(Vector3 pos, string title, string sub, float dist, bool focus)
+        {
+            if (dist > 25f) return;
+            var sp = Screen.WorldToScreen(pos, false);
+            if (sp.X <= 0 && sp.Y <= 0) return;
+            float x = sp.X / 1280f, y = sp.Y / 720f, a = Ds.Clamp01((25f - dist) / 8f);
+            string t = (title ?? "").ToUpperInvariant();
+            float w = Math.Max(Ds.Width(t, 0.4f, Ds.Display), Ds.Width(sub ?? "", 0.34f, Ds.Display)) + Ds.Px(0.024f);
+            Ds.Rect(x - w / 2f, y - 0.05f, w, 0.06f, Ds.A(Color.FromArgb(215, 12, 11, 17), a));
+            Ds.Rect(x - w / 2f, y + 0.007f, w, 0.003f, Ds.A(focus ? Ds.Violet : Color.FromArgb(120, 255, 255, 255), a));
+            Ds.TM(t, x, y - 0.034f, 0.4f, Ds.A(Color.White, a), Ds.Display, Alignment.Center);
+            if (!string.IsNullOrEmpty(sub)) Ds.TM(sub, x, y - 0.009f, 0.34f, Ds.A(Ds.Violet, a), Ds.Display, Alignment.Center);
+        }
     }
 }

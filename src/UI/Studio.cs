@@ -86,7 +86,6 @@ namespace MidnightClub.UI
         public static void CarStrip(string kicker, string name, string sub, float[] stats, string[] rightLines, string counter)
         {
             Fade(true, 0.34f, 235);
-            Ds.Streaks(0f, 0.72f, 1f, 0.2f, Ds.Violet, 0.35f, 14, 0.4f);
             float x = 0.05f, y = 0.735f;
             float kw = Ds.Tag(kicker, x, y, Ds.Violet, Ds.Text, 0.26f);
             if (counter != null) Ds.T(counter, x + kw + Ds.Px(0.008f), y - 0.001f, 0.28f, Ds.Muted, Ds.Display);
@@ -115,10 +114,10 @@ namespace MidnightClub.UI
         /// <summary>Small top-left title: kicker + title, over a soft top fade.</summary>
         public static void Title(string kicker, string title, string right)
         {
-            Fade(false, 0.16f, 170);
-            Ds.Tag(kicker, 0.05f, 0.036f, Ds.Violet, Ds.Text, 0.24f);
-            Theme.Text(title, 0.05f, 0.058f, 0.62f, Color.White, GTA.UI.Font.ChaletComprimeCologne);
-            if (right != null) Theme.Text(right, 0.95f, 0.05f, 0.34f, Color.White, GTA.UI.Font.ChaletComprimeCologne, GTA.UI.Alignment.Right);
+            Fade(false, 0.14f, 150);
+            Ds.TM(kicker, 0.05f, 0.05f, 0.24f, Ds.Violet, Ds.Display);
+            Ds.TM(title, 0.05f, 0.088f, 0.62f, Color.White, Ds.Display);
+            if (right != null) Ds.TM(right, 0.95f, 0.07f, 0.5f, Color.White, Ds.Display, GTA.UI.Alignment.Right);
         }
     }
 }

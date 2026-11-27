@@ -66,6 +66,6 @@ namespace MidnightClub.UI
         }
 
         private static void T(string s, float x, float y, float scale, Color c, Font f)
-        { new TextElement(s, new PointF(x * 1280f, y * 720f), scale, c, f, Alignment.Center, false, true, 0.6f * 1280f).ScaledDraw(); }
+        { new TextElement(s, new PointF(x * 1280f, y * 720f), MidnightClub.UI.Ds.Eff(scale), c, f, Alignment.Center, false, true, 0.6f * 1280f).ScaledDraw(); }
     }
 }

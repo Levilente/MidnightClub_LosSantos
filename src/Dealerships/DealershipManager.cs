@@ -71,7 +71,7 @@ namespace MidnightClub.Dealerships
                 try { defs = DealershipDefinitions.Load(dataDir); stockCache.Clear(); BuildPools(); PlaceMarkers(); }
                 catch (Exception ex) { Log.Error("Loading dealerships", ex); }
             }
-            else ClearBlips();
+            else { ClearBlips(); ClearLots(); }
         }
 
         private void BuildPools()
@@ -103,7 +103,7 @@ namespace MidnightClub.Dealerships
                 markers[d.Id] = p;
                 Explore.Discovery.Register("dl:" + d.Id, d.Name, "Dealership", p);
                 if (!Explore.Discovery.Known("dl:" + d.Id)) continue;
-                var b = UI.BlipRegistry.Own(World.CreateBlip(p));
+                var b = UI.BlipRegistry.Own(World.CreateBlip(d.Position));
                 b.Sprite = d.Sprite; b.Color = d.Color; b.Name = d.Name; b.IsShortRange = true; b.Scale = 0.9f;
                 blips.Add(b);
             }
@@ -122,35 +122,120 @@ namespace MidnightClub.Dealerships
                     UI.Toast.Post("~p~" + d.Name + "~s~: new stock has arrived.");
         }
 
+        // ------------------------------------------------------------------ the lot
+        // The current offer is parked on the dealership's forecourt (spots found procedurally: flat, off the road,
+        // clear of walls). Pull into the lot - anywhere within its area - and the car picker opens on request;
+        // stopping next to a display car opens the picker on that car.
+        private sealed class Lot { public List<Vector3> Spots; public List<float> Headings; public readonly List<Vehicle> Cars = new List<Vehicle>(); public int Rot = -1; }
+        private readonly Dictionary<string, Lot> lots = new Dictionary<string, Lot>();
+        private const float AreaRadius = 30f;
+
+        private Lot LotFor(DealershipDefinition d)
+        {
+            Lot l; if (lots.TryGetValue(d.Id, out l)) return l;
+            l = new Lot { Spots = new List<Vector3>(), Headings = new List<float>() };
+            lots[d.Id] = l;
+            var c = d.Position;
+            for (float r = 6f; r <= 24f && l.Spots.Count < 6; r += 3f)
+                for (int k = 0; k < 16 && l.Spots.Count < 6; k++)
+                {
+                    double ang = k * Math.PI * 2 / 16 + r * 0.37;
+                    var p = c + new Vector3((float)Math.Cos(ang) * r, (float)Math.Sin(ang) * r, 0f);
+                    float gz = UI.WorldMarker.Ground(p + new Vector3(0, 0, 4f));
+                    if (Math.Abs(gz - c.Z) > 2.5f) continue;
+                    p.Z = gz;
+                    if (Function.Call<bool>(Hash.IS_POINT_ON_ROAD, p.X, p.Y, p.Z, 0)) continue;
+                    if (l.Spots.Any(o => o.DistanceTo(p) < 5f)) continue;
+                    if (Workshops.WorkshopManager.All.Any(w => w.Position.DistanceTo(p) < 9f)) continue;
+                    bool flat = true, clear = true;
+                    foreach (var off in new[] { new Vector3(1.4f, 0, 0), new Vector3(-1.4f, 0, 0), new Vector3(0, 2.6f, 0), new Vector3(0, -2.6f, 0) })
+                    {
+                        float z2 = UI.WorldMarker.Ground(p + off + new Vector3(0, 0, 4f));
+                        if (Math.Abs(z2 - gz) > 0.35f) { flat = false; break; }
+                        var hit = World.Raycast(p + new Vector3(0, 0, 0.9f), p + off * 1.15f + new Vector3(0, 0, 0.9f), IntersectFlags.Map);
+                        if (hit.DidHit) { clear = false; break; }
+                    }
+                    if (!flat || !clear) continue;
+                    var toC = c - p;
+                    l.Spots.Add(p); l.Headings.Add((float)(Math.Atan2(-toC.X, toC.Y) * 180.0 / Math.PI) + 30f);
+                }
+            Log.Info("Dealership lot " + d.Id + ": " + l.Spots.Count + " display spots");
+            return l;
+        }
+
+        private void ClearLot(Lot l) { foreach (var v in l.Cars) try { if (v != null && v.Exists()) v.Delete(); } catch { } l.Cars.Clear(); }
+        public void ClearLots() { foreach (var l in lots.Values) ClearLot(l); }
+
+        private void LotTick(DealershipDefinition d, float dist)
+        {
+            if (dist > 160f) { Lot old; if (lots.TryGetValue(d.Id, out old) && old.Cars.Count > 0) ClearLot(old); return; }
+            if (dist > 130f) return;
+            var l = LotFor(d);
+            int rot = Rotation(d);
+            if (l.Rot != rot) { ClearLot(l); l.Rot = rot; }
+            var stock = Stock(d);
+            int want = Math.Min(l.Spots.Count, stock.Count);
+            if (l.Cars.Count >= want) return;
+            int i = l.Cars.Count;
+            var item = stock[i];
+            if (item.Preview == null) item.Preview = item.MakeRecord();
+            var model = item.Preview.ModelHash != 0 ? new Model(item.Preview.ModelHash) : new Model(item.Preview.Model);
+            if (!Core.Assets.Ready(model)) return;                 // streams in the background, one car per frame
+            try
+            {
+                var v = vehicles.SpawnDisplay(item.Preview, l.Spots[i] + new Vector3(0, 0, 0.3f), l.Headings[i]);
+                Function.Call(Hash.FREEZE_ENTITY_POSITION, v, true);
+                v.IsPersistent = true;
+                l.Cars.Add(v);
+            }
+            catch (Exception ex) { Log.Error("Lot car " + item.Info.Id, ex); l.Cars.Add(null); }
+        }
+
         private void Tick()
         {
             if (IsBusy || garages.IsInside) return;
             if (Racing.RaceManager.IsRacing) return;
-            var pos = Game.Player.Character.Position;
-            nearby = null;
+            var ped = Game.Player.Character;
+            var pos = ped.Position;
+            nearby = null; int nearCar = -1;
             foreach (var d in defs)
             {
-                Vector3 m; if (!markers.TryGetValue(d.Id, out m)) continue;
-                float dist = pos.DistanceTo(m);
-                if (dist > 90f) continue;
                 if (!Explore.Discovery.Known("dl:" + d.Id)) continue;
-                UI.WorldMarker.Draw(m, 3.5f, Color.FromArgb(255, 34, 211, 238), MarkerType.TransformCar, d.Name, dist < 5f ? "Press to browse" : "Dealership", dist, dist < 5f);
-                if (dist < 5f) nearby = d;
+                float dist = pos.DistanceTo(d.Position);
+                LotTick(d, dist);
+                if (dist > AreaRadius) continue;
+                // the workshop next door (Benny's) wins inside its own bay
+                if (Workshops.WorkshopManager.All.Any(w => w.Position.DistanceTo(pos) < 10f)) continue;
+                nearby = d;
+                Lot l; if (lots.TryGetValue(d.Id, out l))
+                    for (int i = 0; i < l.Cars.Count; i++)
+                    {
+                        var v = l.Cars[i]; if (v == null || !v.Exists()) continue;
+                        float cd = v.Position.DistanceTo(pos);
+                        if (cd < 22f)
+                        {
+                            var st = Stock(d);
+                            if (i < st.Count) UI.WorldMarker.Label(v.Position + new Vector3(0, 0, 1.9f), st[i].Info.DisplayName, "$" + st[i].Price.ToString("N0"), cd, cd < 6f);
+                            if (cd < 6f && (nearCar < 0 || cd < l.Cars[nearCar].Position.DistanceTo(pos))) nearCar = i;
+                        }
+                    }
             }
             if (nearby == null || stack.IsOpen) return;
+            if (Workshops.WorkshopManager.Instance != null && Workshops.WorkshopManager.Instance.IsBusy) return;
             var car = vehicles.Current;
-            if (car != null && car.Exists() && car.Speed > 3f) return;
-            Screen.ShowHelpTextThisFrame("~INPUT_CONTEXT~ Browse " + nearby.Name);
-            if (UI.Input.JustPressed(Control.Context)) OpenShowroom(nearby);
+            if (car != null && car.Exists() && ped.IsInVehicle(car) && car.Speed > 2.5f) return;
+            if (nearCar >= 0) Screen.ShowHelpTextThisFrame("~INPUT_CONTEXT~ Look at this car  ·  " + nearby.Name);
+            else Screen.ShowHelpTextThisFrame("~INPUT_CONTEXT~ Browse " + nearby.Name + "'s offer");
+            if (UI.Input.JustPressed(Control.Context)) OpenShowroom(nearby, Math.Max(0, nearCar));
         }
 
-        private void OpenShowroom(DealershipDefinition d)
+        private void OpenShowroom(DealershipDefinition d, int start = 0)
         {
             IsBusy = true;
             EventBus.Publish(new ShowroomOpenedEvent());
-            try { new ShowroomScreen(this, d, vehicles, saves).Run(); }
+            try { foreach (var l in lots.Values) foreach (var v in l.Cars) if (v != null && v.Exists()) v.IsVisible = false; new ShowroomScreen(this, d, vehicles, saves) { StartIndex = start }.Run(); }
             catch (Exception ex) { Log.Error("Showroom failed", ex); }
-            finally { IsBusy = false; }
+            finally { IsBusy = false; foreach (var l in lots.Values) foreach (var v in l.Cars) if (v != null && v.Exists()) v.IsVisible = true; stockCache.Clear(); ClearLots(); }
         }
 
         // ------------------------------------------------------------------ stock

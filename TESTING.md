@@ -2,6 +2,15 @@
 
 Tick items off or note what happened. Logs: `scripts\MidnightClub\MidnightClub.log` and `ScriptHookVDotNet.log`; Claude can read them from the game folder.
 
+## 0.35.0
+- Hub: Q / E moves exactly one tab; holding a direction scrolls; no shard / toast over the hub.
+- Speedometer at changing speed / revs: no doubled digits, digit tops and bottoms complete.
+- Top right: no MIDNIGHT CLUB text; minimap has no health / armour bars, road name + heading above it.
+- Chase near / far / action at speed over bumps and in corners: steady, no rocking. Cockpit: brake = head forward.
+- Garage > Manage (M / X) > Sell (needs another car in the garage).
+- Dealership: display cars on the forecourt with price tags (after a few seconds), E anywhere on the lot, E next to a car opens it.
+- Workshop: drive at the door: the car drives itself in, shop opens; leaving drives it out. Performance tab: six categories with race parts inside.
+
 ## 0.34.0
 - Hub (Up / F6): tabs switch with Q / E (LB / RB), arrows move between tiles, the mosaic scrolls on tabs with many tiles, the info strip describes the selected tile, Back closes. EXIT tab: Story mode / Save / Quit.
 - Garage tab: the big "My vehicles" tile shows the current car's picture after a moment (cars without a website picture show the icon).
