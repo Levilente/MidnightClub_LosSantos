@@ -102,7 +102,7 @@ namespace MidnightClub.WorldSim
         private Vehicle SpawnTuned(VehicleInfo info, Vector3 pos, float heading)
         {
             var m = new Model(info.Hash);
-            if (!m.Request(3000)) return null;
+            if (!Core.Assets.Ready(m)) return null;
             var v = World.CreateVehicle(m, pos, heading); m.MarkAsNoLongerNeeded();
             if (v == null || !v.Exists()) return null;
             v.Mods.InstallModKit();
@@ -195,7 +195,7 @@ namespace MidnightClub.WorldSim
                 {
                     string[] models = { "a_m_y_hipster_01", "a_f_y_hipster_02", "a_m_y_vinewood_01", "a_m_y_stwhi_01", "a_f_y_genhot_01" };
                     var pm = new Model(models[rnd.Next(models.Length)]);
-                    if (pm.Request(2000))
+                    if (Core.Assets.Ready(pm))
                     {
                         var ped = World.CreatePed(pm, pos + right * 2.0f, s.Heading + 90f); pm.MarkAsNoLongerNeeded();
                         if (ped != null)
@@ -289,10 +289,10 @@ namespace MidnightClub.WorldSim
             var pos = car.Position + car.RightVector * 3.6f + new Vector3(0, 0, 0.4f);
             if (World.GetNearbyVehicles(pos, 2.5f).Any()) pos = car.Position - car.RightVector * 3.6f + new Vector3(0, 0, 0.4f);
             if (World.GetNearbyVehicles(pos, 2.5f).Any()) return;
+            var pm = new Model("a_m_y_stwhi_01"); if (!Core.Assets.Ready(pm)) return;
             var v = SpawnTuned(info, pos, car.Heading);
             if (v == null) return;
             v.PlaceOnGround(); v.IsPersistent = true;
-            var pm = new Model("a_m_y_stwhi_01"); pm.Request(2000);
             var d = v.CreatePedOnSeat(VehicleSeat.Driver, pm); pm.MarkAsNoLongerNeeded();
             if (d == null) { v.Delete(); return; }
             d.IsPersistent = true;
@@ -345,9 +345,9 @@ namespace MidnightClub.WorldSim
             if (pos == Vector3.Zero || pos.DistanceTo(car.Position) < 120f || Screen.IsSphereVisible(pos, 3f)) return;
             var info = RandomCar(v => v.Class == VehicleClass.Sports || v.Class == VehicleClass.Muscle || v.Class == VehicleClass.SportsClassics || v.Class == VehicleClass.Super || v.Tuner);
             if (info == null) return;
-            var veh = SpawnTuned(info, pos, h); if (veh == null) return;
             string[] models = { "a_m_y_hipster_01", "a_m_y_vinewood_01", "a_f_y_hipster_02", "a_m_y_ktown_01" };
-            var pm = new Model(models[rnd.Next(models.Length)]); pm.Request(2000);
+            var pm = new Model(models[0]); if (!Core.Assets.Ready(pm)) return;
+            var veh = SpawnTuned(info, pos, h); if (veh == null) return;
             var d = veh.CreatePedOnSeat(VehicleSeat.Driver, pm); pm.MarkAsNoLongerNeeded();
             if (d == null) { veh.Delete(); return; }
             Function.Call(Hash.TASK_VEHICLE_DRIVE_WANDER, d, veh, 22f + (float)rnd.NextDouble() * 12f, (int)VehicleDrivingFlags.DrivingModeAvoidVehicles);

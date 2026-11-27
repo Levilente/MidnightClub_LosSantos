@@ -22,7 +22,7 @@ namespace MidnightClub.Explore
         private Vector3 spot; private Blip blip; private bool has; private int nextRoll;
         private readonly List<Ped> crowd = new List<Ped>(); private readonly List<Vehicle> parked = new List<Vehicle>();
         private int state, start; private float hype, score; // state 0 idle, 1 running, 2 leave
-        private readonly Random rnd = new Random();
+        private readonly Random rnd = new Random(); private bool crowdPending; private int crowdRetry;
         private const float R = 13f;
 
         public Takeovers(SaveManager saves, TransactionManager money, VehicleManager vehicles)
@@ -58,7 +58,7 @@ namespace MidnightClub.Explore
             float d = car.Position.DistanceTo(spot);
             if (state == 0)
             {
-                if (d < 140f && crowd.Count == 0) SpawnCrowd();
+                if (d < 140f && (crowd.Count == 0 || crowdPending) && Game.GameTime > crowdRetry) { crowdRetry = Game.GameTime + 600; if (crowdPending) DespawnCrowd(); crowdPending = false; SpawnCrowd(); }
                 if (d > 400f && crowd.Count > 0) DespawnCrowd();
                 Function.Call(Hash.DRAW_MARKER, 25, spot.X, spot.Y, spot.Z + 0.05f, 0f, 0f, 0f, 0f, 0f, 0f, R * 2f, R * 2f, 1f, 251, 146, 60, 90, false, false, 2, false, 0, 0, false);
                 if (d < R) { state = 1; start = now; hype = 0; score = 0; Shard.Mid("STREET TAKEOVER", "Donuts and drifts inside the circle. 60 seconds.", Shard.Orange, 2500); }
@@ -106,7 +106,7 @@ namespace MidnightClub.Explore
             {
                 double a = i / 16.0 * Math.PI * 2 + rnd.NextDouble() * 0.2;
                 var p = spot + new Vector3((float)Math.Cos(a) * (R + 4f + (float)rnd.NextDouble() * 3f), (float)Math.Sin(a) * (R + 4f + (float)rnd.NextDouble() * 3f), 0.5f);
-                var m = new Model(models[rnd.Next(models.Length)]); if (!m.Request(1500)) continue;
+                var m = new Model(models[i % models.Length]); if (!Core.Assets.Ready(m)) { crowdPending = true; continue; }
                 var ped = World.CreatePed(m, p, (float)(a * 180 / Math.PI) + 90f); m.MarkAsNoLongerNeeded();
                 if (ped == null) continue;
                 ped.IsPersistent = true; Function.Call(Hash.SET_BLOCKING_OF_NON_TEMPORARY_EVENTS, ped, true);
@@ -119,7 +119,7 @@ namespace MidnightClub.Explore
             {
                 double a = i / 4.0 * Math.PI * 2 + 0.4;
                 var p = spot + new Vector3((float)Math.Cos(a) * (R + 9f), (float)Math.Sin(a) * (R + 9f), 0.5f);
-                var m = new Model(cars[rnd.Next(cars.Length)]); if (!m.IsValid || !m.Request(2000)) continue;
+                var m = new Model(cars[i % cars.Length]); if (!Core.Assets.Ready(m)) { crowdPending = true; continue; }
                 var c = World.CreateVehicle(m, p, (float)(a * 180 / Math.PI)); m.MarkAsNoLongerNeeded(); if (c == null) continue;
                 c.IsPersistent = true; c.PlaceOnGround(); c.AreLightsOn = true;
                 for (int n = 0; n < 4; n++) Function.Call(Hash.SET_VEHICLE_NEON_ENABLED, c, n, true);

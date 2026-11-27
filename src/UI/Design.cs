@@ -108,16 +108,12 @@ namespace MidnightClub.UI
         private const float Row = 2f / 1080f;
         /// <summary>Parallelogram leaning right: the top edge is shifted right by 'slant' (screen-x fraction). Drawn as
         /// 2-pixel rows so the slanted edges are clean. The street-racing shape of the whole UI.</summary>
+        /// <summary>Formerly a slanted parallelogram (drawn as one rect per pixel row, which ate GTA's per-frame draw
+        /// budget and made HUD elements vanish). Now a single sharp rect, offset by half the slant.</summary>
         public static void Skew(float x, float y, float w, float h, float slant, Color c)
         {
             if (c.A == 0 || w <= 0 || h <= 0) return;
-            if (slant == 0) { Rect(x, y, w, h, c); return; }
-            int rows = Math.Max(1, (int)Math.Ceiling(h / Row)); float rh = h / rows;
-            for (int i = 0; i < rows; i++)
-            {
-                float off = slant * (1f - (i + 0.5f) / rows);
-                Rect(x + off, y + i * rh, w, rh, c);
-            }
+            Rect(x + slant * 0.5f, y, w, h, c);
         }
         public static void Dot(float cx, float cy, float d, Color c) { Skew(cx - Px(d) / 2f, cy - d / 2f, Px(d) * 0.8f, d, Px(d * 0.3f), c); }
 

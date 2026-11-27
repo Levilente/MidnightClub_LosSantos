@@ -23,7 +23,7 @@ namespace MidnightClub.Explore
         private readonly SaveManager saves; private readonly TransactionManager money; private readonly VehicleRegistry registry; private readonly VehicleManager vehicles;
         private readonly List<Racer> cruisers = new List<Racer>();
         private Racer foe; private float mySp, foeSp; private int battleStart, countdownEnd, nextSpawn, endShownUntil;
-        private readonly Random rnd = new Random();
+        private readonly Random rnd = new Random(); private VehicleInfo pendingInfo;
         public static bool Battling { get; private set; }
 
         public Outrun(SaveManager saves, TransactionManager money, VehicleRegistry registry, VehicleManager vehicles)
@@ -73,12 +73,15 @@ namespace MidnightClub.Explore
             var pool = registry.All.Where(v => v.Enabled && (v.Class == VehicleClass.Sports || v.Class == VehicleClass.Super || v.Class == VehicleClass.Muscle || v.Tuner) && Math.Abs(Array.IndexOf(tiers, v.Tier) - ti) <= 1).ToList();
             if (pool.Count == 0) return;
             var info = pool[rnd.Next(pool.Count)];
-            var m = new Model(info.Hash); if (!m.Request(3000)) return;
+            if (pendingInfo != null) info = pendingInfo;
+            var m = new Model(info.Hash); var pm0 = new Model("a_m_y_stwhi_01");
+            if (!Core.Assets.Ready(m) | !Core.Assets.Ready(pm0)) { pendingInfo = info; nextSpawn = Game.GameTime + 500; return; }
+            pendingInfo = null;
             var c = World.CreateVehicle(m, sp, h); m.MarkAsNoLongerNeeded(); if (c == null) return;
             c.IsPersistent = true; c.Mods.InstallModKit(); Function.Call(Hash.SET_VEHICLE_MOD, c, 11, 2, false); Function.Call(Hash.TOGGLE_VEHICLE_MOD, c, 18, true);
             c.Mods.PrimaryColor = (VehicleColor)rnd.Next(0, 160); Function.Call(Hash.SET_VEHICLE_NEON_ENABLED, c, 0, true); Function.Call(Hash.SET_VEHICLE_NEON_ENABLED, c, 1, true); Function.Call(Hash.SET_VEHICLE_NEON_ENABLED, c, 2, true); Function.Call(Hash.SET_VEHICLE_NEON_ENABLED, c, 3, true);
             Function.Call(Hash.SET_VEHICLE_NEON_COLOUR, c, 168, 85, 247);
-            var pm = new Model("a_m_y_stwhi_01"); pm.Request(3000);
+            var pm = pm0;
             var d = c.CreatePedOnSeat(VehicleSeat.Driver, pm); pm.MarkAsNoLongerNeeded(); if (d == null) { c.Delete(); return; }
             d.IsPersistent = true; Function.Call(Hash.SET_BLOCKING_OF_NON_TEMPORARY_EVENTS, d, true); Function.Call(Hash.SET_DRIVER_ABILITY, d, 1f);
             Function.Call(Hash.TASK_VEHICLE_DRIVE_WANDER, d, c, 22f, 786603);

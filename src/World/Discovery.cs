@@ -275,7 +275,7 @@ namespace MidnightClub.Explore
                 {
                     DespawnBarnCar();
                     var m = new Model(BarnModels[i % BarnModels.Length]); if (!m.IsValid) m = new Model("tornado");
-                    if (m.Request(3000))
+                    if (Core.Assets.Ready(m))
                     {
                         barnCar = World.CreateVehicle(m, barns[i], (i * 47) % 360);
                         if (barnCar != null) { barnCar.DirtLevel = 15f; barnCar.IsEngineRunning = false; barnCar.LockStatus = VehicleLockStatus.Locked; barnCarIdx = i; Function.Call(Hash.SET_VEHICLE_ENGINE_HEALTH, barnCar, 250f); }

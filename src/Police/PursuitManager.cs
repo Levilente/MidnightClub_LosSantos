@@ -196,8 +196,8 @@ namespace MidnightClub.Police
                 if (Vector3.Dot(roadDir, fwd) < 0) roadDir = -roadDir;
                 var right = new Vector3(roadDir.Y, -roadDir.X, 0f);
                 var b = new Block { Pos = pos, Dir = roadDir, Born = now };
-                var m = new Model(Level >= 4 ? "police3" : "police2"); if (!m.Request(3000)) return;
-                var pm = new Model("s_m_y_cop_01"); pm.Request(3000);
+                var m = new Model(Level >= 4 ? "police3" : "police2"); var pm = new Model("s_m_y_cop_01");
+                if (!Core.Assets.Ready(m) | !Core.Assets.Ready(pm)) { lastBlock = now - 33000; return; }
                 float carHeading = h + 90f;
                 foreach (float side in new[] { -2.8f, 2.8f })
                 {
@@ -214,7 +214,7 @@ namespace MidnightClub.Police
                 if (Level >= 3)
                 {
                     var sm = new Model("p_ld_stinger_s");
-                    if (sm.IsValid && sm.Request(2000))
+                    if (Core.Assets.Ready(sm))
                     {
                         var sp = World.CreateProp(sm, pos - roadDir * 12f, false, true);
                         if (sp != null) { sp.Heading = h + 90f; sp.IsPersistent = true; Function.Call(Hash.FREEZE_ENTITY_POSITION, sp, true); b.Spikes = sp; }
@@ -282,10 +282,11 @@ namespace MidnightClub.Police
                 string name = names[new Random().Next(names.Length)];
                 var m = new Model(name);
                 if (!m.IsValid || !m.IsInCdImage) m = new Model("police3");
-                if (!m.Request(3000)) return;
+                var pm0 = new Model("s_m_y_cop_01");
+                if (!Core.Assets.Ready(m) | !Core.Assets.Ready(pm0)) return;
                 var car = World.CreateVehicle(m, pos, h); m.MarkAsNoLongerNeeded();
                 if (car == null) return;
-                var pm = new Model("s_m_y_cop_01"); pm.Request(3000);
+                var pm = pm0;
                 var drv = car.CreatePedOnSeat(VehicleSeat.Driver, pm); pm.MarkAsNoLongerNeeded();
                 if (drv == null) { car.Delete(); return; }
                 Recruit(car, drv, false);
@@ -297,11 +298,12 @@ namespace MidnightClub.Police
         {
             try
             {
-                var m = new Model("polmav"); if (!m.Request(3000)) return;
+                var m = new Model("polmav"); var pm0 = new Model("s_m_y_pilot_01");
+                if (!Core.Assets.Ready(m) | !Core.Assets.Ready(pm0)) return;
                 var pos = target.Position - target.ForwardVector * 250f + new Vector3(0, 0, 90f);
                 var heli = World.CreateVehicle(m, pos, target.Heading); m.MarkAsNoLongerNeeded();
                 if (heli == null) return;
-                var pm = new Model("s_m_y_pilot_01"); pm.Request(3000);
+                var pm = pm0;
                 var pilot = heli.CreatePedOnSeat(VehicleSeat.Driver, pm); pm.MarkAsNoLongerNeeded();
                 if (pilot == null) { heli.Delete(); return; }
                 heli.IsEngineRunning = true;
