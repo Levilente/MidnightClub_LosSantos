@@ -1,4 +1,12 @@
 # Changelog
+## 0.55.0 (2026-11-28)
+- Body inertia (the GTA VI-style weight through direction changes): GTA takes a car's rotational inertia from its collision box, which is far off for many cars, so the body turned and rolled as if it weighed much less than it does. Our tyre, suspension and aero forces now turn the body with the real inertia, worked out from mass, wheelbase and track:
+  - yaw: from the mass distribution (mid-engine cars are the most agile, front-engined muscle cars, SUVs and trucks the heaviest to turn);
+  - pitch: close to the yaw value, so the nose dives and the tail squats at a real pace;
+  - roll: from the track, so a pothole no longer flicks the body sideways.
+  The body is made at most 3x heavier and at most 25 % lighter than GTA's; collisions keep GTA's own values.
+- The log shows GTA's and the real inertia of your car every 20 s.
+
 ## 0.54.0 (2026-11-28)
 - The bouncing, found in the recording: GTA keeps a travel limit per wheel (CWheel+0x130) and makes a rigid body contact at its end. Our softer, real springs let the body run into that hard limit (the Jubilee's rear sat at 75-80 % of its travel at rest; our bump stop only started at 22 cm, GTA's limit is ~25 cm), and the hard contact bounced the car. Now:
   - the bump stop is placed by GTA's real travel and takes the last part progressively (4 g of the corner's weight at the end), so the body never reaches the hard limit;

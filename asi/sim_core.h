@@ -35,7 +35,8 @@ typedef struct
     float full[CURVE_N], nb[CURVE_N];                                           /* 92..187 full-load torque, off-boost torque (Nm, 0..maxRpm) */
     float ambient, tOpt, tWin, relax, pressF, pressR, pOpt, camF;              /* 188..195 tyre temperature window (C), relaxation length (m), cold pressures / optimum (psi), static camber (rad) */
     float camR, caster, toeF, unsprung, kt, camGain, coldLoss, hotLoss;         /* 196..203 caster, front toe (rad, + = out), unsprung mass per corner (kg), tyre vertical stiffness (N/m), camber recovery, grip loss cold / hot */
-    float offroad, record, aeroFront, rcF, rcR, thermal, pad210, pad211;     /* 204..211 grip lost on loose ground (share), record this vehicle (diagnostics) */
+    float offroad, record, aeroFront, rcF, rcR, thermal, yawDI, rollK;       /* 204..211 grip lost on loose ground (share), record this vehicle (diagnostics), ...,
+                                                                              body inertia targets: yaw radius of gyration / half wheelbase, roll radius of gyration / track */
 } VParams;
 #define VP_N ((int)(sizeof(VParams) / 4))
 
@@ -64,6 +65,7 @@ typedef struct
     double angErr, angMag; LONG angN; int bad;
     double sErr, sMag; LONG sN; int strutOk, strutBad; float M[12]; int Mok; float bodyMass;
     LONG steps, own;
+    float iGta[3], iTgt[3], iInv[3];   /* body inertia GTA uses / our target (roll, pitch, yaw), per principal axis the factor on our torques */
 } Veh;
 static volatile int axisMode; static volatile LONG axA, axB;   /* which GTA tyre axis is the heading (1 = first, 2 = second), learned near straight ahead */
 
@@ -128,6 +130,38 @@ static void angOf(u64 wheel, u64 inst, const float *M, const float *t, float *an
     const float *S = (*(unsigned char *)(inst + 0x265) & 0x20) ? (const float *)(inst + 0xD0) : (const float *)(inst + 0x30);
     tb[0] *= S[0]; tb[1] *= S[1]; tb[2] *= S[2];
     for (int j = 0; j < 3; j++) ang[j] = M[j] * tb[0] + M[4 + j] * tb[1] + M[8 + j] * tb[2];
+}
+/* our forces turn the body with the real inertia (GTA's comes from the collision box and is far off for many cars):
+   only the torques we make are scaled, GTA's own (collisions) keep its value */
+static void angOfV(const Veh *v, u64 wheel, u64 inst, const float *M, const float *t, float *ang)
+{
+    float tb[3] = { M[0] * t[0] + M[1] * t[1] + M[2] * t[2], M[4] * t[0] + M[5] * t[1] + M[6] * t[2], M[8] * t[0] + M[9] * t[1] + M[10] * t[2] };
+    if (*(uint32_t *)(wheel + 0x204) & 0x80) tb[1] = 0;
+    const float *S = (*(unsigned char *)(inst + 0x265) & 0x20) ? (const float *)(inst + 0xD0) : (const float *)(inst + 0x30);
+    for (int k = 0; k < 3; k++) { float f = v->iInv[k] > 0.2f && v->iInv[k] <= 1.5f ? v->iInv[k] : 1.0f; tb[k] *= S[k] * f; }
+    for (int j = 0; j < 3; j++) ang[j] = M[j] * tb[0] + M[4 + j] * tb[1] + M[8 + j] * tb[2];
+}
+/* GTA's principal inertias against the real ones (from mass, wheelbase, track) */
+static void bodyInertia(Veh *v, u64 inst, const float *M, float mass)
+{
+    const float *S = (*(unsigned char *)(inst + 0x265) & 0x20) ? (const float *)(inst + 0xD0) : (const float *)(inst + 0x30);
+    const float *R = (const float *)(inst + 0x40), *F = (const float *)(inst + 0x50), *U = (const float *)(inst + 0x60);
+    float tr = 0; int n = 0; for (int j = 0; j < v->nw; j++) if (v->ws[j].init) { tr += fabsf(v->ws[j].lx) * 2.0f; n++; }
+    tr = n ? tr / n : 0;
+    float wb = v->p.wheelbase;
+    int ok = v->p.yawDI > 0.3f && v->p.rollK > 0.1f && v->p.bike < 0.5f && wb > 1.2f && wb < 12.0f && tr > 0.8f && tr < 3.5f && mass > 50.0f;
+    float Iz = ok ? mass * v->p.yawDI * (0.5f * wb) * (0.5f * wb) : 0, Ix = ok ? mass * (v->p.rollK * tr) * (v->p.rollK * tr) : 0, Iy = 0.93f * Iz;
+    for (int k = 0; k < 3; k++)
+    {
+        const float *row = M + 4 * k;
+        float dr = fabsf(dot3(row, R)), df = fabsf(dot3(row, F)), du = fabsf(dot3(row, U));
+        int ax = du >= dr && du >= df ? 2 : df >= dr ? 0 : 1;          /* 0 roll (about forward), 1 pitch (about right), 2 yaw */
+        float ig = S[k] > 1e-7f ? 1.0f / S[k] : 0, it = ax == 2 ? Iz : ax == 1 ? Iy : Ix;
+        v->iGta[ax] = ig; v->iTgt[ax] = it;
+        float f = ok && ig > 0 && it > 0 ? ig / it : 1.0f;            /* factor on the inverse inertia */
+        if (f > 1.25f) f = 1.25f; if (f < 0.33f) f = 0.33f;            /* never much lighter than GTA, at most 3x heavier */
+        v->iInv[k] = f;
+    }
 }
 static float vmin(float dt) { float v = 150.0f * dt; return v < 2.0f ? 2.0f : v > 6.0f ? 6.0f : v; }
 
@@ -212,7 +246,7 @@ static int vehTyre(Veh *v, int i, u64 wheel, u64 inst, float *out, float *lin, f
     float km = rf(wheel, 0x144) * rf(inst, 0x3C);
     float t1[3], t2[3], t[3], na[3]; cross3(rLong, FL, t1); cross3(rLat, FY, t2);
     for (int j = 0; j < 3; j++) t[j] = t1[j] + t2[j];
-    angOf(wheel, inst, M, t, na);
+    angOfV(v, wheel, inst, M, t, na);
     if (!(fabsf(Fw[0] + Fw[1] + Fw[2] + na[0] + na[1] + na[2]) < 1e8f)) { s->init = 0; return 0; }
     /* aerodynamic drag and downforce on the centre of mass, shared by the wheels on the ground */
     /* aerodynamics: drag on the centre of mass, downforce (or lift) on each axle by the aero balance, so it changes
@@ -225,13 +259,13 @@ static int vehTyre(Veh *v, int i, u64 wheel, u64 inst, float *out, float *lin, f
         float af = v->p.aeroFront > 0.01f && v->p.aeroFront < 0.99f ? v->p.aeroFront : 0.45f;
         float share = s->front ? (nf ? af / nf : 0) : (nr ? (1 - af) / nr : 0);
         for (int j = 0; j < 3; j++) { aero[j] = -q * v->p.cda * lv[j] / ng; down[j] = -q * sp * v->p.cla * share * U[j]; }
-        float td[3], ad[3]; cross3(r0, down, td); angOf(wheel, inst, M, td, ad);
+        float td[3], ad[3]; cross3(r0, down, td); angOfV(v, wheel, inst, M, td, ad);
         for (int j = 0; j < 3; j++) na[j] += ad[j];
     }
     float im = rf(inst, 0x3C);
     for (int j = 0; j < 3; j++) { out[j] = Fw[j]; lin[j] = Fw[j] * km + (aero[j] + down[j]) * im; ang[j] = na[j]; }
     s->vx = vx; s->ta = ta; s->fz = load; s->mu = muS; s->kappa = kappa; s->fxL = fx; s->fyL = latF;
-    if (i == 0) { for (int j = 0; j < 12; j++) v->M[j] = M[j]; v->Mok = 1; }
+    if (i == 0) { for (int j = 0; j < 12; j++) v->M[j] = M[j]; v->Mok = 1; bodyInertia(v, inst, M, mass); }
     s->lx = dot3(r0, Rt); s->ly = dot3(r0, F);
     if (i == 0) { v->yaw = dot3(av, U); v->vxB = dot3(lv, F); }
     InterlockedIncrement(&s->seen);
@@ -301,7 +335,7 @@ static int vehSusp(Veh *v, int i, u64 wheel, u64 inst, u64 other, float *out, fl
     if (v->strutOk)
     {
         float km = rf(wheel, 0x144) * rf(inst, 0x3C), o[3] = { F * U[0], F * U[1], F * U[2] }, t[3], na[3];
-        cross3(r, o, t); angOf(wheel, inst, v->M, t, na);
+        cross3(r, o, t); angOfV(v, wheel, inst, v->M, t, na);
         if (!(fabsf(o[0] + o[1] + o[2] + na[0] + na[1] + na[2]) < 1e8f)) return 0;
         for (int q = 0; q < 3; q++) { out[q] = o[q]; lin[q] = o[q] * km; ang[q] = na[q]; }
     }

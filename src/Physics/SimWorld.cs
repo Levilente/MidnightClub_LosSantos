@@ -35,7 +35,7 @@ namespace MidnightClub.Physics
         private static readonly Dictionary<int, ModelStock> models = new Dictionary<int, ModelStock>();
         private static readonly Dictionary<string, float[]> paramCache = new Dictionary<string, float[]>();
         private static int avail = -1, nextScan, nextLog, playerHandle; private static long playerAddr;
-        private static readonly float[] st = new float[74];
+        private static readonly float[] st = new float[80];
         private static float lastSteps, lastOwn;
 
         // live state of your car
@@ -127,6 +127,7 @@ namespace MidnightClub.Physics
                         + ", strut " + (st[71] > 0.5f ? "own" : st[71] < -0.5f ? "GTA direction" : "checking") + ", axes " + (st[72] > 0.5f ? "learned " + st[72].ToString("0") : "learning")
                         + ", tyres " + st[30].ToString("0") + "/" + st[31].ToString("0") + "/" + st[32].ToString("0") + "/" + st[33].ToString("0") + " C"
                         + ", GTA body " + st[73].ToString("0") + " kg (real " + (playerLive != null ? playerLive.Mass.ToString("0") : "?") + ")"
+                        + ", inertia roll/pitch/yaw GTA " + st[74].ToString("0") + "/" + st[75].ToString("0") + "/" + st[76].ToString("0") + " real " + st[77].ToString("0") + "/" + st[78].ToString("0") + "/" + st[79].ToString("0") + " kg m2"
                         + ", rpm " + Rpm.ToString("0") + ", slip " + st[20].ToString("0.00") + "/" + st[21].ToString("0.00") + "/" + st[22].ToString("0.00") + "/" + st[23].ToString("0.00"));
                     lastSteps = st[5]; lastOwn = st[6];
                 }
@@ -297,6 +298,11 @@ namespace MidnightClub.Physics
             float rh = 0.009f * Vehicles.Setup.TuneValue(rec, 11);                       // ride height (0.9 cm per step) moves the roll centres with it
             p[207] = Math.Max(0.0f, rcF + rh * 1.5f); p[208] = Math.Max(0.0f, rcR + rh * 1.5f);
             p[209] = cfg.TyreTemps ? 1f : 0f;
+            // body inertia (real cars): yaw radius of gyration against half the wheelbase (mid-engine cars carry their mass
+            // inside the wheelbase, front-engined ones and trucks hang it over the axles), roll radius of gyration against the track
+            bool mid = s.Layout == "MR" || s.Layout == "AWD-M";
+            p[210] = wc > 4 ? 1.25f : mid ? 0.9f : s.Layout == "RR" ? 1.02f : heavy ? 1.12f : kind == "Muscle" || kind == "Sedans" ? 1.06f : 1.0f;
+            p[211] = wc > 4 ? 0.45f : heavy ? 0.42f : kind == "Super" ? 0.34f : sporty ? 0.36f : 0.38f;
             // torque curves: full load and off-boost
             for (int i = 0; i < CurveN; i++) { p[92 + i] = L.Engine.Full[i]; p[92 + CurveN + i] = L.Engine.NoBoost[i]; }
             if (L.Engine.Ind == Induction.Supercharged)

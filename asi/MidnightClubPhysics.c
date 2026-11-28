@@ -236,7 +236,7 @@ __declspec(dllexport) int MCP_VehCount(void) { int c = 0; for (int i = 0; i < MA
 __declspec(dllexport) int MCP_VehState(u64 veh, float *o, int n)
 {
     Veh *v = findVeh(veh); if (!v) return 0;
-    float s[74]; memset(s, 0, sizeof s);
+    float s[80]; memset(s, 0, sizeof s);
     s[0] = v->engW * RPM_W; s[1] = (float)v->tcsAct; s[2] = (float)v->absAct; s[3] = (float)v->escAct; s[4] = v->boost;
     s[5] = (float)v->steps; s[6] = (float)v->own; s[7] = v->bad ? -2.0f : v->angMag > 1e-6 ? (float)(v->angErr / v->angMag) : -1.0f;
     s[8] = (float)v->susReady; s[9] = (float)v->nw;
@@ -246,7 +246,8 @@ __declspec(dllexport) int MCP_VehState(u64 veh, float *o, int n)
         s[50 + i] = v->ws[i].press; s[60 + i] = v->ws[i].ta;
     }
     s[70] = v->aPeakTan; s[71] = v->strutOk ? 1.0f : v->strutBad ? -1.0f : 0.0f; s[72] = (float)axisMode; s[73] = v->bodyMass;
-    if (n > 74) n = 74; memcpy(o, s, (size_t)n * 4); return n;
+    for (int k = 0; k < 3; k++) { s[74 + k] = v->iGta[k]; s[77 + k] = v->iTgt[k]; }
+    if (n > 80) n = 80; memcpy(o, s, (size_t)n * 4); return n;
 }
 __declspec(dllexport) void MCP_VehTyresNew(u64 veh) { Veh *v = findVeh(veh); if (v) for (int i = 0; i < MAXW; i++) v->ws[i].wear = 0; }
 __declspec(dllexport) int MCP_AxisFallbacks(void) { return axisFallback; }
