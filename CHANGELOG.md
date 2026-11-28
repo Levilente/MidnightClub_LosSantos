@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.65.1
+- Chase cams: rotation back to the trailing chase behaviour (in a drift the car floats out to the side); the arm follows the road's slope, so downhill the camera rises and looks down the road instead of the car hiding it.
+- Action cam: same placement as the close chase cam; in a drift it lets the car further out, drops lower and moves up level with the rear bumper on the inside of the slide.
+- Cockpit cam: the eye point is measured only once the driver is really seated (1.2 s, averaged, checked against the steering wheel) – no more camera behind the headrest.
+
+
 ## 0.65.0
 - Chase cameras, sense of speed: in a drift the camera swings to the inside and aims inside, so the car slides out towards the edge of the picture (action cam the most); cornering G throws the car to the outside of the frame.
 - Spring arm: the camera height rides on a soft spring – it floats on take-off, sinks and bounces back on landing (slopes don't lag).

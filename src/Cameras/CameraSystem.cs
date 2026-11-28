@@ -65,7 +65,8 @@ namespace MidnightClub.Cameras
                         RadiusExtra = 3.3f + S("FollowLowCam\\RadiusOffsetGlobal", -0.6f), TargetHeight = 1.2f + 0.25f * S("FollowLowCam\\TargetYOffsetGlobal", 0.7f), LookAhead = 6.5f, BaseFov = S("FollowLowCam\\FOV", 55f) },
                     new CameraProfile { Name = "Chase far", Layers = "FollowCam2", Chase = true, Height = (S("FollowHighCam\\HeightMinAboveGround", 2.03f) + S("FollowHighCam\\HeightMaxAboveGround", 2.03f)) / 2f + 0.45f,
                         RadiusExtra = 4.6f + S("FollowHighCam\\RadiusOffsetGlobal", -0.3f), TargetHeight = Math.Max(0.45f, 1.0f + 0.25f * S("FollowHighCam\\TargetYOffsetGlobal", -1.8f)), LookAhead = 8.0f, BaseFov = S("FollowHighCam\\FOV", 60f) },
-                    new CameraProfile { Name = "Action", Layers = "FollowCam", Chase = true, Height = 1.55f, RadiusExtra = 2.6f, TargetHeight = 1.15f, LookAhead = 6.0f, BaseFov = 64f },
+                    new CameraProfile { Name = "Action", Layers = "FollowCam", Chase = true, Height = (S("FollowLowCam\\HeightMinAboveGround", 1.6f) + S("FollowLowCam\\HeightMaxAboveGround", 1.65f)) / 2f + 0.4f,
+                        RadiusExtra = 3.3f + S("FollowLowCam\\RadiusOffsetGlobal", -0.6f), TargetHeight = 1.2f + 0.25f * S("FollowLowCam\\TargetYOffsetGlobal", 0.7f), LookAhead = 6.5f, BaseFov = S("FollowLowCam\\FOV", 55f) },
                 };
                 return profiles;
             }
@@ -133,7 +134,7 @@ namespace MidnightClub.Cameras
                 cam.IsActive = true;
                 Function.Call(Hash.RENDER_SCRIPT_CAMS, true, false, 0, true, false, 0);
                 active = true;
-                camYaw = car.Heading; camYawVel = 0; collide = 99f; pivotInit = false; pull = 0f; fov = p.BaseFov; lastSpeed = car.Speed; lastHeading = car.Heading; lastVel = car.Velocity;
+                camYaw = car.Heading; camYawVel = 0; collide = 99f; pivotInit = false; pivotInit2 = false; pull = 0f; fov = p.BaseFov; lastSpeed = car.Speed; lastHeading = car.Heading; lastVel = car.Velocity;
                 pitchAvg = car.Rotation.X; rollAvg = car.Rotation.Y;
                 foreach (var l in layerSets.Values) l.Reset();
             }
@@ -233,18 +234,16 @@ namespace MidnightClub.Cameras
             var fwd = car.ForwardVector; var vel = car.Velocity;
             float target = car.Heading;
             if (speed > 5f && Vector3.Dot(vel, fwd) > 0f)
-            {   // drift: the camera swings to the INSIDE of the slide (past the nose), so the car slides out towards the edge of
-                // the picture like NFS; the action cam swings the most
-                float slip = DeltaAngle((float)(Math.Atan2(-vel.X, vel.Y) * 180.0 / Math.PI), car.Heading);
-                float k = (action ? 0.45f : far ? 0.2f : 0.25f) * Clamp((speed - 5f) / 10f, 0f, 1f);
-                target = car.Heading + Clamp(slip, -50f, 50f) * k;
+            {   // the heading trails towards the direction of travel: in a drift the car floats out to the side of the picture
+                float velH = (float)(Math.Atan2(-vel.X, vel.Y) * 180.0 / Math.PI), slip = DeltaAngle(velH, car.Heading);
+                target = LerpAngle(car.Heading, velH, 0.35f);
                 driftT = Clamp(slip / 40f, -1f, 1f) * Clamp((speed - 5f) / 10f, 0f, 1f);
             }
             else driftT = 0f;
             drift = SmoothDamp(drift, driftT, ref driftVel, 0.35f, dt);
-            camYaw = SmoothDampAngle(camYaw, target, ref camYawVel, action ? 0.3f : far ? 0.2f : 0.16f, dt);
+            camYaw = SmoothDampAngle(camYaw, target, ref camYawVel, far ? 0.2f : 0.16f, dt);
             float rel = DeltaAngle(car.Heading, camYaw);
-            float relMax = action ? 60f : 30f;
+            float relMax = 30f;
             if (Math.Abs(rel) > relMax) { camYaw = car.Heading + Math.Sign(rel) * relMax; rel = Math.Sign(rel) * relMax; }
             bool behind = Game.IsControlPressed(Control.VehicleLookBehind);
             float yaw = behind ? car.Heading + 180f : camYaw + lookYaw;
@@ -260,7 +259,7 @@ namespace MidnightClub.Cameras
                 pivot = new Vector3(pos.X, pos.Y, pz);
             }
             pull = SmoothDamp(pull, Clamp(gLong, -0.8f, 1.2f) * 0.45f * gk, ref pullVel, 0.35f, dt);                       // G: accelerating pulls the camera back, braking pushes it in
-            side = SmoothDamp(side, -Clamp(gLat, -1.2f, 1.2f) * 0.35f * gk, ref sideVel, 0.3f, dt);                    // G: the car is thrown to the outside of the picture
+            side = SmoothDamp(side, Clamp(gLat, -1.2f, 1.2f) * 0.3f * gk, ref sideVel, 0.3f, dt);                      // G: cornering slides it to the outside
             // NFS ProStreet: every gear lets the camera a few centimetres further back (speed you can feel), with a small
             // tug on each upshift
             int gNow = Physics.Native.DriveActive ? Math.Max(1, Physics.SimWorld.OwnGear) : Math.Max(1, car.CurrentGear);
@@ -269,22 +268,31 @@ namespace MidnightClub.Cameras
             gearBack = SmoothDamp(gearBack, Math.Min(10, gNow - 1) * 0.06f * Clamp(speed / 8f, 0f, 1f), ref gearBackVel, 0.6f, dt);
             float radius = halfLen + p.RadiusExtra + pull + gearBack + gearKick * (float)Math.Sin(Math.Min(1f, (0.25f - gearKick) / 0.25f) * Math.PI);
             float height = p.Height - groundOff;
+            // action cam in a drift: lets the car further out to the side, drops lower and moves up level with the rear
+            // bumper on the inside of the slide (the rotation stays the chase cam's)
+            float ad = action ? Math.Abs(drift) : 0f, lat = action ? -drift * 1.9f : 0f;
+            if (action) { radius += (halfLen + 0.4f - radius) * ad; height -= 0.5f * ad; }
+            // the arm follows the road's slope (smoothed): downhill the camera rises behind the car and looks down the road
+            float slopeT = Clamp((float)Math.Asin(Clamp(car.ForwardVector.Z, -1f, 1f)), -0.45f, 0.45f);
+            if (!pivotInit2) { slope = slopeT; pivotInit2 = true; }
+            slope = SmoothDamp(slope, slopeT, ref slopeVel, 0.25f, dt);
+            float cs = (float)Math.Cos(slope), sn = (float)Math.Sin(slope);
             var back = Dir(yaw);
+            var back3 = new Vector3(back.X * cs, back.Y * cs, sn);
             var anchor = pos + new Vector3(0, 0, 0.5f);
-            var want = new Vector3(pivot.X, pivot.Y, pivot.Z) - back * radius + new Vector3(0, 0, height);
+            var rightW = new Vector3(back.Y, -back.X, 0f);
+            var want = new Vector3(pivot.X, pivot.Y, pivot.Z) - back3 * radius + rightW * lat + new Vector3(0, 0, height);
             var hit = World.Raycast(anchor, want, IntersectFlags.Map, car);
             float allowed = hit.DidHit ? Math.Max(1.6f, hit.HitPosition.DistanceTo(anchor) - 0.35f) : 99f;
             collide = allowed < collide ? allowed : SmoothDamp(collide, allowed, ref collideVel, 0.45f, dt);
             float arm = Math.Min(radius, collide);
-            var rightW = new Vector3(back.Y, -back.X, 0f);
-            var camW = new Vector3(pivot.X, pivot.Y, pivot.Z) - back * arm + rightW * side + new Vector3(0, 0, height * Math.Min(1f, arm / Math.Max(0.1f, radius) * 0.4f + 0.6f));
+            var camW = new Vector3(pivot.X, pivot.Y, pivot.Z) - back3 * arm + rightW * (side + lat) + new Vector3(0, 0, height * Math.Min(1f, arm / Math.Max(0.1f, radius) * 0.4f + 0.6f));
             // attach in car space (converted so the world position is exact): the engine moves the camera with the car
             // on the render thread, so there is no script-tick stutter at speed
             var local = car.GetPositionOffset(camW);
             Function.Call(Hash.ATTACH_CAM_TO_ENTITY, cam, car, local.X, local.Y, local.Z, true);
             attached = true;
-            // drift: the view aims at the inside of the slide, so the car drifts out towards the edge of the picture
-            var tgtW = new Vector3(pivot.X, pivot.Y, pivot.Z) + back * p.LookAhead - rightW * drift * (action ? 1.6f : 0.9f) + new Vector3(0, 0, p.TargetHeight - groundOff - lookPitch * 0.04f);
+            var tgtW = new Vector3(pivot.X, pivot.Y, pivot.Z) + back3 * p.LookAhead + rightW * lat + new Vector3(0, 0, p.TargetHeight - groundOff - lookPitch * 0.04f);
             var d = tgtW - camW;
             float pitch = (float)(Math.Atan2(d.Z, Math.Sqrt(d.X * d.X + d.Y * d.Y)) * 180.0 / Math.PI);
             float yawW = (float)(Math.Atan2(-d.X, d.Y) * 180.0 / Math.PI);
@@ -301,7 +309,7 @@ namespace MidnightClub.Cameras
             fov = SmoothDamp(fov, Clamp(p.BaseFov + speedFov + accFov + BoostFov, 30f, 120f), ref fovVel, 0.35f, dt);
             cam.FieldOfView = fov;
         }
-        private Vector3 pivot; private bool pivotInit; private float pivotZVel, pull, pullVel, side, sideVel, gearBack, gearBackVel, gearKick, drift, driftT, driftVel; private int camGear;
+        private Vector3 pivot; private bool pivotInit; private float pivotZVel, pull, pullVel, side, sideVel, gearBack, gearBackVel, gearKick, drift, driftT, driftVel, slope, slopeVel; private bool pivotInit2; private int camGear;
         private float fovVel;
 
         /// <summary>Camera position in car space for an orbit angle (deg, + = left of the car's heading).</summary>
@@ -320,6 +328,7 @@ namespace MidnightClub.Cameras
             float ry = behind || Math.Abs(lookYaw) > 150f ? 180f : Clamp(lookYaw, -maxLook, maxLook);
             if (mode == CameraMode.Cockpit)
             {
+                RefineCockpit(car, ped);
                 if (!driverHidden) { Function.Call(Hash.SET_ENTITY_VISIBLE, ped, false, false); driverHidden = true; hiddenPed = ped.Handle; }
                 Function.Call(Hash.SET_ENTITY_LOCALLY_INVISIBLE, ped);
             }
@@ -357,7 +366,30 @@ namespace MidnightClub.Cameras
             var head = Function.Call<Vector3>(Hash.GET_PED_BONE_COORDS, ped, 31086, 0f, 0f, 0f);   // SKEL_Head
             var h = car.GetPositionOffset(head);
             cockpitLocal = (h.Length() > 0.1f && h.Length() < 4f) ? new Vector3(h.X, h.Y + 0.14f, h.Z + cfg.CockpitCamHeight) : new Vector3(-0.35f, 0f, max.Z * 0.5f);
+            headN = 0; headSum = Vector3.Zero; seatedAt = 0;
         }
+        /// <summary>The driver's eye point, measured only once the driver really sits (not while climbing in, when the head
+        /// can be behind the headrest), averaged over half a second; the steering wheel must be in front of it.</summary>
+        private void RefineCockpit(Vehicle car, Ped ped)
+        {
+            if (headN >= 30) return;
+            bool seated = Function.Call<bool>(Hash.IS_PED_SITTING_IN_VEHICLE, ped, car) && !Function.Call<bool>(Hash.IS_PED_GETTING_INTO_A_VEHICLE, ped) && car.Driver == ped;
+            if (!seated) { seatedAt = 0; return; }
+            if (seatedAt == 0) { seatedAt = Game.GameTime; return; }
+            if (Game.GameTime - seatedAt < 1200) return;
+            var h = car.GetPositionOffset(Function.Call<Vector3>(Hash.GET_PED_BONE_COORDS, ped, 31086, 0f, 0f, 0f));
+            if (h.Length() < 0.1f || h.Length() > 4f) return;
+            int wheel = Function.Call<int>(Hash.GET_ENTITY_BONE_INDEX_BY_NAME, car, "steeringwheel");
+            if (wheel >= 0)
+            {
+                var sw = car.GetPositionOffset(Function.Call<Vector3>(Hash.GET_WORLD_POSITION_OF_ENTITY_BONE, car, wheel));
+                if (h.Y > sw.Y - 0.25f || h.Y < sw.Y - 1.1f) return;            // head not where a seated driver's is
+            }
+            headSum += h; headN++;
+            var a = headSum / headN;
+            cockpitLocal = new Vector3(a.X, a.Y + 0.14f, a.Z + cfg.CockpitCamHeight);
+        }
+        private Vector3 headSum; private int headN, seatedAt;
 
         // ---------------------------------------------------------------- math
         private float Noise(float f) { return (float)(Math.Sin(time * f) * 0.6 + Math.Sin(time * f * 2.3 + 1.7) * 0.4); }
