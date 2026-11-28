@@ -85,7 +85,7 @@ static void step(float dt)
         float taRaw = vyw / den, bl = (fabsf(vxw) + 3.0f) * dt / 0.35f; if (bl > 1) bl = 1;
         taL[i] += (taRaw - taL[i]) * bl;
         float kappa = (float)((w[i] * C.R - vxw) / den);
-        float fx, fy; vtyre(v, kappa, (float)taL[i], load > 0 ? load : 0, 1.0f, &fx, &fy);
+        float fx, fy; vtyre(v, i >= 2, kappa, (float)taL[i], load > 0 ? load : 0, 1.0f, &fx, &fy);
         float fyw = -fy;
         /* wheel spin */
         float Tq = 0;

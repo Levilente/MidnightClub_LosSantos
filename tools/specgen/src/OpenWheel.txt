@@ -1,0 +1,4 @@
+openwheel1 | ~IndyCar Dallara DW12 (2.2 twin-turbo V6) | 2018 | race/race | 730 | 42 | 3.05 | 1.68/1.62 | V6 2.2TT1.5 | 700@12000 | 450@9500 | 12000 | S6 | - | 3.80 | MR | R:lsd | PR/PR F+R+ | 328C6/328C4 | 290/680R15 410/690R15 slick | 0.80x1.40 cl3.5 b0.42 | cgh=0.30
+openwheel2 | ~Formula 3 Dallara F3 2019 (DR1 body) | 2019 | race/race | 673 | 42 | 3.05 | 1.60/1.55 | V6 3.4N | 380@8000 | 400@6000 | 8500 | S6 | - | 4.20 | MR | R:lsd | PR/PR F+R+ | 280C4/280C4 | 245/560R13 305/570R13 slick | 0.75x1.30 cl3.0 b0.42 | cgh=0.28
+formula | ~Formula 1 car (2017, 1.6 turbo hybrid V6) | 2017 | race/race | 728 | 45 | 3.70 | 1.60/1.55 | V6 1.6T3.5h | 950@11500 | 700@10000 | 15000 | S8 | - | 3.20 | MR | R:ediff | PR/PR F+R+ | 278C6/266C4 | 305/670R13 405/670R13 slick | 0.95x1.50 cl4.5 b0.44 | cgh=0.27
+formula2 = formula ; cp=~Formula_1_car_(2017,_R88_body)

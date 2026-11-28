@@ -27,9 +27,9 @@ typedef struct
     float wet, rolling, idle, redline, peakNm, maxRpm, engI, eff, launch, boostTau;  /* 10..19 */
     float turbo, als, tyreR, wheelI, brakeCap, handCap, preDiff, powDiff, coastDiff, preC;  /* 20..29 */
     float powC, longAt, tcs, abs, esc, mass, cda, cla, wheelbase, bike;         /* 30..39 */
-    float parked, gears, frontShare, brakeBias, hold, power, pad46, pad47, pad48, pad49;  /* 40..49 */
+    float parked, gears, frontShare, brakeBias, hold, power, ByR, EyR, ktR, relaxR;  /* 40..49 ...; rear tyre (staggered sizes): MF B, E, vertical stiffness, relaxation length */
     float susOn, fF, fR, zbl, zbh, zrl, zrh, arbF, arbR, knee;                   /* 50..59 suspension: ride frequency front/rear (Hz), damping ratios, ARB / spring ratio */
-    float bumpFrac, bumpK, maxFk, travel, antiF, antiR, pad66, pad67, pad68, pad69;   /* 60..69 travel: GTA's wheel travel (handling upper - lower limit, m); anti-dive / anti-squat share per axle */
+    float bumpFrac, bumpK, maxFk, travel, antiF, antiR, bumpF, bumpR, muR, unsprungR;   /* 60..69 travel: GTA's wheel travel (handling upper - lower limit, m); anti-dive / anti-squat share per axle; real bump travel per axle (m); rear tyre grip vs front; rear unsprung mass */
     float ratios[12];                                                           /* 70..81  [0] reverse, [g] overall ratio of gear g */
     float driven[MAXW];                                                         /* 82..91  1 = driven wheel */
     float full[CURVE_N], nb[CURVE_N];                                           /* 92..187 full-load torque, off-boost torque (Nm, 0..maxRpm) */
@@ -58,7 +58,7 @@ typedef struct
 {
     volatile LONG used;            /* 0 free, 1 being written, 2 ready */
     u64 veh, wkey; int nw; u64 wheel[MAXW];   /* wkey = CVehicle+0xC30 (wheel pointer array), what the wheel step gets */
-    VParams p; float kPeak, aPeakTan;
+    VParams p; float kPeak, aPeakTan, aPeakTanR;
     WSim ws[MAXW];
     float engW, tcsF, boost, dt, yaw, vxB, escCut; int tcsAct, absAct, escAct, nGround, pairsDone, susReady;
     float x0[2]; int x0steps;
@@ -85,6 +85,13 @@ static void vpeaks(Veh *v)
     v->kPeak = at; best = 0; at = 0.1f;
     for (int i = 1; i <= 400; i++) { float a = i * 0.0015f, f = mf(a, v->p.By, v->p.Cy, v->p.Ey); if (f > best) { best = f; at = a; } }
     v->aPeakTan = tanf(at);
+    v->aPeakTanR = v->aPeakTan;
+    if (v->p.ByR > 1.0f)
+    {
+        best = 0; at = 0.1f;
+        for (int i = 1; i <= 400; i++) { float a = i * 0.0015f, f = mf(a, v->p.ByR, v->p.Cy, v->p.EyR); if (f > best) { best = f; at = a; } }
+        v->aPeakTanR = tanf(at);
+    }
 }
 static float vmu(const Veh *v, float base, float fz)
 {
@@ -93,12 +100,15 @@ static float vmu(const Veh *v, float base, float fz)
     float m = base * (1 + v->p.loadSens * d); return m < 0.05f ? 0.05f : m;
 }
 /* combined-slip tyre: one normalised slip magnitude, each direction on its own Magic Formula curve and peak */
-static void vtyre(const Veh *v, float kappa, float ta, float fz, float muS, float *fx, float *fy)
+static void vtyre(const Veh *v, int rear, float kappa, float ta, float fz, float muS, float *fx, float *fy)
 {
-    float kn = kappa / v->kPeak, an = ta / v->aPeakTan, rho = sqrtf(kn * kn + an * an);
+    int st = rear && v->p.ByR > 1.0f;                      /* staggered: the rear tyre's own construction */
+    float apt = st ? v->aPeakTanR : v->aPeakTan, B = st ? v->p.ByR : v->p.By, E = st ? v->p.EyR : v->p.Ey;
+    if (rear && v->p.muR > 0.3f && v->p.muR < 2.0f) muS *= v->p.muR;
+    float kn = kappa / v->kPeak, an = ta / apt, rho = sqrtf(kn * kn + an * an);
     if (rho < 1e-5f || fz <= 0) { *fx = 0; *fy = 0; return; }
     float mx = vmu(v, v->p.muX, fz) * muS, my = vmu(v, v->p.muY, fz) * muS;
-    float sx = mf(rho * v->kPeak, v->p.Bx, v->p.Cx, v->p.Ex), sy = mf(atanf(rho * v->aPeakTan), v->p.By, v->p.Cy, v->p.Ey);
+    float sx = mf(rho * v->kPeak, v->p.Bx, v->p.Cx, v->p.Ex), sy = mf(atanf(rho * apt), B, v->p.Cy, E);
     if (rho > 1.0f) { if (sx < 0.78f) sx = 0.78f; if (sy < 0.82f) sy = 0.82f; }   /* sliding rubber keeps ~80 % of the peak */
     *fx = mx * fz * sx * kn / rho;
     *fy = my * fz * sy * an / rho;
@@ -214,7 +224,8 @@ static int vehTyre(Veh *v, int i, u64 wheel, u64 inst, float *out, float *lin, f
     float kappa = (s->w * R - vx) / den, ta = vy / den;
     if (s->front) ta -= sgn * v->p.toeF;                                 /* toe: a static slip angle per wheel */
     ta -= 0.1f * s->gam * sgn;                                           /* camber thrust: a leaning tyre pushes towards its lean */
-    float bl = (fabsf(vx) + 3.0f) * (v->dt > 0.001f ? v->dt : 0.011f) / (v->p.relax > 0.05f ? v->p.relax : 0.45f); if (bl > 1) bl = 1;
+    float rlx = !s->front && v->p.relaxR > 0.05f ? v->p.relaxR : v->p.relax;
+    float bl = (fabsf(vx) + 3.0f) * (v->dt > 0.001f ? v->dt : 0.011f) / (rlx > 0.05f ? rlx : 0.45f); if (bl > 1) bl = 1;
     float taE = s->taL + bl * (ta - s->taL);                             /* relaxation length: side force builds up over the first ~0.5 m */
     /* ground: GTA's own surface value (1 = road, lower = grass / dirt / sand), scaled by how much this tyre minds loose ground */
     float sf0 = rf(wheel, 0x1A4); if (!(sf0 >= 0 && sf0 <= 1.5f)) sf0 = 1; if (sf0 > 1) sf0 = 1;
@@ -222,7 +233,7 @@ static int vehTyre(Veh *v, int i, u64 wheel, u64 inst, float *out, float *lin, f
     s->surf = g; v->bodyMass = mass;
     float muS = v->p.wet * g * (s->muF > 0.3f ? s->muF : 1.0f);
     s->taRaw = ta; s->vy = vy; ta = taE;
-    float fx, fy; vtyre(v, kappa, ta, load, muS, &fx, &fy);
+    float fx, fy; vtyre(v, !s->front, kappa, ta, load, muS, &fx, &fy);
     /* lateral force enters the body at the suspension's real roll centre (GTA uses 0.3-0.45 m to hide body roll,
        which moves the load transfer into rigid links: an instant, snappy body); longitudinal near the contact patch */
     float rcOwn = s->front ? v->p.rcF : v->p.rcR; if (!(rcOwn > 0.005f && rcOwn < 0.8f)) rcOwn = -1;
@@ -314,7 +325,7 @@ static float susForce(const Veh *v, u64 wheel, int i, float sS, float vS, float 
 {
     int ax = rf(wheel, 0x140) < 0 ? 1 : 0;
     float mc = susMc(v, wheel), f = ax ? v->p.fR : v->p.fF, w = 6.2831853f * f;
-    float k = mc * w * w, cc = 2.0f * sqrtf(k * mc), kt = v->p.kt > 1000 ? v->p.kt : 220000.0f;
+    float k = mc * w * w, cc = 2.0f * sqrtf(k * mc), kt = ax && v->p.ktR > 1000 ? v->p.ktR : v->p.kt > 1000 ? v->p.kt : 220000.0f;
     /* GTA's travel (CWheel+0x130): at the end of it GTA makes a rigid body contact, which is what bounced the car.
        The static position sits at 30-50 % of that travel (GTA's own ride height when it allows), and our bump stop
        takes the rest progressively so the body never reaches GTA's hard limit. */
@@ -327,8 +338,17 @@ static float susForce(const Veh *v, u64 wheel, int i, float sS, float vS, float 
     if (vS >= 0) fd = vS < kn ? cc * v->p.zbl * vS : cc * (v->p.zbl * kn + v->p.zbh * (vS - kn));
     else { float u = -vS; fd = -(u < kn ? cc * v->p.zrl * u : cc * (v->p.zrl * kn + v->p.zrh * (u - kn))); }
     float bumpAt = Ts - 0.06f; if (bumpAt < s0 + 0.04f) bumpAt = s0 + 0.04f;
-    float over = sS - bumpAt, room = Ts - 0.005f - bumpAt; if (room < 0.02f) room = 0.02f;
-    float fb = over > 0 ? mc * 9.81f * 5.0f * (over / room) * (over / room) + k * 2.0f * over : 0.0f;   /* progressive rubber: 5 g of the corner's weight at the end */
+    float over, room = Ts - 0.005f - bumpAt;
+    float bt = ax ? v->p.bumpR : v->p.bumpF;
+    if (bt > 0.02f && bt < 0.5f)
+    {   /* the real car's bump travel from its ride height: the rubber takes the last half of it (never past GTA's stop) */
+        float end = s0 + bt; if (end > Ts - 0.005f) end = Ts - 0.005f;
+        bumpAt = end - 0.5f * bt; if (bumpAt < s0 + 0.02f) bumpAt = s0 + 0.02f;
+        room = end - bumpAt;
+    }
+    if (room < 0.02f) room = 0.02f;
+    over = sS - bumpAt;
+    float fb = over > 0 ? mc * 9.81f * 4.0f * (over / room) * (over / room) + k * 1.0f * over : 0.0f;   /* progressive rubber: 4 g of the corner's weight at the end */
     if (over > room) fb += k * 25.0f * (over - room);
     float fa = hasOther ? k * (ax ? v->p.arbR : v->p.arbF) * (sS - sOther) : 0.0f;
     float fo = fs + fd + fb + fa, mx = mc * 9.81f * (v->p.maxFk > 0 ? v->p.maxFk : 3.5f) + fb;
@@ -383,7 +403,8 @@ static int vehSusp(Veh *v, int i, u64 wheel, u64 inst, u64 other, float *out, fl
 static void wheelHop(Veh *v, int i, u64 wheel, float dt)
 {
     WSim *s = &v->ws[i];
-    float x = rf(wheel, 0x160), kt = v->p.kt > 1000 ? v->p.kt : 220000.0f, mu = v->p.unsprung > 5 ? v->p.unsprung : 40.0f;
+    int axr = rf(wheel, 0x140) < 0;
+    float x = rf(wheel, 0x160), kt = axr && v->p.ktR > 1000 ? v->p.ktR : v->p.kt > 1000 ? v->p.kt : 220000.0f, mu = axr && v->p.unsprungR > 5 ? v->p.unsprungR : v->p.unsprung > 5 ? v->p.unsprung : 40.0f;
     kt *= s->press > 5 && v->p.pOpt > 5 ? s->press / v->p.pOpt : 1.0f;
     float mc = susMc(v, wheel);
     if (!s->cinit)
@@ -500,7 +521,8 @@ static void vehStep(Veh *v, u64 *wp, int nw, float dt)
             int j = s->pair;
             if (j >= 0 && j < nw) { float tr = fabsf(s->lx - v->ws[j].lx); if (tr > 0.5f) { float sR = s->lx > 0 ? s->s : v->ws[j].s, sL = s->lx > 0 ? v->ws[j].s : s->s; roll = (sR - sL) / tr; } }
             s->gam = g0 + sgn * (1 - p->camGain) * roll + (s->front ? -sgn * sinf(p->caster) * steer : 0.0f);
-            float bl = (fabsf(s->vx) + 3.0f) * dt / (p->relax > 0.05f ? p->relax : 0.45f); if (bl > 1) bl = 1;
+            float rlx = !s->front && p->relaxR > 0.05f ? p->relaxR : p->relax;
+            float bl = (fabsf(s->vx) + 3.0f) * dt / (rlx > 0.05f ? rlx : 0.45f); if (bl > 1) bl = 1;
             s->taL += bl * (s->taRaw - s->taL);
             if (s->fz <= 0) s->taL *= 0.9f;
             /* heat: sliding power into the tread + rolling hysteresis, cooled by the air */
@@ -640,8 +662,8 @@ static void vehStep(Veh *v, u64 *wp, int nw, float dt)
             {
                 den = fabsf(s->vx); float vm = vmin(dt); if (den < vm) den = vm;
                 float kp = (s->w * R[i] - s->vx) / den, fx2, fy2, e = 0.002f;
-                vtyre(v, kp, s->ta, s->fz, s->mu, &fx, &fy);
-                vtyre(v, kp + e, s->ta, s->fz, s->mu, &fx2, &fy2);
+                vtyre(v, !s->front, kp, s->ta, s->fz, s->mu, &fx, &fy);
+                vtyre(v, !s->front, kp + e, s->ta, s->fz, s->mu, &fx2, &fy2);
                 J = (fx2 - fx) / e * R[i] / den; if (J < 0) J = 0;
                 s->kappa = kp;
                 if (share[i] > 0 && kp > kMaxDriven) kMaxDriven = kp;
@@ -669,7 +691,7 @@ static void vehStep(Veh *v, u64 *wp, int nw, float dt)
             for (int i = 0; i < nw; i++)
             {
                 if (share[i] <= 0 || v->ws[i].fz <= 0 || !ok[i]) continue;
-                float fx, fy; vtyre(v, v->kPeak * (1.0f + (10 - p->tcs) * 0.05f) * (rEff >= 0 ? 1.0f : -1.0f), v->ws[i].ta, v->ws[i].fz, v->ws[i].mu, &fx, &fy);
+                float fx, fy; vtyre(v, !v->ws[i].front, v->kPeak * (1.0f + (10 - p->tcs) * 0.05f) * (rEff >= 0 ? 1.0f : -1.0f), v->ws[i].ta, v->ws[i].fz, v->ws[i].mu, &fx, &fy);
                 float need = fabsf(unc * share[i]);
                 if (need > 1.0f) { float q = fabsf(fx) * R[i] / need; if (q < want) want = q; }
             }

@@ -1,0 +1,698 @@
+class,id,counterpart,year,estimated,kg,front %,engine,hp,Nm,gearbox,gears,final,drive,susp F,susp R,tyres F,tyres R,brakes F,brakes R
+Compacts,weevil,Volkswagen Beetle 1200 (Type 1),1965,,790.0,40.0,F4 1.2 L na,40.0,87.0,manual,4,4.375,RR,trailing arm,swing axle,5.60-15,5.60-15,230 drum,230 drum
+Compacts,weevil2,Volkswagen Beetle (drag-built Type 1),1965,,760.0,40.0,F4 2.2 L na,180.0,200.0,manual,4,4.375,RR,trailing arm,swing axle,165/80R15,225/60R15,230 drum,230 drum
+Compacts,dilettante,Toyota Prius (XW20),2006,,1325.0,60.0,I4 1.5 L na,110.0,400.0,CVT,1,4.11,FF,MacPherson strut,torsion beam,185/65R15,185/65R15,255 vented disc,200 drum
+Compacts,dilettante2,Toyota Prius (XW20),2006,,1325.0,60.0,I4 1.5 L na,110.0,400.0,CVT,1,4.11,FF,MacPherson strut,torsion beam,185/65R15,185/65R15,255 vented disc,200 drum
+Compacts,brioso,Fiat 500 Abarth (595 Competizione),2017,,1035.0,64.0,I4 1.4 L turbo,180.0,250.0,manual,5,3.353,FF,MacPherson strut,torsion beam,205/40R17,205/40R17,305 vented disc,240 solid disc
+Compacts,brioso2,Fiat 500 (1957 Nuova 500),1965,,500.0,39.0,I2 0.5 L na,18.0,31.0,manual,4,5.125,RR,double wishbone,semi-trailing arm,125-12,125-12,170 drum,170 drum
+Compacts,brioso3,Fiat 500 Abarth (widebody restomod),1965,,540.0,39.0,I2 0.7 L na,45.0,50.0,manual,4,5.125,RR,double wishbone,semi-trailing arm,145/70R12,165/70R12,170 drum,170 drum
+Compacts,asbo,Vauxhall Nova SR (Opel Corsa A),1990,,840.0,62.0,I4 1.6 L na,82.0,125.0,manual,5,3.94,FF,MacPherson strut,torsion beam,175/65R13,175/65R13,236 vented disc,200 drum
+Compacts,prairie,Mazda MX-6 / 626 Coupe (GD),1990,,1170.0,62.0,I4 2.2 L na,110.0,176.0,manual,5,4.105,FF,MacPherson strut,multi-link,195/60R15,195/60R15,258 vented disc,261 solid disc
+Compacts,issi2,Mini Cooper S Convertible (R57),2010,,1230.0,63.0,I4 1.6 L turbo,184.0,240.0,manual,6,3.647,FF,MacPherson strut,multi-link,205/45R17,205/45R17,294 vented disc,259 solid disc
+Compacts,issi3,Austin Mini Cooper S (Mk I),1965,,640.0,61.0,I4 1.3 L na,76.0,108.0,manual,4,3.44,FF,double wishbone,trailing arm,145/80R10,145/80R10,190 solid disc,178 drum
+Compacts,issi4,Austin Mini (Arena Wars armoured),1965,yes,1150.0,61.0,I4 1.8 L turbo,200.0,230.0,manual,4,3.44,FF,double wishbone,trailing arm,205/60R13,205/60R13,190 solid disc,178 drum
+Compacts,issi5,Austin Mini (Arena Wars armoured),1965,yes,1150.0,61.0,I4 1.8 L turbo,200.0,230.0,manual,4,3.44,FF,double wishbone,trailing arm,205/60R13,205/60R13,190 solid disc,178 drum
+Compacts,issi6,Austin Mini (Arena Wars armoured),1965,yes,1150.0,61.0,I4 1.8 L turbo,200.0,230.0,manual,4,3.44,FF,double wishbone,trailing arm,205/60R13,205/60R13,190 solid disc,178 drum
+Compacts,issi7,Mini John Cooper Works GP (F56),2020,,1255.0,61.0,I4 2.0 L turbo,306.0,450.0,automatic,8,3.2,FF,MacPherson strut,multi-link,225/35R18,225/35R18,360 vented disc,259 solid disc
+Compacts,issi8,Mini Countryman WRC (rally-raised),2022,yes,1350.0,60.0,I4 1.6 L turbo,300.0,400.0,sequential,6,4.2,AWD-F,MacPherson strut,MacPherson strut,205/65R15,205/65R15,300 vented disc,300 vented disc
+Compacts,rhapsody,Chevrolet Corvair Monza (Mk II),1965,,1080.0,38.0,F6 2.7 L na,110.0,217.0,manual,4,3.27,RR,double wishbone,trailing arm,6.50-13,6.50-13,229 drum,229 drum
+Compacts,blista,"Honda Civic (EG hatch, 1.6 VTi)",1994,,1060.0,63.0,I4 1.6 L na,160.0,150.0,manual,5,4.4,FF,double wishbone,double wishbone,195/55R15,195/55R15,262 vented disc,239 solid disc
+Compacts,kanjo,Honda Civic Hatchback (EG6 SiR),1992,,1050.0,63.0,I4 1.6 L na,170.0,157.0,manual,5,4.4,FF,double wishbone,double wishbone,195/55R15,195/55R15,262 vented disc,239 solid disc
+Compacts,club,Volkswagen Golf GTI (Mk I),1980,,810.0,62.0,I4 1.6 L na,110.0,140.0,manual,5,3.89,FF,MacPherson strut,torsion beam,175/70R13,175/70R13,239 vented disc,180 drum
+Compacts,panto,Smart ForTwo (W451),2012,,820.0,45.0,I3 1.0 L turbo,84.0,120.0,automated manual,5,3.64,RR,MacPherson strut,De Dion axle,155/60R15,175/55R15,280 solid disc,203 drum
+Coupes,postlude,Honda Prelude 2.0i-16 4WS (BA4),1990,,1170.0,63.0,I4 2.0 L na,145.0,177.0,manual,5,4.266,FF,double wishbone,double wishbone,195/60R14,195/60R14,262 vented disc,239 solid disc
+Coupes,kanjosj,Honda Civic Coupe Si (EJ1),1993,,1045.0,63.0,I4 1.6 L na,125.0,144.0,manual,5,4.25,FF,double wishbone,double wishbone,185/60R14,185/60R14,262 vented disc,239 solid disc
+Coupes,felon,Jaguar XF 5.0 V8 (X250),2010,,1825.0,52.0,V8 5.0 L na,385.0,515.0,automatic,6,2.87,FR,double wishbone,multi-link,245/40R19,275/35R19,355 vented disc,326 vented disc
+Coupes,felon2,Jaguar XK Convertible 5.0 (X150),2010,,1755.0,52.0,V8 5.0 L na,385.0,515.0,automatic,6,2.87,FR,double wishbone,double wishbone,255/40R19,285/35R19,355 vented disc,326 vented disc
+Coupes,jackal,Jaguar XK Coupe 4.2 (X150),2008,,1595.0,52.0,V8 4.2 L na,300.0,411.0,automatic,6,3.31,FR,double wishbone,double wishbone,245/45R18,255/45R18,326 vented disc,326 vented disc
+Coupes,cogcabrio,Bentley Continental GTC W12 (2nd gen),2012,,2495.0,57.0,W12 6.0 L turbo,575.0,700.0,automatic,8,2.85,AWD-F,double wishbone,multi-link,275/40R20,275/40R20,405 vented disc,335 vented disc
+Coupes,sentinel,BMW 335i Coupe (E92),2010,,1600.0,51.0,I6 3.0 L turbo,306.0,400.0,manual,6,3.08,FR,MacPherson strut,multi-link,225/40R18,255/35R18,348 vented disc,336 vented disc
+Coupes,sentinel2,BMW 335i Convertible (E93),2010,,1755.0,51.0,I6 3.0 L turbo,306.0,400.0,manual,6,3.08,FR,MacPherson strut,multi-link,225/40R18,255/35R18,348 vented disc,336 vented disc
+Coupes,driftsent2,"BMW 335i Coupe (E92, drift build)",2010,,1480.0,51.0,I6 3.0 L turbo,450.0,560.0,manual,6,3.08,FR,MacPherson strut,multi-link,245/40R18,265/35R18,348 vented disc,336 vented disc
+Coupes,oracle,BMW 650i Gran Coupe (F06),2013,,1940.0,53.0,V8 4.4 L turbo,450.0,650.0,automatic,8,2.81,FR,double wishbone,multi-link,245/40R19,275/35R19,374 vented disc,345 vented disc
+Coupes,oracle2,BMW 745i (E65),2004,,1925.0,51.0,V8 4.4 L na,333.0,450.0,automatic,6,3.38,FR,double wishbone,multi-link,245/50R18,245/50R18,348 vented disc,345 vented disc
+Coupes,eurosx32,Nissan 300ZX Twin Turbo (Z32),1990,,1580.0,54.0,V6 3.0 L turbo,300.0,383.0,manual,5,3.692,FR,multi-link,multi-link,225/50R16,245/45R16,302 vented disc,297 vented disc
+Coupes,windsor,Rolls-Royce Wraith,2014,,2360.0,51.0,V12 6.6 L turbo,632.0,800.0,automatic,8,2.65,FR,double wishbone,multi-link,255/45R20,285/40R20,410 vented disc,370 vented disc
+Coupes,windsor2,Rolls-Royce Dawn,2014,,2560.0,51.0,V12 6.6 L turbo,571.0,780.0,automatic,8,2.65,FR,double wishbone,multi-link,255/45R20,285/40R20,410 vented disc,370 vented disc
+Coupes,zion,BMW 650i Coupe (E63),2006,,1720.0,51.0,V8 4.8 L na,367.0,490.0,automatic,6,2.81,FR,MacPherson strut,multi-link,245/40R19,275/35R19,348 vented disc,345 vented disc
+Coupes,zion2,BMW 650i Convertible (E64),2006,,1850.0,51.0,V8 4.8 L na,367.0,490.0,automatic,6,2.81,FR,MacPherson strut,multi-link,245/40R19,275/35R19,348 vented disc,345 vented disc
+Coupes,f620,Aston Martin DB9 (2013),2013,,1785.0,51.0,V12 6.0 L na,510.0,620.0,automatic,6,3.46,FR,double wishbone,double wishbone,245/35R20,295/30R20,398 carbon-ceramic disc,360 carbon-ceramic disc
+Coupes,fr36,Infiniti G37 Coupe (V36),2009,,1660.0,54.0,V6 3.7 L na,330.0,366.0,manual,6,3.692,FR,double wishbone,multi-link,225/45R18,245/45R18,355 vented disc,350 vented disc
+Coupes,driftfr36,Infiniti G37 Coupe (drift build),2009,,1520.0,54.0,V6 3.7 L turbo,480.0,520.0,manual,6,3.692,FR,double wishbone,multi-link,245/40R18,265/35R18,355 vented disc,350 vented disc
+Coupes,exemplar,Aston Martin Rapide,2011,,1990.0,51.0,V12 6.0 L na,470.0,600.0,automatic,6,3.46,FR,double wishbone,double wishbone,245/40R20,295/35R20,390 carbon-ceramic disc,360 carbon-ceramic disc
+Coupes,previon,Toyota Paseo / Cynos (L50),1996,,940.0,62.0,I4 1.5 L na,100.0,123.0,manual,5,3.722,FF,MacPherson strut,torsion beam,185/55R15,185/55R15,255 vented disc,200 drum
+Motorcycles,faggio2,Vespa Primavera 50,2014,,105.0,45.0,I1 0.1 L na,3.2,3.5,CVT,1,12.0,chain,telescopic fork,"swingarm, monoshock",110/70R12,120/70R12,200 vented disc,140 drum
+Motorcycles,pizzaboy,Piaggio Fly 50 (delivery scooter),2014,,105.0,45.0,I1 0.1 L na,3.2,3.5,CVT,1,12.0,chain,telescopic fork,"swingarm, monoshock",110/70R12,120/70R12,200 vented disc,140 drum
+Motorcycles,faggio,Vespa GTS 300 Super,2014,,160.0,45.0,I1 0.3 L na,24.0,26.0,CVT,1,12.0,chain,telescopic fork,"swingarm, monoshock",110/70R12,120/70R12,200 vented disc,140 drum
+Motorcycles,faggio3,Vespa PX 125 (mod),2014,,110.0,45.0,I1 0.1 L na,8.0,10.0,manual,4,12.0,chain,telescopic fork,"swingarm, monoshock",110/70R12,120/70R12,200 vented disc,140 drum
+Motorcycles,ratbike,Harley-Davidson Sportster 883 (rat bike),1995,,245.0,47.0,V2 0.9 L na,50.0,69.0,manual,4,4.468,chain,telescopic fork,"swingarm, twin shocks",100/90R19,130/90R16,292 solid disc,180 drum
+Motorcycles,bagger,Harley-Davidson Electra Glide Ultra Classic,2010,,370.0,45.0,V2 1.7 L na,80.0,138.0,manual,6,4.671,chain,telescopic fork,"swingarm, twin shocks",130/80R17,180/65R16,300 vented disc,300 vented disc
+Motorcycles,wolfsbane,Harley-Davidson Sportster 1200 Custom,2012,,260.0,46.0,V2 1.2 L na,67.0,98.0,manual,5,4.988,chain,telescopic fork,"swingarm, twin shocks",130/90R16,150/80R16,300 vented disc,260 vented disc
+Motorcycles,daemon,Harley-Davidson Fat Boy,2010,,330.0,45.0,V2 1.6 L na,75.0,125.0,manual,6,4.537,chain,telescopic fork,"swingarm, twin shocks",140/75R17,200/55R17,292 vented disc,292 vented disc
+Motorcycles,daemon2,Harley-Davidson Fat Boy (custom),2010,,330.0,45.0,V2 1.6 L na,75.0,125.0,manual,6,4.537,chain,telescopic fork,"swingarm, twin shocks",140/75R17,200/55R17,292 vented disc,292 vented disc
+Motorcycles,chimera,Harley-Davidson Tri Glide (trike),2015,yes,510.0,40.0,V2 1.7 L na,85.0,140.0,manual,6,4.821,chain,telescopic fork,"swingarm, twin shocks",130/70R18,205/65R15,300 vented disc,300 vented disc
+Motorcycles,hexer,Harley-Davidson Softail Springer (chopper),2002,yes,300.0,45.0,V2 1.4 L na,65.0,115.0,manual,5,4.421,chain,telescopic fork,"swingarm, twin shocks",90/90R21,150/80R16,292 solid disc,292 solid disc
+Motorcycles,avarus,Custom chopper (S&S 1.8 V-twin),2002,yes,310.0,45.0,V2 1.8 L na,95.0,150.0,manual,5,3.895,chain,telescopic fork,"swingarm, twin shocks",90/90R21,150/80R16,292 solid disc,292 solid disc
+Motorcycles,sanctus,"Custom skull chopper (Sanctus, 1.8 V-twin)",2002,yes,320.0,45.0,V2 1.8 L na,95.0,150.0,manual,5,3.895,chain,telescopic fork,"swingarm, twin shocks",90/90R21,150/80R16,292 solid disc,292 solid disc
+Motorcycles,gargoyle,Custom chopper (Gargoyle),2002,yes,300.0,45.0,V2 1.6 L na,80.0,130.0,manual,5,4.125,chain,telescopic fork,"swingarm, twin shocks",90/90R21,150/80R16,292 solid disc,292 solid disc
+Motorcycles,cliffhanger,Harley-Davidson Wide Glide (custom),2002,yes,300.0,45.0,V2 1.6 L na,75.0,125.0,manual,5,4.215,chain,telescopic fork,"swingarm, twin shocks",90/90R21,150/80R16,292 solid disc,292 solid disc
+Motorcycles,zombiea,Harley-Davidson Sportster Forty-Eight,2012,,250.0,46.0,V2 1.2 L na,67.0,98.0,manual,5,5.043,chain,telescopic fork,"swingarm, twin shocks",130/90R16,150/80R16,300 vented disc,260 vented disc
+Motorcycles,zombieb,Harley-Davidson Sportster (chopper custom),2012,,250.0,46.0,V2 1.2 L na,67.0,98.0,manual,5,5.043,chain,telescopic fork,"swingarm, twin shocks",130/90R16,150/80R16,300 vented disc,260 vented disc
+Motorcycles,sovereign,Harley-Davidson Road King,2014,,360.0,45.0,V2 1.7 L na,80.0,138.0,manual,6,4.572,chain,telescopic fork,"swingarm, twin shocks",130/80R17,180/65R16,300 vented disc,300 vented disc
+Motorcycles,reever,Harley-Davidson Fat Bob 114,2014,yes,306.0,45.0,V2 1.9 L na,94.0,155.0,manual,6,4.333,chain,telescopic fork,"swingarm, twin shocks",130/80R17,180/65R16,300 vented disc,300 vented disc
+Motorcycles,pcj,Honda CBR600F (PC31),1995,,205.0,51.0,I4 0.6 L na,100.0,62.0,manual,6,8.377,chain,telescopic fork,"swingarm, monoshock",120/70R17,160/60R17,276 vented disc,220 vented disc
+Motorcycles,vader,Honda CB600F Hornet,2005,,199.0,50.0,I4 0.6 L na,96.0,63.0,manual,6,9.166,chain,telescopic fork,"swingarm, monoshock",120/70R17,180/55R17,296 vented disc,220 vented disc
+Motorcycles,akuma,Honda CBR600RR,2007,,186.0,52.0,I4 0.6 L na,118.0,66.0,manual,6,8.657,chain,upside-down fork,"swingarm, monoshock",120/70R17,180/55R17,310 vented disc,220 vented disc
+Motorcycles,double,Honda CBR1000RR Fireblade (SC57),2006,,205.0,52.0,I4 1.0 L na,172.0,114.0,manual,6,6.282,chain,upside-down fork,"swingarm, monoshock",120/70R17,190/50R17,320 vented disc,220 vented disc
+Motorcycles,carbonrs,Kawasaki Ninja ZX-10R,2016,,206.0,52.0,I4 1.0 L na,200.0,114.0,manual,6,6.983,chain,upside-down fork,"swingarm, monoshock",120/70R17,190/55R17,330 vented disc,220 vented disc
+Motorcycles,bati,Ducati 1098,2007,,199.0,52.0,V2 1.1 L na,160.0,123.0,manual,6,5.739,chain,upside-down fork,"swingarm, monoshock",120/70R17,190/55R17,330 vented disc,245 vented disc
+Motorcycles,bati2,Ducati 1098 (race livery),2007,,199.0,52.0,V2 1.1 L na,160.0,123.0,manual,6,5.739,chain,upside-down fork,"swingarm, monoshock",120/70R17,190/55R17,330 vented disc,245 vented disc
+Motorcycles,hakuchou,Suzuki GSX1300R Hayabusa,2008,,260.0,51.0,I4 1.3 L na,194.0,155.0,manual,6,5.01,chain,upside-down fork,"swingarm, monoshock",120/70R17,190/50R17,310 vented disc,260 vented disc
+Motorcycles,hakuchou2,Suzuki Hayabusa (turbo drag build),2008,,250.0,51.0,I4 1.4 L turbo,420.0,310.0,manual,6,4.26,chain,upside-down fork,"swingarm, monoshock",120/70R17,240/40R18,310 vented disc,260 vented disc
+Motorcycles,nemesis,Ducati Monster 1100 EVO,2011,,188.0,49.0,V2 1.1 L na,100.0,103.0,manual,6,5.651,chain,upside-down fork,"swingarm, monoshock",120/70R17,180/55R17,320 vented disc,245 vented disc
+Motorcycles,esskey,Ducati Scrambler Icon 800,2015,,186.0,49.0,V2 0.8 L na,75.0,68.0,manual,6,7.044,chain,upside-down fork,"swingarm, monoshock",110/80R18,180/55R17,330 vented disc,245 vented disc
+Motorcycles,ruffian,Ducati Hypermotard 1100,2008,,199.0,49.0,V2 1.1 L na,90.0,103.0,manual,6,6.049,chain,upside-down fork,"swingarm, monoshock",120/70R17,180/55R17,305 vented disc,245 vented disc
+Motorcycles,fcr,Triumph Thruxton R,2016,yes,203.0,50.0,I2 1.2 L na,97.0,112.0,manual,6,5.089,chain,upside-down fork,"swingarm, twin shocks",120/70R17,160/60R17,310 vented disc,220 vented disc
+Motorcycles,fcr2,Triumph Thruxton R (cafe custom),2016,yes,203.0,50.0,I2 1.2 L na,97.0,112.0,manual,6,5.089,chain,upside-down fork,"swingarm, twin shocks",120/70R17,160/60R17,310 vented disc,220 vented disc
+Motorcycles,innovation,Harley-Davidson V-Rod,2002,,300.0,45.0,V2 1.1 L na,115.0,100.0,manual,5,5.881,chain,telescopic fork,"swingarm, twin shocks",120/70R19,180/55R18,292 vented disc,292 vented disc
+Motorcycles,nightblade,Harley-Davidson Night Rod Special,2002,,300.0,45.0,V2 1.2 L na,125.0,115.0,manual,5,5.72,chain,telescopic fork,"swingarm, twin shocks",120/70R19,180/55R18,292 vented disc,292 vented disc
+Motorcycles,vindicator,Honda NM4 Vultus,2015,,245.0,46.0,I2 0.8 L na,54.0,68.0,automated manual,6,6.134,chain,telescopic fork,"swingarm, monoshock",120/70R18,200/50R17,320 vented disc,240 vented disc
+Motorcycles,thrust,Honda F6C Valkyrie,1999,,330.0,46.0,F6 1.5 L na,100.0,132.0,manual,5,4.789,chain,telescopic fork,"swingarm, twin shocks",150/80R17,180/70R16,296 vented disc,316 vented disc
+Motorcycles,diablous,Ducati Diavel,2011,,239.0,47.0,V2 1.2 L na,162.0,128.0,manual,6,6.269,chain,upside-down fork,"swingarm, monoshock",120/70R17,240/45R17,320 vented disc,265 vented disc
+Motorcycles,diablous2,Ducati Diavel (custom),2011,,239.0,47.0,V2 1.2 L na,162.0,128.0,manual,6,6.269,chain,upside-down fork,"swingarm, monoshock",120/70R17,240/45R17,320 vented disc,265 vented disc
+Motorcycles,defiler,Yamaha VMAX (2009),2009,,310.0,48.0,V4 1.7 L na,200.0,166.0,manual,5,5.293,chain,telescopic fork,"swingarm, monoshock",120/70R18,200/50R18,320 vented disc,298 vented disc
+Motorcycles,rrocket,Triumph Rocket III Roadster,2010,yes,367.0,47.0,I3 2.3 L na,146.0,221.0,manual,5,4.051,chain,upside-down fork,"swingarm, twin shocks",150/80R17,240/50R16,320 vented disc,316 vented disc
+Motorcycles,deathbike,Arena deathbike (armoured chopper),2018,yes,420.0,45.0,V2 1.9 L na,120.0,170.0,manual,6,4.517,chain,telescopic fork,"swingarm, twin shocks",130/90R19,180/70R16,320 vented disc,300 vented disc
+Motorcycles,deathbike2,Arena deathbike (armoured chopper),2018,yes,420.0,45.0,V2 1.9 L na,120.0,170.0,manual,6,4.517,chain,telescopic fork,"swingarm, twin shocks",130/90R19,180/70R16,320 vented disc,300 vented disc
+Motorcycles,deathbike3,Arena deathbike (armoured chopper),2018,yes,420.0,45.0,V2 1.9 L na,120.0,170.0,manual,6,4.517,chain,telescopic fork,"swingarm, twin shocks",130/90R19,180/70R16,320 vented disc,300 vented disc
+Motorcycles,lectro,Zero SR/F,2020,,220.0,49.0,electric,110.0,190.0,single-speed,1,8.0,chain,upside-down fork,"swingarm, monoshock",120/70R17,180/55R17,320 vented disc,240 vented disc
+Motorcycles,powersurge,Harley-Davidson LiveWire,2020,,249.0,49.0,electric,105.0,116.0,single-speed,1,7.0,chain,upside-down fork,"swingarm, monoshock",120/70R17,180/55R17,300 vented disc,260 vented disc
+Motorcycles,manchez,Honda CRF450X,2015,,125.0,48.0,I1 0.5 L na,50.0,45.0,manual,5,8.411,chain,upside-down fork,"swingarm, monoshock",80/100R21,110/100R18,240 vented disc,240 vented disc
+Motorcycles,manchez2,Honda CRF450X (scout),2015,,125.0,48.0,I1 0.5 L na,50.0,45.0,manual,5,8.411,chain,upside-down fork,"swingarm, monoshock",80/100R21,110/100R18,240 vented disc,240 vented disc
+Motorcycles,manchez3,Honda CRF450X (scout custom),2015,,125.0,48.0,I1 0.5 L na,50.0,45.0,manual,5,8.411,chain,upside-down fork,"swingarm, monoshock",80/100R21,110/100R18,240 vented disc,240 vented disc
+Motorcycles,sanchez,Honda CR250R (two-stroke),2005,,100.0,48.0,I1 0.2 L na,45.0,34.0,manual,5,8.251,chain,upside-down fork,"swingarm, monoshock",80/100R21,110/90R19,240 vented disc,240 vented disc
+Motorcycles,sanchez2,Honda CR250R (two-stroke),2005,,100.0,48.0,I1 0.2 L na,45.0,34.0,manual,5,8.251,chain,upside-down fork,"swingarm, monoshock",80/100R21,110/90R19,240 vented disc,240 vented disc
+Motorcycles,enduro,Honda XR650L,2015,,157.0,48.0,I1 0.7 L na,45.0,54.0,manual,5,5.925,chain,telescopic fork,"swingarm, monoshock",3.00-21,4.60-18,256 vented disc,220 vented disc
+Motorcycles,bf400,Kawasaki KX450F,2016,,109.0,48.0,I1 0.5 L na,55.0,50.0,manual,5,8.549,chain,upside-down fork,"swingarm, monoshock",80/100R21,120/80R19,250 vented disc,240 vented disc
+Motorcycles,stryder,Can-Am Spyder F3 (trike),2016,,400.0,55.0,I3 1.3 L na,115.0,130.0,automated manual,6,5.683,chain,double wishbone,"swingarm, monoshock",165/55R15,225/50R15,270 vented disc,270 vented disc
+Motorcycles,shinobi,Kawasaki Ninja H2,2015,,238.0,51.0,I4 1.0 L supercharged,228.0,141.0,manual,6,5.762,chain,upside-down fork,"swingarm, monoshock",120/70R17,200/55R17,330 vented disc,250 vented disc
+Motorcycles,vortex,Lotus C-01,2015,yes,181.0,50.0,V2 1.2 L na,200.0,134.0,manual,6,5.967,chain,upside-down fork,"swingarm, monoshock",120/70R17,190/55R17,330 vented disc,245 vented disc
+Motorcycles,oppressor,Rocket-assisted sports bike (fictional),2017,yes,260.0,50.0,I4 1.0 L na,190.0,115.0,manual,6,6.937,chain,upside-down fork,"swingarm, monoshock",120/70R17,190/55R17,330 vented disc,245 vented disc
+Motorcycles,oppressor2,"Hover bike (fictional, Oppressor Mk II)",2017,yes,260.0,50.0,I4 1.0 L na,190.0,115.0,manual,6,6.937,chain,upside-down fork,"swingarm, monoshock",120/70R17,190/55R17,330 vented disc,245 vented disc
+Motorcycles,shotaro,Light cycle (fictional electric),2016,yes,250.0,50.0,electric,180.0,300.0,single-speed,1,8.0,chain,telescopic fork,"swingarm, monoshock",190/50R17,240/45R17,330 vented disc,330 vented disc
+Muscle,voodoo2,Chevrolet Impala (1963),1963,,1650.0,55.0,V8 5.4 L na,250.0,475.0,automatic,2,3.08,FR,double wishbone,"live axle, coil springs",7.50-14,7.50-14,279 drum,279 drum
+Muscle,voodoo,"Chevrolet Impala (1963, lowrider with hydraulics)",1963,,1750.0,55.0,V8 5.4 L na,250.0,475.0,automatic,2,3.08,FR,double wishbone,"live axle, coil springs",175/70R13,175/70R13,279 drum,279 drum
+Muscle,broadway,Hudson Hornet (1952),1952,yes,1600.0,54.0,I6 5.0 L na,145.0,348.0,manual,3,4.1,FR,double wishbone,"live axle, leaf springs",7.10-15,7.10-15,279 drum,279 drum
+Muscle,clique,"Ford Model B 1932 coupe (hot rod, 350 V8)",1932,yes,1050.0,52.0,V8 5.7 L na,350.0,515.0,manual,4,3.55,FR,"live axle, leaf springs","live axle, leaf springs",165/80R15,235/75R15,280 solid disc,254 drum
+Muscle,clique2,Ford Model A woody wagon (hot rod),1932,yes,1250.0,52.0,V8 5.7 L na,350.0,515.0,manual,4,3.55,FR,"live axle, leaf springs","live axle, leaf springs",165/80R15,235/75R15,280 solid disc,254 drum
+Muscle,ratloader,"Ford F-100 (1957, rat rod)",1957,,1600.0,56.0,I6 3.7 L na,133.0,268.0,manual,3,3.92,FR,double wishbone,"live axle, leaf springs",6.70-15,6.70-15,279 drum,279 drum
+Muscle,ratloader2,"Ford F-100 (1957, V8 rat truck)",1957,,1550.0,56.0,V8 5.0 L na,250.0,420.0,manual,4,3.92,FR,double wishbone,"live axle, leaf springs",6.70-15,6.70-15,279 drum,279 drum
+Muscle,eudora,Buick Century (1955),1955,yes,1700.0,55.0,V8 5.3 L na,236.0,447.0,automatic,2,3.36,FR,double wishbone,"live axle, coil springs",7.60-15,7.60-15,305 drum,305 drum
+Muscle,chino,Buick Wildcat (1965),1965,yes,1900.0,55.0,V8 6.6 L na,325.0,603.0,automatic,3,3.07,FR,double wishbone,"live axle, coil springs",8.45-15,8.45-15,305 drum,305 drum
+Muscle,chino2,"Buick Wildcat (1965, lowrider)",1965,yes,1950.0,55.0,V8 6.6 L na,325.0,603.0,automatic,3,3.07,FR,double wishbone,"live axle, coil springs",175/70R13,175/70R13,305 drum,305 drum
+Muscle,brigham,Chrysler 300L (1965),1965,yes,1950.0,55.0,V8 6.8 L na,360.0,637.0,automatic,3,3.23,FR,double wishbone,"live axle, leaf springs",8.45-14,8.45-14,279 drum,279 drum
+Muscle,virgo,Lincoln Continental Mark IV (1972),1972,,2300.0,56.0,V8 7.5 L na,224.0,495.0,automatic,3,2.75,FR,double wishbone,"live axle, coil springs",225/75R15,225/75R15,300 solid disc,279 drum
+Muscle,virgo3,Chrysler Imperial LeBaron (1974),1974,yes,2250.0,56.0,V8 7.2 L na,230.0,488.0,automatic,3,2.71,FR,double wishbone,"live axle, leaf springs",225/75R15,225/75R15,300 solid disc,279 drum
+Muscle,virgo2,"Chrysler Imperial (1974, lowrider)",1974,yes,2300.0,56.0,V8 7.2 L na,230.0,488.0,automatic,3,2.71,FR,double wishbone,"live axle, leaf springs",175/70R13,175/70R13,300 solid disc,279 drum
+Muscle,slamvan,"Chevrolet 3100 (1955, slammed custom, 350 V8)",1955,yes,1600.0,55.0,V8 5.7 L na,300.0,475.0,automatic,3,3.55,FR,double wishbone,"live axle, coil springs",205/55R17,235/50R17,280 solid disc,254 drum
+Muscle,slamvan2,Chevrolet 3100 (Lost MC custom),1955,yes,1600.0,55.0,V8 5.7 L na,300.0,475.0,automatic,3,3.55,FR,double wishbone,"live axle, coil springs",205/55R17,235/50R17,280 solid disc,254 drum
+Muscle,slamvan3,Chevrolet 3100 (Benny's custom),1955,yes,1600.0,55.0,V8 5.7 L na,300.0,475.0,automatic,3,3.55,FR,double wishbone,"live axle, coil springs",205/40R20,245/35R20,280 solid disc,254 drum
+Muscle,slamvan4,Chevrolet 3100 (Arena Wars armoured),1955,yes,2500.0,55.0,V8 6.2 L supercharged,550.0,650.0,automatic,3,3.55,FR,double wishbone,"live axle, coil springs",275/65R18,275/65R18,280 solid disc,254 drum
+Muscle,slamvan5,Chevrolet 3100 (Arena Wars armoured),1955,yes,2500.0,55.0,V8 6.2 L supercharged,550.0,650.0,automatic,3,3.55,FR,double wishbone,"live axle, coil springs",275/65R18,275/65R18,280 solid disc,254 drum
+Muscle,slamvan6,Chevrolet 3100 (Arena Wars armoured),1955,yes,2500.0,55.0,V8 6.2 L supercharged,550.0,650.0,automatic,3,3.55,FR,double wishbone,"live axle, coil springs",275/65R18,275/65R18,280 solid disc,254 drum
+Muscle,moonbeam,Chevrolet G20 conversion van,1985,,2200.0,54.0,V8 5.7 L na,165.0,366.0,automatic,3,3.08,FR,double wishbone,"live axle, leaf springs",235/75R15,235/75R15,300 solid disc,279 drum
+Muscle,moonbeam2,Chevrolet G20 (lowrider custom),1985,,2250.0,54.0,V8 5.7 L na,165.0,366.0,automatic,3,3.08,FR,double wishbone,"live axle, leaf springs",205/50R17,205/50R17,300 solid disc,279 drum
+Muscle,faction,Buick Regal (1984),1984,,1500.0,56.0,V6 3.8 L na,110.0,258.0,automatic,3,2.73,FR,double wishbone,"live axle, coil springs",205/70R14,205/70R14,269 solid disc,241 drum
+Muscle,faction2,Buick Regal (lowrider custom),1984,,1560.0,56.0,V6 3.8 L na,110.0,258.0,automatic,3,2.73,FR,double wishbone,"live axle, coil springs",175/70R13,175/70R13,269 solid disc,241 drum
+Muscle,faction3,"Buick Regal (donk, 26-inch wheels)",1984,,1750.0,56.0,V6 3.8 L na,110.0,258.0,automatic,3,2.73,FR,double wishbone,"live axle, coil springs",285/25R26,285/25R26,269 solid disc,241 drum
+Muscle,manana2,"Cadillac Eldorado convertible (1976, lowrider)",1976,yes,2300.0,60.0,V8 8.2 L na,190.0,488.0,automatic,3,2.73,FF,double wishbone,"live axle, coil springs",175/70R13,175/70R13,300 vented disc,279 drum
+Muscle,picador,Chevrolet El Camino (1977),1977,,1650.0,56.0,V8 5.7 L na,170.0,366.0,automatic,3,3.08,FR,double wishbone,"live axle, coil springs",225/70R15,225/70R15,279 solid disc,241 drum
+Muscle,nightshade,Pontiac Grand Prix SJ (1970),1970,yes,1850.0,56.0,V8 7.5 L na,370.0,678.0,manual,4,3.31,FR,double wishbone,"live axle, coil springs",225/70R14,225/70R14,279 solid disc,241 drum
+Muscle,hustler,"Ford Model A (1928, hot rod, flathead V8)",1928,,950.0,50.0,V8 3.9 L na,180.0,290.0,manual,3,3.54,FR,"live axle, leaf springs","live axle, leaf springs",5.50-16,5.50-16,279 drum,279 drum
+Muscle,hotknife,"Ford Model T roadster (T-bucket, 350 V8)",1923,,900.0,50.0,V8 5.7 L na,375.0,515.0,automatic,3,3.55,FR,"live axle, leaf springs","live axle, leaf springs",165/80R15,275/60R15,280 solid disc,254 drum
+Muscle,tampa,Dodge Dart Swinger 340 (1969),1969,,1450.0,57.0,V8 5.6 L na,275.0,461.0,manual,4,3.23,FR,double wishbone,"live axle, leaf springs",E70-14,E70-14,279 solid disc,254 drum
+Muscle,tampa3,"Dodge Dart (1969, weaponised, armoured)",1969,,2300.0,57.0,V8 5.6 L na,275.0,461.0,manual,4,3.23,FR,double wishbone,"live axle, leaf springs",225/70R15,225/70R15,279 solid disc,254 drum
+Muscle,tampa4,"Dodge Dart Swinger (Tampa GT, resto-mod 6.4 Hemi)",1969,yes,1500.0,57.0,V8 6.4 L na,485.0,644.0,manual,6,3.23,FR,double wishbone,multi-link,245/45R18,275/40R18,355 vented disc,330 vented disc
+Muscle,deviant,AMC Javelin AMX 401 (1971),1971,,1500.0,57.0,V8 6.6 L na,330.0,583.0,manual,4,3.54,FR,double wishbone,"live axle, leaf springs",F70-14,F70-14,279 solid disc,254 drum
+Muscle,hermes,Mercury Eight coupe (1949),1949,yes,1600.0,54.0,V8 4.2 L na,110.0,271.0,manual,3,3.91,FR,double wishbone,"live axle, leaf springs",7.10-15,7.10-15,279 drum,279 drum
+Muscle,yosemite,Chevrolet C10 (1973),1973,,1750.0,56.0,V8 5.7 L na,175.0,366.0,automatic,3,3.4,FR,double wishbone,"live axle, leaf springs",235/75R15,235/75R15,300 solid disc,279 drum
+Muscle,driftyosemite,"Chevrolet C10 (drift build, LS swap)",1973,,1600.0,56.0,V8 6.2 L na,480.0,560.0,manual,6,3.4,FR,double wishbone,multi-link,255/40R18,275/40R18,300 solid disc,279 drum
+Muscle,yosemite2,"Chevrolet C10 (drift build, LS swap)",1973,,1600.0,56.0,V8 6.2 L na,480.0,560.0,manual,6,3.4,FR,double wishbone,multi-link,255/40R18,275/40R18,300 solid disc,279 drum
+Muscle,tahoma,Chevrolet Monte Carlo SS 454 (1970),1970,,1700.0,57.0,V8 7.4 L na,360.0,678.0,automatic,3,3.31,FR,double wishbone,"live axle, coil springs",G70-15,G70-15,279 solid disc,241 drum
+Muscle,coquette3,"Chevrolet Corvette Sting Ray (C2, 1963)",1963,,1430.0,49.0,V8 5.4 L na,360.0,475.0,manual,4,3.7,FR,double wishbone,trailing arm,6.70-15,6.70-15,279 drum,279 drum
+Muscle,buccaneer,Buick Riviera (1971),1971,,2000.0,56.0,V8 7.5 L na,315.0,610.0,automatic,3,2.93,FR,double wishbone,"live axle, coil springs",225/70R15,225/70R15,300 solid disc,305 drum
+Muscle,buccaneer2,"Buick Riviera (1971, lowrider)",1971,,2050.0,56.0,V8 7.5 L na,315.0,610.0,automatic,3,2.93,FR,double wishbone,"live axle, coil springs",175/70R13,175/70R13,300 solid disc,305 drum
+Muscle,stalion,Plymouth Barracuda convertible 340 (1970),1970,,1500.0,57.0,V8 5.6 L na,275.0,461.0,manual,4,3.55,FR,double wishbone,"live axle, leaf springs",F70-14,F70-14,279 solid disc,254 drum
+Muscle,stalion2,"Plymouth Barracuda (1970, Burger Shot race livery)",1970,,1500.0,57.0,V8 5.6 L na,275.0,461.0,manual,4,3.55,FR,double wishbone,"live axle, leaf springs",F70-14,F70-14,279 solid disc,254 drum
+Muscle,blade,Ford Fairlane 500 GT 390 (1967),1967,,1550.0,57.0,V8 6.4 L na,320.0,576.0,manual,4,3.25,FR,double wishbone,"live axle, leaf springs",7.75-14,7.75-14,287 solid disc,254 drum
+Muscle,vigero,Chevrolet Camaro SS 396 (1969),1969,,1550.0,56.0,V8 6.5 L na,375.0,563.0,manual,4,3.73,FR,double wishbone,"live axle, leaf springs",F70-14,F70-14,279 solid disc,241 drum
+Muscle,vigero2,Chevrolet Camaro ZL1 (6th gen),2017,,1765.0,54.0,V8 6.2 L supercharged,650.0,881.0,manual,6,3.73,FR,MacPherson strut,multi-link,285/30R20,305/30R20,390 vented disc,365 vented disc
+Muscle,vigero3,Chevrolet Camaro ZL1 Convertible (6th gen),2017,,1880.0,54.0,V8 6.2 L supercharged,650.0,881.0,manual,6,3.73,FR,MacPherson strut,multi-link,285/30R20,305/30R20,390 vented disc,365 vented disc
+Muscle,phoenix,Pontiac Firebird Trans Am 6.6 (1977),1977,,1650.0,57.0,V8 6.6 L na,200.0,441.0,manual,4,3.23,FR,double wishbone,"live axle, leaf springs",225/70R15,225/70R15,279 vented disc,241 drum
+Muscle,gauntlet,Dodge Challenger SRT8 (2008),2008,,1880.0,56.0,V8 6.1 L na,425.0,569.0,automatic,5,3.06,FR,double wishbone,multi-link,245/45R20,245/45R20,360 vented disc,350 vented disc
+Muscle,gauntlet2,Dodge Challenger SRT8 (Redwood livery),2008,,1880.0,56.0,V8 6.1 L na,425.0,569.0,automatic,5,3.06,FR,double wishbone,multi-link,245/45R20,245/45R20,360 vented disc,350 vented disc
+Muscle,gauntlet3,Dodge Challenger R/T 440 Magnum (1970),1970,,1650.0,57.0,V8 7.2 L na,375.0,651.0,manual,4,3.54,FR,double wishbone,"live axle, leaf springs",F70-14,F70-14,279 solid disc,279 drum
+Muscle,gauntlet5,"Dodge Challenger R/T (1970, custom)",1970,,1650.0,57.0,V8 7.2 L na,375.0,651.0,manual,4,3.54,FR,double wishbone,"live axle, leaf springs",225/50R17,255/50R17,330 vented disc,330 vented disc
+Muscle,gauntlet4,Dodge Challenger SRT Hellcat,2015,,2000.0,57.0,V8 6.2 L supercharged,707.0,881.0,automatic,8,2.62,FR,double wishbone,multi-link,275/40R20,275/40R20,390 vented disc,350 vented disc
+Muscle,driftgaunt4,Dodge Challenger Hellcat (drift build),2015,,1850.0,57.0,V8 6.2 L supercharged,850.0,950.0,manual,6,2.62,FR,double wishbone,multi-link,275/35R19,295/35R19,390 vented disc,350 vented disc
+Muscle,impaler,Chevrolet Impala SS 427 (1968),1968,,1700.0,56.0,V8 7.0 L na,385.0,624.0,manual,4,3.31,FR,double wishbone,"live axle, coil springs",F70-15,F70-15,279 solid disc,279 drum
+Muscle,impaler2,"Chevrolet Impala (1968, Arena Wars armoured)",1968,yes,2600.0,56.0,V8 7.0 L supercharged,650.0,800.0,manual,4,3.31,FR,double wishbone,"live axle, coil springs",275/60R17,275/60R17,279 solid disc,279 drum
+Muscle,impaler3,"Chevrolet Impala (1968, Arena Wars armoured)",1968,yes,2600.0,56.0,V8 7.0 L supercharged,650.0,800.0,manual,4,3.31,FR,double wishbone,"live axle, coil springs",275/60R17,275/60R17,279 solid disc,279 drum
+Muscle,impaler4,"Chevrolet Impala (1968, Arena Wars armoured)",1968,yes,2600.0,56.0,V8 7.0 L supercharged,650.0,800.0,manual,4,3.31,FR,double wishbone,"live axle, coil springs",275/60R17,275/60R17,279 solid disc,279 drum
+Muscle,impaler5,Chevrolet Impala SS (1996),1996,yes,1950.0,56.0,V8 5.7 L na,260.0,450.0,automatic,4,3.08,FR,double wishbone,"live axle, coil springs",255/50R17,255/50R17,305 vented disc,279 drum
+Muscle,impaler6,Chevrolet Impala (1975),1975,yes,1950.0,55.0,V8 6.6 L na,175.0,400.0,automatic,3,2.73,FR,double wishbone,"live axle, coil springs",225/75R15,225/75R15,300 solid disc,279 drum
+Muscle,sabregt,Chevrolet Chevelle SS 454 LS6 (1970),1970,,1700.0,57.0,V8 7.4 L na,450.0,678.0,manual,4,3.73,FR,double wishbone,"live axle, coil springs",F70-14,F70-14,279 solid disc,241 drum
+Muscle,sabregt2,"Chevrolet Chevelle SS (1970, custom)",1970,,1720.0,57.0,V8 7.4 L na,450.0,678.0,manual,4,3.73,FR,double wishbone,"live axle, coil springs",225/50R17,255/50R17,330 vented disc,330 vented disc
+Muscle,lurcher,Cadillac Miller-Meteor hearse (1962),1962,yes,2600.0,55.0,V8 6.4 L na,325.0,583.0,automatic,4,2.94,FR,double wishbone,"live axle, coil springs",8.20-15,8.20-15,305 drum,305 drum
+Muscle,vamos,Chevrolet Nova SS 350 (1972),1972,yes,1450.0,56.0,V8 5.7 L na,200.0,407.0,manual,4,3.31,FR,double wishbone,"live axle, leaf springs",E70-14,E70-14,279 solid disc,241 drum
+Muscle,dominator,Ford Mustang GT 5.0 (S197),2011,,1640.0,54.0,V8 5.0 L na,412.0,529.0,manual,6,3.31,FR,MacPherson strut,"live axle, coil springs",245/45R18,245/45R18,330 vented disc,300 vented disc
+Muscle,dominator2,"Ford Mustang GT (S197, Pisswasser race livery)",2011,,1450.0,54.0,V8 5.0 L na,412.0,529.0,manual,6,3.31,FR,MacPherson strut,"live axle, coil springs",275/650R18,275/650R18,330 vented disc,300 vented disc
+Muscle,dominator3,Ford Mustang Boss 302 Laguna Seca (S197),2012,yes,1630.0,54.0,V8 5.0 L na,444.0,515.0,manual,6,3.73,FR,MacPherson strut,"live axle, coil springs",255/40R19,285/35R19,355 vented disc,300 vented disc
+Muscle,dominator4,Ford Mustang (Arena Wars armoured),2011,yes,2500.0,54.0,V8 5.0 L supercharged,650.0,750.0,manual,6,3.31,FR,MacPherson strut,"live axle, coil springs",275/60R18,275/60R18,330 vented disc,300 vented disc
+Muscle,dominator5,Ford Mustang (Arena Wars armoured),2011,yes,2500.0,54.0,V8 5.0 L supercharged,650.0,750.0,manual,6,3.31,FR,MacPherson strut,"live axle, coil springs",275/60R18,275/60R18,330 vented disc,300 vented disc
+Muscle,dominator6,Ford Mustang (Arena Wars armoured),2011,yes,2500.0,54.0,V8 5.0 L supercharged,650.0,750.0,manual,6,3.31,FR,MacPherson strut,"live axle, coil springs",275/60R18,275/60R18,330 vented disc,300 vented disc
+Muscle,dominator7,"Ford Mustang SVT Cobra (Fox, 1993)",1993,,1450.0,56.0,V8 5.0 L na,235.0,386.0,manual,5,3.08,FR,MacPherson strut,"live axle, coil springs",245/45R17,245/45R17,330 vented disc,267 solid disc
+Muscle,dominator8,Ford Mustang GT 390 Fastback (1967),1967,,1400.0,57.0,V8 6.4 L na,320.0,576.0,manual,4,3.25,FR,double wishbone,"live axle, leaf springs",F70-14,F70-14,287 solid disc,254 drum
+Muscle,driftdom8,"Ford Mustang Fastback (1967, drift build)",1967,,1350.0,57.0,V8 5.0 L na,520.0,560.0,manual,6,3.25,FR,double wishbone,multi-link,245/40R18,265/40R18,355 vented disc,330 vented disc
+Muscle,dominator9,Ford Mustang GT (S650),2024,,1720.0,54.0,V8 5.0 L na,486.0,567.0,manual,6,3.73,FR,MacPherson strut,multi-link,255/40R19,275/40R19,390 vented disc,330 vented disc
+Muscle,driftdom9,"Ford Mustang GT (S650, drift build)",2024,,1650.0,54.0,V8 5.0 L supercharged,750.0,800.0,manual,6,3.73,FR,MacPherson strut,multi-link,265/35R18,285/35R18,390 vented disc,330 vented disc
+Muscle,dominator10,"Ford Mustang GT 5.0 (Fox, 1987)",1987,yes,1420.0,57.0,V8 5.0 L na,225.0,407.0,manual,5,2.73,FR,MacPherson strut,"live axle, coil springs",225/60R15,225/60R15,277 vented disc,229 drum
+Muscle,driftdom10,Ford Mustang Fox (drift build),1987,,1380.0,57.0,V8 5.0 L turbo,550.0,650.0,manual,5,2.73,FR,MacPherson strut,"live axle, coil springs",245/40R17,265/40R17,330 vented disc,300 vented disc
+Muscle,tulip,Chevrolet Monte Carlo Landau (1977),1977,yes,1700.0,56.0,V8 5.7 L na,170.0,366.0,automatic,3,3.08,FR,double wishbone,"live axle, coil springs",225/70R15,225/70R15,279 solid disc,241 drum
+Muscle,tulip2,"Chevrolet Monte Carlo (1977, M-100 street racer)",1977,yes,1700.0,56.0,V8 6.6 L na,380.0,560.0,manual,4,3.08,FR,double wishbone,"live axle, coil springs",225/60R15,275/60R15,279 solid disc,241 drum
+Muscle,ruiner,"Pontiac Firebird Trans Am (3rd gen, 1987)",1987,,1500.0,56.0,V8 5.7 L na,210.0,427.0,automatic,4,3.27,FR,MacPherson strut,"live axle, coil springs",245/50R16,245/50R16,274 vented disc,241 drum
+Muscle,ruiner3,"Pontiac Firebird (3rd gen, wrecked)",1987,,1500.0,56.0,V8 5.7 L na,150.0,330.0,automatic,4,3.27,FR,MacPherson strut,"live axle, coil springs",245/50R16,245/50R16,274 vented disc,241 drum
+Muscle,ruiner2,"Pontiac Firebird Trans Am (talking supercar replica, armoured)",1987,yes,2200.0,56.0,V8 5.7 L na,380.0,520.0,automatic,4,3.27,FR,MacPherson strut,"live axle, coil springs",245/50R16,245/50R16,274 vented disc,241 drum
+Muscle,ruiner4,Pontiac Fiero GT (ZZ-8 restomod),1988,yes,1200.0,44.0,V8 6.2 L na,430.0,575.0,manual,6,3.42,MR,double wishbone,MacPherson strut,225/40R18,265/35R18,330 vented disc,300 vented disc
+Muscle,greenwood,Dodge Diplomat (1985),1985,yes,1600.0,56.0,V8 5.2 L na,140.0,359.0,automatic,3,2.94,FR,double wishbone,"live axle, leaf springs",205/75R15,205/75R15,276 solid disc,254 drum
+Muscle,arbitergt,Pontiac GTO Judge Ram Air III (1970),1970,yes,1650.0,57.0,V8 6.6 L na,366.0,603.0,manual,4,3.55,FR,double wishbone,"live axle, coil springs",G70-14,G70-14,279 solid disc,241 drum
+Muscle,dukes,Dodge Charger R/T 440 (1969),1969,,1700.0,57.0,V8 7.2 L na,375.0,651.0,manual,4,3.23,FR,double wishbone,"live axle, leaf springs",F70-14,F70-14,279 solid disc,279 drum
+Muscle,dukes3,"Dodge Charger (1969, beater)",1969,,1700.0,57.0,V8 7.2 L na,250.0,500.0,manual,4,3.23,FR,double wishbone,"live axle, leaf springs",F70-14,F70-14,279 solid disc,279 drum
+Muscle,dukes2,"Dodge Charger (1969, armoured Duke O'Death)",1969,,2700.0,57.0,V8 7.2 L na,425.0,670.0,manual,4,3.23,FR,double wishbone,"live axle, leaf springs",255/70R15,255/70R15,279 solid disc,279 drum
+Muscle,ellie,"Ford Mustang Shelby GT500 ""Eleanor"" (1967)",1967,,1500.0,57.0,V8 7.0 L na,355.0,569.0,manual,4,3.5,FR,double wishbone,"live axle, leaf springs",225/60R15,255/60R15,287 solid disc,254 drum
+Muscle,peyote2,"Chevrolet Bel Air gasser (1957, blown 427)",1957,yes,1450.0,58.0,V8 7.0 L supercharged,650.0,800.0,automatic,2,4.56,FR,"live axle, leaf springs","live axle, leaf springs",165/80R15,33x16.00R15,280 solid disc,280 drum
+Muscle,imperator,Arena Imperator (armoured muscle car),2018,yes,2600.0,55.0,V8 7.0 L supercharged,700.0,850.0,manual,4,3.55,FR,double wishbone,"live axle, coil springs",275/60R17,315/60R17,355 vented disc,330 vented disc
+Muscle,imperator2,Arena Imperator (armoured muscle car),2018,yes,2600.0,55.0,V8 7.0 L supercharged,700.0,850.0,manual,4,3.55,FR,double wishbone,"live axle, coil springs",275/60R17,315/60R17,355 vented disc,330 vented disc
+Muscle,imperator3,Arena Imperator (armoured muscle car),2018,yes,2600.0,55.0,V8 7.0 L supercharged,700.0,850.0,manual,4,3.55,FR,double wishbone,"live axle, coil springs",275/60R17,315/60R17,355 vented disc,330 vented disc
+Muscle,buffalo4,Dodge Charger SRT Hellcat Redeye Widebody,2021,,2050.0,56.0,V8 6.2 L supercharged,797.0,959.0,automatic,8,2.62,FR,double wishbone,multi-link,305/35R20,305/35R20,390 vented disc,350 vented disc
+Muscle,buffalo5,Dodge Charger Daytona Scat Pack (EV),2024,,2600.0,51.0,electric,670.0,850.0,single-speed,1,9.0,AWD-M,double wishbone,multi-link,305/35R20,305/35R20,380 vented disc,350 vented disc
+OffRoad,winky,Willys MB Jeep,1943,,1110.0,52.0,I4 2.2 L na,60.0,142.0,manual,3,4.88,4WD,"live axle, leaf springs","live axle, leaf springs",6.00-16,6.00-16,229 drum,229 drum
+OffRoad,dloader,Ford F-150 4x4 (1985),1985,yes,1950.0,56.0,I6 4.9 L na,120.0,332.0,manual,4,3.55,4WD,independent beam,"live axle, leaf springs",235/75R15,235/75R15,297 vented disc,279 drum
+OffRoad,verus,Honda TRX450R (sport ATV),2015,,165.0,48.0,I1 0.5 L na,40.0,40.0,manual,5,7.0,FR,double wishbone,"swingarm, monoshock",21x7.00R10,20x11.00R9,174 solid disc,190 solid disc
+OffRoad,blazer,Kawasaki KFX450R (sport ATV),2015,,165.0,48.0,I1 0.5 L na,40.0,40.0,manual,5,7.0,FR,double wishbone,"swingarm, monoshock",21x7.00R10,20x11.00R9,174 solid disc,190 solid disc
+OffRoad,blazer2,Kawasaki KFX450R (lifeguard ATV),2015,,165.0,48.0,I1 0.5 L na,40.0,40.0,manual,5,7.0,FR,double wishbone,"swingarm, monoshock",21x7.00R10,20x11.00R9,174 solid disc,190 solid disc
+OffRoad,blazer3,"Kawasaki KFX450R (hot rod ATV, V-twin swap)",2015,,220.0,48.0,V2 1.2 L na,100.0,105.0,manual,5,7.0,FR,double wishbone,"swingarm, monoshock",21x7.00R10,20x11.00R9,174 solid disc,190 solid disc
+OffRoad,blazer4,Kawasaki KFX450R (street ATV),2015,,165.0,48.0,I1 0.5 L na,40.0,40.0,manual,5,7.0,FR,double wishbone,"swingarm, monoshock",21x7.00R10,20x11.00R9,174 solid disc,190 solid disc
+OffRoad,blazer5,Amphibious ATV (Blazer Aqua),2015,yes,320.0,48.0,I1 0.5 L na,40.0,40.0,manual,5,7.0,FR,double wishbone,"swingarm, monoshock",21x7.00R10,20x11.00R9,174 solid disc,190 solid disc
+OffRoad,mesa3,"Jeep Wrangler Rubicon (JK, lifted)",2013,,2100.0,53.0,V6 3.6 L na,285.0,353.0,automatic,5,4.1,4WD,"live axle, coil springs","live axle, coil springs",35x12.50R17,35x12.50R17,302 vented disc,317 solid disc
+OffRoad,zhaba,GAZ-3937 Vodnik (amphibious),2018,yes,6000.0,52.0,V8 5.9 L turbo,205.0,650.0,manual,5,4.2,4WD,double wishbone,double wishbone,12.00R18,12.00R18,400 drum,400 drum
+OffRoad,rancherxl,Ford Bronco 351M (1978),1978,,2100.0,57.0,V8 5.8 L na,156.0,353.0,automatic,3,3.5,4WD,independent beam,"live axle, leaf springs",235/75R15,235/75R15,297 solid disc,279 drum
+OffRoad,rancherxl2,"Ford Bronco (1978, snow tyres)",1978,,2100.0,57.0,V8 5.8 L na,156.0,353.0,automatic,3,3.5,4WD,independent beam,"live axle, leaf springs",235/75R15,235/75R15,297 solid disc,279 drum
+OffRoad,menacer,Oshkosh M-ATV (armoured),2018,yes,12500.0,50.0,I6 11.0 L turbo,370.0,1700.0,automatic,6,6.0,4WD,double wishbone,double wishbone,395/85R20,395/85R20,420 drum,420 drum
+OffRoad,patriot3,Hummer H1 Alpha,2006,,3500.0,56.0,V8 6.6 L turbo,300.0,705.0,automatic,5,3.07,4WD,double wishbone,double wishbone,37x12.50R17,37x12.50R17,320 vented disc,320 vented disc
+OffRoad,sandking,"Ford F-250 Super Duty (lifted, V10)",2005,,3200.0,57.0,V10 6.8 L na,362.0,624.0,automatic,5,4.1,4WD,"live axle, coil springs","live axle, leaf springs",37x12.50R17,37x12.50R17,345 vented disc,345 vented disc
+OffRoad,sandking2,Ford F-250 Super Duty regular cab (lifted),2005,,2950.0,57.0,V10 6.8 L na,362.0,624.0,automatic,5,4.1,4WD,"live axle, coil springs","live axle, leaf springs",37x12.50R17,37x12.50R17,345 vented disc,345 vented disc
+OffRoad,bruiser,Arena Bruiser (armoured 4x4),2018,yes,4000.0,52.0,V8 7.0 L supercharged,700.0,900.0,automatic,4,4.1,4WD,double wishbone,"live axle, coil springs",37x12.50R17,37x12.50R17,355 vented disc,355 vented disc
+OffRoad,bruiser2,Arena Bruiser (armoured 4x4),2018,yes,4000.0,52.0,V8 7.0 L supercharged,700.0,900.0,automatic,4,4.1,4WD,double wishbone,"live axle, coil springs",37x12.50R17,37x12.50R17,355 vented disc,355 vented disc
+OffRoad,bruiser3,Arena Bruiser (armoured 4x4),2018,yes,4000.0,52.0,V8 7.0 L supercharged,700.0,900.0,automatic,4,4.1,4WD,double wishbone,"live axle, coil springs",37x12.50R17,37x12.50R17,355 vented disc,355 vented disc
+OffRoad,insurgent,Lenco BearCat (armoured),2015,yes,7500.0,55.0,V8 6.7 L turbo,330.0,1000.0,automatic,6,5.38,4WD,"live axle, leaf springs","live axle, leaf springs",325/85R16,325/85R16,400 drum,400 drum
+OffRoad,insurgent2,Lenco BearCat (armoured),2015,yes,7500.0,55.0,V8 6.7 L turbo,330.0,1000.0,automatic,6,5.38,4WD,"live axle, leaf springs","live axle, leaf springs",325/85R16,325/85R16,400 drum,400 drum
+OffRoad,insurgent3,Lenco BearCat pick-up (custom),2015,yes,7500.0,55.0,V8 6.7 L turbo,330.0,1000.0,automatic,6,5.38,4WD,"live axle, leaf springs","live axle, leaf springs",325/85R16,325/85R16,400 drum,400 drum
+OffRoad,freecrawler,Jeep Wrangler-based rock crawler,2018,yes,1800.0,50.0,V8 6.2 L na,430.0,575.0,automatic,4,4.88,4WD,"live axle, coil springs","live axle, coil springs",37x12.50R17,37x12.50R17,330 vented disc,330 vented disc
+OffRoad,rebel2,Toyota Hilux 4x4 (N50),1985,,1500.0,57.0,I4 2.4 L na,96.0,175.0,manual,5,4.1,4WD,double wishbone,"live axle, leaf springs",31x10.50R15,31x10.50R15,255 vented disc,254 drum
+OffRoad,rebel,"Toyota Hilux (N50, rusty)",1985,,1500.0,57.0,I4 2.4 L na,80.0,160.0,manual,5,4.1,4WD,double wishbone,"live axle, leaf springs",31x10.50R15,31x10.50R15,255 vented disc,254 drum
+OffRoad,dune2,Space Docker (fictional buggy),2014,yes,900.0,40.0,F4 2.0 L na,150.0,180.0,manual,4,4.1,RR,double wishbone,trailing arm,31x10.50R15,31x10.50R15,250 solid disc,250 solid disc
+OffRoad,l35,Chevrolet K10 Silverado (1983),1983,yes,2000.0,57.0,V8 5.7 L na,165.0,373.0,automatic,3,3.73,4WD,"live axle, leaf springs","live axle, leaf springs",235/85R16,235/85R16,300 solid disc,279 drum
+OffRoad,l352,"Chevrolet K10 (1983, stock 2WD)",1983,yes,2000.0,57.0,V8 5.7 L na,165.0,373.0,automatic,3,3.73,FR,"live axle, leaf springs","live axle, leaf springs",235/75R15,235/75R15,300 solid disc,279 drum
+OffRoad,driftl352,"Chevrolet C10 (1983, drift build)",1983,yes,1650.0,57.0,V8 6.2 L na,480.0,560.0,manual,6,3.73,FR,double wishbone,multi-link,255/40R18,275/40R18,300 solid disc,279 drum
+OffRoad,bfinjection,Meyers Manx (VW dune buggy),1970,,650.0,38.0,F4 1.6 L na,60.0,110.0,manual,4,4.375,RR,trailing arm,swing axle,165/80R15,235/75R15,230 drum,230 drum
+OffRoad,dune,Meyers Manx (BF Dune Buggy),1970,,650.0,38.0,F4 1.6 L na,60.0,110.0,manual,4,4.375,RR,trailing arm,swing axle,165/80R15,31x10.50R15,230 drum,230 drum
+OffRoad,bifta,VW-based dune buggy (Bifta),1970,,650.0,38.0,F4 2.0 L na,90.0,150.0,manual,4,4.375,RR,trailing arm,swing axle,165/80R15,235/75R15,230 drum,230 drum
+OffRoad,technical,Toyota Land Cruiser 79 pickup (technical),1995,yes,2300.0,57.0,I6 4.2 L na,130.0,285.0,manual,5,4.1,4WD,"live axle, coil springs","live axle, leaf springs",7.50R16,7.50R16,296 vented disc,295 drum
+OffRoad,technical2,Toyota Land Cruiser 79 (amphibious technical),1995,yes,2600.0,57.0,I6 4.2 L na,130.0,285.0,manual,5,4.1,4WD,"live axle, coil springs","live axle, leaf springs",7.50R16,7.50R16,296 vented disc,295 drum
+OffRoad,technical3,Toyota Land Cruiser 79 (technical custom),1995,yes,2300.0,57.0,V8 4.5 L turbo,268.0,650.0,manual,5,4.1,4WD,"live axle, coil springs","live axle, leaf springs",7.50R16,7.50R16,296 vented disc,295 drum
+OffRoad,kalahari,Jeep CJ-5 Renegade (1976),1976,,1250.0,55.0,I6 4.2 L na,110.0,258.0,manual,3,3.73,4WD,"live axle, leaf springs","live axle, leaf springs",H78-15,H78-15,279 drum,254 drum
+OffRoad,hellion,Nissan Patrol Y61 4.8,2005,yes,2500.0,53.0,I6 4.8 L na,245.0,422.0,automatic,5,3.7,4WD,"live axle, coil springs","live axle, coil springs",275/70R16,275/70R16,320 vented disc,320 vented disc
+OffRoad,kamacho,Jeep Gladiator Rubicon (JT),2020,yes,2300.0,52.0,V6 3.6 L na,285.0,353.0,automatic,8,4.1,4WD,"live axle, coil springs","live axle, coil springs",285/70R17,285/70R17,330 vented disc,342 solid disc
+OffRoad,riata,"Ford Ranger XLT 4x4 (lifted, 1998)",1998,yes,1750.0,56.0,V6 4.0 L na,160.0,305.0,manual,5,4.1,4WD,double wishbone,"live axle, leaf springs",33x12.50R15,33x12.50R15,276 vented disc,254 drum
+OffRoad,yosemite4,Chevrolet C1500 Silverado (GMT400),1993,yes,1950.0,56.0,V8 5.7 L na,210.0,407.0,automatic,4,3.42,FR,double wishbone,"live axle, leaf springs",235/75R15,235/75R15,300 vented disc,254 drum
+OffRoad,yosemite3,"Chevrolet K1500 (GMT400, lifted 4x4 Rancher)",1993,yes,2150.0,56.0,V8 5.7 L na,210.0,407.0,automatic,4,3.42,4WD,double wishbone,"live axle, leaf springs",33x12.50R15,33x12.50R15,300 vented disc,254 drum
+OffRoad,rcbandito,1/2-scale RC desert buggy (electric),2018,yes,70.0,45.0,electric,8.0,6.0,single-speed,1,12.0,AWD-M,double wishbone,double wishbone,145/70R10,145/70R10,150 solid disc,150 solid disc
+OffRoad,caracara,Ford F-150 Raptor (2nd gen),2017,,2700.0,57.0,V6 3.5 L turbo,450.0,691.0,automatic,10,4.1,4WD,double wishbone,"live axle, leaf springs",315/70R17,315/70R17,350 vented disc,336 vented disc
+OffRoad,caracara2,"Ford F-150 Raptor (2nd gen, lifted 4x4)",2017,,2850.0,57.0,V6 3.5 L turbo,450.0,691.0,automatic,10,4.1,4WD,double wishbone,"live axle, leaf springs",37x12.50R17,37x12.50R17,350 vented disc,336 vented disc
+OffRoad,caracara3,Ford F-150 Raptor (armoured),2017,,3500.0,57.0,V6 3.5 L turbo,450.0,691.0,automatic,10,4.1,4WD,double wishbone,"live axle, leaf springs",315/70R17,315/70R17,350 vented disc,336 vented disc
+OffRoad,nightshark,Lamborghini LM002 (armoured),2016,yes,3700.0,52.0,V12 5.2 L na,450.0,500.0,manual,5,4.11,4WD,double wishbone,double wishbone,345/60R17,345/60R17,330 vented disc,330 vented disc
+OffRoad,bodhi2,Jeep Gladiator J-2000 (1971),1971,yes,1900.0,56.0,V8 5.9 L na,175.0,386.0,automatic,3,3.73,4WD,"live axle, leaf springs","live axle, leaf springs",235/75R15,235/75R15,279 drum,279 drum
+OffRoad,dune3,Chenowth Fast Attack Vehicle,1990,,960.0,38.0,F4 2.0 L na,200.0,270.0,manual,4,4.12,RR,double wishbone,trailing arm,31x10.50R15,31x10.50R15,280 vented disc,280 vented disc
+OffRoad,dubsta3,Mercedes-AMG G 63 6x6,2013,,3850.0,40.0,V8 5.5 L turbo,544.0,760.0,automatic,7,4.38,4WD,"live axle, coil springs","live axle, coil springs",37x12.50R18,37x12.50R18,375 vented disc,375 vented disc
+OffRoad,boor,"Toyota Hilux Xtra Cab (N80, lifted)",1995,yes,1650.0,57.0,I4 2.7 L na,150.0,241.0,manual,5,4.1,4WD,double wishbone,"live axle, leaf springs",33x12.50R15,33x12.50R15,276 vented disc,254 drum
+OffRoad,brutus,Arena Brutus (armoured pickup),2018,yes,3800.0,55.0,V8 7.0 L supercharged,700.0,900.0,automatic,4,4.1,4WD,double wishbone,"live axle, coil springs",37x12.50R17,37x12.50R17,355 vented disc,355 vented disc
+OffRoad,brutus2,Arena Brutus (armoured pickup),2018,yes,3800.0,55.0,V8 7.0 L supercharged,700.0,900.0,automatic,4,4.1,4WD,double wishbone,"live axle, coil springs",37x12.50R17,37x12.50R17,355 vented disc,355 vented disc
+OffRoad,brutus3,Arena Brutus (armoured pickup),2018,yes,3800.0,55.0,V8 7.0 L supercharged,700.0,900.0,automatic,4,4.1,4WD,double wishbone,"live axle, coil springs",37x12.50R17,37x12.50R17,355 vented disc,355 vented disc
+OffRoad,monstrociti,"Mitsubishi Pajero Mini (kei 4x4, lifted)",2001,yes,900.0,57.0,I4 0.7 L turbo,64.0,98.0,manual,5,5.13,4WD,MacPherson strut,"live axle, coil springs",205/70R15,205/70R15,230 vented disc,180 drum
+OffRoad,everon,Toyota Tacoma TRD Pro (3rd gen),2019,,2050.0,55.0,V6 3.5 L na,278.0,359.0,automatic,6,4.3,4WD,double wishbone,"live axle, leaf springs",265/70R16,265/70R16,320 vented disc,295 drum
+OffRoad,terminus,Ford Bronco Raptor (6th gen),2022,yes,2600.0,54.0,V6 3.0 L turbo,418.0,597.0,automatic,10,4.7,4WD,double wishbone,"live axle, coil springs",37x12.50R17,37x12.50R17,350 vented disc,336 vented disc
+OffRoad,outlaw,Can-Am Maverick X3 X rs Turbo RR,2020,,730.0,40.0,I3 0.9 L turbo,195.0,160.0,CVT,1,6.0,AWD-M,double wishbone,trailing arm,32x10R15,32x10R15,262 vented disc,248 vented disc
+OffRoad,vagrant,Polaris RZR Pro XP (UTV),2020,,730.0,40.0,I3 0.9 L turbo,181.0,150.0,CVT,1,6.0,AWD-M,double wishbone,trailing arm,32x10R15,32x10R15,262 vented disc,248 vented disc
+OffRoad,brawler,Ariel Nomad,2016,,670.0,42.0,I4 2.4 L na,235.0,300.0,manual,6,4.76,MR,double wishbone,double wishbone,235/75R15,235/75R15,280 vented disc,280 vented disc
+OffRoad,marshall,"Chevrolet monster truck (Marshall, blown 540 V8)",2015,yes,4500.0,47.0,V8 8.8 L supercharged,1500.0,1700.0,automatic,2,5.38,4WD,"live axle, coil springs","live axle, coil springs",66x43.00R25,66x43.00R25,330 vented disc,330 vented disc
+OffRoad,monster,"Ford monster truck (Liberator, blown 540 V8)",2015,yes,4500.0,47.0,V8 8.8 L supercharged,1500.0,1700.0,automatic,2,5.38,4WD,"live axle, coil springs","live axle, coil springs",66x43.00R25,66x43.00R25,330 vented disc,330 vented disc
+OffRoad,monster3,Arena monster truck (Sasquatch),2015,yes,5200.0,47.0,V8 8.8 L supercharged,1500.0,1700.0,automatic,2,5.38,4WD,"live axle, coil springs","live axle, coil springs",66x43.00R25,66x43.00R25,330 vented disc,330 vented disc
+OffRoad,monster4,Arena monster truck (Sasquatch),2015,yes,5200.0,47.0,V8 8.8 L supercharged,1500.0,1700.0,automatic,2,5.38,4WD,"live axle, coil springs","live axle, coil springs",66x43.00R25,66x43.00R25,330 vented disc,330 vented disc
+OffRoad,monster5,Arena monster truck (Sasquatch),2015,yes,5200.0,47.0,V8 8.8 L supercharged,1500.0,1700.0,automatic,2,5.38,4WD,"live axle, coil springs","live axle, coil springs",66x43.00R25,66x43.00R25,330 vented disc,330 vented disc
+OffRoad,ratel,Ford Bronco Badlands (6th gen),2021,yes,2250.0,54.0,V6 2.7 L turbo,330.0,563.0,automatic,10,4.7,4WD,double wishbone,"live axle, coil springs",315/70R17,315/70R17,350 vented disc,336 vented disc
+OffRoad,firebolt,Ford Ranger Raptor (P703),2023,yes,2450.0,56.0,V6 3.0 L turbo,397.0,583.0,automatic,10,4.27,4WD,double wishbone,multi-link,285/70R17,285/70R17,350 vented disc,332 vented disc
+OffRoad,trophytruck,Ford F-150 Trophy Truck (Class 8),2016,yes,2700.0,52.0,V8 7.0 L na,850.0,850.0,automatic,3,4.1,FR,double wishbone,"live axle, coil springs",39x13.50R17,39x13.50R17,380 vented disc,380 vented disc
+OffRoad,trophytruck2,Desert Raid trophy truck (Class 8),2016,yes,2700.0,52.0,V8 7.0 L na,850.0,850.0,automatic,3,4.1,FR,double wishbone,"live axle, coil springs",39x13.50R17,39x13.50R17,380 vented disc,380 vented disc
+OffRoad,draugur,Chevrolet Colorado ZR2 Bison (desert raid build),2021,yes,2200.0,55.0,V8 6.2 L na,500.0,600.0,automatic,6,4.1,4WD,double wishbone,"live axle, coil springs",35x12.50R17,35x12.50R17,350 vented disc,330 vented disc
+OffRoad,dune4,Ramp buggy (stunt vehicle),2016,yes,1300.0,40.0,V8 5.7 L na,400.0,500.0,automatic,3,4.1,RR,double wishbone,trailing arm,33x12.50R15,33x12.50R15,300 vented disc,300 vented disc
+OffRoad,dune5,Ramp buggy (stunt vehicle),2016,yes,1300.0,40.0,V8 5.7 L na,400.0,500.0,automatic,3,4.1,RR,double wishbone,trailing arm,33x12.50R15,33x12.50R15,300 vented disc,300 vented disc
+OpenWheel,openwheel1,IndyCar Dallara DW12 (2.2 twin-turbo V6),2018,yes,730.0,42.0,V6 2.2 L turbo,700.0,450.0,sequential,6,3.8,MR,pushrod double wishbone,pushrod double wishbone,290/680R15,410/690R15,328 carbon-ceramic disc,328 carbon-ceramic disc
+OpenWheel,openwheel2,Formula 3 Dallara F3 2019 (DR1 body),2019,yes,673.0,42.0,V6 3.4 L na,380.0,400.0,sequential,6,4.2,MR,pushrod double wishbone,pushrod double wishbone,245/560R13,305/570R13,280 carbon-ceramic disc,280 carbon-ceramic disc
+OpenWheel,formula,"Formula 1 car (2017, 1.6 turbo hybrid V6)",2017,yes,728.0,45.0,V6 1.6 L turbo,950.0,700.0,sequential,8,3.2,MR,pushrod double wishbone,pushrod double wishbone,305/670R13,405/670R13,278 carbon-ceramic disc,266 carbon-ceramic disc
+OpenWheel,formula2,"Formula 1 car (2017, R88 body)",2017,yes,728.0,45.0,V6 1.6 L turbo,950.0,700.0,sequential,8,3.2,MR,pushrod double wishbone,pushrod double wishbone,305/670R13,405/670R13,278 carbon-ceramic disc,266 carbon-ceramic disc
+SUVs,patriot,Hummer H2,2005,,2900.0,51.0,V8 6.0 L na,325.0,495.0,automatic,4,4.1,4WD,double wishbone,"live axle, coil springs",315/70R17,315/70R17,325 vented disc,335 vented disc
+SUVs,patriot2,Hummer H2 stretch limousine,2005,,3900.0,51.0,V8 6.0 L na,325.0,495.0,automatic,4,4.1,4WD,double wishbone,"live axle, coil springs",305/50R22,305/50R22,325 vented disc,335 vented disc
+SUVs,squaddie,AM General HMMWV M1165,2008,,2700.0,55.0,V8 6.5 L turbo,190.0,515.0,automatic,4,2.73,4WD,double wishbone,double wishbone,37x12.50R16.5,37x12.50R16.5,320 vented disc,320 vented disc
+SUVs,mesa,Jeep Wrangler Unlimited Sahara (JK),2013,,2000.0,53.0,V6 3.6 L na,285.0,353.0,automatic,5,3.21,4WD,"live axle, coil springs","live axle, coil springs",255/70R18,255/70R18,302 vented disc,317 solid disc
+SUVs,mesa2,"Jeep Wrangler (JK, snow tyres)",2013,,2000.0,53.0,V6 3.6 L na,285.0,353.0,automatic,5,3.21,4WD,"live axle, coil springs","live axle, coil springs",255/70R18,255/70R18,302 vented disc,317 solid disc
+SUVs,vivanite,Toyota RAV4 Hybrid AWD (XA50),2023,yes,1700.0,57.0,I4 2.5 L na,219.0,360.0,CVT,1,3.56,AWD-F,MacPherson strut,multi-link,225/60R18,225/60R18,305 vented disc,281 vented disc
+SUVs,cavalcade,Cadillac Escalade (GMT800),2002,,2550.0,52.0,V8 6.0 L na,345.0,515.0,automatic,4,3.73,AWD-F,double wishbone,"live axle, coil springs",265/70R17,265/70R17,305 vented disc,330 drum
+SUVs,cavalcade2,Cadillac Escalade (GMT900),2008,,2600.0,52.0,V8 6.2 L na,403.0,565.0,automatic,6,3.42,AWD-F,double wishbone,"live axle, coil springs",285/45R22,285/45R22,330 vented disc,345 vented disc
+SUVs,cavalcade3,Cadillac Escalade ESV (5th gen),2021,,2750.0,51.0,V8 6.2 L na,420.0,624.0,automatic,10,3.23,AWD-F,double wishbone,multi-link,275/50R22,275/50R22,350 vented disc,345 vented disc
+SUVs,fq2,Infiniti FX35 (S50),2005,,1950.0,52.0,V6 3.5 L na,280.0,366.0,automatic,5,3.357,AWD-R,double wishbone,multi-link,265/60R18,265/60R18,320 vented disc,308 vented disc
+SUVs,seminole,Jeep Grand Cherokee 5.9 Limited (ZJ),1998,,1880.0,54.0,V8 5.9 L na,245.0,468.0,automatic,4,3.73,4WD,"live axle, coil springs","live axle, coil springs",245/70R16,245/70R16,285 vented disc,229 drum
+SUVs,seminole2,Jeep Grand Wagoneer (SJ),1990,,2150.0,55.0,V8 5.9 L na,144.0,380.0,automatic,3,2.73,4WD,"live axle, leaf springs","live axle, leaf springs",235/75R15,235/75R15,305 vented disc,279 drum
+SUVs,gresley,Jeep Grand Cherokee 5.7 Hemi (WK2),2014,,2240.0,53.0,V8 5.7 L na,360.0,529.0,automatic,8,3.09,AWD-F,double wishbone,multi-link,265/50R20,265/50R20,330 vented disc,330 vented disc
+SUVs,estride,Jaguar I-Pace EV400,2019,,2210.0,50.0,electric,400.0,696.0,single-speed,1,9.04,AWD-M,double wishbone,multi-link,255/50R20,255/50R20,350 vented disc,325 vented disc
+SUVs,habanero,Lexus RX 300 (XU10),1999,,1800.0,58.0,V6 3.0 L na,220.0,301.0,automatic,4,3.94,AWD-F,MacPherson strut,MacPherson strut,225/70R16,225/70R16,296 vented disc,288 solid disc
+SUVs,bjxl,Toyota RAV4 2.0 (XA20),2003,,1350.0,58.0,I4 2.0 L na,150.0,192.0,automatic,4,4.31,AWD-F,MacPherson strut,multi-link,215/70R16,215/70R16,275 vented disc,228 drum
+SUVs,landstalker,Lincoln Navigator (U228),2003,,2650.0,52.0,V8 5.4 L na,300.0,481.0,automatic,4,3.73,AWD-F,double wishbone,double wishbone,255/70R17,255/70R17,330 vented disc,335 vented disc
+SUVs,landstalker2,Lincoln Navigator L (U554),2018,,2750.0,51.0,V6 3.5 L turbo,450.0,691.0,automatic,10,3.31,AWD-F,double wishbone,multi-link,285/45R22,285/45R22,350 vented disc,345 vented disc
+SUVs,baller,Range Rover 4.4 V8 (L322),2004,,2500.0,51.0,V8 4.4 L na,282.0,440.0,automatic,5,3.73,AWD-F,MacPherson strut,double wishbone,255/55R19,255/55R19,344 vented disc,354 vented disc
+SUVs,baller2,Range Rover Sport Supercharged (L320),2010,,2600.0,51.0,V8 5.0 L supercharged,510.0,625.0,automatic,6,3.54,AWD-F,double wishbone,double wishbone,275/40R20,275/40R20,380 vented disc,365 vented disc
+SUVs,baller3,Range Rover Autobiography 5.0 SC (L405),2014,,2330.0,51.0,V8 5.0 L supercharged,510.0,625.0,automatic,8,3.54,AWD-F,double wishbone,multi-link,275/40R22,275/40R22,380 vented disc,365 vented disc
+SUVs,baller4,Range Rover LWB Autobiography (L405),2014,,2420.0,51.0,V8 5.0 L supercharged,510.0,625.0,automatic,8,3.54,AWD-F,double wishbone,multi-link,275/40R22,275/40R22,380 vented disc,365 vented disc
+SUVs,baller5,"Range Rover Sentinel (L405, armoured)",2014,,3250.0,51.0,V8 5.0 L supercharged,380.0,510.0,automatic,8,3.54,AWD-F,double wishbone,multi-link,275/40R22,275/40R22,380 vented disc,365 vented disc
+SUVs,baller6,Range Rover LWB Sentinel (armoured),2014,,3350.0,51.0,V8 5.0 L supercharged,380.0,510.0,automatic,8,3.54,AWD-F,double wishbone,multi-link,275/40R22,275/40R22,380 vented disc,365 vented disc
+SUVs,baller7,Range Rover Sport SVR (L494),2018,,2310.0,51.0,V8 5.0 L supercharged,575.0,700.0,automatic,8,3.54,AWD-F,double wishbone,multi-link,275/40R22,275/40R22,395 vented disc,396 vented disc
+SUVs,baller8,Range Rover Sport SVR (dub custom),2018,,2350.0,51.0,V8 5.0 L supercharged,575.0,700.0,automatic,8,3.54,AWD-F,double wishbone,multi-link,275/40R22,275/40R22,395 vented disc,396 vented disc
+SUVs,rocoto,Audi Q7 4.2 FSI (4L),2007,,2300.0,53.0,V8 4.2 L na,350.0,440.0,automatic,6,3.7,AWD-F,double wishbone,double wishbone,275/45R20,275/45R20,350 vented disc,358 vented disc
+SUVs,granger,Chevrolet Suburban 1500 (GMT800),2003,,2500.0,53.0,V8 5.3 L na,295.0,454.0,automatic,4,3.73,4WD,double wishbone,"live axle, coil springs",265/70R16,265/70R16,305 vented disc,330 drum
+SUVs,granger2,Chevrolet Suburban High Country (2021),2021,,2650.0,51.0,V8 6.2 L na,420.0,624.0,automatic,10,3.23,AWD-F,double wishbone,multi-link,275/50R22,275/50R22,350 vented disc,345 vented disc
+SUVs,serrano,Mercedes-Benz ML 350 (W164),2006,,2100.0,53.0,V6 3.5 L na,272.0,350.0,automatic,7,3.7,AWD-F,double wishbone,multi-link,255/55R18,255/55R18,350 vented disc,330 vented disc
+SUVs,dubsta,Mercedes-Benz G 500 (W463),2010,,2550.0,52.0,V8 5.5 L na,388.0,530.0,automatic,7,4.38,4WD,"live axle, coil springs","live axle, coil springs",265/60R18,265/60R18,330 vented disc,310 vented disc
+SUVs,dubsta2,Mercedes-AMG G 55 Kompressor (W463),2010,,2550.0,52.0,V8 5.4 L supercharged,507.0,700.0,automatic,5,4.38,4WD,"live axle, coil springs","live axle, coil springs",275/55R19,275/55R19,330 vented disc,310 vented disc
+SUVs,dorado,Dodge Durango R/T (WD),2021,,2300.0,53.0,V8 5.7 L na,360.0,529.0,automatic,8,3.45,AWD-F,double wishbone,multi-link,295/45R20,295/45R20,350 vented disc,330 vented disc
+SUVs,iwagen,Audi e-tron 55 quattro,2020,,2490.0,50.0,electric,402.0,664.0,single-speed,1,9.2,AWD-M,double wishbone,multi-link,255/50R20,255/50R20,375 vented disc,350 vented disc
+SUVs,radi,Ford Explorer 4.0 V6 (U152),2004,,2050.0,53.0,V6 4.0 L na,210.0,345.0,automatic,5,3.73,4WD,double wishbone,multi-link,245/70R16,245/70R16,302 vented disc,310 solid disc
+SUVs,contender,Ford Expedition EL (U324),2014,,2700.0,52.0,V8 5.4 L na,310.0,495.0,automatic,6,3.73,4WD,double wishbone,multi-link,275/55R20,275/55R20,350 vented disc,345 vented disc
+SUVs,xls,Mercedes-Benz GL 550 (X166),2013,,2500.0,52.0,V8 4.7 L turbo,429.0,700.0,automatic,7,2.82,AWD-F,double wishbone,multi-link,275/50R20,275/50R20,375 vented disc,345 vented disc
+SUVs,xls2,Mercedes-Benz GL 550 Guard (armoured),2013,,3300.0,52.0,V8 4.7 L turbo,429.0,700.0,automatic,7,2.82,AWD-F,double wishbone,multi-link,275/50R20,275/50R20,375 vented disc,345 vented disc
+SUVs,woodlander,Toyota Land Cruiser (FJ60),1985,,2050.0,55.0,I6 4.2 L na,135.0,293.0,manual,4,3.7,4WD,"live axle, leaf springs","live axle, leaf springs",7.50-16,7.50-16,290 vented disc,295 drum
+SUVs,aleutian,Ford Explorer ST (U625),2020,,2200.0,53.0,V6 3.0 L turbo,400.0,563.0,automatic,10,3.73,AWD-R,multi-link,multi-link,275/45R21,275/45R21,363 vented disc,345 vented disc
+SUVs,warden,Land Rover Defender 110 P400 (L663),2021,yes,2350.0,51.0,I6 3.0 L turbo,400.0,550.0,automatic,8,3.73,4WD,double wishbone,multi-link,255/60R20,255/60R20,363 vented disc,350 vented disc
+SUVs,huntley,Bentley Bentayga W12,2016,,2440.0,53.0,W12 6.0 L turbo,600.0,900.0,automatic,8,3.17,AWD-F,double wishbone,multi-link,285/45R21,285/45R21,420 vented disc,380 vented disc
+SUVs,jubilee,Rolls-Royce Cullinan,2018,,2660.0,52.0,V12 6.8 L turbo,563.0,850.0,automatic,8,3.15,AWD-F,double wishbone,multi-link,285/45R22,285/45R22,410 vented disc,370 vented disc
+SUVs,novak,Maserati Levante S,2017,,2100.0,51.0,V6 3.0 L turbo,430.0,580.0,automatic,8,3.27,AWD-R,double wishbone,multi-link,265/45R20,295/40R20,380 vented disc,330 vented disc
+SUVs,castigator,Jeep Grand Cherokee Trackhawk (WK2),2018,yes,2430.0,54.0,V8 6.2 L supercharged,707.0,875.0,automatic,8,3.7,AWD-F,double wishbone,multi-link,295/45R20,295/45R20,400 vented disc,350 vented disc
+SUVs,rebla,BMW X5 M (F85),2015,,2350.0,54.0,V8 4.4 L turbo,575.0,750.0,automatic,8,3.15,AWD-F,double wishbone,multi-link,285/35R21,325/30R21,395 vented disc,385 vented disc
+SUVs,astron,Porsche Cayenne Turbo Coupe (9Y),2020,,2200.0,54.0,V8 4.0 L turbo,550.0,770.0,automatic,8,3.7,AWD-F,double wishbone,multi-link,285/40R21,315/35R21,415 vented disc,365 vented disc
+SUVs,astron2,Porsche Cayenne Turbo GT (9Y),2020,,2220.0,54.0,V8 4.0 L turbo,640.0,850.0,automatic,8,3.7,AWD-F,double wishbone,multi-link,285/40R21,315/35R21,415 vented disc,365 vented disc
+SUVs,toros,Lamborghini Urus,2018,,2200.0,57.0,V8 4.0 L turbo,650.0,850.0,automatic,8,3.35,AWD-F,double wishbone,multi-link,285/40R22,325/35R22,440 carbon-ceramic disc,370 carbon-ceramic disc
+SUVs,everon3,Toyota Hilux GR Sport (rally-raid),2023,yes,2100.0,56.0,V6 3.5 L turbo,415.0,650.0,sequential,6,4.1,4WD,double wishbone,double wishbone,265/75R17,265/75R17,330 vented disc,330 vented disc
+Sedans,regina,Ford LTD Country Squire (wagon),1979,,2000.0,55.0,V8 5.8 L na,140.0,340.0,automatic,3,2.47,FR,double wishbone,"live axle, coil springs",225/75R15,225/75R15,279 solid disc,279 drum
+Sedans,romero,Cadillac DeVille hearse (coachbuilt),1990,,2550.0,54.0,V8 4.5 L na,155.0,325.0,automatic,4,2.97,FF,MacPherson strut,multi-link,215/70R15,215/70R15,280 vented disc,229 drum
+Sedans,emperor,Cadillac Fleetwood Brougham,1985,,1950.0,55.0,V8 4.1 L na,135.0,271.0,automatic,4,3.15,FR,double wishbone,"live axle, coil springs",215/75R15,215/75R15,279 solid disc,241 drum
+Sedans,emperor2,Cadillac Fleetwood Brougham (worn),1985,,1950.0,55.0,V8 4.1 L na,110.0,240.0,automatic,4,3.15,FR,double wishbone,"live axle, coil springs",215/75R15,215/75R15,279 solid disc,241 drum
+Sedans,emperor3,Cadillac Fleetwood Brougham (snow tyres),1985,,1950.0,55.0,V8 4.1 L na,135.0,271.0,automatic,4,3.15,FR,double wishbone,"live axle, coil springs",215/75R15,215/75R15,279 solid disc,241 drum
+Sedans,ingot,Volvo 240 GL Estate,1985,,1340.0,54.0,I4 2.3 L na,114.0,185.0,manual,5,3.54,FR,MacPherson strut,"live axle, coil springs",185/70R14,185/70R14,263 vented disc,281 solid disc
+Sedans,surge,Chevrolet Volt (EV mode),2011,,1715.0,57.0,electric,149.0,368.0,single-speed,1,7.0,FF,MacPherson strut,torsion beam,215/55R17,215/55R17,300 vented disc,292 solid disc
+Sedans,stafford,Rolls-Royce Silver Cloud II,1960,,2110.0,53.0,V8 6.2 L na,200.0,450.0,automatic,4,3.08,FR,double wishbone,"live axle, leaf springs",8.20-15,8.20-15,279 drum,279 drum
+Sedans,stretch,Lincoln Town Car stretch limousine,2003,,3150.0,50.0,V8 4.6 L na,239.0,389.0,automatic,4,3.27,FR,double wishbone,"live axle, coil springs",225/60R17,225/60R17,290 vented disc,280 drum
+Sedans,asea,Chevrolet Cavalier sedan (J),2003,,1250.0,62.0,I4 2.2 L na,140.0,203.0,automatic,4,3.91,FF,MacPherson strut,torsion beam,195/65R15,195/65R15,246 vented disc,200 drum
+Sedans,asea2,Chevrolet Cavalier sedan (snow tyres),2003,,1250.0,62.0,I4 2.2 L na,140.0,203.0,automatic,4,3.91,FF,MacPherson strut,torsion beam,195/65R15,195/65R15,246 vented disc,200 drum
+Sedans,premier,Chevrolet Malibu V6 (2004),2004,,1500.0,62.0,V6 3.5 L na,200.0,298.0,automatic,4,3.29,FF,MacPherson strut,multi-link,215/60R16,215/60R16,296 vented disc,284 solid disc
+Sedans,glendale,Mercedes-Benz 280 E (W114),1973,,1450.0,54.0,I6 2.8 L na,185.0,238.0,automatic,4,3.46,FR,double wishbone,semi-trailing arm,185/80R14,185/80R14,273 solid disc,279 solid disc
+Sedans,glendale2,"Mercedes-Benz 280 E (W114, lowrider custom)",1973,,1520.0,54.0,I6 2.8 L na,185.0,238.0,automatic,4,3.46,FR,double wishbone,semi-trailing arm,185/80R14,185/80R14,273 solid disc,279 solid disc
+Sedans,stratum,Subaru Legacy 2.5 wagon (BH),2002,,1500.0,58.0,F4 2.5 L na,165.0,225.0,automatic,4,4.111,AWD-F,MacPherson strut,multi-link,205/55R16,205/55R16,277 vented disc,266 solid disc
+Sedans,schafter2,Mercedes-Benz E 500 (W212),2010,,1830.0,53.0,V8 5.5 L na,388.0,530.0,automatic,7,2.82,FR,double wishbone,multi-link,245/40R18,265/35R18,344 vented disc,320 vented disc
+Sedans,schafter6,Mercedes-Benz E-Class LWB Guard (armoured),2010,,3050.0,53.0,V8 5.5 L na,388.0,530.0,automatic,7,2.82,FR,double wishbone,multi-link,245/40R18,265/35R18,344 vented disc,320 vented disc
+Sedans,schafter5,"Mercedes-Benz S 600 Guard (W221, armoured)",2011,,3200.0,53.0,V12 5.5 L turbo,517.0,830.0,automatic,5,2.65,FR,double wishbone,multi-link,275/45R18,275/45R18,390 vented disc,365 vented disc
+Sedans,schafter3,Mercedes-Benz S 600 (W221),2010,,2185.0,53.0,V12 5.5 L turbo,517.0,830.0,automatic,5,2.65,FR,double wishbone,multi-link,245/40R18,265/35R18,344 vented disc,320 vented disc
+Sedans,schafter4,"Mercedes-Benz S 600 L (W221, LWB)",2010,,2260.0,53.0,V12 5.5 L turbo,517.0,830.0,automatic,5,2.65,FR,double wishbone,multi-link,245/40R18,265/35R18,344 vented disc,320 vented disc
+Sedans,primo,Cadillac DeVille (2003),2003,,1830.0,63.0,V8 4.6 L na,275.0,407.0,automatic,4,3.11,FF,MacPherson strut,multi-link,235/55R17,235/55R17,302 vented disc,284 solid disc
+Sedans,primo2,Cadillac DeVille (lowrider custom),2003,,1880.0,63.0,V8 4.6 L na,275.0,407.0,automatic,4,3.11,FF,MacPherson strut,multi-link,235/55R17,235/55R17,302 vented disc,284 solid disc
+Sedans,intruder,Toyota Camry 3.0 V6 (XV20),2000,,1480.0,62.0,V6 3.0 L na,194.0,283.0,automatic,4,3.62,FF,MacPherson strut,MacPherson strut,205/65R15,205/65R15,275 vented disc,269 solid disc
+Sedans,asterope,Toyota Camry 2.4 (XV40),2007,,1450.0,62.0,I4 2.4 L na,158.0,218.0,automatic,5,3.21,FF,MacPherson strut,MacPherson strut,215/60R16,215/60R16,296 vented disc,281 solid disc
+Sedans,asterope2,Toyota Camry 2.5 (XV70),2021,,1550.0,61.0,I4 2.5 L na,203.0,250.0,automatic,8,2.8,FF,MacPherson strut,multi-link,235/45R18,235/45R18,305 vented disc,281 solid disc
+Sedans,warrener,Datsun 510 / Bluebird 1600 SSS,1970,,940.0,54.0,I4 1.6 L na,96.0,136.0,manual,4,3.7,FR,MacPherson strut,semi-trailing arm,155/80R13,155/80R13,232 solid disc,229 drum
+Sedans,warrener2,Nissan Skyline 2000GT-R (KPGC10 Hakosuka),1971,,1120.0,54.0,I6 2.0 L na,160.0,177.0,manual,5,4.444,FR,MacPherson strut,semi-trailing arm,175/70R14,175/70R14,254 solid disc,228 drum
+Sedans,tailgater,Audi A6 3.0 TFSI quattro (C7),2012,,1770.0,57.0,V6 3.0 L supercharged,300.0,440.0,dual-clutch,7,4.38,AWD-F,multi-link,multi-link,245/45R18,245/45R18,345 vented disc,330 vented disc
+Sedans,tailgater2,Audi S4 (B9),2018,,1630.0,57.0,V6 3.0 L turbo,354.0,500.0,automatic,8,2.85,AWD-F,multi-link,multi-link,245/35R19,245/35R19,350 vented disc,330 vented disc
+Sedans,limo2,Cadillac Escalade-based armoured parade limousine,2016,yes,4800.0,50.0,V8 6.2 L na,420.0,624.0,automatic,8,3.42,FR,double wishbone,"live axle, coil springs",285/45R22,285/45R22,390 vented disc,370 vented disc
+Sedans,vorschlag,"Mercedes-Benz 300 E AMG 6.0 ""Hammer"" (W124)",1987,,1650.0,54.0,V8 6.0 L na,385.0,566.0,automatic,4,2.24,FR,double wishbone,multi-link,225/50R16,245/45R16,304 vented disc,278 solid disc
+Sedans,driftvorsch,"Mercedes-Benz AMG Hammer (W124, drift build)",1987,,1540.0,54.0,V8 6.0 L na,520.0,620.0,manual,6,2.24,FR,double wishbone,multi-link,245/40R17,265/40R17,304 vented disc,278 solid disc
+Sedans,fugitive,Holden Commodore SS (VE),2010,,1780.0,54.0,V8 6.0 L na,362.0,530.0,manual,6,3.7,FR,MacPherson strut,multi-link,245/40R19,245/40R19,321 vented disc,324 vented disc
+Sedans,washington,Lincoln Town Car (2003),2003,,1950.0,52.0,V8 4.6 L na,239.0,389.0,automatic,4,3.27,FR,double wishbone,"live axle, coil springs",225/60R17,225/60R17,290 vented disc,280 drum
+Sedans,cognoscenti,Bentley Mulsanne,2011,,2585.0,54.0,V8 6.8 L turbo,512.0,1020.0,automatic,8,2.56,FR,double wishbone,multi-link,265/45R20,265/45R20,400 vented disc,350 vented disc
+Sedans,cognoscenti2,Bentley Mulsanne (armoured),2011,,3400.0,54.0,V8 6.8 L turbo,512.0,1020.0,automatic,8,2.56,FR,double wishbone,multi-link,265/45R20,265/45R20,400 vented disc,350 vented disc
+Sedans,cog55,Rolls-Royce Ghost (2010),2010,,2435.0,51.0,V12 6.6 L turbo,563.0,780.0,automatic,8,2.75,FR,double wishbone,multi-link,255/50R19,255/50R19,410 vented disc,370 vented disc
+Sedans,cog552,Rolls-Royce Ghost (armoured),2010,,3250.0,51.0,V12 6.6 L turbo,563.0,780.0,automatic,8,2.75,FR,double wishbone,multi-link,255/50R19,255/50R19,410 vented disc,370 vented disc
+Sedans,superd,Rolls-Royce Phantom VII,2003,,2560.0,52.0,V12 6.8 L na,453.0,720.0,automatic,6,2.85,FR,double wishbone,multi-link,265/50R21,265/50R21,374 vented disc,370 vented disc
+Sedans,deity,Rolls-Royce Ghost (2nd gen),2021,,2490.0,51.0,V12 6.8 L turbo,563.0,850.0,automatic,8,2.75,AWD-F,double wishbone,multi-link,255/45R21,285/40R21,410 vented disc,370 vented disc
+Sedans,stanier,Ford Crown Victoria (P71 Police Interceptor),2005,,1800.0,54.0,V8 4.6 L na,224.0,373.0,automatic,4,3.27,FR,double wishbone,"live axle, coil springs",225/60R16,225/60R16,302 vented disc,280 drum
+Sedans,hardy1,Nissan Laurel Medalist (C33),1991,,1330.0,55.0,I6 2.0 L turbo,205.0,265.0,manual,5,4.111,FR,MacPherson strut,multi-link,205/60R15,205/60R15,280 vented disc,258 solid disc
+Sedans,drifthardy,Nissan Laurel C33 (drift build),1991,,1280.0,55.0,I6 2.5 L turbo,420.0,480.0,manual,5,4.111,FR,MacPherson strut,multi-link,235/40R18,255/40R18,280 vented disc,258 solid disc
+Sedans,sentinel6,BMW M3 Sedan (E90),2009,,1605.0,52.0,V8 4.0 L na,420.0,400.0,manual,6,3.85,FR,MacPherson strut,multi-link,245/40R18,265/40R18,360 vented disc,350 vented disc
+Sedans,minimus,Nissan Sunny / Sentra 1.6 (B13),1993,yes,1010.0,62.0,I4 1.6 L na,110.0,146.0,manual,5,4.167,FF,MacPherson strut,torsion beam,175/65R14,175/65R14,247 vented disc,203 drum
+Sedans,chavosv6,"Honda Accord V6 (7th gen, CM)",2004,,1500.0,62.0,V6 3.0 L na,240.0,287.0,automatic,5,4.43,FF,double wishbone,multi-link,205/60R16,205/60R16,296 vented disc,282 solid disc
+Sedans,driftchav6,Honda Accord V6 (RWD drift conversion),2004,,1500.0,55.0,V6 3.0 L turbo,430.0,450.0,manual,6,4.43,FR,double wishbone,multi-link,235/40R18,255/40R18,296 vented disc,282 solid disc
+Sedans,merula,Cadillac Seville (1978),1978,yes,1950.0,56.0,V8 5.7 L na,180.0,373.0,automatic,3,2.56,FR,double wishbone,"live axle, coil springs",205/75R15,205/75R15,279 solid disc,241 drum
+Sedans,rhinehart,BMW M5 (E39),2000,,1720.0,52.0,V8 4.9 L na,400.0,500.0,manual,6,3.15,FR,MacPherson strut,multi-link,245/40R18,275/35R18,345 vented disc,328 vented disc
+Sedans,cinquemila,Maserati Quattroporte GTS (M156),2014,,1900.0,51.0,V8 3.8 L turbo,530.0,650.0,automatic,8,2.73,FR,double wishbone,multi-link,245/40R20,285/35R20,380 vented disc,350 vented disc
+Sports,futo,Toyota Sprinter Trueno GT-Apex (AE86),1985,,940.0,53.0,I4 1.6 L na,130.0,149.0,manual,5,4.3,FR,MacPherson strut,"live axle, coil springs",185/70R13,185/70R13,242 vented disc,230 solid disc
+Sports,futo2,"Toyota Corolla Levin GT-Apex (AE86, LSD)",1985,,940.0,53.0,I4 1.6 L na,140.0,152.0,manual,5,4.3,FR,MacPherson strut,"live axle, coil springs",185/70R13,185/70R13,242 vented disc,230 solid disc
+Sports,driftfuto2,"Toyota AE86 (drift build, 4A-GE 20V)",1985,,900.0,53.0,I4 1.6 L na,210.0,200.0,manual,5,4.3,FR,MacPherson strut,"live axle, coil springs",205/50R15,205/50R15,242 vented disc,230 solid disc
+Sports,driftfuto,"Toyota AE86 (drift build, turbo 4A-GE)",1985,,920.0,53.0,I4 1.6 L turbo,300.0,320.0,manual,5,4.3,FR,MacPherson strut,"live axle, coil springs",205/50R15,225/45R15,242 vented disc,230 solid disc
+Sports,khamelion,Fisker Karma EcoSport,2012,,2400.0,47.0,electric,403.0,1300.0,single-speed,1,9.0,FR,double wishbone,multi-link,255/35R22,285/35R22,380 vented disc,360 vented disc
+Sports,blista2,Honda CR-X SiR (EF8),1990,,880.0,63.0,I4 1.6 L na,160.0,150.0,manual,5,4.4,FF,double wishbone,double wishbone,185/60R14,185/60R14,262 vented disc,239 solid disc
+Sports,blista3,"Honda CR-X SiR (EF8, Go Go Monkey livery)",1990,,880.0,63.0,I4 1.6 L na,160.0,150.0,manual,5,4.4,FF,double wishbone,double wishbone,185/60R14,185/60R14,262 vented disc,239 solid disc
+Sports,envisage,Hyundai Genesis Coupe 3.8 Track,2013,yes,1600.0,54.0,V6 3.8 L na,348.0,398.0,manual,6,3.73,FR,MacPherson strut,multi-link,225/40R19,245/40R19,340 vented disc,330 vented disc
+Sports,tropos,Lancia Stratos HF Stradale,1974,,980.0,41.0,V6 2.4 L na,190.0,225.0,manual,5,4.143,MR,double wishbone,MacPherson strut,205/70R14,225/70R14,251 vented disc,251 vented disc
+Sports,streiter,Mercedes-AMG GLE 63 S Coupe (C292),2016,,2350.0,54.0,V8 5.5 L turbo,585.0,760.0,automatic,7,3.27,AWD-F,double wishbone,multi-link,285/40R22,325/35R22,390 vented disc,345 vented disc
+Sports,penumbra,Mazda RX-8 (SE3P),2004,,1350.0,51.0,R2 1.3 L na,231.0,211.0,manual,6,4.444,FR,double wishbone,multi-link,225/45R18,225/45R18,323 vented disc,302 vented disc
+Sports,penumbra2,Mitsubishi Eclipse GSX (2G),1997,,1500.0,60.0,I4 2.0 L turbo,210.0,290.0,manual,5,4.153,AWD-F,double wishbone,multi-link,215/50R17,215/50R17,276 vented disc,262 solid disc
+Sports,raiden,Tesla Model S P90D,2016,,2200.0,48.0,electric,532.0,967.0,single-speed,1,9.73,AWD-M,double wishbone,multi-link,245/35R21,265/35R21,355 vented disc,365 vented disc
+Sports,neon,Porsche Taycan Turbo S,2020,,2295.0,49.0,electric,761.0,1050.0,automatic,2,1.0,AWD-M,double wishbone,multi-link,265/35R21,305/30R21,420 carbon-ceramic disc,410 carbon-ceramic disc
+Sports,sultan,Subaru Impreza WRX STI (GD),2005,,1495.0,59.0,F4 2.5 L turbo,280.0,395.0,manual,6,3.9,AWD-F,MacPherson strut,MacPherson strut,225/45R17,225/45R17,326 vented disc,316 vented disc
+Sports,sultan2,Subaru Impreza 22B STi (GC8),1998,,1270.0,60.0,F4 2.2 L turbo,280.0,363.0,manual,5,4.444,AWD-F,MacPherson strut,MacPherson strut,235/40R17,235/40R17,294 vented disc,290 vented disc
+Sports,sultan3,Subaru Impreza WRX STi Type R (GC8 Version VI),1999,,1270.0,60.0,F4 2.0 L turbo,280.0,352.0,manual,5,4.444,AWD-F,MacPherson strut,MacPherson strut,225/45R17,225/45R17,294 vented disc,290 vented disc
+Sports,sentinel3,BMW M3 (E30),1988,,1200.0,51.0,I4 2.3 L na,195.0,230.0,manual,5,4.1,FR,MacPherson strut,semi-trailing arm,205/55R15,205/55R15,280 vented disc,282 solid disc
+Sports,sentinel4,BMW M3 Sport Evolution (E30),1988,,1200.0,51.0,I4 2.5 L na,238.0,240.0,manual,5,4.1,FR,MacPherson strut,semi-trailing arm,225/45R16,225/45R16,280 vented disc,282 solid disc
+Sports,driftsent,"BMW M3 (E30, drift build S54 swap)",1988,,1180.0,51.0,I6 3.2 L na,380.0,380.0,manual,6,4.1,FR,MacPherson strut,semi-trailing arm,225/45R17,245/40R17,280 vented disc,282 solid disc
+Sports,sentinel5,BMW M3 CSL (E46),2003,,1385.0,51.0,I6 3.2 L na,360.0,370.0,sequential,6,3.62,FR,MacPherson strut,multi-link,235/35R19,265/30R19,345 vented disc,328 vented disc
+Sports,omnis,Audi Sport quattro S1 E2 (Group B),1985,,1090.0,55.0,I5 2.1 L turbo,470.0,590.0,manual,6,4.38,AWD-F,MacPherson strut,MacPherson strut,235/45R17,235/45R17,304 vented disc,280 vented disc
+Sports,omnisegt,Audi RS e-tron GT,2022,,2350.0,50.0,electric,637.0,830.0,automatic,2,1.0,AWD-M,double wishbone,multi-link,265/35R21,305/30R21,420 carbon-ceramic disc,410 carbon-ceramic disc
+Sports,buffalo,Dodge Charger R/T (LX),2006,,1860.0,54.0,V8 5.7 L na,340.0,529.0,automatic,5,2.82,FR,double wishbone,multi-link,225/60R18,225/60R18,345 vented disc,320 vented disc
+Sports,buffalo2,Dodge Charger SRT8 (LD),2012,,1950.0,54.0,V8 6.4 L na,470.0,637.0,automatic,5,3.06,FR,double wishbone,multi-link,245/45R20,245/45R20,360 vented disc,350 vented disc
+Sports,buffalo3,Dodge Charger SRT8 (Sprunk livery),2012,,1950.0,54.0,V8 6.4 L na,470.0,637.0,automatic,5,3.06,FR,double wishbone,multi-link,245/45R20,245/45R20,360 vented disc,350 vented disc
+Sports,kuruma,Mitsubishi Lancer Evolution X GSR,2008,,1560.0,59.0,I4 2.0 L turbo,295.0,407.0,manual,5,4.062,AWD-F,MacPherson strut,multi-link,245/40R18,245/40R18,350 vented disc,330 vented disc
+Sports,kuruma2,Mitsubishi Lancer Evolution X (armoured),2008,,2200.0,59.0,I4 2.0 L turbo,295.0,407.0,manual,5,4.062,AWD-F,MacPherson strut,multi-link,245/40R18,245/40R18,350 vented disc,330 vented disc
+Sports,comet4,Porsche 911 SC Safari (rally),1978,,1180.0,40.0,F6 3.0 L na,250.0,280.0,manual,5,4.43,RR,MacPherson strut,semi-trailing arm,215/70R15,215/70R15,282 vented disc,290 vented disc
+Sports,elegy,Nissan Skyline GT-R (R32),1989,,1430.0,59.0,I6 2.6 L turbo,280.0,353.0,manual,5,4.111,AWD-F,multi-link,multi-link,225/50R16,225/50R16,296 vented disc,297 vented disc
+Sports,driftelegy,Nissan Skyline GT-R R32 (RWD drift build),1989,,1350.0,57.0,I6 2.6 L turbo,520.0,560.0,manual,5,4.111,FR,multi-link,multi-link,245/40R18,265/35R18,296 vented disc,297 vented disc
+Sports,veto,Go-kart (classic 100 cc two-stroke),1985,,75.0,42.0,I1 0.1 L na,15.0,10.0,single-speed,1,5.5,FR,double wishbone,"live axle, coil springs",10x4.50-5,10x4.50-5,180 solid disc,180 solid disc
+Sports,veto2,Go-kart (modern 125 cc KZ shifter),1985,,80.0,42.0,I1 0.1 L na,48.0,27.0,sequential,1,5.5,FR,double wishbone,"live axle, coil springs",10x4.50-5,10x4.50-5,180 solid disc,180 solid disc
+Sports,raptor,Campagna T-Rex 16S (three-wheeler),2013,,470.0,60.0,I4 1.4 L na,160.0,122.0,sequential,6,4.0,FR,double wishbone,"swingarm, monoshock",195/50R15,225/45R17,300 vented disc,220 vented disc
+Sports,cypher,BMW M2 Competition (F87),2019,,1575.0,52.0,I6 3.0 L turbo,410.0,550.0,dual-clutch,7,3.46,FR,MacPherson strut,multi-link,245/35R19,265/35R19,380 vented disc,370 vented disc
+Sports,driftcypher,"BMW M2 (F87, drift build)",2019,,1500.0,52.0,I6 3.0 L turbo,560.0,700.0,dual-clutch,7,3.46,FR,MacPherson strut,multi-link,255/35R18,275/35R18,380 vented disc,370 vented disc
+Sports,zr350,Mazda RX-7 Type R (FD3S),1999,,1280.0,50.0,R2 1.3 L turbo,280.0,314.0,manual,5,4.1,FR,double wishbone,double wishbone,235/45R17,235/45R17,294 vented disc,294 vented disc
+Sports,driftzr350,"Mazda RX-7 FD3S (drift build, bridge-port single turbo)",1999,,1220.0,50.0,R2 1.3 L turbo,480.0,450.0,manual,5,4.1,FR,double wishbone,double wishbone,245/40R18,265/35R18,294 vented disc,294 vented disc
+Sports,gb200,Ford RS200 (road),1986,,1180.0,45.0,I4 1.8 L turbo,250.0,290.0,manual,5,4.37,AWD-M,double wishbone,double wishbone,225/50R16,225/50R16,288 vented disc,288 vented disc
+Sports,vectre,Toyota Soarer 2.5GT-T (JZZ30),1992,,1520.0,55.0,I6 2.5 L turbo,280.0,363.0,manual,5,3.916,FR,double wishbone,double wishbone,225/55R16,225/55R16,296 vented disc,294 vented disc
+Sports,coquette,Chevrolet Corvette (C6),2005,,1460.0,51.0,V8 6.0 L na,400.0,542.0,manual,6,3.42,FR,double wishbone,double wishbone,245/40R18,285/35R19,325 vented disc,305 vented disc
+Sports,driftcoque,Chevrolet Corvette C6 (drift build),2005,,1400.0,51.0,V8 6.2 L supercharged,650.0,700.0,manual,6,3.42,FR,double wishbone,double wishbone,265/35R18,285/35R18,325 vented disc,305 vented disc
+Sports,sugoi,Honda Civic Type R (FK8),2018,,1380.0,61.0,I4 2.0 L turbo,306.0,400.0,manual,6,4.111,FF,MacPherson strut,multi-link,245/30R20,245/30R20,350 vented disc,305 solid disc
+Sports,euros,Nissan 350Z (Z33),2003,,1450.0,53.0,V6 3.5 L na,287.0,373.0,manual,6,3.538,FR,multi-link,multi-link,225/45R18,245/45R18,324 vented disc,322 vented disc
+Sports,drifteuros,Nissan 350Z (drift build),2003,,1380.0,53.0,V6 3.5 L turbo,500.0,530.0,manual,6,3.538,FR,multi-link,multi-link,245/40R18,265/35R18,324 vented disc,322 vented disc
+Sports,rt3000,Honda S2000 (AP1),2000,,1250.0,50.0,I4 2.0 L na,240.0,208.0,manual,6,4.1,FR,double wishbone,double wishbone,205/55R16,225/50R16,300 vented disc,282 solid disc
+Sports,driftrt3,"Honda S2000 (drift build, turbo F20C)",2000,,1220.0,50.0,I4 2.0 L turbo,400.0,380.0,manual,6,4.1,FR,double wishbone,double wishbone,225/45R17,245/40R17,300 vented disc,282 solid disc
+Sports,flashgt,Ford Focus RS (Mk3),2016,,1530.0,60.0,I4 2.3 L turbo,350.0,440.0,manual,6,4.06,AWD-F,MacPherson strut,multi-link,235/35R19,235/35R19,350 vented disc,302 solid disc
+Sports,revolter,Cadillac CTS-V (3rd gen),2016,,1880.0,53.0,V8 6.2 L supercharged,640.0,855.0,automatic,8,2.85,FR,MacPherson strut,multi-link,265/35R19,295/30R19,390 vented disc,365 vented disc
+Sports,tampa2,"Dodge Dart Swinger 340 (drift build, LS V8)",1969,,1350.0,54.0,V8 6.2 L na,520.0,610.0,manual,6,3.73,FR,double wishbone,"live axle, leaf springs",245/40R17,265/40R17,330 vented disc,310 vented disc
+Sports,drifttampa,"Dodge Dart Swinger 340 (drift build, LS V8)",1969,,1350.0,54.0,V8 6.2 L na,520.0,610.0,manual,6,3.73,FR,double wishbone,"live axle, leaf springs",245/40R17,265/40R17,330 vented disc,310 vented disc
+Sports,schwarzer,Mercedes-Benz SL 63 AMG (R230),2009,,1970.0,52.0,V8 6.2 L na,525.0,630.0,automatic,7,2.82,FR,double wishbone,multi-link,255/35R19,285/30R19,390 vented disc,360 vented disc
+Sports,jester,Acura NSX (NC1),2017,,1725.0,42.0,V6 3.5 L turbo,573.0,646.0,dual-clutch,9,3.583,AWD-M,double wishbone,multi-link,245/35R19,295/30R20,381 carbon-ceramic disc,361 carbon-ceramic disc
+Sports,jester2,Acura NSX GT3 Evo,2019,,1250.0,42.0,V6 3.5 L turbo,550.0,600.0,sequential,6,3.8,MR,double wishbone,double wishbone,305/660R18,305/660R18,380 vented disc,355 vented disc
+Sports,remus,Nissan Silvia K's (S13),1991,,1240.0,55.0,I4 2.0 L turbo,205.0,274.0,manual,5,4.111,FR,MacPherson strut,multi-link,205/60R15,205/60R15,280 vented disc,258 solid disc
+Sports,driftremus,Nissan Silvia S13 (drift build),1991,,1180.0,55.0,I4 2.0 L turbo,430.0,460.0,manual,5,4.111,FR,MacPherson strut,multi-link,225/45R17,245/40R17,280 vented disc,258 solid disc
+Sports,paragon,Bentley Continental GT V8 (2nd gen),2013,,2295.0,56.0,V8 4.0 L turbo,507.0,660.0,automatic,8,2.85,AWD-F,double wishbone,multi-link,275/35R21,275/35R21,405 vented disc,335 vented disc
+Sports,paragon2,Bentley Continental GT V8 (armoured),2013,,3000.0,56.0,V8 4.0 L turbo,507.0,660.0,automatic,8,2.85,AWD-F,double wishbone,multi-link,275/35R21,275/35R21,405 vented disc,335 vented disc
+Sports,paragon3,Bentley Continental GT Speed (3rd gen),2022,,2273.0,55.0,W12 6.0 L turbo,650.0,900.0,dual-clutch,8,3.67,AWD-F,double wishbone,multi-link,275/35R22,315/30R22,440 carbon-ceramic disc,380 carbon-ceramic disc
+Sports,r300,Nissan Z Performance (RZ34),2023,,1590.0,55.0,V6 3.0 L turbo,400.0,475.0,manual,6,3.692,FR,double wishbone,multi-link,255/40R19,275/35R19,355 vented disc,350 vented disc
+Sports,bestiagts,Ferrari GTC4Lusso,2017,,1920.0,47.0,V12 6.3 L na,690.0,697.0,dual-clutch,7,4.47,AWD-F,double wishbone,multi-link,245/35R20,295/35R20,398 carbon-ceramic disc,360 carbon-ceramic disc
+Sports,coquette4,Chevrolet Corvette Stingray Z51 (C8),2020,,1530.0,40.0,V8 6.2 L na,495.0,637.0,dual-clutch,8,5.17,MR,double wishbone,double wishbone,245/35R19,305/30R20,345 vented disc,339 vented disc
+Sports,hotringsabre,"Hotring stock car (Late Model, 358 cu in V8)",1983,yes,1450.0,52.0,V8 5.9 L na,650.0,600.0,manual,4,4.1,FR,double wishbone,"live axle, coil springs",275/60R15,275/60R15,330 vented disc,310 vented disc
+Sports,everon2,"Hotring stock car (Toyota-style body, 358 V8)",1983,yes,1450.0,52.0,V8 5.9 L na,650.0,600.0,manual,4,4.1,FR,double wishbone,"live axle, coil springs",275/60R15,275/60R15,330 vented disc,310 vented disc
+Sports,gauntlet6,"Hotring stock car (Hellfire body, 358 V8)",1983,yes,1450.0,52.0,V8 5.9 L na,650.0,600.0,manual,4,4.1,FR,double wishbone,"live axle, coil springs",275/60R15,275/60R15,330 vented disc,310 vented disc
+Sports,coureur,Peugeot 205 Turbo 16 (road),1985,,1145.0,42.0,I4 1.8 L turbo,200.0,255.0,manual,5,4.21,AWD-M,double wishbone,double wishbone,210/55R15,210/55R15,280 vented disc,280 vented disc
+Sports,fusilade,Chrysler Crossfire SRT-6,2005,,1490.0,53.0,V6 3.2 L supercharged,330.0,420.0,automatic,5,3.07,FR,double wishbone,multi-link,255/35R18,275/35R19,340 vented disc,330 vented disc
+Sports,ruston,Ariel Atom 3.5,2014,,550.0,40.0,I4 2.0 L na,245.0,213.0,manual,6,4.76,MR,pushrod double wishbone,pushrod double wishbone,195/50R15,225/45R16,240 vented disc,240 vented disc
+Sports,jester3,Toyota Supra RZ (A80),1993,,1510.0,53.0,I6 3.0 L turbo,280.0,431.0,manual,6,3.133,FR,double wishbone,double wishbone,235/45R17,255/40R17,323 vented disc,324 vented disc
+Sports,driftjstr3,"Toyota Supra A80 (drift build, single turbo 2JZ)",1993,,1420.0,53.0,I6 3.0 L turbo,650.0,750.0,manual,6,3.133,FR,double wishbone,double wishbone,255/35R18,275/35R18,323 vented disc,324 vented disc
+Sports,jester4,Toyota GR Supra 3.0 (A90),2020,,1540.0,51.0,I6 3.0 L turbo,340.0,500.0,automatic,8,3.15,FR,MacPherson strut,multi-link,255/35R19,275/35R19,348 vented disc,345 vented disc
+Sports,driftjester,Toyota GR Supra (drift build),2020,,1450.0,51.0,I6 3.0 L turbo,700.0,800.0,manual,6,3.15,FR,MacPherson strut,multi-link,265/35R18,285/35R18,348 vented disc,345 vented disc
+Sports,jester5,Toyota GR Supra (LS Car Meet tuned),2020,,1540.0,51.0,I6 3.0 L turbo,500.0,650.0,automatic,8,3.15,FR,MacPherson strut,multi-link,255/35R19,275/35R19,348 vented disc,345 vented disc
+Sports,banshee,Dodge Viper SRT-10 (ZB),2003,,1560.0,49.0,V10 8.3 L na,500.0,712.0,manual,6,3.07,FR,double wishbone,double wishbone,275/35R18,345/30R19,355 vented disc,355 vented disc
+Sports,banshee3,Dodge Viper ACR (VX),2016,,1540.0,49.0,V10 8.4 L na,645.0,813.0,manual,6,3.55,FR,double wishbone,double wishbone,295/25R19,355/30R19,390 carbon-ceramic disc,360 carbon-ceramic disc
+Sports,s95,Toyota Celica GT-Four (ST205),1995,yes,1380.0,61.0,I4 2.0 L turbo,255.0,304.0,manual,5,4.285,AWD-F,MacPherson strut,MacPherson strut,215/50R16,215/50R16,294 vented disc,291 solid disc
+Sports,elegy2,Nissan GT-R (R35),2017,,1752.0,54.0,V6 3.8 L turbo,565.0,633.0,dual-clutch,6,3.7,AWD-F,double wishbone,multi-link,255/40R20,285/35R20,390 vented disc,380 vented disc
+Sports,comet5,Porsche 911 GT2 RS (991.2),2018,,1470.0,39.0,F6 3.8 L turbo,700.0,750.0,dual-clutch,7,3.97,RR,MacPherson strut,multi-link,265/35R20,325/30R21,410 carbon-ceramic disc,390 carbon-ceramic disc
+Sports,lynx,Jaguar F-Type R Coupe,2015,,1650.0,51.0,V8 5.0 L supercharged,550.0,680.0,automatic,8,3.31,FR,double wishbone,double wishbone,255/35R20,295/30R20,380 vented disc,376 vented disc
+Sports,carbonizzare,Ferrari California,2009,,1735.0,47.0,V8 4.3 L na,460.0,485.0,dual-clutch,7,4.44,FR,double wishbone,multi-link,245/40R19,285/40R19,390 carbon-ceramic disc,360 carbon-ceramic disc
+Sports,coquette6,Chevrolet Corvette Z06 (C5),2001,,1415.0,52.0,V8 5.7 L na,405.0,542.0,manual,6,3.42,FR,double wishbone,double wishbone,265/40R17,295/35R18,325 vented disc,305 vented disc
+Sports,calico,Toyota Celica GT-Four RC (ST185),1991,,1430.0,61.0,I4 2.0 L turbo,235.0,304.0,manual,5,4.285,AWD-F,MacPherson strut,MacPherson strut,215/50R15,215/50R15,277 vented disc,291 solid disc
+Sports,specter,Aston Martin DB10,2015,,1600.0,50.0,V8 4.7 L na,430.0,490.0,manual,6,4.18,FR,double wishbone,double wishbone,255/35R20,295/30R20,380 carbon-ceramic disc,360 carbon-ceramic disc
+Sports,specter2,Aston Martin DB10 (custom),2015,,1600.0,50.0,V8 4.7 L na,430.0,490.0,manual,6,4.18,FR,double wishbone,double wishbone,255/35R20,295/30R20,380 carbon-ceramic disc,360 carbon-ceramic disc
+Sports,ninef,Audi R8 4.2 FSI (Type 42),2008,,1560.0,44.0,V8 4.2 L na,420.0,430.0,manual,6,4.37,AWD-M,double wishbone,double wishbone,235/35R19,295/30R19,365 vented disc,356 vented disc
+Sports,ninef2,Audi R8 Spyder 4.2 FSI,2008,,1660.0,44.0,V8 4.2 L na,420.0,430.0,manual,6,4.37,AWD-M,double wishbone,double wishbone,235/35R19,295/30R19,365 vented disc,356 vented disc
+Sports,sm722,Mercedes-Benz SLR McLaren 722 Edition,2006,,1724.0,51.0,V8 5.4 L supercharged,650.0,820.0,automatic,5,2.65,FR,double wishbone,double wishbone,255/35R19,295/30R19,370 carbon-ceramic disc,360 carbon-ceramic disc
+Sports,pariah,Aston Martin Vantage (2018),2018,,1630.0,50.0,V8 4.0 L turbo,503.0,685.0,automatic,8,2.93,FR,double wishbone,multi-link,255/40R20,295/35R20,400 vented disc,360 vented disc
+Sports,imorgon,Rimac Concept One,2016,yes,1950.0,45.0,electric,1088.0,1600.0,automatic,2,1.0,AWD-M,double wishbone,double wishbone,255/35R20,305/30R20,390 carbon-ceramic disc,390 carbon-ceramic disc
+Sports,vstr,Cadillac CT5-V Blackwing,2022,,1890.0,53.0,V8 6.2 L supercharged,668.0,893.0,manual,6,3.73,FR,MacPherson strut,multi-link,275/35R19,305/30R19,399 carbon-ceramic disc,373 carbon-ceramic disc
+Sports,alpha,Cadillac CTS-V Coupe (2nd gen),2011,,1910.0,54.0,V8 6.2 L supercharged,556.0,747.0,manual,6,3.73,FR,double wishbone,multi-link,255/40R19,285/35R19,380 vented disc,373 vented disc
+Sports,verlierer2,Aston Martin One-77,2010,,1630.0,51.0,V12 7.3 L na,750.0,750.0,automated manual,6,3.71,FR,pushrod double wishbone,pushrod double wishbone,255/35R20,335/30R20,398 carbon-ceramic disc,360 carbon-ceramic disc
+Sports,drafter,Audi RS 5 Coupe (B9),2018,,1730.0,58.0,V6 2.9 L turbo,450.0,600.0,automatic,8,2.85,AWD-F,multi-link,multi-link,265/35R19,265/35R19,375 vented disc,330 vented disc
+Sports,growler,Porsche 718 Cayman GT4 (982),2020,,1420.0,45.0,F6 4.0 L na,420.0,420.0,manual,6,3.89,MR,MacPherson strut,MacPherson strut,245/35R20,295/30R20,380 vented disc,380 vented disc
+Sports,locust,Lotus Exige S (V6),2016,,1176.0,38.0,V6 3.5 L supercharged,350.0,400.0,manual,6,3.78,MR,double wishbone,double wishbone,205/45R17,265/35R18,332 vented disc,332 vented disc
+Sports,panthere,Alpine A110,2018,,1100.0,44.0,I4 1.8 L turbo,252.0,320.0,dual-clutch,7,4.21,MR,double wishbone,double wishbone,205/40R18,235/40R18,296 vented disc,296 vented disc
+Sports,feltzer2,Mercedes-Benz SL 500 (R231),2013,,1785.0,52.0,V8 4.7 L turbo,435.0,700.0,automatic,7,2.47,FR,multi-link,multi-link,255/40R18,285/35R18,360 vented disc,330 vented disc
+Sports,zr380,Arena ZR380 (armoured RX-7-based),2018,yes,2050.0,52.0,R2 1.3 L turbo,450.0,450.0,manual,5,4.1,FR,double wishbone,double wishbone,245/45R17,275/40R17,330 vented disc,330 vented disc
+Sports,zr3802,Arena ZR380 (armoured RX-7-based),2018,yes,2050.0,52.0,R2 1.3 L turbo,450.0,450.0,manual,5,4.1,FR,double wishbone,double wishbone,245/45R17,275/40R17,330 vented disc,330 vented disc
+Sports,zr3803,Arena ZR380 (armoured RX-7-based),2018,yes,2050.0,52.0,R2 1.3 L turbo,450.0,450.0,manual,5,4.1,FR,double wishbone,double wishbone,245/45R17,275/40R17,330 vented disc,330 vented disc
+Sports,comet2,Porsche 911 Carrera S (997),2005,,1420.0,39.0,F6 3.8 L na,355.0,400.0,manual,6,3.44,RR,MacPherson strut,multi-link,235/35R19,295/30R19,330 vented disc,330 vented disc
+Sports,rapidgt,Aston Martin DBS,2008,,1695.0,50.0,V12 6.0 L na,517.0,570.0,manual,6,3.71,FR,double wishbone,double wishbone,245/35R20,295/30R20,398 carbon-ceramic disc,360 carbon-ceramic disc
+Sports,rapidgt2,Aston Martin DBS Volante,2008,,1810.0,50.0,V12 6.0 L na,517.0,570.0,manual,6,3.71,FR,double wishbone,double wishbone,245/35R20,295/30R20,398 carbon-ceramic disc,360 carbon-ceramic disc
+Sports,rapidgt4,Aston Martin DBS Superleggera,2019,,1693.0,51.0,V12 5.2 L turbo,725.0,900.0,automatic,8,2.93,FR,double wishbone,multi-link,265/35R21,305/30R21,410 carbon-ceramic disc,360 carbon-ceramic disc
+Sports,massacro,Aston Martin Vanquish (2nd gen),2013,,1739.0,51.0,V12 6.0 L na,573.0,620.0,automatic,6,3.46,FR,double wishbone,double wishbone,255/35R20,305/30R20,398 carbon-ceramic disc,360 carbon-ceramic disc
+Sports,massacro2,Aston Martin Vanquish (GT race conversion),2013,,1300.0,51.0,V12 6.0 L na,600.0,620.0,sequential,6,3.46,FR,double wishbone,double wishbone,305/680R18,305/680R18,398 carbon-ceramic disc,360 carbon-ceramic disc
+Sports,furoregt,Maserati GranTurismo MC Stradale,2012,,1770.0,48.0,V8 4.7 L na,460.0,520.0,automated manual,6,3.73,FR,double wishbone,double wishbone,255/35R20,295/30R20,380 carbon-ceramic disc,360 carbon-ceramic disc
+Sports,seven70,Aston Martin Vanquish Zagato,2017,,1800.0,51.0,V12 6.0 L na,600.0,630.0,automatic,8,3.46,FR,double wishbone,double wishbone,255/35R20,305/30R20,398 carbon-ceramic disc,360 carbon-ceramic disc
+Sports,surano,Mercedes-Benz SLS AMG Roadster,2012,,1660.0,47.0,V8 6.2 L na,571.0,650.0,dual-clutch,7,3.06,FR,double wishbone,double wishbone,265/35R19,295/30R20,390 carbon-ceramic disc,360 carbon-ceramic disc
+Sports,comet3,Porsche 911 Carrera RS 3.8 (964),1993,,1210.0,38.0,F6 3.8 L na,300.0,360.0,manual,5,3.444,RR,MacPherson strut,semi-trailing arm,235/40R18,285/35R18,322 vented disc,299 vented disc
+Sports,comet6,Porsche 911 Carrera S (992),2020,,1515.0,39.0,F6 3.0 L turbo,450.0,530.0,dual-clutch,8,3.06,RR,MacPherson strut,multi-link,245/35R20,305/30R21,350 vented disc,350 vented disc
+Sports,comet7,Porsche 911 Carrera S Cabriolet (992),2020,,1585.0,39.0,F6 3.0 L turbo,450.0,530.0,dual-clutch,8,3.06,RR,MacPherson strut,multi-link,245/35R20,305/30R21,350 vented disc,350 vented disc
+Sports,tenf,Audi R8 V10 Performance (4S),2019,,1595.0,42.0,V10 5.2 L na,620.0,580.0,dual-clutch,7,4.85,AWD-M,double wishbone,double wishbone,245/30R20,305/30R20,380 carbon-ceramic disc,356 carbon-ceramic disc
+Sports,tenf2,Audi R8 V10 Performance (widebody kit),2019,,1610.0,42.0,V10 5.2 L na,620.0,580.0,dual-clutch,7,4.85,AWD-M,double wishbone,double wishbone,245/30R20,305/30R20,380 carbon-ceramic disc,356 carbon-ceramic disc
+Sports,schlagen,Mercedes-AMG GT R (C190),2017,,1630.0,47.0,V8 4.0 L turbo,585.0,700.0,dual-clutch,7,3.67,FR,double wishbone,double wishbone,275/35R19,325/30R20,402 carbon-ceramic disc,360 carbon-ceramic disc
+Sports,jugular,Jaguar XE SV Project 8,2018,,1745.0,52.0,V8 5.0 L supercharged,600.0,700.0,automatic,8,3.31,AWD-F,double wishbone,multi-link,265/35R20,305/30R20,400 carbon-ceramic disc,396 carbon-ceramic disc
+Sports,niobe,BMW M8 Gran Coupe Competition (F93),2020,yes,2055.0,53.0,V8 4.4 L turbo,625.0,750.0,automatic,8,3.15,AWD-F,double wishbone,multi-link,275/35R20,285/35R20,395 carbon-ceramic disc,380 carbon-ceramic disc
+Sports,cartuccia,Ferrari Roma,2021,yes,1570.0,50.0,V8 3.9 L turbo,620.0,760.0,dual-clutch,8,3.94,FR,double wishbone,multi-link,245/35R20,285/35R20,390 carbon-ceramic disc,360 carbon-ceramic disc
+Sports,komoda,Alfa Romeo Giulia Quadrifoglio,2017,,1580.0,50.0,V6 2.9 L turbo,510.0,600.0,automatic,8,3.09,FR,double wishbone,multi-link,245/35R19,285/30R19,360 vented disc,350 vented disc
+Sports,stingertt,Ferrari Portofino M,2021,yes,1660.0,47.0,V8 3.9 L turbo,620.0,760.0,dual-clutch,8,3.94,FR,double wishbone,multi-link,245/35R20,285/35R20,390 carbon-ceramic disc,360 carbon-ceramic disc
+Sports,neo,Aston Martin V12 Vantage S,2015,yes,1665.0,51.0,V12 5.9 L na,565.0,620.0,automated manual,7,3.91,FR,double wishbone,double wishbone,255/35R19,295/30R19,398 carbon-ceramic disc,360 carbon-ceramic disc
+Sports,italigto,Ferrari 812 Superfast,2018,,1630.0,47.0,V12 6.5 L na,800.0,718.0,dual-clutch,7,4.71,FR,double wishbone,multi-link,275/35R20,315/35R20,398 carbon-ceramic disc,360 carbon-ceramic disc
+Sports,corsita,Maserati MC20,2021,,1500.0,41.0,V6 3.0 L turbo,630.0,730.0,dual-clutch,8,3.82,MR,double wishbone,double wishbone,245/35R20,305/30R20,380 carbon-ceramic disc,350 carbon-ceramic disc
+Sports,italirsx,Ferrari SF90 Stradale,2020,,1570.0,45.0,V8 4.0 L turbo,1000.0,800.0,dual-clutch,8,3.95,AWD-M,double wishbone,multi-link,255/35R20,315/30R20,398 carbon-ceramic disc,360 carbon-ceramic disc
+SportsClassics,tornado,Chevrolet Bel Air (1957),1957,,1550.0,55.0,V8 4.6 L na,220.0,366.0,automatic,2,3.36,FR,double wishbone,"live axle, leaf springs",7.50-14,7.50-14,279 drum,279 drum
+SportsClassics,tornado2,Chevrolet Bel Air convertible (1957),1957,,1620.0,55.0,V8 4.6 L na,220.0,366.0,automatic,2,3.36,FR,double wishbone,"live axle, leaf springs",7.50-14,7.50-14,279 drum,279 drum
+SportsClassics,tornado3,"Chevrolet Bel Air (1957, rusty)",1957,,1550.0,55.0,V8 4.6 L na,160.0,300.0,automatic,2,3.36,FR,double wishbone,"live axle, leaf springs",7.50-14,7.50-14,279 drum,279 drum
+SportsClassics,tornado4,"Chevrolet Bel Air convertible (1957, rusty)",1957,,1550.0,55.0,V8 4.6 L na,160.0,300.0,automatic,2,3.36,FR,double wishbone,"live axle, leaf springs",7.50-14,7.50-14,279 drum,279 drum
+SportsClassics,tornado5,"Chevrolet Bel Air (1957, lowrider)",1957,,1650.0,55.0,V8 4.6 L na,220.0,366.0,automatic,2,3.36,FR,double wishbone,"live axle, leaf springs",175/70R13,175/70R13,279 drum,279 drum
+SportsClassics,tornado6,"Chevrolet Bel Air (1957, rat rod, big-block)",1957,,1450.0,55.0,V8 7.0 L na,450.0,650.0,manual,4,3.36,FR,double wishbone,"live axle, leaf springs",215/65R15,275/60R15,279 drum,279 drum
+SportsClassics,peyote,Ford Thunderbird (1958),1958,,1700.0,55.0,V8 5.8 L na,300.0,515.0,automatic,3,3.1,FR,double wishbone,"live axle, leaf springs",8.00-14,8.00-14,279 drum,279 drum
+SportsClassics,peyote3,"Ford Thunderbird (1958, lowrider)",1958,,1750.0,55.0,V8 5.8 L na,300.0,515.0,automatic,3,3.1,FR,double wishbone,"live axle, leaf springs",175/70R13,175/70R13,279 drum,279 drum
+SportsClassics,dynasty,Austin A35 (1956),1956,yes,760.0,55.0,I4 0.9 L na,34.0,68.0,manual,4,4.55,FR,double wishbone,"live axle, leaf springs",5.20-13,5.20-13,178 drum,178 drum
+SportsClassics,manana,Cadillac Eldorado convertible (1976),1976,yes,2300.0,60.0,V8 8.2 L na,190.0,488.0,automatic,3,2.73,FF,double wishbone,"live axle, coil springs",225/75R15,225/75R15,300 vented disc,279 drum
+SportsClassics,nebula,Volvo 240 Turbo (1985),1985,,1340.0,54.0,I4 2.1 L turbo,155.0,240.0,manual,5,3.54,FR,MacPherson strut,"live axle, coil springs",195/60R15,195/60R15,263 vented disc,281 solid disc
+SportsClassics,driftnebula,Volvo 240 Turbo (drift build),1985,,1300.0,54.0,I4 2.3 L turbo,380.0,450.0,manual,5,3.54,FR,MacPherson strut,"live axle, coil springs",225/45R17,245/40R17,263 vented disc,281 solid disc
+SportsClassics,fagaloa,Volvo 145 estate (1972),1972,yes,1300.0,54.0,I4 2.0 L na,100.0,160.0,manual,4,4.3,FR,double wishbone,"live axle, coil springs",165/80R15,165/80R15,272 solid disc,281 solid disc
+SportsClassics,deluxo,DMC DeLorean,1981,,1230.0,35.0,V6 2.9 L na,130.0,208.0,manual,5,3.44,RR,double wishbone,trailing arm,195/60R14,235/60R15,254 solid disc,267 solid disc
+SportsClassics,retinue,Ford Escort RS1600 (Mk I),1970,,830.0,53.0,I4 1.6 L na,115.0,152.0,manual,4,3.77,FR,MacPherson strut,"live axle, leaf springs",165/80R13,165/80R13,244 solid disc,229 drum
+SportsClassics,retinue2,Ford Escort RS2000 (Mk II),1977,,950.0,53.0,I4 2.0 L na,110.0,162.0,manual,4,3.54,FR,MacPherson strut,"live axle, leaf springs",175/70R13,175/70R13,244 vented disc,229 drum
+SportsClassics,btype,Cadillac Series 341 (1928),1928,yes,2200.0,55.0,V8 5.6 L na,90.0,330.0,manual,3,4.39,FR,"live axle, leaf springs","live axle, leaf springs",7.00-18,7.00-18,406 drum,406 drum
+SportsClassics,btype2,"Cadillac 1928 (Fränken Stange hot rod, 350 V8)",1928,yes,1700.0,55.0,V8 5.7 L na,350.0,515.0,automatic,3,3.55,FR,"live axle, leaf springs","live axle, leaf springs",7.00-18,7.00-18,406 drum,406 drum
+SportsClassics,btype3,"Cadillac Series 341 (1928, Valor armoured)",1928,yes,2600.0,55.0,V8 5.6 L na,90.0,330.0,manual,3,4.39,FR,"live axle, leaf springs","live axle, leaf springs",7.00-18,7.00-18,406 drum,406 drum
+SportsClassics,savestra,Mazda Savanna RX-3 (S102A),1972,,900.0,52.0,R2 1.1 L na,110.0,137.0,manual,5,4.11,FR,MacPherson strut,"live axle, leaf springs",165/70R13,165/70R13,236 solid disc,200 drum
+SportsClassics,stinger,Ferrari 250 GT Lusso,1963,,1310.0,52.0,V12 3.0 L na,250.0,294.0,manual,4,3.55,FR,double wishbone,"live axle, leaf springs",185/80R15,185/80R15,296 solid disc,279 solid disc
+SportsClassics,stingergt,Ferrari 250 GTO,1962,,880.0,50.0,V12 3.0 L na,300.0,294.0,manual,5,4.0,FR,double wishbone,"live axle, leaf springs",6.00-15,6.50-15,296 solid disc,279 solid disc
+SportsClassics,cheburek,VAZ-2101 Zhiguli (Lada 1200),1975,,955.0,52.0,I4 1.2 L na,64.0,89.0,manual,4,4.3,FR,double wishbone,"live axle, coil springs",155/80R13,155/80R13,253 solid disc,250 drum
+SportsClassics,driftchebu,"VAZ-2101 (drift build, turbo)",1975,,900.0,52.0,I4 1.7 L turbo,280.0,320.0,manual,5,4.3,FR,double wishbone,"live axle, coil springs",205/50R15,225/45R15,253 solid disc,250 drum
+SportsClassics,z190,Datsun 240Z (S30),1970,,1045.0,52.0,I6 2.4 L na,151.0,198.0,manual,4,3.364,FR,MacPherson strut,MacPherson strut,175/80R14,175/80R14,272 solid disc,229 drum
+SportsClassics,michelli,Lancia Fulvia Coupe 1.3 HF,1967,,850.0,62.0,V4 1.3 L na,101.0,113.0,manual,5,4.78,FF,double wishbone,"live axle, leaf springs",165/80R14,165/80R14,250 solid disc,228 solid disc
+SportsClassics,gt500,Ferrari 365 GTB/4 Daytona,1968,,1280.0,50.0,V12 4.4 L na,352.0,431.0,manual,5,3.3,FR,double wishbone,double wishbone,215/70R15,215/70R15,290 vented disc,297 vented disc
+SportsClassics,jb700,Aston Martin DB5,1964,,1468.0,51.0,I6 4.0 L na,282.0,390.0,manual,5,3.54,FR,double wishbone,"live axle, coil springs",6.70-15,6.70-15,292 solid disc,273 solid disc
+SportsClassics,jb7002,"Aston Martin DB5 (gadget car, armoured)",1964,,1800.0,51.0,I6 4.0 L na,282.0,390.0,manual,5,3.54,FR,double wishbone,"live axle, coil springs",6.70-15,6.70-15,292 solid disc,273 solid disc
+SportsClassics,coquette5,"Chevrolet Corvette (C1, 1959)",1959,,1300.0,52.0,V8 4.6 L na,290.0,393.0,manual,4,3.7,FR,double wishbone,"live axle, leaf springs",6.70-15,6.70-15,279 drum,279 drum
+SportsClassics,zion3,BMW 3.0 CSL (E9),1972,,1165.0,53.0,I6 3.0 L na,200.0,272.0,manual,4,3.45,FR,MacPherson strut,semi-trailing arm,195/70R14,195/70R14,272 vented disc,272 solid disc
+SportsClassics,feltzer3,Mercedes-Benz 300 SL Gullwing (W198),1955,,1295.0,52.0,I6 3.0 L na,215.0,274.0,manual,4,3.42,FR,double wishbone,swing axle,6.50-15,6.50-15,260 drum,260 drum
+SportsClassics,viseris,Alfa Romeo Montreal,1970,yes,1270.0,54.0,V8 2.6 L na,200.0,235.0,manual,5,4.1,FR,double wishbone,"live axle, coil springs",195/70R14,195/70R14,280 solid disc,250 drum
+SportsClassics,stromberg,Lotus Esprit S1,1976,,900.0,41.0,I4 2.0 L na,160.0,190.0,manual,5,4.38,MR,double wishbone,trailing arm,205/60R14,205/60R14,247 solid disc,229 drum
+SportsClassics,rapidgt3,Aston Martin DBS V8 (1970),1970,,1700.0,52.0,V8 5.3 L na,320.0,488.0,manual,5,3.54,FR,double wishbone,De Dion axle,225/70R15,225/70R15,292 vented disc,273 solid disc
+SportsClassics,monroe,Lamborghini Miura P400,1966,,1180.0,42.0,V12 3.9 L na,350.0,368.0,manual,5,4.08,MR,double wishbone,double wishbone,205/70R15,205/70R15,290 solid disc,279 solid disc
+SportsClassics,torero,Lamborghini Countach LP400,1974,,1065.0,42.0,V12 3.9 L na,375.0,361.0,manual,5,4.08,MR,double wishbone,double wishbone,205/70R14,215/70R14,279 vented disc,279 vented disc
+SportsClassics,pigalle,Citroen SM,1970,,1450.0,62.0,V6 2.7 L na,170.0,233.0,manual,5,4.38,FF,double wishbone,trailing arm,195/70R15,195/70R15,270 vented disc,229 drum
+SportsClassics,toreador,Lamborghini Espada,1970,yes,1480.0,52.0,V12 3.9 L na,350.0,382.0,manual,5,4.09,FR,double wishbone,double wishbone,215/70R15,215/70R15,290 vented disc,279 vented disc
+SportsClassics,uranus,Ford Pinto 2.0 (1974),1974,yes,1100.0,55.0,I4 2.0 L na,86.0,147.0,manual,4,3.4,FR,double wishbone,"live axle, leaf springs",175/70R13,175/70R13,240 solid disc,229 drum
+SportsClassics,ardent,Jaguar XJ-S V12,1976,yes,1750.0,54.0,V12 5.3 L na,285.0,400.0,automatic,3,3.07,FR,double wishbone,double wishbone,205/70R15,205/70R15,284 vented disc,263 solid disc
+SportsClassics,casco,Maserati Mistral 4000,1966,yes,1300.0,52.0,I6 4.0 L na,255.0,360.0,manual,5,3.31,FR,double wishbone,"live axle, leaf springs",205/70R15,205/70R15,279 solid disc,279 solid disc
+SportsClassics,itali2,Ferrari 308 GTB,1977,yes,1090.0,42.0,V8 2.9 L na,255.0,284.0,manual,5,3.71,MR,double wishbone,double wishbone,205/70R14,205/70R14,282 vented disc,282 vented disc
+SportsClassics,ztype,Bugatti Type 57SC Atlantic,1936,,950.0,52.0,I8 3.3 L supercharged,200.0,275.0,manual,4,3.92,FR,"live axle, leaf springs","live axle, leaf springs",6.00-18,6.00-18,400 drum,400 drum
+SportsClassics,infernus2,Lamborghini Diablo VT,1993,,1625.0,41.0,V12 5.7 L na,492.0,580.0,manual,5,3.83,AWD-M,double wishbone,double wishbone,235/40R17,335/35R17,330 vented disc,284 vented disc
+SportsClassics,cheetah3,Ferrari Testarossa (LS Car Meet tuned),1993,yes,1450.0,41.0,F12 4.9 L na,480.0,520.0,manual,5,3.83,MR,double wishbone,double wishbone,225/50R16,255/50R16,330 vented disc,284 vented disc
+SportsClassics,coquette2,"Chevrolet Corvette Stingray LT-1 (C3, 1970)",1970,,1500.0,51.0,V8 5.7 L na,370.0,515.0,manual,4,3.7,FR,double wishbone,trailing arm,225/70R15,225/70R15,297 vented disc,297 vented disc
+SportsClassics,gt750,Ferrari 750 Monza,1954,yes,760.0,50.0,I4 3.0 L na,260.0,280.0,manual,4,4.0,FR,double wishbone,De Dion axle,5.50-16,6.50-16,350 drum,350 drum
+SportsClassics,astrale,Porsche 959,1987,yes,1450.0,40.0,F6 2.9 L turbo,450.0,500.0,manual,6,4.13,AWD-R,double wishbone,double wishbone,235/45R17,255/40R17,322 vented disc,304 vented disc
+SportsClassics,mamba,Shelby Cobra 427,1965,,1068.0,49.0,V8 7.0 L na,425.0,650.0,manual,4,3.54,FR,double wishbone,double wishbone,215/70R15,245/70R15,298 solid disc,273 solid disc
+SportsClassics,cheetah2,Ferrari Testarossa,1984,,1506.0,41.0,F12 4.9 L na,390.0,490.0,manual,5,3.21,MR,double wishbone,double wishbone,225/50R16,255/50R16,309 vented disc,310 vented disc
+SportsClassics,turismo2,Ferrari F40,1987,,1100.0,42.0,V8 2.9 L turbo,478.0,577.0,manual,5,3.45,MR,double wishbone,double wishbone,245/40R17,335/35R17,330 vented disc,330 vented disc
+SportsClassics,swinger,Jaguar XJ13,1966,yes,998.0,42.0,V12 5.0 L na,502.0,495.0,manual,5,3.54,MR,double wishbone,double wishbone,5.25-15,6.50-15,305 solid disc,280 solid disc
+Super,voltic,Tesla Roadster (2008),2008,,1235.0,35.0,electric,248.0,270.0,single-speed,1,8.28,MR,double wishbone,double wishbone,175/55R16,225/45R17,300 vented disc,300 vented disc
+Super,voltic2,Tesla Roadster with rocket booster (stunt build),2008,yes,1500.0,35.0,electric,248.0,270.0,single-speed,1,8.28,MR,double wishbone,double wishbone,175/55R16,225/45R17,300 vented disc,300 vented disc
+Super,pipistrello,Koenigsegg CC850,2024,yes,1385.0,43.0,V8 5.0 L turbo,1385.0,1385.0,manual,9,2.85,MR,pushrod double wishbone,pushrod double wishbone,265/35R20,325/30R21,397 carbon-ceramic disc,380 carbon-ceramic disc
+Super,xtreme,Porsche Mission X (concept EV),2023,yes,1700.0,45.0,electric,1500.0,1500.0,automatic,2,1.0,AWD-M,pushrod double wishbone,pushrod double wishbone,265/35R20,325/30R21,410 carbon-ceramic disc,410 carbon-ceramic disc
+Super,suzume,Koenigsegg Jesko Absolut,2022,yes,1420.0,42.0,V8 5.0 L turbo,1600.0,1500.0,manual,9,2.85,MR,pushrod double wishbone,pushrod double wishbone,265/35R20,325/30R21,397 carbon-ceramic disc,380 carbon-ceramic disc
+Super,cyclone,Rimac Concept One,2016,,1950.0,45.0,electric,1088.0,1600.0,automatic,2,1.0,AWD-M,double wishbone,double wishbone,255/35R20,305/30R20,390 carbon-ceramic disc,390 carbon-ceramic disc
+Super,cyclone2,Rimac Nevera,2021,,2150.0,48.0,electric,1914.0,2360.0,automatic,2,1.0,AWD-M,double wishbone,double wishbone,275/35R20,315/35R20,390 carbon-ceramic disc,390 carbon-ceramic disc
+Super,tezeract,Lamborghini Terzo Millennio (concept EV),2020,yes,1700.0,44.0,electric,1200.0,1300.0,automatic,2,1.0,AWD-M,pushrod double wishbone,pushrod double wishbone,265/30R21,345/25R21,410 carbon-ceramic disc,410 carbon-ceramic disc
+Super,banshee2,Dodge Viper SRT-10 (Benny's 900R twin-turbo build),2008,yes,1500.0,49.0,V10 8.4 L turbo,900.0,1100.0,manual,6,3.07,FR,double wishbone,double wishbone,295/30R19,345/30R20,380 carbon-ceramic disc,360 carbon-ceramic disc
+Super,penetrator,Jaguar XJ220,1992,,1470.0,44.0,V6 3.5 L turbo,542.0,642.0,manual,5,2.88,MR,double wishbone,double wishbone,255/45R17,345/35R18,330 vented disc,300 vented disc
+Super,sc1,BMW i8 (I12),2015,,1485.0,49.0,I3 1.5 L turbo,362.0,570.0,automatic,6,3.68,AWD-M,double wishbone,multi-link,215/45R20,245/40R20,340 vented disc,330 vented disc
+Super,virtue,Lotus Evija,2021,,1680.0,45.0,electric,1973.0,1704.0,automatic,2,1.0,AWD-M,pushrod double wishbone,pushrod double wishbone,265/30R20,325/25R21,400 carbon-ceramic disc,400 carbon-ceramic disc
+Super,infernus,Lamborghini Murcielago LP640,2006,,1665.0,42.0,V12 6.5 L na,640.0,660.0,manual,6,3.42,AWD-M,double wishbone,double wishbone,245/35R18,335/30R18,380 carbon-ceramic disc,380 carbon-ceramic disc
+Super,vacca,Lamborghini Gallardo,2004,,1520.0,42.0,V10 5.0 L na,500.0,510.0,manual,6,4.3,AWD-M,double wishbone,double wishbone,235/35R19,295/30R19,365 vented disc,335 vented disc
+Super,sultanrs,"Subaru Impreza WRX STI (GD, Benny's widebody 450 hp)",2005,yes,1450.0,59.0,F4 2.5 L turbo,450.0,560.0,manual,6,3.9,AWD-F,MacPherson strut,MacPherson strut,255/35R18,255/35R18,355 vented disc,330 vented disc
+Super,cheetah,Ferrari Enzo,2002,,1365.0,44.0,V12 6.0 L na,660.0,657.0,automated manual,6,4.1,MR,pushrod double wishbone,pushrod double wishbone,245/35R19,345/35R19,380 carbon-ceramic disc,380 carbon-ceramic disc
+Super,bullet,Ford GT,2005,,1520.0,43.0,V8 5.4 L supercharged,550.0,678.0,manual,6,3.36,MR,double wishbone,double wishbone,235/45R18,315/40R19,355 vented disc,330 vented disc
+Super,adder,Bugatti Veyron 16.4,2005,,1888.0,45.0,W16 8.0 L turbo,1001.0,1250.0,dual-clutch,7,3.64,AWD-M,double wishbone,double wishbone,265/30R20,365/30R20,400 carbon-ceramic disc,380 carbon-ceramic disc
+Super,sheava,Toyota GT-One (TS020) road car,1999,yes,1100.0,42.0,V8 3.6 L turbo,600.0,650.0,sequential,6,3.6,MR,pushrod double wishbone,pushrod double wishbone,290/650R18,290/650R18,380 carbon-ceramic disc,355 carbon-ceramic disc
+Super,italigtb,McLaren 675LT,2015,,1328.0,42.0,V8 3.8 L turbo,675.0,700.0,dual-clutch,7,3.31,MR,double wishbone,double wishbone,235/35R19,305/30R20,394 carbon-ceramic disc,380 carbon-ceramic disc
+Super,italigtb2,McLaren 675LT (custom),2015,,1328.0,42.0,V8 3.8 L turbo,675.0,700.0,dual-clutch,7,3.31,MR,double wishbone,double wishbone,235/35R19,305/30R20,394 carbon-ceramic disc,380 carbon-ceramic disc
+Super,tempesta,Lamborghini Huracan LP610-4,2014,,1422.0,42.0,V10 5.2 L na,610.0,560.0,dual-clutch,7,4.33,AWD-M,double wishbone,double wishbone,245/30R20,305/30R20,380 carbon-ceramic disc,356 carbon-ceramic disc
+Super,lrcgt,Mercedes-Benz CLK GTR (road),1998,yes,1545.0,43.0,V12 6.9 L na,612.0,775.0,sequential,6,3.25,MR,pushrod double wishbone,pushrod double wishbone,295/35R18,345/35R18,380 carbon-ceramic disc,355 carbon-ceramic disc
+Super,zentorno,Lamborghini Sesto Elemento,2011,,999.0,43.0,V10 5.2 L na,570.0,540.0,automated manual,6,4.3,AWD-M,double wishbone,double wishbone,235/35R19,295/30R19,380 carbon-ceramic disc,356 carbon-ceramic disc
+Super,entityxf,Koenigsegg CCX,2006,,1456.0,45.0,V8 4.7 L supercharged,806.0,920.0,manual,6,2.73,MR,double wishbone,double wishbone,255/35R19,335/30R20,380 carbon-ceramic disc,380 carbon-ceramic disc
+Super,osiris,Pagani Huayra,2012,,1350.0,44.0,V12 6.0 L turbo,730.0,1000.0,automated manual,7,3.35,MR,double wishbone,double wishbone,255/35R19,335/30R20,380 carbon-ceramic disc,380 carbon-ceramic disc
+Super,nero,Bugatti Chiron,2016,,1995.0,43.0,W16 8.0 L turbo,1500.0,1600.0,dual-clutch,7,3.64,AWD-M,double wishbone,double wishbone,285/30R20,355/25R21,420 carbon-ceramic disc,400 carbon-ceramic disc
+Super,nero2,Bugatti Chiron (custom),2016,,1995.0,43.0,W16 8.0 L turbo,1500.0,1600.0,dual-clutch,7,3.64,AWD-M,double wishbone,double wishbone,285/30R20,355/25R21,420 carbon-ceramic disc,400 carbon-ceramic disc
+Super,xa21,Jaguar C-X75,2013,,1700.0,44.0,I4 1.6 L turbo,890.0,1000.0,automated manual,7,3.3,AWD-M,pushrod double wishbone,pushrod double wishbone,255/35R20,335/30R20,400 carbon-ceramic disc,380 carbon-ceramic disc
+Super,reaper,Lamborghini Aventador LP700-4,2011,,1575.0,43.0,V12 6.5 L na,700.0,690.0,automated manual,7,2.86,AWD-M,pushrod double wishbone,pushrod double wishbone,255/35R19,335/30R20,400 carbon-ceramic disc,380 carbon-ceramic disc
+Super,thrax,Bugatti Divo,2019,,1961.0,43.0,W16 8.0 L turbo,1500.0,1600.0,dual-clutch,7,3.64,AWD-M,double wishbone,double wishbone,285/30R20,355/25R21,420 carbon-ceramic disc,400 carbon-ceramic disc
+Super,furia,Lamborghini Huracan EVO,2019,yes,1422.0,43.0,V10 5.2 L na,640.0,600.0,dual-clutch,7,4.33,AWD-M,double wishbone,double wishbone,245/30R20,305/30R20,380 carbon-ceramic disc,356 carbon-ceramic disc
+Super,champion,Aston Martin Valhalla,2023,yes,1550.0,45.0,V8 4.0 L turbo,998.0,1100.0,dual-clutch,8,3.3,AWD-M,pushrod double wishbone,pushrod double wishbone,285/30R20,325/30R21,410 carbon-ceramic disc,390 carbon-ceramic disc
+Super,t20,McLaren P1,2013,,1490.0,42.0,V8 3.8 L turbo,903.0,900.0,dual-clutch,7,3.31,MR,double wishbone,double wishbone,245/35R19,315/30R20,390 carbon-ceramic disc,380 carbon-ceramic disc
+Super,scramjet,Jet-assisted stunt car (fictional),2018,yes,1400.0,45.0,V8 4.0 L turbo,750.0,800.0,sequential,7,3.3,MR,pushrod double wishbone,pushrod double wishbone,255/35R19,325/30R20,380 carbon-ceramic disc,360 carbon-ceramic disc
+Super,turismor,Ferrari LaFerrari,2013,,1365.0,41.0,V12 6.3 L na,950.0,900.0,dual-clutch,7,4.44,MR,double wishbone,multi-link,265/30R19,345/30R20,398 carbon-ceramic disc,380 carbon-ceramic disc
+Super,re7b,Nissan R390 GT1 (road),1998,,1100.0,42.0,V8 3.5 L turbo,550.0,637.0,sequential,6,3.6,MR,pushrod double wishbone,pushrod double wishbone,290/650R18,290/650R18,380 carbon-ceramic disc,355 carbon-ceramic disc
+Super,gp1,McLaren F1,1994,,1138.0,42.0,V12 6.1 L na,618.0,650.0,manual,6,2.37,MR,double wishbone,double wishbone,235/45R17,315/45R17,332 vented disc,305 vented disc
+Super,visione,Ferrari F80 concept (Visione),2018,yes,1450.0,42.0,V8 4.0 L turbo,900.0,850.0,dual-clutch,8,3.95,AWD-M,pushrod double wishbone,pushrod double wishbone,265/30R20,325/30R21,398 carbon-ceramic disc,380 carbon-ceramic disc
+Super,s80,Nissan GT-R LM Nismo (LMP1 road conversion),2015,yes,1100.0,55.0,V6 3.0 L turbo,750.0,700.0,sequential,6,3.8,FF,pushrod double wishbone,pushrod double wishbone,310/710R18,310/710R18,380 carbon-ceramic disc,355 carbon-ceramic disc
+Super,tyrant,Koenigsegg Agera RS,2015,,1395.0,45.0,V8 5.0 L turbo,1160.0,1280.0,automated manual,7,2.73,MR,double wishbone,double wishbone,265/35R19,345/30R20,397 carbon-ceramic disc,380 carbon-ceramic disc
+Super,turismo3,Ferrari F80,2025,yes,1525.0,42.0,V6 3.0 L turbo,1200.0,1050.0,dual-clutch,8,4.1,AWD-M,pushrod double wishbone,pushrod double wishbone,285/30R20,345/25R21,398 carbon-ceramic disc,380 carbon-ceramic disc
+Super,tyrus,McLaren P1 GTR,2015,,1440.0,42.0,V8 3.8 L turbo,986.0,980.0,dual-clutch,7,3.31,MR,double wishbone,double wishbone,300/680R19,300/680R19,390 carbon-ceramic disc,380 carbon-ceramic disc
+Super,taipan,Chevrolet Corvette C7.R (road-legal),2018,yes,1250.0,47.0,V8 5.5 L na,650.0,700.0,sequential,6,3.5,FR,double wishbone,double wishbone,300/680R18,300/680R18,380 vented disc,355 vented disc
+Super,pfister811,Porsche 918 Spyder,2015,,1675.0,43.0,V8 4.6 L na,887.0,1280.0,dual-clutch,7,3.33,AWD-M,double wishbone,multi-link,265/35R20,325/30R21,410 carbon-ceramic disc,390 carbon-ceramic disc
+Super,fmj,Ford GT (2017),2017,,1385.0,42.0,V6 3.5 L turbo,647.0,746.0,dual-clutch,7,3.5,MR,pushrod double wishbone,pushrod double wishbone,245/35R20,325/30R20,394 carbon-ceramic disc,360 carbon-ceramic disc
+Super,fmj2,Ford GT Mk IV,2023,yes,1350.0,42.0,V6 3.8 L turbo,800.0,900.0,sequential,7,3.3,MR,pushrod double wishbone,pushrod double wishbone,305/30R19,345/30R20,394 carbon-ceramic disc,380 carbon-ceramic disc
+Super,entitymt,Koenigsegg Jesko Attack,2022,yes,1420.0,42.0,V8 5.0 L turbo,1280.0,1000.0,manual,9,2.85,MR,pushrod double wishbone,pushrod double wishbone,265/35R20,325/30R21,397 carbon-ceramic disc,380 carbon-ceramic disc
+Super,horus,Lamborghini Revuelto,2024,yes,1772.0,44.0,V12 6.5 L na,1001.0,725.0,dual-clutch,8,3.25,AWD-M,pushrod double wishbone,pushrod double wishbone,265/30R21,345/25R22,410 carbon-ceramic disc,390 carbon-ceramic disc
+Super,entityxxr,Koenigsegg One:1,2014,,1360.0,45.0,V8 5.0 L turbo,1360.0,1371.0,automated manual,7,2.73,MR,double wishbone,double wishbone,265/35R19,345/30R20,397 carbon-ceramic disc,380 carbon-ceramic disc
+Super,zorrusso,Lamborghini Aventador SVJ,2019,yes,1525.0,43.0,V12 6.5 L na,770.0,720.0,automated manual,7,2.86,AWD-M,pushrod double wishbone,pushrod double wishbone,255/30R20,355/25R21,400 carbon-ceramic disc,380 carbon-ceramic disc
+Super,lm87,Sauber-Mercedes C9 (Group C),1989,,905.0,40.0,V8 5.0 L turbo,720.0,820.0,sequential,5,3.5,MR,pushrod double wishbone,pushrod double wishbone,300/640R17,340/680R17,330 vented disc,330 vented disc
+Super,autarch,Pagani Huayra BC,2016,yes,1218.0,44.0,V12 6.0 L turbo,789.0,1100.0,automated manual,7,3.35,MR,double wishbone,double wishbone,265/30R20,355/25R21,398 carbon-ceramic disc,380 carbon-ceramic disc
+Super,emerus,McLaren Senna,2018,,1309.0,41.0,V8 4.0 L turbo,800.0,800.0,dual-clutch,7,3.31,MR,double wishbone,double wishbone,245/35R19,315/30R20,390 carbon-ceramic disc,380 carbon-ceramic disc
+Super,velenogt,Ferrari 12Cilindri,2024,yes,1560.0,48.0,V12 6.5 L na,830.0,678.0,dual-clutch,8,4.71,FR,double wishbone,multi-link,275/35R21,315/35R21,398 carbon-ceramic disc,360 carbon-ceramic disc
+Super,vigilante,Jet-powered armoured car (fictional),2018,yes,3200.0,50.0,V8 6.2 L supercharged,800.0,900.0,automatic,6,3.5,FR,double wishbone,double wishbone,305/40R20,355/35R20,400 vented disc,380 vented disc
+Super,ignus,Lamborghini Sian FKP 37,2020,,1595.0,43.0,V12 6.5 L na,819.0,720.0,automated manual,7,2.86,AWD-M,pushrod double wishbone,pushrod double wishbone,255/30R20,355/25R21,400 carbon-ceramic disc,380 carbon-ceramic disc
+Super,ignus2,"Lamborghini Sian (weaponised, armoured)",2020,,2300.0,43.0,V12 6.5 L na,819.0,720.0,automated manual,7,2.86,AWD-M,pushrod double wishbone,pushrod double wishbone,255/30R20,355/25R21,400 carbon-ceramic disc,380 carbon-ceramic disc
+Super,tigon,Alfa Romeo 33 Stradale (2024),2024,yes,1500.0,42.0,V6 3.0 L turbo,630.0,730.0,dual-clutch,8,3.82,MR,double wishbone,double wishbone,245/35R20,305/30R20,380 carbon-ceramic disc,350 carbon-ceramic disc
+Super,prototipo,Ferrari FXX-K,2015,yes,1250.0,41.0,V12 6.3 L na,1036.0,900.0,dual-clutch,7,4.44,MR,double wishbone,multi-link,300/680R19,300/680R19,398 carbon-ceramic disc,380 carbon-ceramic disc
+Super,vagner,Aston Martin Valkyrie,2021,,1270.0,43.0,V12 6.5 L na,1160.0,900.0,sequential,7,3.2,MR,pushrod double wishbone,pushrod double wishbone,265/35R20,325/30R21,380 carbon-ceramic disc,380 carbon-ceramic disc
+Super,krieger,Mercedes-AMG ONE,2022,,1695.0,44.0,V6 1.6 L turbo,1063.0,1000.0,automated manual,7,3.4,AWD-M,pushrod double wishbone,pushrod double wishbone,285/35R19,345/30R20,398 carbon-ceramic disc,380 carbon-ceramic disc
+Super,torero2,Lamborghini Countach LPI 800-4,2022,,1595.0,43.0,V12 6.5 L na,814.0,720.0,automated manual,7,2.86,AWD-M,pushrod double wishbone,pushrod double wishbone,255/30R20,355/25R21,400 carbon-ceramic disc,380 carbon-ceramic disc
+Super,deveste,Lamborghini Terzo-style hypercar (Deveste Eight),2019,yes,1300.0,43.0,V8 4.0 L turbo,1100.0,1000.0,dual-clutch,7,3.3,MR,pushrod double wishbone,pushrod double wishbone,265/30R20,345/25R21,398 carbon-ceramic disc,380 carbon-ceramic disc
+Super,zeno,Koenigsegg Gemera,2022,yes,1850.0,45.0,I3 2.0 L turbo,1700.0,3500.0,single-speed,1,2.7,AWD-M,double wishbone,double wishbone,285/35R21,325/30R22,410 carbon-ceramic disc,390 carbon-ceramic disc
+Super,luiva,McLaren 750S,2023,yes,1389.0,42.0,V8 4.0 L turbo,750.0,800.0,dual-clutch,7,3.55,MR,double wishbone,double wishbone,245/35R19,305/30R20,390 carbon-ceramic disc,380 carbon-ceramic disc
+Traffic,taxi,Ford Crown Victoria (taxi),2005,,1820.0,54.0,V8 4.6 L na,224.0,373.0,automatic,4,3.27,FR,double wishbone,"live axle, coil springs",225/60R16,225/60R16,302 vented disc,280 drum
+Traffic,police,Ford Crown Victoria Police Interceptor (P71),2005,,1820.0,54.0,V8 4.6 L na,224.0,373.0,automatic,4,3.27,FR,double wishbone,"live axle, coil springs",225/60R16,225/60R16,302 vented disc,280 drum
+Traffic,police4,Ford Crown Victoria Police Interceptor (unmarked),2005,,1820.0,54.0,V8 4.6 L na,224.0,373.0,automatic,4,3.27,FR,double wishbone,"live axle, coil springs",225/60R16,225/60R16,302 vented disc,280 drum
+Traffic,sheriff,Ford Crown Victoria Police Interceptor (sheriff),2005,,1820.0,54.0,V8 4.6 L na,224.0,373.0,automatic,4,3.27,FR,double wishbone,"live axle, coil springs",225/60R16,225/60R16,302 vented disc,280 drum
+Traffic,police2,Dodge Charger Pursuit (LD),2012,,1950.0,54.0,V8 5.7 L na,370.0,536.0,automatic,5,2.65,FR,double wishbone,multi-link,235/55R18,235/55R18,345 vented disc,320 vented disc
+Traffic,police3,Ford Police Interceptor Sedan (Taurus),2013,,1950.0,58.0,V6 3.5 L turbo,365.0,475.0,automatic,6,3.16,AWD-F,MacPherson strut,multi-link,245/55R18,245/55R18,320 vented disc,330 vented disc
+Traffic,fbi,"Ford Police Interceptor Sedan (FIB, unmarked)",2013,,1950.0,58.0,V6 3.5 L turbo,365.0,475.0,automatic,6,3.16,AWD-F,MacPherson strut,multi-link,245/55R18,245/55R18,320 vented disc,330 vented disc
+Traffic,sheriff2,Chevrolet Tahoe PPV (GMT900),2010,,2500.0,53.0,V8 5.3 L na,320.0,454.0,automatic,6,3.08,FR,double wishbone,"live axle, coil springs",265/60R17,265/60R17,330 vented disc,345 vented disc
+Traffic,fbi2,Chevrolet Tahoe PPV (FIB),2010,,2500.0,53.0,V8 5.3 L na,320.0,454.0,automatic,6,3.08,FR,double wishbone,"live axle, coil springs",265/60R17,265/60R17,330 vented disc,345 vented disc
+Traffic,pranger,"Chevrolet Tahoe PPV (park ranger, 4x4)",2010,,2500.0,53.0,V8 5.3 L na,320.0,454.0,automatic,6,3.08,4WD,double wishbone,"live axle, coil springs",265/70R17,265/70R17,330 vented disc,345 vented disc
+Traffic,policet,Ford E-350 police transport van,2008,,2900.0,52.0,V8 5.4 L na,255.0,474.0,automatic,4,3.73,FR,independent beam,"live axle, leaf springs",225/75R16,225/75R16,330 vented disc,325 vented disc
+Traffic,riot,Lenco BearCat (police armoured),2015,yes,7500.0,55.0,V8 6.7 L turbo,330.0,1000.0,automatic,6,5.38,4WD,"live axle, leaf springs","live axle, leaf springs",325/85R16,325/85R16,400 drum,400 drum
+Traffic,ambulance,Ford E-450 Type III ambulance,2010,,4500.0,50.0,V8 6.8 L na,305.0,569.0,automatic,5,4.56,FR,independent beam,"live axle, leaf springs",225/75R16,225/75R16,345 vented disc,345 vented disc
+Traffic,lguard,"Chevrolet Tahoe (lifeguard, 4x4)",2010,,2500.0,53.0,V8 5.3 L na,320.0,454.0,automatic,6,3.08,4WD,double wishbone,"live axle, coil springs",265/70R17,265/70R17,330 vented disc,345 vented disc
+Traffic,speedo,Chevrolet Express 2500,2008,,2600.0,53.0,V8 4.8 L na,280.0,400.0,automatic,4,3.73,FR,double wishbone,"live axle, leaf springs",245/75R16,245/75R16,330 vented disc,330 vented disc
+Traffic,speedo2,Chevrolet Express (clown van),2008,,2600.0,53.0,V8 4.8 L na,280.0,400.0,automatic,4,3.73,FR,double wishbone,"live axle, leaf springs",245/75R16,245/75R16,330 vented disc,330 vented disc
+Traffic,burrito,GMC Vandura (G30),1990,,2400.0,53.0,V8 5.7 L na,190.0,407.0,automatic,3,3.42,FR,double wishbone,"live axle, leaf springs",225/75R15,225/75R15,305 solid disc,279 drum
+Traffic,burrito2,GMC Vandura (G30),1990,,2400.0,53.0,V8 5.7 L na,190.0,407.0,automatic,3,3.42,FR,double wishbone,"live axle, leaf springs",225/75R15,225/75R15,305 solid disc,279 drum
+Traffic,burrito3,GMC Vandura (G30),1990,,2400.0,53.0,V8 5.7 L na,190.0,407.0,automatic,3,3.42,FR,double wishbone,"live axle, leaf springs",225/75R15,225/75R15,305 solid disc,279 drum
+Traffic,burrito4,GMC Vandura (G30),1990,,2400.0,53.0,V8 5.7 L na,190.0,407.0,automatic,3,3.42,FR,double wishbone,"live axle, leaf springs",225/75R15,225/75R15,305 solid disc,279 drum
+Traffic,burrito5,GMC Vandura (snow tyres),1990,,2400.0,53.0,V8 5.7 L na,190.0,407.0,automatic,3,3.42,FR,double wishbone,"live axle, leaf springs",225/75R15,225/75R15,305 solid disc,279 drum
+Traffic,gburrito,GMC Vandura (gang custom),1990,,2400.0,53.0,V8 5.7 L na,190.0,407.0,automatic,3,3.42,FR,double wishbone,"live axle, leaf springs",225/75R15,225/75R15,305 solid disc,279 drum
+Traffic,gburrito2,GMC Vandura (gang custom),1990,,2400.0,53.0,V8 5.7 L na,190.0,407.0,automatic,3,3.42,FR,double wishbone,"live axle, leaf springs",225/75R15,225/75R15,305 solid disc,279 drum
+Traffic,rumpo,Ford Transit (Mk7),2010,,2100.0,56.0,I4 2.4 L turbo,140.0,375.0,manual,6,3.73,FR,MacPherson strut,"live axle, leaf springs",215/75R16,215/75R16,300 vented disc,280 solid disc
+Traffic,rumpo2,Ford Transit (Mk7),2010,,2100.0,56.0,I4 2.4 L turbo,140.0,375.0,manual,6,3.73,FR,MacPherson strut,"live axle, leaf springs",215/75R16,215/75R16,300 vented disc,280 solid disc
+Traffic,rumpo3,Ford Transit (off-road custom),2010,,2100.0,56.0,I4 2.4 L turbo,140.0,375.0,manual,6,3.73,4WD,MacPherson strut,"live axle, leaf springs",235/85R16,235/85R16,300 vented disc,280 solid disc
+Traffic,youga,Chevrolet Astro (van),2000,,1950.0,54.0,V6 4.3 L na,190.0,339.0,automatic,4,3.42,FR,double wishbone,"live axle, leaf springs",215/75R15,215/75R15,300 vented disc,254 drum
+Traffic,youga2,Chevrolet Astro (classic),2000,,1950.0,54.0,V6 4.3 L na,190.0,339.0,automatic,4,3.42,FR,double wishbone,"live axle, leaf springs",215/75R15,215/75R15,300 vented disc,254 drum
+Traffic,youga3,Chevrolet Astro (lifted 4x4),2000,,1950.0,54.0,V6 4.3 L na,190.0,339.0,automatic,4,3.42,4WD,double wishbone,"live axle, leaf springs",31x10.50R15,31x10.50R15,300 vented disc,254 drum
+Traffic,pony,Volkswagen Transporter (T2),1975,,1250.0,42.0,F4 1.8 L na,68.0,125.0,manual,4,5.38,RR,trailing arm,trailing arm,185/80R14,185/80R14,278 solid disc,252 drum
+Traffic,pony2,Volkswagen Transporter (T2),1975,,1250.0,42.0,F4 1.8 L na,68.0,125.0,manual,4,5.38,RR,trailing arm,trailing arm,185/80R14,185/80R14,278 solid disc,252 drum
+Traffic,surfer,Volkswagen Type 2 (T1 Samba),1965,,1150.0,42.0,F4 1.5 L na,44.0,98.0,manual,4,5.38,RR,trailing arm,swing axle,6.40-15,6.40-15,230 drum,230 drum
+Traffic,surfer2,"Volkswagen Type 2 (T1, rusty)",1965,,1150.0,42.0,F4 1.5 L na,36.0,85.0,manual,4,5.38,RR,trailing arm,swing axle,6.40-15,6.40-15,230 drum,230 drum
+Traffic,surfer3,Volkswagen Type 2 (T1 Samba),1965,,1150.0,42.0,F4 1.5 L na,44.0,98.0,manual,4,5.38,RR,trailing arm,swing axle,6.40-15,6.40-15,230 drum,230 drum
+Traffic,minivan,Dodge Grand Caravan (RS),2005,,1950.0,59.0,V6 3.8 L na,215.0,332.0,automatic,4,3.62,FF,MacPherson strut,"live axle, leaf springs",215/70R15,215/70R15,302 vented disc,254 drum
+Traffic,minivan2,Dodge Grand Caravan (lowrider),2005,,2000.0,59.0,V6 3.8 L na,215.0,332.0,automatic,4,3.62,FF,MacPherson strut,"live axle, leaf springs",205/40R17,205/40R17,302 vented disc,254 drum
+Traffic,paradise,Volkswagen Westfalia camper (T2),1978,,1500.0,42.0,F4 2.0 L na,70.0,140.0,manual,4,5.38,RR,trailing arm,trailing arm,185/80R14,185/80R14,278 solid disc,252 drum
+Traffic,journey,Fleetwood Bounder (Ford chassis RV),1990,,6000.0,45.0,V8 7.5 L na,230.0,529.0,automatic,3,5.13,FR,independent beam,"live axle, leaf springs",8.00R19.5,8.00R19.5,380 drum,380 drum
+Traffic,journey2,Fleetwood Bounder (Ford chassis RV),1990,,6000.0,45.0,V8 7.5 L na,230.0,529.0,automatic,3,5.13,FR,independent beam,"live axle, leaf springs",8.00R19.5,8.00R19.5,380 drum,380 drum
+Traffic,camper,Ford E-350 camper van,2005,,3600.0,50.0,V8 5.4 L na,255.0,474.0,automatic,4,4.1,FR,independent beam,"live axle, leaf springs",225/75R16,225/75R16,330 vented disc,325 vented disc
+Traffic,bison,Ford F-250 Super Duty,2005,,2900.0,58.0,V8 6.0 L turbo,325.0,776.0,automatic,5,3.73,4WD,"live axle, coil springs","live axle, leaf springs",265/75R16,265/75R16,345 vented disc,345 vented disc
+Traffic,bison2,Ford F-250 Super Duty,2005,,2900.0,58.0,V8 6.0 L turbo,325.0,776.0,automatic,5,3.73,4WD,"live axle, coil springs","live axle, leaf springs",265/75R16,265/75R16,345 vented disc,345 vented disc
+Traffic,bison3,Ford F-250 Super Duty (work bed),2005,,2900.0,58.0,V8 6.0 L turbo,325.0,776.0,automatic,5,3.73,4WD,"live axle, coil springs","live axle, leaf springs",265/75R16,265/75R16,345 vented disc,345 vented disc
+Traffic,sadler,Chevrolet Silverado 2500HD,2008,,2800.0,57.0,V8 6.0 L na,353.0,503.0,automatic,6,3.73,4WD,double wishbone,"live axle, leaf springs",245/75R16,245/75R16,330 vented disc,345 vented disc
+Traffic,sadler2,Chevrolet Silverado 2500HD (snow tyres),2008,,2800.0,57.0,V8 6.0 L na,353.0,503.0,automatic,6,3.73,4WD,double wishbone,"live axle, leaf springs",245/75R16,245/75R16,330 vented disc,345 vented disc
+Traffic,bobcatxl,Ford F-150 XL (1995),1995,,1900.0,56.0,V8 5.0 L na,205.0,373.0,automatic,4,3.55,FR,independent beam,"live axle, leaf springs",235/75R15,235/75R15,300 vented disc,279 drum
+Traffic,mule,Isuzu NPR (box truck),2010,,5500.0,55.0,I4 5.2 L turbo,205.0,560.0,automatic,6,5.57,FR,"live axle, leaf springs","live axle, leaf springs",225/70R19.5,225/70R19.5,324 vented disc,324 vented disc
+Traffic,mule2,Isuzu NPR (box truck),2010,,5500.0,55.0,I4 5.2 L turbo,205.0,560.0,automatic,6,5.57,FR,"live axle, leaf springs","live axle, leaf springs",225/70R19.5,225/70R19.5,324 vented disc,324 vented disc
+Traffic,mule3,Isuzu NPR (box truck),2010,,5500.0,55.0,I4 5.2 L turbo,205.0,560.0,automatic,6,5.57,FR,"live axle, leaf springs","live axle, leaf springs",225/70R19.5,225/70R19.5,324 vented disc,324 vented disc
+Traffic,mule4,Isuzu NPR (box truck),2010,,5500.0,55.0,I4 5.2 L turbo,205.0,560.0,automatic,6,5.57,FR,"live axle, leaf springs","live axle, leaf springs",225/70R19.5,225/70R19.5,324 vented disc,324 vented disc
+Traffic,benson,Freightliner M2 106 box truck,2010,,9000.0,50.0,I6 6.7 L turbo,300.0,1180.0,automatic,6,4.88,FR,"live axle, leaf springs","live axle, leaf springs",11R22.5,11R22.5,420 drum,420 drum
+Traffic,pounder,Freightliner M2 26-ft box truck,2010,,11000.0,50.0,I6 6.7 L turbo,300.0,1180.0,automatic,6,4.88,FR,"live axle, leaf springs","live axle, leaf springs",11R22.5,11R22.5,420 drum,420 drum
+Traffic,phantom,Peterbilt 387 (tractor unit),2010,,8500.0,45.0,I6 15.0 L turbo,485.0,2250.0,manual,10,3.7,FR,"live axle, leaf springs","live axle, leaf springs",295/75R22.5,295/75R22.5,420 drum,420 drum
+Traffic,hauler,Kenworth W900 (tractor unit),2005,,8800.0,46.0,I6 15.0 L turbo,475.0,2200.0,manual,10,3.7,FR,"live axle, leaf springs","live axle, leaf springs",295/75R22.5,295/75R22.5,420 drum,420 drum
+Traffic,packer,Peterbilt 379 (car carrier tractor),2005,,8800.0,46.0,I6 15.0 L turbo,475.0,2200.0,manual,10,3.7,FR,"live axle, leaf springs","live axle, leaf springs",295/75R22.5,295/75R22.5,420 drum,420 drum
+Traffic,biff,Mack Granite (dump truck),2008,,14000.0,40.0,I6 13.0 L turbo,405.0,1950.0,automatic,6,6.14,4WD,"live axle, leaf springs","live axle, leaf springs",315/80R22.5,315/80R22.5,420 drum,420 drum
+Traffic,mixer,Mack Granite concrete mixer,2008,,15000.0,40.0,I6 13.0 L turbo,405.0,1950.0,automatic,6,6.14,FR,"live axle, leaf springs","live axle, leaf springs",315/80R22.5,315/80R22.5,420 drum,420 drum
+Traffic,mixer2,Mack Granite concrete mixer,2008,,15000.0,40.0,I6 13.0 L turbo,405.0,1950.0,automatic,6,6.14,FR,"live axle, leaf springs","live axle, leaf springs",315/80R22.5,315/80R22.5,420 drum,420 drum
+Traffic,tiptruck,International 7400 tipper,2008,,14000.0,40.0,I6 13.0 L turbo,405.0,1950.0,automatic,6,6.14,4WD,"live axle, leaf springs","live axle, leaf springs",315/80R22.5,315/80R22.5,420 drum,420 drum
+Traffic,tiptruck2,Mack Granite tipper (rusty),2008,,14000.0,40.0,I6 13.0 L turbo,405.0,1950.0,automatic,6,6.14,4WD,"live axle, leaf springs","live axle, leaf springs",315/80R22.5,315/80R22.5,420 drum,420 drum
+Traffic,trash,Peterbilt 320 refuse truck,2010,,16000.0,45.0,I6 8.9 L turbo,330.0,1350.0,automatic,6,6.14,FR,"live axle, leaf springs","live axle, leaf springs",315/80R22.5,315/80R22.5,420 drum,420 drum
+Traffic,trash2,Peterbilt 320 refuse truck,2010,,16000.0,45.0,I6 8.9 L turbo,330.0,1350.0,automatic,6,6.14,FR,"live axle, leaf springs","live axle, leaf springs",315/80R22.5,315/80R22.5,420 drum,420 drum
+Traffic,flatbed,International DuraStar flatbed,2008,,8000.0,52.0,I6 7.6 L turbo,300.0,1170.0,automatic,6,5.29,FR,"live axle, leaf springs","live axle, leaf springs",11R22.5,11R22.5,420 drum,420 drum
+Traffic,towtruck,International DuraStar wrecker,2008,,8500.0,52.0,I6 7.6 L turbo,300.0,1170.0,automatic,6,5.29,FR,"live axle, leaf springs","live axle, leaf springs",11R22.5,11R22.5,420 drum,420 drum
+Traffic,towtruck2,Ford F-450 tow truck,2005,,4500.0,58.0,V8 6.0 L turbo,325.0,776.0,automatic,5,4.88,FR,"live axle, coil springs","live axle, leaf springs",225/70R19.5,225/70R19.5,345 vented disc,345 vented disc
+Traffic,utillitruck,Ford F-450 utility bucket truck,2005,,5500.0,58.0,V8 6.0 L turbo,325.0,776.0,automatic,5,4.88,FR,"live axle, coil springs","live axle, leaf springs",225/70R19.5,225/70R19.5,345 vented disc,345 vented disc
+Traffic,utillitruck2,Ford F-450 utility truck,2005,,4800.0,58.0,V8 6.0 L turbo,325.0,776.0,automatic,5,4.88,FR,"live axle, coil springs","live axle, leaf springs",225/70R19.5,225/70R19.5,345 vented disc,345 vented disc
+Traffic,utillitruck3,Ford F-250 Super Duty utility,2005,,2900.0,58.0,V8 6.0 L turbo,325.0,776.0,automatic,5,3.73,4WD,"live axle, coil springs","live axle, leaf springs",265/75R16,265/75R16,345 vented disc,345 vented disc
+Traffic,scrap,Freightliner M2 (scrap truck),2010,,10000.0,50.0,I6 6.7 L turbo,300.0,1180.0,automatic,6,4.88,FR,"live axle, leaf springs","live axle, leaf springs",11R22.5,11R22.5,420 drum,420 drum
+Traffic,firetruk,Pierce Arrow XT pumper,2010,,18000.0,45.0,I6 15.0 L turbo,500.0,2300.0,automatic,6,4.88,FR,"live axle, leaf springs","live axle, leaf springs",425/65R22.5,425/65R22.5,420 drum,420 drum
+Traffic,bus,New Flyer D40LF city bus,2008,,13000.0,35.0,I6 8.9 L turbo,280.0,1220.0,automatic,6,6.2,FR,double wishbone,"live axle, coil springs",305/70R22.5,305/70R22.5,420 drum,420 drum
+Traffic,airbus,New Flyer D40LF (airport shuttle),2008,,13000.0,35.0,I6 8.9 L turbo,280.0,1220.0,automatic,6,6.2,FR,double wishbone,"live axle, coil springs",305/70R22.5,305/70R22.5,420 drum,420 drum
+Traffic,rentalbus,Champion shuttle bus,2008,,7000.0,35.0,I6 8.9 L turbo,280.0,1220.0,automatic,6,6.2,FR,double wishbone,"live axle, coil springs",305/70R22.5,305/70R22.5,420 drum,420 drum
+Traffic,coach,MCI D4500 coach,2008,,17000.0,40.0,I6 12.8 L turbo,450.0,2000.0,automatic,6,3.58,FR,double wishbone,"live axle, coil springs",315/80R22.5,315/80R22.5,420 drum,420 drum
+Traffic,tourbus,MCI D4500 (tour bus),2008,,17000.0,40.0,I6 12.8 L turbo,450.0,2000.0,automatic,6,3.58,FR,double wishbone,"live axle, coil springs",315/80R22.5,315/80R22.5,420 drum,420 drum
+Traffic,pbus,MCI D4500 (prison bus),2008,,18000.0,40.0,I6 12.8 L turbo,450.0,2000.0,automatic,6,3.58,FR,double wishbone,"live axle, coil springs",315/80R22.5,315/80R22.5,420 drum,420 drum
+Traffic,tractor,Ford 8N tractor (rusty),1950,,1200.0,40.0,I4 2.0 L na,27.0,110.0,manual,4,30.0,FR,"live axle, leaf springs","live axle, leaf springs",4.00-19,11.2-28,200 drum,200 drum
+Traffic,tractor2,Fendt 900 Vario tractor,2012,,10000.0,45.0,I6 7.8 L turbo,390.0,1600.0,CVT,1,25.0,4WD,double wishbone,"live axle, leaf springs",600/70R30,710/70R42,420 drum,420 drum
+Traffic,forklift,Toyota 8-series forklift,2010,,3800.0,30.0,I4 2.2 L na,55.0,160.0,CVT,1,25.0,FF,"live axle, leaf springs","live axle, leaf springs",21x8.00R9,21x8.00R9,254 drum,200 drum
+Traffic,caddy,Club Car golf cart,2010,,300.0,45.0,electric,4.0,25.0,single-speed,1,12.0,FR,"live axle, leaf springs","live axle, leaf springs",18x8.50R8,18x8.50R8,150 drum,150 drum
+Traffic,caddy2,Club Car golf cart,2010,,300.0,45.0,electric,4.0,25.0,single-speed,1,12.0,FR,"live axle, leaf springs","live axle, leaf springs",18x8.50R8,18x8.50R8,150 drum,150 drum
+Traffic,caddy3,Club Car golf cart,2010,,300.0,45.0,electric,4.0,25.0,single-speed,1,12.0,FR,"live axle, leaf springs","live axle, leaf springs",18x8.50R8,18x8.50R8,150 drum,150 drum

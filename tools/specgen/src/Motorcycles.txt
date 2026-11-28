@@ -1,0 +1,60 @@
+# bikes: kg = wet without rider; final = primary x chain reduction
+faggio2 | Vespa Primavera 50 | 2014 | scooter/scooter | 105 | 45 | 1.33 | - | I1 0.05N | 3.2@7000 | 3.5@6000 | 8000 | C | - | 12.0 | RR | - | TF/SM | 200V1/D140 | 110/70R12 120/70R12 btour | CdA0.50 | vmax=45
+pizzaboy = faggio2 ; cp=Piaggio_Fly_50_(delivery_scooter)
+faggio = faggio2 ; cp=Vespa_GTS_300_Super engine=I1_0.28N power=24@7750 torque=26@5000 redline=8500 kg=160 vmax=128
+faggio3 = faggio2 ; cp=Vespa_PX_125_(mod) engine=I1_0.125N power=8@5600 torque=10@5000 redline=6500 kg=110 box=M4 vmax=90
+ratbike | Harley-Davidson Sportster 883 (rat bike) | 1995 | cruiser/bike | 245 | 47 | 1.52 | - | V2 0.88N | 50@6000 | 69@4300 | 6200 | M4 | - | - | RR | - | TF/SD | 292S2/D180 | 100/90R19 130/90R16 btour | CdA0.60
+bagger | Harley-Davidson Electra Glide Ultra Classic | 2010 | cruiser/bike | 370 | 45 | 1.63 | - | V2 1.69N | 80@5000 | 138@3500 | 5500 | M6 | - | - | RR | - | TF/SD | 300V4X2/300V4 | 130/80R17 180/65R16 btour | CdA0.80
+wolfsbane | Harley-Davidson Sportster 1200 Custom | 2012 | cruiser/bike | 260 | 46 | 1.52 | - | V2 1.2N | 67@6000 | 98@3500 | 6200 | M5 | - | - | RR | - | TF/SD | 300V2/260V1 | 130/90R16 150/80R16 btour | CdA0.60
+daemon | Harley-Davidson Fat Boy | 2010 | cruiser/bike | 330 | 45 | 1.63 | - | V2 1.6N | 75@5000 | 125@3000 | 5500 | M6 | - | - | RR | - | TF/SD | 292V4/292V2 | 140/75R17 200/55R17 btour | CdA0.65
+daemon2 = daemon ; cp=Harley-Davidson_Fat_Boy_(custom)
+chimera | ~Harley-Davidson Tri Glide (trike) | 2015 | cruiser/bike | 510 | 40 | 1.67 | - | V2 1.7N | 85@5000 | 140@3250 | 5500 | M6 | - | - | RR | - | TF/SD | 300V4X2/300V2 | 130/70R18 205/65R15 btour | CdA0.90
+hexer | ~Harley-Davidson Softail Springer (chopper) | 2002 | cruiser/bike | 300 | 45 | 1.70 | - | V2 1.45N | 65@5000 | 115@3000 | 5500 | M5 | - | - | RR | - | TF/SD | 292S2/292S1 | 90/90R21 150/80R16 btour | CdA0.70
+avarus = hexer ; cp=~Custom_chopper_(S&S_1.8_V-twin) engine=V2_1.8N power=95@5000 torque=150@3000 kg=310
+sanctus = hexer ; cp=~Custom_skull_chopper_(Sanctus,_1.8_V-twin) engine=V2_1.8N power=95@5000 torque=150@3000 kg=320
+gargoyle = hexer ; cp=~Custom_chopper_(Gargoyle) engine=V2_1.6N power=80@5000 torque=130@3000
+cliffhanger = hexer ; cp=~Harley-Davidson_Wide_Glide_(custom) engine=V2_1.6N power=75@5000 torque=125@3000
+zombiea | Harley-Davidson Sportster Forty-Eight | 2012 | cruiser/bike | 250 | 46 | 1.49 | - | V2 1.2N | 67@6000 | 98@3500 | 6200 | M5 | - | - | RR | - | TF/SD | 300V2/260V1 | 130/90R16 150/80R16 btour | CdA0.62
+zombieb = zombiea ; cp=Harley-Davidson_Sportster_(chopper_custom)
+sovereign | Harley-Davidson Road King | 2014 | cruiser/bike | 360 | 45 | 1.63 | - | V2 1.69N | 80@5000 | 138@3500 | 5500 | M6 | - | - | RR | - | TF/SD | 300V4X2/300V4 | 130/80R17 180/65R16 btour | CdA0.75
+reever = sovereign ; cp=~Harley-Davidson_Fat_Bob_114 engine=V2_1.87N power=94@5000 torque=155@3500 kg=306
+pcj | Honda CBR600F (PC31) | 1995 | sbike/bike | 205 | 51 | 1.41 | - | I4 0.6N | 100@12000 | 62@10500 | 13000 | M6 | - | - | RR | - | TF/SM | 276V2X2/220V1 | 120/70R17 160/60R17 bsport | CdA0.45
+vader | Honda CB600F Hornet | 2005 | bike/bike | 199 | 50 | 1.44 | - | I4 0.6N | 96@12000 | 63@9500 | 13000 | M6 | - | - | RR | - | TF/SM | 296V2X2/220V1 | 120/70R17 180/55R17 bsport | CdA0.55
+akuma | Honda CBR600RR | 2007 | sbike/bike | 186 | 52 | 1.37 | - | I4 0.6N | 118@13500 | 66@11250 | 15000 | M6 | - | - | RR | - | USD/SM | 310V4X2/220V1 | 120/70R17 180/55R17 bsport | CdA0.40
+double | Honda CBR1000RR Fireblade (SC57) | 2006 | sbike/bike | 205 | 52 | 1.40 | - | I4 1.0N | 172@11250 | 114@10000 | 12500 | M6 | - | - | RR | - | USD/SM | 320V4X2/220V1 | 120/70R17 190/50R17 bsport | CdA0.40
+carbonrs | Kawasaki Ninja ZX-10R | 2016 | sbike/bike | 206 | 52 | 1.44 | - | I4 1.0N | 200@13000 | 114@11500 | 14000 | M6 | - | - | RR | - | USD/SM | 330V4X2/220V1 | 120/70R17 190/55R17 btrack | CdA0.38
+bati | Ducati 1098 | 2007 | sbike/bike | 199 | 52 | 1.43 | - | V2 1.1N | 160@9750 | 123@8000 | 10700 | M6 | - | - | RR | - | USD/SM | 330V4X2/245V2 | 120/70R17 190/55R17 bsport | CdA0.40
+bati2 = bati ; cp=Ducati_1098_(race_livery)
+hakuchou | Suzuki GSX1300R Hayabusa | 2008 | sbike/bike | 260 | 51 | 1.48 | - | I4 1.34N | 194@9500 | 155@7200 | 11000 | M6 | - | - | RR | - | USD/SM | 310V4X2/260V1 | 120/70R17 190/50R17 bsport | CdA0.38
+hakuchou2 = hakuchou ; cp=Suzuki_Hayabusa_(turbo_drag_build) engine=I4_1.4T1.5 power=420@10000 torque=310@8000 kg=250 wb=1.85 tyres=120/70R17_240/40R18_drag
+nemesis | Ducati Monster 1100 EVO | 2011 | bike/bike | 188 | 49 | 1.45 | - | V2 1.1N | 100@7500 | 103@6000 | 8500 | M6 | - | - | RR | - | USD/SM | 320V4X2/245V2 | 120/70R17 180/55R17 bsport | CdA0.55
+esskey | Ducati Scrambler Icon 800 | 2015 | bike/bike | 186 | 49 | 1.45 | - | V2 0.8N | 75@8250 | 68@5750 | 9000 | M6 | - | - | RR | - | USD/SM | 330V4/245V1 | 110/80R18 180/55R17 btour | CdA0.60
+ruffian | Ducati Hypermotard 1100 | 2008 | bike/bike | 199 | 49 | 1.46 | - | V2 1.1N | 90@7750 | 103@4750 | 8500 | M6 | - | - | RR | - | USD/SM | 305V4X2/245V2 | 120/70R17 180/55R17 bsport | CdA0.55
+fcr | ~Triumph Thruxton R | 2016 | bike/bike | 203 | 50 | 1.42 | - | I2 1.2N | 97@6750 | 112@4950 | 7500 | M6 | - | - | RR | - | USD/SD | 310V4X2/220V2 | 120/70R17 160/60R17 bsport | CdA0.55
+fcr2 = fcr ; cp=~Triumph_Thruxton_R_(cafe_custom)
+innovation | Harley-Davidson V-Rod | 2002 | cruiser/bike | 300 | 45 | 1.71 | - | V2 1.13N | 115@8250 | 100@7000 | 9000 | M5 | - | - | RR | - | TF/SD | 292V4X2/292V4 | 120/70R19 180/55R18 btour | CdA0.62
+nightblade = innovation ; cp=Harley-Davidson_Night_Rod_Special engine=V2_1.25N power=125@8250 torque=115@7000
+vindicator | Honda NM4 Vultus | 2015 | cruiser/bike | 245 | 46 | 1.65 | - | I2 0.75N | 54@6250 | 68@4750 | 7000 | AM6 | - | - | RR | - | TF/SM | 320V2/240V1 | 120/70R18 200/50R17 btour | CdA0.65
+thrust | Honda F6C Valkyrie | 1999 | cruiser/bike | 330 | 46 | 1.69 | - | F6 1.52N | 100@6000 | 132@5000 | 6500 | M5 | - | - | RR | - | TF/SD | 296V2X2/316V2 | 150/80R17 180/70R16 btour | CdA0.75
+diablous | Ducati Diavel | 2011 | bike/bike | 239 | 47 | 1.59 | - | V2 1.2N | 162@9500 | 128@8000 | 10500 | M6 | - | - | RR | - | USD/SM | 320V4X2/265V2 | 120/70R17 240/45R17 bsport | CdA0.55
+diablous2 = diablous ; cp=Ducati_Diavel_(custom)
+defiler | Yamaha VMAX (2009) | 2009 | bike/bike | 310 | 48 | 1.70 | - | V4 1.68N | 200@9000 | 166@6500 | 9500 | M5 | - | - | RR | - | TF/SM | 320V6X2/298V1 | 120/70R18 200/50R18 bsport | CdA0.60
+rrocket | ~Triumph Rocket III Roadster | 2010 | cruiser/bike | 367 | 47 | 1.70 | - | I3 2.3N | 146@6000 | 221@2500 | 6500 | M5 | - | - | RR | - | USD/SD | 320V4X2/316V2 | 150/80R17 240/50R16 btour | CdA0.70
+deathbike | ~Arena deathbike (armoured chopper) | 2018 | cruiser/bike | 420 | 45 | 1.75 | - | V2 1.9N | 120@5500 | 170@3500 | 6000 | M6 | - | - | RR | - | TF/SD | 320V4X2/300V2 | 130/90R19 180/70R16 btour | CdA0.75
+deathbike2 = deathbike
+deathbike3 = deathbike
+lectro | Zero SR/F | 2020 | bike/bike | 220 | 49 | 1.45 | - | E | 110@5000 | 190@500 | 10000 | E1 | 1.0 | 8.0 | RR | - | USD/SM | 320V4X2/240V1 | 120/70R17 180/55R17 bsport | CdA0.55
+powersurge | Harley-Davidson LiveWire | 2020 | bike/bike | 249 | 49 | 1.49 | - | E | 105@15000 | 116@500 | 15000 | E1 | 1.0 | 7.0 | RR | - | USD/SM | 300V4X2/260V1 | 120/70R17 180/55R17 bsport | CdA0.55
+manchez | Honda CRF450X | 2015 | mx/bike | 125 | 48 | 1.48 | - | I1 0.45N | 50@9000 | 45@7000 | 11000 | M5 | - | - | RR | - | USD/SM | 240V2/240V1 | 80/100R21 110/100R18 knob | CdA0.55
+manchez2 = manchez ; cp=Honda_CRF450X_(scout)
+manchez3 = manchez ; cp=Honda_CRF450X_(scout_custom)
+sanchez | Honda CR250R (two-stroke) | 2005 | mx/bike | 100 | 48 | 1.48 | - | I1 0.25N | 45@8500 | 34@8000 | 10000 | M5 | - | - | RR | - | USD/SM | 240V2/240V1 | 80/100R21 110/90R19 knob | CdA0.55
+sanchez2 = sanchez
+enduro | Honda XR650L | 2015 | mx/bike | 157 | 48 | 1.46 | - | I1 0.65N | 45@6000 | 54@5000 | 7500 | M5 | - | - | RR | - | TF/SM | 256V2/220V1 | 3.00-21 4.60-18 knob | CdA0.60
+bf400 | Kawasaki KX450F | 2016 | mx/bike | 109 | 48 | 1.48 | - | I1 0.45N | 55@9500 | 50@7500 | 11500 | M5 | - | - | RR | - | USD/SM | 250V2/240V1 | 80/100R21 120/80R19 knob | CdA0.55
+stryder | Can-Am Spyder F3 (trike) | 2016 | bike/bike | 400 | 55 | 1.71 | - | I3 1.33N | 115@7250 | 130@5000 | 8000 | AM6 | - | - | RR | - | DW/SM | 270V4X2/270V1 | 165/55R15 225/50R15 btour | CdA0.80
+shinobi | Kawasaki Ninja H2 | 2015 | sbike/bike | 238 | 51 | 1.45 | - | I4 1.0SC1.4 | 228@11000 | 141@10500 | 14000 | M6 | - | - | RR | - | USD/SM | 330V4X2/250V2 | 120/70R17 200/55R17 btrack | CdA0.38
+vortex | ~Lotus C-01 | 2015 | sbike/bike | 181 | 50 | 1.53 | - | V2 1.2N | 200@10500 | 134@8250 | 11500 | M6 | - | - | RR | - | USD/SM | 330V4X2/245V2 | 120/70R17 190/55R17 bsport | CdA0.45
+oppressor | ~Rocket-assisted sports bike (fictional) | 2017 | sbike/bike | 260 | 50 | 1.50 | - | I4 1.0N | 190@12000 | 115@10000 | 13500 | M6 | - | - | RR | - | USD/SM | 330V4X2/245V2 | 120/70R17 190/55R17 bsport | CdA0.45
+oppressor2 = oppressor ; cp=~Hover_bike_(fictional,_Oppressor_Mk_II)
+shotaro | ~Light cycle (fictional electric) | 2016 | sbike/bike | 250 | 50 | 1.80 | - | E | 180@6000 | 300@500 | 12000 | E1 | 1.0 | 8.0 | RR | - | TF/SM | 330V4X2/330V4 | 190/50R17 240/45R17 btrack | CdA0.35

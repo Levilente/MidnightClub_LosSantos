@@ -1,4 +1,17 @@
 # Changelog
+## 0.59.0 (2026-11-28)
+- Data-driven vehicle physics: every vehicle has a spec sheet (697: all 615 career vehicles plus traffic, service and emergency vehicles, lorries, buses), built from its real counterpart by tools/specgen into res/specs/*.json (built into the DLL; data\specs\*.json can add or replace any vehicle). Each value is marked published, derived or estimated. Room for boats and aircraft in the same layout.
+  - chassis: mass, weight distribution, centre-of-mass height, wheelbase, tracks, yaw / roll inertia;
+  - engine: layout, cylinders, displacement, charger type (single / twin / twin-scroll / sequential / quad / electric-assisted turbo, Roots / twin-screw / centrifugal supercharger, twincharged) and boost, peak power and torque with rpm, redline, idle, diesel / hybrid; the generator checks power and torque per litre against the induction. The charger type sets the spool (twin turbos build boost faster than a big single, a centrifugal supercharger grows with rpm);
+  - drivetrain: gearbox type (manual, automatic, dual-clutch, sequential, automated manual, CVT, single speed) with its real ratios, reverse, final drive and shift time, layout and AWD split, front / rear / centre differentials (open, clutch LSD, Torsen, viscous, electronic, locked);
+  - suspension per axle: type (MacPherson, double wishbone, multi-link, pushrod, torsion beam, live axle with coils or leaves, semi-trailing, swing axle, De Dion), spring and wheel rate with motion ratio, ride frequency, dampers, anti-roll bar, roll centre, anti-dive / anti-squat, bump and droop travel, camber, toe, caster;
+  - brakes: disc size and type (vented, solid, carbon-ceramic, drum) and calipers, giving each axle's brake torque, the bias and ABS;
+  - tyres per axle (staggered sizes): size, construction and compound give contact length, vertical and lateral carcass stiffness, cornering stiffness, peak slip angle and relaxation length;
+  - aero: drag area, lift area, balance.
+- The native model takes the rear tyre's own construction (B, E, vertical stiffness, relaxation length, grip, unsprung mass) and each axle's real bump travel; the bump rubber takes the last half of it.
+- Upgrades work from the sheet: springs, coilovers and bars raise the real rates, brake upgrades the real torque, tyre compounds keep the real sizes, the gearbox and final-drive tuning start from the real ratios; 0-100, 0-200, quarter mile and top speed are worked out from the same data (real shift times).
+- Traffic vehicles outside the career list now find their sheets by model name.
+
 ## 0.58.0 (2026-11-28)
 - Tyres felt like they slide, and the recording showed why: our side-force curves were far too soft. A touring tyre reached its peak only at 10 deg of slip angle and built just 19 % of its grip at 1 deg (cornering stiffness 10.8 per rad); real road tyres peak at 6-8 deg with 15-20 per rad. The car had to drift through every corner to make its grip.
   - New curves per compound, real peak slip angles and cornering stiffness: bias-ply 9 deg / 11, touring 7 / 16, ultra-high performance 6 / 20, sport 5.5 / 21, semi-slick 5 / 23, race slick 4.5 / 26, drift 8 / 17 (wide plateau), knobbly 10 / 9.

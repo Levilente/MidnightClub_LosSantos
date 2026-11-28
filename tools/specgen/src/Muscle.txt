@@ -1,0 +1,96 @@
+voodoo2 | Chevrolet Impala (1963) | 1963 | muscle/sedan | 1650 | 55 | 3.02 | 1.58/1.55 | V8 5.4N | 250@4400 | 475@2800 | 5000 | A2 | 1.82 1.00 r1.82 | 3.08 | FR | R:open | DW/LA F+R- | D279/D279 | 7.50-14 bias | 0.48x2.10 | cgh=0.56
+voodoo = voodoo2 ; cp=Chevrolet_Impala_(1963,_lowrider_with_hydraulics) kg=1750 tyres=175/70R13_tour
+broadway | ~Hudson Hornet (1952) | 1952 | classic/sedan | 1600 | 54 | 3.05 | 1.50/1.50 | I6 5.0N | 145@3800 | 348@1800 | 4200 | M3 | 2.38 1.58 1.00 r3.09 | 4.10 | FR | R:open | DW/LL F+R- | D279/D279 | 7.10-15 bias | 0.50x2.15 | cgh=0.60
+clique | ~Ford Model B 1932 coupe (hot rod, 350 V8) | 1932 | muscle/coupe | 1050 | 52 | 2.69 | 1.45/1.45 | V8 5.7N | 350@5600 | 515@3800 | 6000 | M4 | 2.64 1.75 1.34 1.00 r2.55 | 3.55 | FR | R:open | LL/LL F-R- | 280S2/D254 | 165/80R15 235/75R15 bias | 0.55x1.80 | cgh=0.50
+clique2 = clique ; cp=~Ford_Model_A_woody_wagon_(hot_rod) kg=1250
+ratloader | Ford F-100 (1957, rat rod) | 1957 | truck/pickup | 1600 | 56 | 2.80 | 1.55/1.55 | I6 3.7N | 133@4000 | 268@2400 | 4400 | M3 | 2.78 1.61 1.00 r3.63 | 3.92 | FR | R:open | DW/LL F-R- | D279/D279 | 6.70-15 bias | 0.60x2.40 | cgh=0.70
+ratloader2 = ratloader ; cp=Ford_F-100_(1957,_V8_rat_truck) engine=V8_5.0N power=250@4800 torque=420@3000 redline=5500 box=M4 ratios=- kg=1550
+eudora | ~Buick Century (1955) | 1955 | classic/sedan | 1700 | 55 | 3.10 | 1.52/1.55 | V8 5.3N | 236@4600 | 447@2800 | 5000 | A2 | 1.82 1.00 r1.82 | 3.36 | FR | R:open | DW/LA F+R- | D305/D305 | 7.60-15 bias | 0.50x2.15 | cgh=0.60
+chino | ~Buick Wildcat (1965) | 1965 | muscle/coupe | 1900 | 55 | 3.20 | 1.60/1.57 | V8 6.6N | 325@4400 | 603@2800 | 5000 | A3 | 2.48 1.48 1.00 r2.08 | 3.07 | FR | R:open | DW/LA F+R- | D305/D305 | 8.45-15 bias | 0.48x2.20 | cgh=0.56
+chino2 = chino ; cp=~Buick_Wildcat_(1965,_lowrider) kg=1950 tyres=175/70R13_tour
+brigham | ~Chrysler 300L (1965) | 1965 | muscle/sedan | 1950 | 55 | 3.15 | 1.57/1.57 | V8 6.8N | 360@4800 | 637@3200 | 5200 | A3 | 2.45 1.45 1.00 r2.20 | 3.23 | FR | R:open | DW/LL F+R- | D279/D279 | 8.45-14 bias | 0.48x2.20 | cgh=0.56
+virgo | Lincoln Continental Mark IV (1972) | 1972 | classic/coupe | 2300 | 56 | 3.06 | 1.59/1.57 | V8 7.5N | 224@4000 | 495@2800 | 4600 | A3 | 2.46 1.46 1.00 r2.18 | 2.75 | FR | R:open | DW/LA F+R- | 300S1/D279 | 225/75R15 tour | 0.50x2.25 | cgh=0.58
+virgo3 | ~Chrysler Imperial LeBaron (1974) | 1974 | classic/coupe | 2250 | 56 | 3.15 | 1.62/1.60 | V8 7.2N | 230@4000 | 488@2400 | 4600 | A3 | 2.45 1.45 1.00 r2.20 | 2.71 | FR | R:open | DW/LL F+R- | 300S1/D279 | 225/75R15 tour | 0.50x2.25 | cgh=0.58
+virgo2 = virgo3 ; cp=~Chrysler_Imperial_(1974,_lowrider) kg=2300 tyres=175/70R13_tour
+slamvan | ~Chevrolet 3100 (1955, slammed custom, 350 V8) | 1955 | muscle/pickup | 1600 | 55 | 2.92 | 1.52/1.52 | V8 5.7N | 300@5000 | 475@3200 | 5500 | A3 | 2.48 1.48 1.00 r2.08 | 3.55 | FR | R:open | DW/LA F+R- | 280S2/D254 | 205/55R17 235/50R17 tour | 0.55x2.40 | cgh=0.58
+slamvan2 = slamvan ; cp=~Chevrolet_3100_(Lost_MC_custom)
+slamvan3 = slamvan ; cp=~Chevrolet_3100_(Benny's_custom) tyres=205/40R20_245/35R20_tour
+slamvan4 = slamvan ; cp=~Chevrolet_3100_(Arena_Wars_armoured) kg=2500 char=arena/pickup power=550@6000 torque=650@4000 engine=V8_6.2SR0.6 tyres=275/65R18_at
+slamvan5 = slamvan4
+slamvan6 = slamvan4
+moonbeam | Chevrolet G20 conversion van | 1985 | van/van | 2200 | 54 | 3.18 | 1.70/1.70 | V8 5.7N | 165@4000 | 366@2400 | 4600 | A3 | 2.48 1.48 1.00 r2.08 | 3.08 | FR | R:open | DW/LL F+R- | 300S1/D279 | 235/75R15 tour | 0.60x3.20 | cgh=0.80
+moonbeam2 = moonbeam ; cp=Chevrolet_G20_(lowrider_custom) kg=2250 tyres=205/50R17_tour
+faction | Buick Regal (1984) | 1984 | muscle/coupe | 1500 | 56 | 2.75 | 1.49/1.46 | V6 3.8N | 110@4000 | 258@2000 | 4800 | A3 | 2.74 1.57 1.00 r2.07 | 2.73 | FR | R:open | DW/LA F+R- | 269S1/D241 | 205/70R14 tour | 0.42x2.00 | cgh=0.55
+faction2 = faction ; cp=Buick_Regal_(lowrider_custom) kg=1560 tyres=175/70R13_tour
+faction3 = faction ; cp=Buick_Regal_(donk,_26-inch_wheels) kg=1750 tyres=285/25R26_tour cgh=0.75
+manana2 | ~Cadillac Eldorado convertible (1976, lowrider) | 1976 | classic/conv | 2300 | 60 | 3.20 | 1.62/1.62 | V8 8.2N | 190@3600 | 488@2000 | 4200 | A3 | 2.48 1.48 1.00 r2.08 | 2.73 | FF | F:open | DW/LA F+R- | 300V1/D279 | 175/70R13 tour | 0.50x2.25 | cgh=0.58
+picador | Chevrolet El Camino (1977) | 1977 | muscle/pickup | 1650 | 56 | 2.95 | 1.56/1.56 | V8 5.7N | 170@3800 | 366@2400 | 4600 | A3 | 2.52 1.52 1.00 r1.93 | 3.08 | FR | R:open | DW/LA F+R- | 279S1/D241 | 225/70R15 tour | 0.48x2.15 | cgh=0.58
+nightshade | ~Pontiac Grand Prix SJ (1970) | 1970 | muscle/coupe | 1850 | 56 | 2.95 | 1.56/1.52 | V8 7.5N | 370@4600 | 678@3200 | 5200 | M4 | 2.52 1.88 1.46 1.00 r2.59 | 3.31 | FR | R:lsd | DW/LA F+R- | 279S2/D241 | 225/70R14 tour | 0.46x2.10 | cgh=0.54
+hustler | Ford Model A (1928, hot rod, flathead V8) | 1928 | muscle/coupe | 950 | 50 | 2.63 | 1.42/1.42 | V8 3.9N | 180@4500 | 290@2800 | 5000 | M3 | 2.82 1.60 1.00 r3.62 | 3.54 | FR | R:open | LL/LL F-R- | D279/D279 | 5.50-16 bias | 0.60x1.80 | cgh=0.55
+hotknife | Ford Model T roadster (T-bucket, 350 V8) | 1923 | muscle/roadster | 900 | 50 | 2.54 | 1.40/1.40 | V8 5.7N | 375@5600 | 515@4000 | 6000 | A3 | 2.48 1.48 1.00 r2.08 | 3.55 | FR | R:open | LL/LL F-R- | 280S2/D254 | 165/80R15 275/60R15 bias | 0.55x1.60 | cgh=0.48
+tampa | Dodge Dart Swinger 340 (1969) | 1969 | muscle/coupe | 1450 | 57 | 2.79 | 1.47/1.42 | V8 5.6N | 275@5000 | 461@3200 | 5600 | M4 | 2.66 1.91 1.39 1.00 r2.58 | 3.23 | FR | R:lsd | DW/LL F+R- | 279S2/D254 | E70-14 bias | 0.46x1.95 | cgh=0.53
+tampa3 = tampa ; cp=Dodge_Dart_(1969,_weaponised,_armoured) kg=2300 tyres=225/70R15_at
+tampa4 = tampa ; cp=~Dodge_Dart_Swinger_(Tampa_GT,_resto-mod_6.4_Hemi) engine=V8_6.4N power=485@6000 torque=644@4300 redline=6400 box=M6 ratios=- tyres=245/45R18_275/40R18_uhp kg=1500 brakes=355V4/330V4 susp=DW/ML_F+R+ char=mmuscle/coupe
+deviant | AMC Javelin AMX 401 (1971) | 1971 | muscle/coupe | 1500 | 57 | 2.79 | 1.52/1.52 | V8 6.6N | 330@5000 | 583@3400 | 5500 | M4 | 2.23 1.77 1.35 1.00 r2.16 | 3.54 | FR | R:lsd | DW/LL F+R- | 279S2/D254 | F70-14 bias | 0.46x1.95 | cgh=0.53
+hermes | ~Mercury Eight coupe (1949) | 1949 | classic/coupe | 1600 | 54 | 2.98 | 1.48/1.52 | V8 4.2N | 110@3600 | 271@2000 | 4000 | M3 | 2.82 1.60 1.00 r3.62 | 3.91 | FR | R:open | DW/LL F-R- | D279/D279 | 7.10-15 bias | 0.52x2.10 | cgh=0.60
+yosemite | Chevrolet C10 (1973) | 1973 | truck/pickup | 1750 | 56 | 2.98 | 1.65/1.62 | V8 5.7N | 175@4000 | 366@2400 | 4600 | A3 | 2.52 1.52 1.00 r1.93 | 3.40 | FR | R:open | DW/LL F+R- | 300S1/D279 | 235/75R15 tour | 0.55x2.50 | cgh=0.72
+driftyosemite = yosemite ; cp=Chevrolet_C10_(drift_build,_LS_swap) char=drift/pickup engine=V8_6.2N power=480@6500 torque=560@4800 redline=7000 box=M6 ratios=- diffs=R:locked tyres=255/40R18_275/40R18_drift susp=DW/ML_F+R+ kg=1600
+yosemite2 = driftyosemite
+tahoma | Chevrolet Monte Carlo SS 454 (1970) | 1970 | muscle/coupe | 1700 | 57 | 2.95 | 1.58/1.55 | V8 7.4N | 360@4800 | 678@3200 | 5300 | A3 | 2.48 1.48 1.00 r2.08 | 3.31 | FR | R:lsd | DW/LA F+R- | 279S2/D241 | G70-15 bias | 0.46x2.10 | cgh=0.54
+coquette3 | Chevrolet Corvette Sting Ray (C2, 1963) | 1963 | csport/coupe | 1430 | 49 | 2.49 | 1.42/1.45 | V8 5.4N | 360@6000 | 475@4000 | 6500 | M4 | 2.20 1.64 1.27 1.00 r2.26 | 3.70 | FR | R:lsd | DW/TA F+R- | D279/D279 | 6.70-15 bias | 0.45x1.75 | cgh=0.48
+buccaneer | Buick Riviera (1971) | 1971 | muscle/coupe | 2000 | 56 | 3.07 | 1.60/1.57 | V8 7.5N | 315@4400 | 610@2800 | 5000 | A3 | 2.48 1.48 1.00 r2.08 | 2.93 | FR | R:open | DW/LA F+R- | 300S1/D305 | 225/70R15 tour | 0.48x2.20 | cgh=0.56
+buccaneer2 = buccaneer ; cp=Buick_Riviera_(1971,_lowrider) kg=2050 tyres=175/70R13_tour
+stalion | Plymouth Barracuda convertible 340 (1970) | 1970 | muscle/conv | 1500 | 57 | 2.74 | 1.52/1.52 | V8 5.6N | 275@5000 | 461@3200 | 5600 | M4 | 2.66 1.91 1.39 1.00 r2.58 | 3.55 | FR | R:lsd | DW/LL F+R- | 279S2/D254 | F70-14 bias | 0.48x1.95 | cgh=0.53
+stalion2 = stalion ; cp=Plymouth_Barracuda_(1970,_Burger_Shot_race_livery)
+blade | Ford Fairlane 500 GT 390 (1967) | 1967 | muscle/coupe | 1550 | 57 | 2.95 | 1.48/1.48 | V8 6.4N | 320@4800 | 576@3200 | 5200 | M4 | 2.32 1.69 1.29 1.00 r2.32 | 3.25 | FR | R:open | DW/LL F+R- | 287S2/D254 | 7.75-14 bias | 0.47x2.05 | cgh=0.54
+vigero | Chevrolet Camaro SS 396 (1969) | 1969 | muscle/coupe | 1550 | 56 | 2.74 | 1.52/1.50 | V8 6.5N | 375@5600 | 563@3600 | 6000 | M4 | 2.52 1.88 1.46 1.00 r2.59 | 3.73 | FR | R:lsd | DW/LL F+R- | 279S2/D241 | F70-14 bias | 0.46x1.95 | cgh=0.53
+vigero2 | Chevrolet Camaro ZL1 (6th gen) | 2017 | mmuscle/coupe | 1765 | 54 | 2.81 | 1.60/1.59 | V8 6.2SR0.8 | 650@6400 | 881@3600 | 6500 | M6 | 2.66 1.78 1.30 1.00 0.74 0.50 r2.90 | 3.73 | FR | R:ediff | MS/ML F+R+ | 390V6/365V4 | 285/30R20 305/30R20 sport | 0.35x2.10 cl0.2
+vigero3 = vigero2 ; cp=Chevrolet_Camaro_ZL1_Convertible_(6th_gen) kg=1880
+phoenix | Pontiac Firebird Trans Am 6.6 (1977) | 1977 | muscle/coupe | 1650 | 57 | 2.74 | 1.55/1.52 | V8 6.6N | 200@3600 | 441@2400 | 4800 | M4 | 2.64 1.75 1.34 1.00 r2.55 | 3.23 | FR | R:lsd | DW/LL F+R+ | 279V1/D241 | 225/70R15 tour | 0.46x1.95 | cgh=0.52
+gauntlet | Dodge Challenger SRT8 (2008) | 2008 | mmuscle/coupe | 1880 | 56 | 2.95 | 1.61/1.61 | V8 6.1N | 425@6200 | 569@4800 | 6400 | A5 | 3.59 2.19 1.41 1.00 0.83 r3.16 | 3.06 | FR | R:lsd | DW/ML F+R+ | 360V4/350V4 | 245/45R20 uhp | 0.36x2.25
+gauntlet2 = gauntlet ; cp=Dodge_Challenger_SRT8_(Redwood_livery)
+gauntlet3 | Dodge Challenger R/T 440 Magnum (1970) | 1970 | muscle/coupe | 1650 | 57 | 2.79 | 1.52/1.52 | V8 7.2N | 375@4600 | 651@3200 | 5200 | M4 | 2.44 1.77 1.34 1.00 r2.36 | 3.54 | FR | R:lsd | DW/LL F+R- | 279S2/D279 | F70-14 bias | 0.47x2.00 | cgh=0.53
+gauntlet5 = gauntlet3 ; cp=Dodge_Challenger_R/T_(1970,_custom) tyres=225/50R17_255/50R17_tour brakes=330V4/330V2
+gauntlet4 | Dodge Challenger SRT Hellcat | 2015 | mmuscle/coupe | 2000 | 57 | 2.95 | 1.61/1.61 | V8 6.2SW0.8 | 707@6000 | 881@4000 | 6200 | A8 | 4.71 3.14 2.11 1.67 1.29 1.00 0.84 0.67 r3.30 | 2.62 | FR | R:lsd | DW/ML F+R+ | 390V6/350V4 | 275/40R20 uhp | 0.36x2.25
+driftgaunt4 = gauntlet4 ; cp=Dodge_Challenger_Hellcat_(drift_build) char=drift/coupe box=M6 ratios=- diffs=R:locked tyres=275/35R19_295/35R19_drift kg=1850 power=850@6500 torque=950@4500
+impaler | Chevrolet Impala SS 427 (1968) | 1968 | muscle/coupe | 1700 | 56 | 3.02 | 1.58/1.57 | V8 7.0N | 385@5200 | 624@3400 | 5600 | M4 | 2.52 1.88 1.46 1.00 r2.59 | 3.31 | FR | R:lsd | DW/LA F+R- | 279S2/D279 | F70-15 bias | 0.47x2.10 | cgh=0.55
+impaler2 = impaler ; cp=~Chevrolet_Impala_(1968,_Arena_Wars_armoured) kg=2600 char=arena/coupe engine=V8_7.0SR0.6 power=650@6000 torque=800@4000 tyres=275/60R17_at
+impaler3 = impaler2
+impaler4 = impaler2
+impaler5 | ~Chevrolet Impala SS (1996) | 1996 | mmuscle/sedan | 1950 | 56 | 2.95 | 1.58/1.57 | V8 5.7N | 260@5000 | 450@3200 | 5500 | A4 | 3.06 1.63 1.00 0.70 r2.29 | 3.08 | FR | R:lsd | DW/LA F+R+ | 305V1/D279 | 255/50R17 uhp | 0.40x2.25 | cgh=0.55
+impaler6 | ~Chevrolet Impala (1975) | 1975 | classic/sedan | 1950 | 55 | 3.10 | 1.62/1.62 | V8 6.6N | 175@3600 | 400@2000 | 4600 | A3 | 2.52 1.52 1.00 r1.93 | 2.73 | FR | R:open | DW/LA F+R- | 300S1/D279 | 225/75R15 tour | 0.48x2.25 | cgh=0.57
+sabregt | Chevrolet Chevelle SS 454 LS6 (1970) | 1970 | muscle/coupe | 1700 | 57 | 2.84 | 1.53/1.52 | V8 7.4N | 450@5600 | 678@3600 | 6000 | M4 | 2.20 1.64 1.27 1.00 r2.26 | 3.73 | FR | R:lsd | DW/LA F+R- | 279S2/D241 | F70-14 bias | 0.47x2.00 | cgh=0.54
+sabregt2 = sabregt ; cp=Chevrolet_Chevelle_SS_(1970,_custom) tyres=225/50R17_255/50R17_tour brakes=330V4/330V2 kg=1720
+lurcher | ~Cadillac Miller-Meteor hearse (1962) | 1962 | classic/limo | 2600 | 55 | 3.79 | 1.58/1.58 | V8 6.4N | 325@4800 | 583@3100 | 5000 | A4 | 3.97 2.55 1.55 1.00 r4.22 | 2.94 | FR | R:open | DW/LA F+R- | D305/D305 | 8.20-15 bias | 0.55x2.40 | cgh=0.62
+vamos | ~Chevrolet Nova SS 350 (1972) | 1972 | muscle/coupe | 1450 | 56 | 2.82 | 1.50/1.50 | V8 5.7N | 200@4400 | 407@2800 | 5200 | M4 | 2.54 1.80 1.44 1.00 r2.54 | 3.31 | FR | R:lsd | DW/LL F+R- | 279S1/D241 | E70-14 bias | 0.45x1.95 | cgh=0.53
+dominator | Ford Mustang GT 5.0 (S197) | 2011 | mmuscle/coupe | 1640 | 54 | 2.72 | 1.58/1.59 | V8 5.0N | 412@6500 | 529@4250 | 7000 | M6 | 3.66 2.43 1.69 1.32 1.00 0.65 r3.53 | 3.31 | FR | R:lsd | MS/LA F+R+ | 330V2/300V1 | 245/45R18 uhp | 0.36x2.15
+dominator2 = dominator ; cp=Ford_Mustang_GT_(S197,_Pisswasser_race_livery) char=race/coupe kg=1450 tyres=275/650R18_slick
+dominator3 | ~Ford Mustang Boss 302 Laguna Seca (S197) | 2012 | mmuscle/coupe | 1630 | 54 | 2.72 | 1.60/1.60 | V8 5.0N | 444@7400 | 515@4500 | 7500 | M6 | 3.66 2.43 1.69 1.32 1.00 0.65 r3.53 | 3.73 | FR | R:tor | MS/LA F+R+ | 355V4/300V1 | 255/40R19 285/35R19 sport | 0.38x2.15 cl0.4
+dominator4 = dominator ; cp=~Ford_Mustang_(Arena_Wars_armoured) kg=2500 char=arena/coupe engine=V8_5.0SR0.8 power=650@6500 torque=750@4500 tyres=275/60R18_at
+dominator5 = dominator4
+dominator6 = dominator4
+dominator7 | Ford Mustang SVT Cobra (Fox, 1993) | 1993 | muscle/coupe | 1450 | 56 | 2.55 | 1.46/1.48 | V8 5.0N | 235@5000 | 386@4000 | 5800 | M5 | 3.35 1.93 1.29 1.00 0.68 r3.15 | 3.08 | FR | R:tor | MS/LA F+R+ | 330V2/267S1 | 245/45R17 uhp | 0.38x1.95
+dominator8 | Ford Mustang GT 390 Fastback (1967) | 1967 | muscle/coupe | 1400 | 57 | 2.74 | 1.47/1.47 | V8 6.4N | 320@4800 | 576@3200 | 5200 | M4 | 2.32 1.69 1.29 1.00 r2.32 | 3.25 | FR | R:lsd | DW/LL F+R- | 287S2/D254 | F70-14 bias | 0.46x1.90 | cgh=0.52
+driftdom8 = dominator8 ; cp=Ford_Mustang_Fastback_(1967,_drift_build) char=drift/coupe engine=V8_5.0N power=520@7200 torque=560@5000 redline=7500 box=M6 ratios=- diffs=R:locked susp=DW/ML_F+R+ tyres=245/40R18_265/40R18_drift brakes=355V4/330V4 kg=1350
+dominator9 | Ford Mustang GT (S650) | 2024 | mmuscle/coupe | 1720 | 54 | 2.72 | 1.60/1.64 | V8 5.0N | 486@7250 | 567@4900 | 7500 | M6 | 3.66 2.43 1.69 1.32 1.00 0.65 r3.53 | 3.73 | FR | R:tor | MS/ML F+R+ | 390V6/330V1 | 255/40R19 275/40R19 uhp | 0.36x2.20
+driftdom9 = dominator9 ; cp=Ford_Mustang_GT_(S650,_drift_build) char=drift/coupe power=750@7500 torque=800@5000 engine=V8_5.0SC1.0 diffs=R:locked tyres=265/35R18_285/35R18_drift kg=1650
+dominator10 | ~Ford Mustang GT 5.0 (Fox, 1987) | 1987 | muscle/coupe | 1420 | 57 | 2.55 | 1.46/1.48 | V8 5.0N | 225@4200 | 407@3200 | 5500 | M5 | 3.35 1.93 1.29 1.00 0.68 r3.15 | 2.73 | FR | R:tor | MS/LA F+R+ | 277V1/D229 | 225/60R15 tour | 0.40x1.95
+driftdom10 = dominator10 ; cp=Ford_Mustang_Fox_(drift_build) char=drift/coupe engine=V8_5.0T0.9 power=550@6500 torque=650@4500 diffs=R:locked tyres=245/40R17_265/40R17_drift brakes=330V4/300V2 kg=1380
+tulip | ~Chevrolet Monte Carlo Landau (1977) | 1977 | classic/coupe | 1700 | 56 | 2.95 | 1.56/1.55 | V8 5.7N | 170@3800 | 366@2400 | 4600 | A3 | 2.52 1.52 1.00 r1.93 | 3.08 | FR | R:open | DW/LA F+R- | 279S1/D241 | 225/70R15 tour | 0.47x2.15 | cgh=0.56
+tulip2 = tulip ; cp=~Chevrolet_Monte_Carlo_(1977,_M-100_street_racer) engine=V8_6.6N power=380@5600 torque=560@3800 box=M4 ratios=- diffs=R:lsd tyres=225/60R15_275/60R15_drag
+ruiner | Pontiac Firebird Trans Am (3rd gen, 1987) | 1987 | muscle/coupe | 1500 | 56 | 2.56 | 1.53/1.54 | V8 5.7N | 210@4400 | 427@3200 | 5200 | A4 | 3.06 1.63 1.00 0.70 r2.29 | 3.27 | FR | R:lsd | MS/LA F+R+ | 274V1/D241 | 245/50R16 uhp | 0.33x1.90 | cgh=0.50
+ruiner3 = ruiner ; cp=Pontiac_Firebird_(3rd_gen,_wrecked) power=150@4400 torque=330@3200
+ruiner2 = ruiner ; cp=~Pontiac_Firebird_Trans_Am_(talking_supercar_replica,_armoured) kg=2200 power=380@5800 torque=520@4000
+ruiner4 | ~Pontiac Fiero GT (ZZ-8 restomod) | 1988 | sport/coupe | 1200 | 44 | 2.37 | 1.47/1.49 | V8 6.2N | 430@6000 | 575@4600 | 6600 | M6 | - | 3.42 | MR | R:lsd | DW/MS F+R+ | 330V4/300V2 | 225/40R18 265/35R18 uhp | 0.36x1.85
+greenwood | ~Dodge Diplomat (1985) | 1985 | fam/sedan | 1600 | 56 | 2.86 | 1.52/1.52 | V8 5.2N | 140@3600 | 359@2000 | 4400 | A3 | 2.45 1.45 1.00 r2.20 | 2.94 | FR | R:open | DW/LL F+R- | 276S1/D254 | 205/75R15 tour | 0.45x2.10 | cgh=0.57
+arbitergt | ~Pontiac GTO Judge Ram Air III (1970) | 1970 | muscle/coupe | 1650 | 57 | 2.84 | 1.55/1.52 | V8 6.6N | 366@5100 | 603@3600 | 5600 | M4 | 2.52 1.88 1.46 1.00 r2.59 | 3.55 | FR | R:lsd | DW/LA F+R- | 279S2/D241 | G70-14 bias | 0.46x2.00 | cgh=0.53
+dukes | Dodge Charger R/T 440 (1969) | 1969 | muscle/coupe | 1700 | 57 | 2.97 | 1.52/1.50 | V8 7.2N | 375@4600 | 651@3200 | 5200 | M4 | 2.44 1.77 1.34 1.00 r2.36 | 3.23 | FR | R:lsd | DW/LL F+R- | 279S2/D279 | F70-14 bias | 0.48x2.05 | cgh=0.54
+dukes3 = dukes ; cp=Dodge_Charger_(1969,_beater) power=250@4400 torque=500@2800
+dukes2 = dukes ; cp=Dodge_Charger_(1969,_armoured_Duke_O'Death) kg=2700 power=425@5000 torque=670@3600 tyres=255/70R15_at
+ellie | Ford Mustang Shelby GT500 "Eleanor" (1967) | 1967 | muscle/coupe | 1500 | 57 | 2.74 | 1.47/1.47 | V8 7.0N | 355@5400 | 569@3200 | 5800 | M4 | 2.32 1.69 1.29 1.00 r2.32 | 3.50 | FR | R:lsd | DW/LL F+R- | 287S2/D254 | 225/60R15 255/60R15 tour | 0.46x1.90 | cgh=0.52
+peyote2 | ~Chevrolet Bel Air gasser (1957, blown 427) | 1957 | drag/coupe | 1450 | 58 | 2.92 | 1.50/1.50 | V8 7.0SR0.8 | 650@6200 | 800@4500 | 6800 | A2 | 1.76 1.00 r1.76 | 4.56 | FR | R:spool | LL/LL F-R- | 280S2/D280 | 165/80R15 33x16.00R15 drag | 0.55x2.10 | cgh=0.65
+imperator | ~Arena Imperator (armoured muscle car) | 2018 | arena/coupe | 2600 | 55 | 2.90 | 1.65/1.65 | V8 7.0SR0.8 | 700@6000 | 850@4200 | 6500 | M4 | - | 3.55 | FR | R:lsd | DW/LA F+R+ | 355V4/330V4 | 275/60R17 315/60R17 at | 0.55x2.20 | cgh=0.58
+imperator2 = imperator
+imperator3 = imperator
+buffalo4 | Dodge Charger SRT Hellcat Redeye Widebody | 2021 | mmuscle/sedan | 2050 | 56 | 3.05 | 1.64/1.64 | V8 6.2SW1.0 | 797@6300 | 959@4500 | 6500 | A8 | 4.71 3.14 2.11 1.67 1.29 1.00 0.84 0.67 r3.30 | 2.62 | FR | R:lsd | DW/ML F+R+ | 390V6/350V4 | 305/35R20 sport | 0.37x2.35
+buffalo5 | Dodge Charger Daytona Scat Pack (EV) | 2024 | mmuscle/coupe | 2600 | 51 | 3.07 | 1.66/1.66 | E | 670@6000 | 850@500 | 13000 | E1 | 1.0 | 9.0 | AWD-M:0.40 | F:open R:lsd C:ediff | DW/ML F+R+ | 380V6/350V4 | 305/35R20 sport | 0.32x2.40 | cgh=0.50

@@ -30,6 +30,7 @@ namespace MidnightClub.Physics
             float L = Math.Max(1f, s.Wheelbase), lr = frontPct * L;                     // CoG to rear axle
             float fz0 = massKg * G / (s.Bike ? 2f : 4f);
             float shiftT = year < 1990 ? 0.45f : year < 2008 ? 0.28f : 0.12f; if (s.Bike) shiftT = 0.08f;
+            if (s.Sheet != null && s.Sheet.drivetrain != null && s.Sheet.drivetrain.gearbox != null && s.Sheet.drivetrain.gearbox.shiftMs > 0) shiftT = s.Sheet.drivetrain.gearbox.shiftMs / 1000f;   // the real gearbox's shift time
             float wheelieA = G * lr / Math.Max(0.2f, cgH);
             // ---- standing start
             float v = 0f, x = 0f, time = 0f, a = 0f, shiftLeft = 0f; int gear = 1;

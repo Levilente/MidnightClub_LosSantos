@@ -1,0 +1,71 @@
+winky | Willys MB Jeep | 1943 | off/suv | 1110 | 52 | 2.03 | 1.24/1.24 | I4 2.2N | 60@4000 | 142@2000 | 4400 | M3 | 2.67 1.56 1.00 r3.55 | 4.88 | 4WD:0.50 | F:open R:open C:locked | LL/LL F-R- | D229/D229 | 6.00-16 at | 0.70x2.00 | cgh=0.75 vmax=105
+dloader | ~Ford F-150 4x4 (1985) | 1985 | truck/pickup | 1950 | 56 | 3.30 | 1.65/1.65 | I6 4.9N | 120@3400 | 332@1600 | 4000 | M4 | 6.32 3.09 1.69 1.00 r6.55 | 3.55 | 4WD:0.40 | F:open R:open C:locked | IB/LL F+R- | 297V1/D279 | 235/75R15 at | 0.60x2.70 | cgh=0.80
+verus | Honda TRX450R (sport ATV) | 2015 | buggy/buggy | 165 | 48 | 1.27 | 0.89/0.85 | I1 0.45N | 40@8000 | 40@7000 | 10500 | M5 | 2.69 1.88 1.47 1.18 1.00 r2.69 | 7.0 | FR | R:spool | DW/SM F-R- | 174S2/190S1 | 21x7.00R10 20x11.00R9 knob | 0.55x1.00 | cgh=0.55
+blazer = verus ; cp=Kawasaki_KFX450R_(sport_ATV)
+blazer2 = verus ; cp=Kawasaki_KFX450R_(lifeguard_ATV)
+blazer3 = verus ; cp=Kawasaki_KFX450R_(hot_rod_ATV,_V-twin_swap) engine=V2_1.2N power=100@7000 torque=105@5000 redline=8000 kg=220
+blazer4 = verus ; cp=Kawasaki_KFX450R_(street_ATV) tyres=21x7.00R10_20x11.00R9_at
+blazer5 = verus ; cp=~Amphibious_ATV_(Blazer_Aqua) kg=320
+mesa3 | Jeep Wrangler Rubicon (JK, lifted) | 2013 | off/suv | 2100 | 53 | 2.95 | 1.60/1.60 | V6 3.6N | 285@6400 | 353@4800 | 6600 | A5 | 3.59 2.19 1.41 1.00 0.83 r3.16 | 4.10 | 4WD:0.50 | F:locked R:locked C:locked | LA/LA F+R+ | 302V1/317S1 | 35x12.50R17 mt | 0.62x2.95 | cgh=0.85
+zhaba | ~GAZ-3937 Vodnik (amphibious) | 2018 | off/suv | 6000 | 52 | 3.30 | 1.84/1.84 | V8 5.9T1.0d | 205@2600 | 650@1600 | 3000 | M5 | - | 4.20 | 4WD:0.50 | F:locked R:locked C:locked | DW/DW F+R- | D400/D400 | 12.00R18 mt | 1.20x3.80 | cgh=1.05 vmax=110
+rancherxl | Ford Bronco 351M (1978) | 1978 | off/suv | 2100 | 57 | 2.65 | 1.65/1.65 | V8 5.8N | 156@3800 | 353@2000 | 4400 | A3 | 2.46 1.46 1.00 r2.18 | 3.50 | 4WD:0.50 | F:open R:open C:locked | IB/LL F+R- | 297S1/D279 | 235/75R15 at | 0.62x2.70 | cgh=0.82
+rancherxl2 = rancherxl ; cp=Ford_Bronco_(1978,_snow_tyres)
+menacer | ~Oshkosh M-ATV (armoured) | 2018 | off/suv | 12500 | 50 | 3.80 | 2.10/2.10 | I6 11.0T2.0d | 370@2100 | 1700@1300 | 2400 | A6 | - | 6.0 | 4WD:0.50 | F:locked R:locked C:locked | DW/DW F-R- | D420/D420 | 395/85R20 mt | 2.20x4.20 | cgh=1.30 vmax=105
+patriot3 | Hummer H1 Alpha | 2006 | off/suv | 3500 | 56 | 3.30 | 1.82/1.82 | V8 6.6T1.0d | 300@3000 | 705@1600 | 3600 | A5 | 3.10 1.81 1.41 1.00 0.71 r4.49 | 3.07 | 4WD:0.50 | F:tor R:tor C:locked | DW/DW F-R- | 320V1/320V1 | 37x12.50R17 mt | 0.70x3.60 | cgh=0.90 vmax=125
+sandking | Ford F-250 Super Duty (lifted, V10) | 2005 | truck/pickup | 3200 | 57 | 4.20 | 1.75/1.75 | V10 6.8N | 362@4750 | 624@3250 | 5250 | A5 | 3.11 2.22 1.55 1.00 0.71 r3.11 | 4.10 | 4WD:0.40 | F:open R:lsd C:locked | LA/LL F+R- | 345V1/345V1 | 37x12.50R17 mt | 0.70x3.30 | cgh=1.00
+sandking2 = sandking ; cp=Ford_F-250_Super_Duty_regular_cab_(lifted) kg=2950 wb=3.50
+bruiser | ~Arena Bruiser (armoured 4x4) | 2018 | arena/suv | 4000 | 52 | 3.20 | 1.90/1.90 | V8 7.0SR0.6 | 700@6000 | 900@4000 | 6500 | A4 | - | 4.10 | 4WD:0.50 | F:lsd R:lsd C:locked | DW/LA F+R+ | 355V4/355V4 | 37x12.50R17 mt | 0.80x3.40 | cgh=0.90
+bruiser2 = bruiser
+bruiser3 = bruiser
+insurgent | ~Lenco BearCat (armoured) | 2015 | off/suv | 7500 | 55 | 4.20 | 1.95/1.95 | V8 6.7T1.6d | 330@2800 | 1000@1600 | 3300 | A6 | - | 5.38 | 4WD:0.50 | F:locked R:locked C:locked | LL/LL F-R- | D400/D400 | 325/85R16 mt | 1.40x3.90 | cgh=1.10 vmax=120
+insurgent2 = insurgent
+insurgent3 = insurgent ; cp=~Lenco_BearCat_pick-up_(custom)
+freecrawler | ~Jeep Wrangler-based rock crawler | 2018 | off/suv | 1800 | 50 | 2.90 | 1.75/1.75 | V8 6.2N | 430@5900 | 575@4600 | 6200 | A4 | - | 4.88 | 4WD:0.50 | F:locked R:locked C:locked | LA/LA F-R- | 330V4/330V4 | 37x12.50R17 mt | 0.80x2.90 | cgh=0.85
+rebel2 | Toyota Hilux 4x4 (N50) | 1985 | truck/pickup | 1500 | 57 | 2.85 | 1.42/1.40 | I4 2.4N | 96@4800 | 175@2800 | 5200 | M5 | 3.95 2.33 1.42 1.00 0.86 r4.22 | 4.10 | 4WD:0.50 | F:open R:open C:locked | DW/LL F+R- | 255V1/D254 | 31x10.50R15 at | 0.60x2.50 | cgh=0.80
+rebel = rebel2 ; cp=Toyota_Hilux_(N50,_rusty) power=80@4600 torque=160@2600
+dune2 | ~Space Docker (fictional buggy) | 2014 | buggy/buggy | 900 | 40 | 2.40 | 1.60/1.60 | F4 2.0N | 150@6000 | 180@4000 | 6500 | M4 | - | 4.1 | RR | R:spool | DW/TA F-R- | 250S1/250S1 | 31x10.50R15 knob | 0.75x2.00 | cgh=0.60
+l35 | ~Chevrolet K10 Silverado (1983) | 1983 | truck/pickup | 2000 | 57 | 3.33 | 1.66/1.62 | V8 5.7N | 165@3800 | 373@2400 | 4400 | A3 | 2.52 1.52 1.00 r1.93 | 3.73 | 4WD:0.40 | F:open R:open C:locked | LL/LL F+R- | 300S1/D279 | 235/85R16 at | 0.62x2.70 | cgh=0.82
+l352 = l35 ; cp=~Chevrolet_K10_(1983,_stock_2WD) drive=FR diffs=R:open tyres=235/75R15_tour
+driftl352 = l352 ; cp=~Chevrolet_C10_(1983,_drift_build) char=drift/pickup engine=V8_6.2N power=480@6500 torque=560@4800 redline=7000 box=M6 ratios=- diffs=R:locked susp=DW/ML_F+R+ tyres=255/40R18_275/40R18_drift kg=1650 cgh=0.62
+bfinjection | Meyers Manx (VW dune buggy) | 1970 | buggy/buggy | 650 | 38 | 2.03 | 1.32/1.36 | F4 1.6N | 60@4400 | 110@3000 | 4800 | M4 | 3.80 2.06 1.26 0.89 r3.88 | 4.375 | RR | R:open | TA/SW F-R- | D230/D230 | 165/80R15 235/75R15 at | 0.55x1.60 | cgh=0.55
+dune = bfinjection ; cp=Meyers_Manx_(BF_Dune_Buggy) tyres=165/80R15_31x10.50R15_knob
+bifta = bfinjection ; cp=VW-based_dune_buggy_(Bifta) engine=F4_2.0N power=90@5000 torque=150@3200
+technical | ~Toyota Land Cruiser 79 pickup (technical) | 1995 | truck/pickup | 2300 | 57 | 3.18 | 1.47/1.42 | I6 4.2Nd | 130@3800 | 285@2200 | 4200 | M5 | 4.08 2.29 1.42 1.00 0.85 r4.53 | 4.10 | 4WD:0.50 | F:open R:open C:locked | LA/LL F-R- | 296V1/D295 | 7.50R16 at | 0.75x2.80 | cgh=0.90
+technical2 = technical ; cp=~Toyota_Land_Cruiser_79_(amphibious_technical) kg=2600
+technical3 = technical ; cp=~Toyota_Land_Cruiser_79_(technical_custom) engine=V8_4.5TT1.0d power=268@3600 torque=650@1600
+kalahari | Jeep CJ-5 Renegade (1976) | 1976 | off/suv | 1250 | 55 | 2.13 | 1.31/1.27 | I6 4.2N | 110@3200 | 258@1800 | 4000 | M3 | 2.99 1.75 1.00 r3.17 | 3.73 | 4WD:0.50 | F:open R:open C:locked | LL/LL F-R- | D279/D254 | H78-15 at | 0.70x2.10 | cgh=0.78
+hellion | ~Nissan Patrol Y61 4.8 | 2005 | off/suv | 2500 | 53 | 2.97 | 1.60/1.60 | I6 4.8N | 245@6000 | 422@3600 | 6200 | A5 | 3.83 2.36 1.53 1.00 0.81 r2.86 | 3.70 | 4WD:0.50 | F:open R:lsd C:visc | LA/LA F+R+ | 320V2/320V1 | 275/70R16 at | 0.62x2.95 | cgh=0.85
+kamacho | ~Jeep Gladiator Rubicon (JT) | 2020 | off/pickup | 2300 | 52 | 3.49 | 1.60/1.60 | V6 3.6N | 285@6400 | 353@4800 | 6600 | A8 | 4.71 3.14 2.11 1.67 1.29 1.00 0.84 0.67 r3.30 | 4.10 | 4WD:0.50 | F:locked R:locked C:locked | LA/LA F+R+ | 330V1/342S1 | 285/70R17 mt | 0.62x3.00 | cgh=0.85
+riata | ~Ford Ranger XLT 4x4 (lifted, 1998) | 1998 | truck/pickup | 1750 | 56 | 2.83 | 1.48/1.45 | V6 4.0N | 160@4250 | 305@3000 | 5000 | M5 | 3.40 2.08 1.40 1.00 0.79 r3.21 | 4.10 | 4WD:0.40 | F:open R:open C:locked | DW/LL F+R- | 276V1/D254 | 33x12.50R15 mt | 0.65x2.60 | cgh=0.90
+yosemite4 | ~Chevrolet C1500 Silverado (GMT400) | 1993 | truck/pickup | 1950 | 56 | 3.33 | 1.62/1.62 | V8 5.7N | 210@4000 | 407@2800 | 4800 | A4 | 3.06 1.63 1.00 0.70 r2.29 | 3.42 | FR | R:open | DW/LL F+R- | 300V1/D254 | 235/75R15 tour | 0.55x2.70 | cgh=0.78
+yosemite3 = yosemite4 ; cp=~Chevrolet_K1500_(GMT400,_lifted_4x4_Rancher) drive=4WD:0.40 diffs=F:open_R:lsd_C:locked tyres=33x12.50R15_mt kg=2150 cgh=0.92
+rcbandito | ~1/2-scale RC desert buggy (electric) | 2018 | buggy/buggy | 70 | 45 | 0.95 | 0.75/0.75 | E | 8@15000 | 6@500 | 20000 | E1 | 1.0 | 12.0 | AWD-M:0.50 | F:open R:open C:spool | DW/DW F-R- | 150S1/150S1 | 145/70R10 knob | 0.20x0.40 | cgh=0.20
+caracara | Ford F-150 Raptor (2nd gen) | 2017 | raid/pickup | 2700 | 57 | 3.71 | 1.75/1.75 | V6 3.5TT1.2 | 450@5000 | 691@3500 | 6000 | A10 | 4.70 2.99 2.15 1.80 1.52 1.28 1.00 0.85 0.69 0.64 r4.87 | 4.10 | 4WD:0.40 | F:tor R:lsd C:locked | DW/LL F+R- | 350V2/336V1 | 315/70R17 at | 0.70x3.30 | cgh=0.90
+caracara2 = caracara ; cp=Ford_F-150_Raptor_(2nd_gen,_lifted_4x4) tyres=37x12.50R17_mt kg=2850
+caracara3 = caracara ; cp=Ford_F-150_Raptor_(armoured) kg=3500
+nightshark | ~Lamborghini LM002 (armoured) | 2016 | off/suv | 3700 | 52 | 3.00 | 1.62/1.62 | V12 5.2N | 450@6800 | 500@4500 | 7000 | M5 | - | 4.11 | 4WD:0.50 | F:open R:open C:locked | DW/DW F+R- | 330V4/330V2 | 345/60R17 at | 0.75x3.20 | cgh=0.90
+bodhi2 | ~Jeep Gladiator J-2000 (1971) | 1971 | truck/pickup | 1900 | 56 | 3.07 | 1.55/1.55 | V8 5.9N | 175@4000 | 386@2400 | 4600 | A3 | 2.45 1.45 1.00 r2.20 | 3.73 | 4WD:0.50 | F:open R:open C:locked | LL/LL F-R- | D279/D279 | 235/75R15 at | 0.65x2.70 | cgh=0.85
+dune3 | Chenowth Fast Attack Vehicle | 1990 | buggy/buggy | 960 | 38 | 2.69 | 1.73/1.73 | F4 2.0N | 200@5000 | 270@3500 | 5500 | M4 | - | 4.12 | RR | R:open | DW/TA F-R- | 280V2/280V2 | 31x10.50R15 knob | 0.80x2.20 | cgh=0.65
+dubsta3 | Mercedes-AMG G 63 6x6 | 2013 | off/pickup | 3850 | 40 | 4.22 | 1.86/1.86 | V8 5.5TT1.0 | 544@5500 | 760@2000 | 6400 | A7 | 4.38 2.86 1.92 1.37 1.00 0.82 0.73 r3.42 | 4.38 | 4WD:0.33 | F:locked R:locked C:locked | LA/LA F+R+ | 375V4/375V2 | 37x12.50R18 mt | 0.85x3.50 | cgh=1.00
+boor | ~Toyota Hilux Xtra Cab (N80, lifted) | 1995 | truck/pickup | 1650 | 57 | 3.09 | 1.48/1.45 | I4 2.7N | 150@4800 | 241@4000 | 5400 | M5 | 3.83 2.06 1.36 1.00 0.82 r4.22 | 4.10 | 4WD:0.50 | F:open R:open C:locked | DW/LL F+R- | 276V1/D254 | 33x12.50R15 mt | 0.65x2.60 | cgh=0.90
+brutus | ~Arena Brutus (armoured pickup) | 2018 | arena/pickup | 3800 | 55 | 3.40 | 1.85/1.85 | V8 7.0SR0.6 | 700@6000 | 900@4000 | 6500 | A4 | - | 4.10 | 4WD:0.40 | F:lsd R:lsd C:locked | DW/LA F+R+ | 355V4/355V4 | 37x12.50R17 mt | 0.80x3.30 | cgh=0.92
+brutus2 = brutus
+brutus3 = brutus
+monstrociti | ~Mitsubishi Pajero Mini (kei 4x4, lifted) | 2001 | off/suv | 900 | 57 | 2.28 | 1.27/1.27 | I4 0.66T0.8 | 64@6000 | 98@3500 | 7500 | M5 | - | 5.13 | 4WD:0.50 | F:open R:open C:locked | MS/LA F+R+ | 230V1/D180 | 205/70R15 at | 0.55x1.90 | cgh=0.78
+everon | Toyota Tacoma TRD Pro (3rd gen) | 2019 | off/pickup | 2050 | 55 | 3.24 | 1.61/1.61 | V6 3.5N | 278@6000 | 359@4600 | 6400 | A6 | 3.60 2.09 1.49 1.00 0.69 0.58 r3.73 | 4.30 | 4WD:0.50 | F:open R:locked C:locked | DW/LL F+R- | 320V2/D295 | 265/70R16 at | 0.60x2.80 | cgh=0.85
+terminus | ~Ford Bronco Raptor (6th gen) | 2022 | raid/suv | 2600 | 54 | 2.95 | 1.86/1.86 | V6 3.0TT1.3 | 418@5750 | 597@3500 | 6500 | A10 | 4.70 2.99 2.15 1.80 1.52 1.28 1.00 0.85 0.69 0.64 r4.87 | 4.70 | 4WD:0.50 | F:locked R:locked C:locked | DW/LA F+R+ | 350V2/336V1 | 37x12.50R17 mt | 0.75x3.30 | cgh=0.92
+outlaw | Can-Am Maverick X3 X rs Turbo RR | 2020 | raid/buggy | 730 | 40 | 2.62 | 1.75/1.75 | I3 0.9T1.2 | 195@8000 | 160@6500 | 8500 | C | - | 6.0 | AWD-M:0.40 | F:locked R:spool C:locked | DW/TA F+R- | 262V2/248V2 | 32x10R15 knob | 0.65x1.80 | cgh=0.55
+vagrant = outlaw ; cp=Polaris_RZR_Pro_XP_(UTV) power=181@7500 torque=150@6000
+brawler | Ariel Nomad | 2016 | buggy/buggy | 670 | 42 | 2.47 | 1.65/1.65 | I4 2.4N | 235@7200 | 300@4300 | 7500 | M6 | 2.92 1.81 1.36 1.07 0.89 0.76 r3.00 | 4.76 | MR | R:lsd | DW/DW F-R- | 280V2/280V2 | 235/75R15 at | 0.60x1.60 | cgh=0.55
+marshall | ~Chevrolet monster truck (Marshall, blown 540 V8) | 2015 | off/pickup | 4500 | 47 | 3.50 | 3.00/3.00 | V8 8.8SR1.0 | 1500@7000 | 1700@5000 | 7500 | A2 | 1.76 1.00 r1.76 | 5.38 | 4WD:0.50 | F:locked R:locked C:locked | LA/LA F-R- | 330V4/330V4 | 66x43.00R25 mt | 2.00x3.50 | cgh=1.60
+monster = marshall ; cp=~Ford_monster_truck_(Liberator,_blown_540_V8)
+monster3 = marshall ; cp=~Arena_monster_truck_(Sasquatch) kg=5200
+monster4 = monster3
+monster5 = monster3
+ratel | ~Ford Bronco Badlands (6th gen) | 2021 | off/suv | 2250 | 54 | 2.95 | 1.72/1.72 | V6 2.7TT1.2 | 330@5250 | 563@3100 | 6000 | A10 | 4.70 2.99 2.15 1.80 1.52 1.28 1.00 0.85 0.69 0.64 r4.87 | 4.70 | 4WD:0.50 | F:locked R:locked C:locked | DW/LA F+R+ | 350V2/336V1 | 315/70R17 at | 0.65x3.10 | cgh=0.85
+firebolt | ~Ford Ranger Raptor (P703) | 2023 | raid/pickup | 2450 | 56 | 3.27 | 1.71/1.71 | V6 3.0TT1.2 | 397@5650 | 583@3500 | 6000 | A10 | 4.70 2.99 2.15 1.80 1.52 1.28 1.00 0.85 0.69 0.64 r4.87 | 4.27 | 4WD:0.50 | F:locked R:locked C:ediff | DW/ML F+R+ | 350V2/332V1 | 285/70R17 at | 0.65x3.00 | cgh=0.88
+trophytruck | ~Ford F-150 Trophy Truck (Class 8) | 2016 | raid/pickup | 2700 | 52 | 3.30 | 2.20/2.20 | V8 7.0N | 850@7000 | 850@5500 | 7500 | A3 | 2.48 1.48 1.00 r2.08 | 4.10 | FR | R:spool | DW/LA F+R- | 380V6/380V4 | 39x13.50R17 knob | 0.90x3.40 | cgh=0.85
+trophytruck2 = trophytruck ; cp=~Desert_Raid_trophy_truck_(Class_8)
+draugur | ~Chevrolet Colorado ZR2 Bison (desert raid build) | 2021 | raid/pickup | 2200 | 55 | 3.26 | 1.80/1.80 | V8 6.2N | 500@6000 | 600@4600 | 6400 | A6 | - | 4.10 | 4WD:0.45 | F:locked R:locked C:locked | DW/LA F+R+ | 350V4/330V2 | 35x12.50R17 mt | 0.70x3.00 | cgh=0.88
+dune4 | ~Ramp buggy (stunt vehicle) | 2016 | buggy/buggy | 1300 | 40 | 2.60 | 1.70/1.70 | V8 5.7N | 400@6000 | 500@4000 | 6500 | A3 | - | 4.10 | RR | R:spool | DW/TA F-R- | 300V2/300V2 | 33x12.50R15 knob | 0.80x2.20 | cgh=0.55
+dune5 = dune4

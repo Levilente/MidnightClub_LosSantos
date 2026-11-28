@@ -14,6 +14,9 @@ namespace MidnightClub.Physics
         public int Gears; public string Layout; public float FrontDrive;   // share of drive to the front axle
         public float Kg, FrontPct, CgH, Wheelbase = 2.6f, Track = 1.58f, CdA, ClA, AeroFront = 0.45f, TyreR = 0.33f;
         public int Tyre = -1; public int Year; public string Kind;
+        public SpecSheet Sheet;
+        public string Charger;                 // turbo / supercharger type (sheet), drives spool behaviour              // the vehicle's spec sheet (null: generated from its class)
+        public float TrackRear;
         public bool HasGeo; public float GeoFrontY, GeoRearY, GeoAxleZ;   // wheel positions in model space
         public string LayoutLabel { get { return Bike ? "Chain drive" : FrontDrive >= 0.95f ? "FWD" : FrontDrive > 0.05f ? "AWD" : "RWD"; } }
         public string EngineLabel

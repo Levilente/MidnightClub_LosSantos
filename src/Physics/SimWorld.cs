@@ -311,6 +311,51 @@ namespace MidnightClub.Physics
             bool mid = s.Layout == "MR" || s.Layout == "AWD-M";
             p[210] = wc > 4 ? 1.25f : mid ? 0.9f : s.Layout == "RR" ? 1.02f : heavy ? 1.12f : kind == "Muscle" || kind == "Sedans" ? 1.06f : 1.0f;
             p[211] = wc > 4 ? 0.45f : heavy ? 0.42f : kind == "Super" ? 0.34f : sporty ? 0.36f : 0.38f;
+            // ---- the vehicle's spec sheet: its real chassis, suspension, brakes, differentials and tyres (upgrades on top)
+            var sh = s.Sheet;
+            if (sh != null && sh.suspension != null && sh.suspension.front != null)
+            {
+                var sF = sh.suspension.front; var sR = sh.suspension.rear ?? sF;
+                float lift = 0.08f * level + (coil ? 0.15f : 0f);
+                if (sF.rideHz > 0.3f)
+                {
+                    p[51] = (sF.rideHz + lift) * (float)Math.Sqrt(Math.Max(0.3f, 1f + 0.045f * Vehicles.Setup.TuneValue(rec, 9)));
+                    p[52] = (sR.rideHz + lift) * (float)Math.Sqrt(Math.Max(0.3f, 1f + 0.045f * Vehicles.Setup.TuneValue(rec, 10)));
+                    float dz = coil ? 1.1f : 1f;
+                    if (sF.damping != null) { p[53] = sF.damping.bumpLow * dz * bump; p[54] = sF.damping.bumpHigh * dz * bump; p[55] = sF.damping.reboundLow * dz * reb; p[56] = sF.damping.reboundHigh * dz * reb; p[59] = sF.damping.kneeMs > 0.02f ? sF.damping.kneeMs : 0.15f; }
+                    float barK = (1f + 0.1f * level) * (bars ? 1.15f : 1f) * (1f + 0.045f * (Vehicles.Setup.TuneValue(rec, 7) + Vehicles.Setup.TuneValue(rec, 8)) / 2f);
+                    float aF = sF.arb != null && sF.arb.fitted ? sF.arb.ratioToSprings : bars ? 0.25f : 0f, aR = sR.arb != null && sR.arb.fitted ? sR.arb.ratioToSprings : bars ? 0.15f : 0f;
+                    float sp = 1f + 0.04f * (Vehicles.Setup.TuneValue(rec, 7) - Vehicles.Setup.TuneValue(rec, 8));
+                    p[57] = aF * barK * sp; p[58] = aR * barK / sp;
+                }
+                p[64] = sF.antiPct; p[65] = sR.antiPct;
+                p[66] = sF.travelBumpM * (coil ? 0.85f : 1f); p[67] = sR.travelBumpM * (coil ? 0.85f : 1f);
+                p[195] = (sF.camberDeg + (player && coil ? 0.25f * Vehicles.Setup.TuneValue(rec, 3) : 0f)) * D;
+                p[196] = (sR.camberDeg + (player && coil ? 0.2f * Vehicles.Setup.TuneValue(rec, 4) : 0f)) * D;
+                if (sF.casterDeg > 0.5f) p[197] = (sF.casterDeg + 0.15f * Vehicles.Setup.TuneValue(rec, 6)) * D;
+                p[198] = (sF.toeDeg + 0.05f * Vehicles.Setup.TuneValue(rec, 5)) * D;
+                p[207] = Math.Max(0.0f, sF.rollCentreM + rh * 1.5f); p[208] = Math.Max(0.0f, sR.rollCentreM + rh * 1.5f);
+            }
+            if (sh != null && sh.chassis != null && sh.chassis.inertia != null && sh.chassis.inertia.yawDI > 0.3f) { p[210] = sh.chassis.inertia.yawDI; p[211] = sh.chassis.inertia.rollK; }
+            if (sh != null && sh.brakes != null && sh.brakes.front != null)
+            {   // brake force at the tyres from the real discs and calipers; the brake upgrades and the bias tune on top
+                float rF = L.TyreF != null ? L.TyreF.Radius : L.Gear.TyreR, rR = L.TyreR != null ? L.TyreR.Radius : L.Gear.TyreR, n = s.Bike ? 1f : 2f;
+                float fF = sh.brakes.front.torqueNm * n / rF, fR = sh.brakes.rear.torqueNm * n / rR;
+                p[24] = (fF + fR) * (1f + 0.07f * brakeLvl) * (player ? 1f + 0.03f * Vehicles.Setup.TuneValue(rec, 17) : 1f);
+                p[43] = Math.Max(0.3f, Math.Min(0.85f, fF / Math.Max(1f, fF + fR) + (player ? 0.015f * Vehicles.Setup.TuneValue(rec, 16) : 0f)));
+            }
+            if (sh != null && sh.drivetrain != null && sh.drivetrain.diffs != null && !diff)
+            {   // the factory differentials (the shop's LSD replaces them)
+                var dd = sh.drivetrain.diffs; var da = s.FrontDrive >= 0.95f ? dd.F : dd.R;
+                if (da != null) { p[26] = da.preloadNm; p[27] = da.lockPower; p[28] = da.lockCoast; }
+                if (dd.C != null) { p[29] = Math.Max(20f, dd.C.preloadNm); p[30] = dd.C.lockPower; }
+            }
+            if (L.TyreF != null && L.TyreR != null)
+            {   // tyre construction per axle (staggered sizes)
+                p[4] = L.TyreF.By; p[5] = L.TyreF.Cy; p[6] = L.TyreF.Ey; p[191] = L.TyreF.Relax; p[200] = L.TyreF.Kt;
+                p[46] = L.TyreR.By; p[47] = L.TyreR.Ey; p[48] = L.TyreR.Kt; p[49] = L.TyreR.Relax; p[68] = L.TyreR.MuY / Math.Max(0.1f, L.TyreF.MuY);
+                if (sh != null && sh.tyres != null) { p[199] = sh.tyres.unsprungFrontKg; p[69] = sh.tyres.unsprungRearKg; }
+            }
             // torque curves: full load and off-boost
             for (int i = 0; i < CurveN; i++) { p[92 + i] = L.Engine.Full[i]; p[92 + CurveN + i] = L.Engine.NoBoost[i]; }
             if (L.Engine.Ind == Induction.Supercharged)

@@ -45,6 +45,7 @@ namespace MidnightClub
                 catch (Exception ex) { Log.Error("Camera files", ex); }
                 Log.Init(dir);
                 Log.Info("Game file version " + Game.FileVersion + ", Enhanced=" + Game.isEnhanced);
+                Physics.SpecDb.Load(Path.Combine(dir, "data"));
                 cfg = Config.Load(dir);
                 saves = new SaveManager(dir, cfg.BackupCount);
                 vehicles = new VehicleManager();

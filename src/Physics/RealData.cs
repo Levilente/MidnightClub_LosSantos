@@ -121,6 +121,8 @@ namespace MidnightClub.Physics
             if (cache.TryGetValue(hash, out c)) return c.Bike || c.Ind == Induction.Electric ? stockGears : c.Gears;
             var info = VehicleRegistry.Instance != null ? VehicleRegistry.Instance.Get(hash) : null;
             if (info == null) return stockGears;
+            var sh = SpecDb.Get(info.Id);
+            if (sh != null) return sh.Bike ? stockGears : Math.Max(1, Math.Min(10, sh.drivetrain.gearbox.gears));
             if (curated.TryGetValue(info.Id, out c)) return c.Bike ? stockGears : c.Gears;
             if (Electric.Contains(info.Id) || new Model(hash).IsBike || stockGears <= 1) return stockGears;
             int year = Era.Year(info);
@@ -134,22 +136,49 @@ namespace MidnightClub.Physics
             int hash = car.Model.Hash;
             CarSpec s; if (cache.TryGetValue(hash, out s)) return s;
             var info = VehicleRegistry.Instance != null ? VehicleRegistry.Instance.Get(hash) : null;
-            string id = info != null ? info.Id : car.DisplayName.ToLowerInvariant();
+            string id = info != null ? info.Id : Enum.IsDefined(typeof(VehicleHash), (uint)hash) ? ((VehicleHash)(uint)hash).ToString().ToLowerInvariant() : car.DisplayName.ToLowerInvariant();
             int year = Era.Year(info);
             CarSpec c;
             var h = car.HandlingData;
-            if (curated.TryGetValue(id, out c)) s = Clone(c);
+            var sheet = SpecDb.Get(id);
+            if (sheet != null) { s = FromSheet(sheet); year = s.Year; }
+            else if (curated.TryGetValue(id, out c)) s = Clone(c);
             else s = Generate(id, info, h, car, year);
             s.Year = year;
             if (s.Kind == null) s.Kind = car.Model.IsBike ? "Bike" : info != null ? info.Class.ToString() : "Sedans";
             // geometry from the model: wheelbase and track
             try { Geometry(car, s); } catch { }
-            if (s.Tyre < 0 && !s.Bike) s.Tyre = Tyres.Factory(year, s.Layout != null && (s.Layout == "MR" || s.Layout == "AWD-M") && s.Hp / Math.Max(1f, s.Kg) * 1000f > 350f ? "Super" : s.Kind == "OffRoad" ? "OffRoad" : s.Kind, s.Hp / Math.Max(1f, s.Kg) * 1000f);
-            if (s.Bike) s.Tyre = id.StartsWith("sanchez") || id == "manchez" || id == "bf400" || id == "esskey" ? Tyres.Knobbly : Tyres.BikeSport;
+            if (s.Tyre < 0 && !s.Bike && s.Sheet == null) s.Tyre = Tyres.Factory(year, s.Layout != null && (s.Layout == "MR" || s.Layout == "AWD-M") && s.Hp / Math.Max(1f, s.Kg) * 1000f > 350f ? "Super" : s.Kind == "OffRoad" ? "OffRoad" : s.Kind, s.Hp / Math.Max(1f, s.Kg) * 1000f);
+            if (s.Bike && s.Sheet == null) s.Tyre = id.StartsWith("sanchez") || id == "manchez" || id == "bf400" || id == "esskey" ? Tyres.Knobbly : Tyres.BikeSport;
             cache[hash] = s;
-            Core.Log.Info("Spec " + id + (s.Curated ? " (real data)" : " (generated)") + ": " + s.Hp.ToString("0") + " hp @" + s.HpRpm + ", " + s.Nm.ToString("0") + " Nm @" + s.NmRpm + ", " + s.EngineLabel + ", " + s.Gears + "-speed " + s.LayoutLabel
+            Core.Log.Info("Spec " + id + (s.Sheet != null ? " (sheet: " + s.Sheet.counterpart.name + (s.Sheet.counterpart.estimated ? ", estimated" : "") + ")" : s.Curated ? " (real data)" : " (generated)") + ": " + s.Hp.ToString("0") + " hp @" + s.HpRpm + ", " + s.Nm.ToString("0") + " Nm @" + s.NmRpm + ", " + s.EngineLabel + ", " + s.Gears + "-speed " + s.LayoutLabel
                 + ", " + s.Kg.ToString("0") + " kg, " + (s.FrontPct * 100f).ToString("0") + "% front, CoG " + s.CgH.ToString("0.00") + " m, CdA " + s.CdA.ToString("0.00") + ", ClA " + s.ClA.ToString("0.00") + ", tyres " + Tyres.Types[s.Tyre].Name);
             return s;
+        }
+
+        /// <summary>The physics spec from a vehicle's sheet: the real counterpart's figures.</summary>
+        public static CarSpec FromSheet(SpecSheet sh)
+        {
+            var e = sh.engine; var ch = sh.chassis; var d = sh.drivetrain;
+            var s = new CarSpec { Id = sh.id, Curated = true, Sheet = sh, Bike = sh.Bike };
+            s.Hp = e.powerHp; s.HpRpm = e.powerRpm; s.Nm = e.torqueNm; s.NmRpm = e.torqueRpm; s.Redline = e.redline; s.Idle = e.idle > 300 ? e.idle : 850f;
+            s.Ind = e.induction == "electric" ? Induction.Electric : e.induction == "turbo" ? Induction.Turbo : e.induction == "supercharged" ? Induction.Supercharged : Induction.NA;
+            s.Boost = e.boostBar; s.Charger = e.chargerType; s.Litres = e.litres; s.Cyl = e.cyl; s.Engine = e.code ?? (e.layout == "rotary" ? "R" : ""); s.Diesel = e.diesel; s.Hybrid = e.hybrid;
+            s.Gears = Math.Max(1, Math.Min(10, d.gearbox.gears));
+            s.Layout = sh.Bike ? "Bike" : d.layout == "4WD" ? "AWD-F" : d.layout;
+            s.FrontDrive = d.layout == "FF" ? 1f : d.frontShare;
+            s.Kg = ch.massKg; s.FrontPct = ch.frontPct / 100f; s.CgH = ch.cgHeightM; s.Wheelbase = ch.wheelbaseM; s.Track = ch.trackFrontM; s.TrackRear = ch.trackRearM;
+            s.CdA = sh.aero.cdA; s.ClA = sh.aero.clA; s.AeroFront = sh.aero.balanceFront;
+            s.TyreR = sh.tyres.rear.radiusM > 0.15f ? sh.tyres.rear.radiusM : 0.33f;
+            s.Tyre = TyreType(sh.tyres.front.compound);
+            s.Year = sh.counterpart.year > 1900 ? sh.counterpart.year : 2010;
+            s.Kind = sh.Bike ? "Bike" : sh.gtaClass;
+            return s;
+        }
+        private static int TyreType(string k)
+        {
+            switch (k) { case "bias": return Tyres.Vintage; case "uhp": return Tyres.Uhp; case "sport": return Tyres.Sport; case "semi": return Tyres.Semi; case "slick": return Tyres.Slick; case "drift": return Tyres.Drift;
+                case "drag": return Tyres.Drag; case "bsport": case "btour": return Tyres.BikeSport; case "btrack": return Tyres.BikeTrack; case "knob": case "mt": return Tyres.Knobbly; default: return Tyres.Touring; }
         }
 
         private static CarSpec Clone(CarSpec c) { return (CarSpec)c.GetType().GetMethod("MemberwiseClone", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).Invoke(c, null); }
@@ -167,10 +196,10 @@ namespace MidnightClub.Physics
             if (lf.HasValue && lr.HasValue)
             {
                 float wb = Math.Abs(lf.Value.Y - lr.Value.Y);
-                if (wb > 1.0f && wb < 6f && !s.Curated) s.Wheelbase = wb;
+                if (wb > 1.0f && wb < 6f && !s.Curated && s.Sheet == null) s.Wheelbase = wb;
                 s.GeoFrontY = lf.Value.Y; s.GeoRearY = lr.Value.Y; s.GeoAxleZ = (lf.Value.Z + lr.Value.Z) * 0.5f; s.HasGeo = true;
             }
-            if (lf.HasValue && rf.HasValue) { float t = Math.Abs(lf.Value.X - rf.Value.X); if (t > 0.8f && t < 3f) s.Track = t; }
+            if (lf.HasValue && rf.HasValue && s.Sheet == null) { float t = Math.Abs(lf.Value.X - rf.Value.X); if (t > 0.8f && t < 3f) s.Track = t; }
         }
 
         // ------------------------------------------------------------------ generator

@@ -101,6 +101,17 @@ namespace MidnightClub.Physics
             }
             // the installed induction
             Induction ind = s.Ind; float bar = facBoost; float spoolLo = s.Redline * 0.2f, spoolHi = nmRpm; float tau = s.Diesel ? 0.7f : 0.5f;
+            switch (s.Charger ?? "")
+            {   // the factory charger's own character
+                case "single turbo": tau = s.Diesel ? 0.7f : 0.6f; break;
+                case "twin turbo": tau = 0.42f; break;
+                case "twin-scroll turbo": tau = 0.45f; spoolHi = nmRpm * 0.95f; break;
+                case "sequential twin turbo": tau = 0.35f; spoolLo = s.Redline * 0.15f; break;
+                case "quad turbo": tau = 0.38f; break;
+                case "electric-assisted turbo": tau = 0.18f; spoolLo = s.Idle; break;
+                case "turbo + supercharger": tau = 0.25f; spoolLo = s.Idle; break;
+                case "centrifugal supercharger": spoolLo = s.Idle; spoolHi = s.Redline * 0.9f; break;
+            }
             bool keepFactory = true;
             if (s.Ind != Induction.Electric)
             {
@@ -189,6 +200,18 @@ namespace MidnightClub.Physics
             var g = new Gearing { Gears = Math.Max(1, gears), TyreR = s.TyreR, RaceBox = Setup.Has(r, "gearbox") };
             g.Efficiency = s.Bike ? 0.92f : s.FrontDrive >= 0.95f ? 0.90f : s.FrontDrive > 0.05f ? 0.83f : 0.88f;
             g.Ratios = new float[g.Gears];
+            var sb = s.Sheet != null && s.Sheet.drivetrain != null ? s.Sheet.drivetrain.gearbox : null;
+            if (sb != null && sb.ratios != null && sb.ratios.Length > 0 && !(g.RaceBox && g.Gears == 6))
+            {   // the real gearbox: its own ratios and final drive (spread over GTA's gear count if that differs)
+                g.Efficiency = s.Sheet.drivetrain.efficiency > 0.5f ? s.Sheet.drivetrain.efficiency : g.Efficiency;
+                int n = sb.ratios.Length;
+                for (int i = 0; i < g.Gears; i++) g.Ratios[i] = g.Gears == n ? sb.ratios[i] : sb.ratios[g.Gears == 1 ? 0 : (int)Math.Round(i * (n - 1) / (float)(g.Gears - 1))];
+                g.Final = sb.finalDrive > 0.5f ? sb.finalDrive : 3.5f;
+                g.BaseFinal = g.Final; g.BaseRatios = (float[])g.Ratios.Clone();
+                g.Final *= 1f - 0.02f * Setup.TuneValue(r, Setup.FinalDriveIndex);
+                if (Setup.Has(r, "gearbox2")) for (int i = 0; i < g.Gears && i < 6; i++) g.Ratios[i] *= 1f - 0.03f * Setup.TuneValue(r, Setup.GearIndex0 + i);
+                return g;
+            }
             if (g.RaceBox && g.Gears == 6) Array.Copy(Close6, g.Ratios, 6);
             else if (g.Gears == 1) g.Ratios[0] = 1f;
             else

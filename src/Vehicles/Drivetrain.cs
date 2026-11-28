@@ -21,6 +21,7 @@ namespace MidnightClub.Vehicles
         public sealed class Live
         {
             public string Key, CalKey; public CarSpec Spec; public EngineState Engine; public Gearing Gear; public Tyres.Mf Tyre; public PerfResult Perf;
+            public Physics.TyrePhys.Result TyreF, TyreR;   // per-axle tyre physics from the spec sheet (size, construction, compound)
             public float Mass, Cda, Cla, AeroFront, S0Top = 1f;   // S0Top: first guess of GTA's top-gear speed per flat-velocity unit
             public int Gears { get { return Gear.Gears; } }
             public float[] Ratios { get { return Gear.Ratios; } }
@@ -57,6 +58,18 @@ namespace MidnightClub.Vehicles
             float w = Setup.Has(r, "weight3") ? 0.88f : Setup.Has(r, "weight2") ? 0.92f : Setup.Has(r, "weight1") ? 0.96f : 1f;
             L.Mass = (s.Curated ? s.Kg : stockMass) * w + (s.Bike ? 75f : 0f);
             L.Tyre = Tyres.ForCompound(compound, s.Tyre, s.Bike);
+            if (s.Sheet != null && s.Sheet.tyres != null && s.Sheet.tyres.front != null)
+            {   // the real tyre sizes: each axle's construction with the fitted compound
+                var sh = s.Sheet; string kind = sh.kind ?? "car";
+                string kF = compound == 0 ? sh.tyres.front.compound : Physics.TyrePhys.KeyOf(L.Tyre.Id), kR = compound == 0 ? sh.tyres.rear.compound : kF;
+                float fzF = L.Mass * 9.81f * s.FrontPct / (s.Bike ? 1f : 2f), fzR = L.Mass * 9.81f * (1f - s.FrontPct) / (s.Bike ? 1f : 2f);
+                L.TyreF = Physics.TyrePhys.Compute(sh.tyres.front, kF, fzF, kind); L.TyreR = Physics.TyrePhys.Compute(sh.tyres.rear, kR, fzR, kind);
+                var m = (Tyres.Mf)typeof(Tyres.Mf).GetMethod("MemberwiseClone", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).Invoke(L.Tyre, null);
+                Physics.TyrePhys.Comp cp; Physics.TyrePhys.Comps.TryGetValue(kF, out cp);
+                m.By = L.TyreF.By; m.Cy = L.TyreF.Cy; m.Ey = L.TyreF.Ey; m.MuY = L.TyreF.MuY; m.MuX = L.TyreF.MuX; m.Relax = L.TyreF.Relax; m.PeakDeg = L.TyreF.PeakDeg;
+                if (cp != null) { m.TOpt = cp.TOpt; m.TWin = cp.TWin; if (compound == 0) m.Name = cp.Name; }
+                L.Tyre = m;
+            }
             L.Gear = Gearing.Build(s, L.Engine, r, gears, L.Mass, L.Tyre);
             // aero: the adjustable kit (splitter + wing) adds downforce, balance and drag
             L.Cda = s.CdA; L.Cla = s.ClA; L.AeroFront = s.AeroFront;
