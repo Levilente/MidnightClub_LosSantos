@@ -187,7 +187,10 @@ namespace MidnightClub.Physics
     /// adjustable gearbox) every gear can be tuned.</summary>
     public sealed class Gearing
     {
-        public int Gears; public float[] Ratios, BaseRatios; public float Final, BaseFinal, TyreR, Efficiency; public bool RaceBox;
+        public int Gears; public float[] Ratios, BaseRatios, Full;   // Full: every real gear (own gearbox), Ratios: spread over GTA's gear count
+        public int FullGears { get { return Full != null ? Full.Length : Gears; } }
+        public float FullOverall(int gear) { if (Full == null) return Overall(gear); int g = Math.Max(1, Math.Min(Full.Length, gear)); return Full[g - 1] * Final; }
+        public float Final, BaseFinal, TyreR, Efficiency; public bool RaceBox;
         public float Overall(int gear) { int g = Math.Max(1, Math.Min(Gears, gear)); return Ratios[g - 1] * Final; }
         /// <summary>Speed (m/s) at an rpm in a gear.</summary>
         public float Speed(int gear, float rpm) { return rpm * 2f * (float)Math.PI / 60f * TyreR / Overall(gear); }
@@ -210,6 +213,8 @@ namespace MidnightClub.Physics
                 g.BaseFinal = g.Final; g.BaseRatios = (float[])g.Ratios.Clone();
                 g.Final *= 1f - 0.02f * Setup.TuneValue(r, Setup.FinalDriveIndex);
                 if (Setup.Has(r, "gearbox2")) for (int i = 0; i < g.Gears && i < 6; i++) g.Ratios[i] *= 1f - 0.03f * Setup.TuneValue(r, Setup.GearIndex0 + i);
+                g.Full = new float[Math.Min(11, n)];
+                for (int i = 0; i < g.Full.Length; i++) g.Full[i] = sb.ratios[i] * (Setup.Has(r, "gearbox2") && i < 6 ? 1f - 0.03f * Setup.TuneValue(r, Setup.GearIndex0 + i) : 1f);
                 return g;
             }
             if (g.RaceBox && g.Gears == 6) Array.Copy(Close6, g.Ratios, 6);
@@ -233,6 +238,7 @@ namespace MidnightClub.Physics
             g.BaseFinal = g.Final; g.BaseRatios = (float[])g.Ratios.Clone();
             g.Final *= 1f - 0.02f * Setup.TuneValue(r, Setup.FinalDriveIndex);
             if (Setup.Has(r, "gearbox2")) for (int i = 0; i < g.Gears && i < 6; i++) g.Ratios[i] *= 1f - 0.03f * Setup.TuneValue(r, Setup.GearIndex0 + i);
+            g.Full = (float[])g.Ratios.Clone();
             return g;
         }
     }

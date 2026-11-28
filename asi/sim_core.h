@@ -39,7 +39,7 @@ typedef struct
                                                                               body inertia targets: yaw radius of gyration / half wheelbase, roll radius of gyration / track */
     float ownBox, boxType, shiftT, tcStall, manual, peakHpRpm, cvtLow, cvtHigh;   /* 212..219 own gearbox: type 1 manual 2 torque-converter auto 3 dual clutch 4 sequential 5 automated manual 6 CVT 7 single speed; shift time (s); converter stall torque ratio; player shifts by hand; CVT overall ratio range */
     float brakeOn, brakeFade, brakeMassF, brakeMassR, ackermann, bumpCamF, bumpCamR, bumpToeF;   /* 220..227 brake heat: fade starts at (C), disc mass per wheel (kg); Ackermann share; camber / toe change per metre of bump (rad/m) */
-    float pad228, pad229;
+    float clutchReq, pad229;                                                      /* 228: the gearbox needs the clutch pedal to shift cleanly (H-pattern manual, clutch mode) */
     float dmgToe[MAXW];                                                          /* 230..239 misalignment from crash damage (rad) */
 } VParams;
 #define VP_N ((int)(sizeof(VParams) / 4))
@@ -71,7 +71,7 @@ typedef struct
     double sErr, sMag; LONG sN; int strutOk, strutBad; float M[12]; int Mok; float bodyMass;
     LONG steps, own;
     int gOwn; float shT, sinceShift, cvtR; volatile LONG shiftReq;
-    int sel, pedOwn, revReq; float pThr, pBrk, thrAvg;   /* selector (P R N D S), the player's own pedals, manual reverse */   /* own gearbox: gear, shift timer, time since the last shift, CVT ratio, requested manual shift */
+    int sel, pedOwn, revReq, gM; float pThr, pBrk, thrAvg, pClutch;   /* ...; manual position (-1 R, 0 N, 1..), clutch pedal */   /* selector (P R N D S), the player's own pedals, manual reverse */   /* own gearbox: gear, shift timer, time since the last shift, CVT ratio, requested manual shift */
     float iGta[3], iTgt[3], iInv[3];
     int clampN[2]; float tLearn[2];   /* where GTA's wheel really stops: its compression held bit-exact step after step above the ride height */   /* body inertia GTA uses / our target (roll, pitch, yaw), per principal axis the factor on our torques */
 } Veh;
@@ -586,7 +586,8 @@ static void vehStep(Veh *v, u64 *wp, int nw, float dt)
     float tqMul = 1.0f;
     if (p->ownBox > 0.5f && p->bike < 0.5f && ng >= 1)
     {
-        int bt = (int)p->boxType, gtaG = gear, sel = v->pedOwn ? v->sel : 3, ped = v->pedOwn;   /* selector: 0 P, 1 R, 2 N, 3 D, 4 S (AI and traffic: D, GTA picks reverse) */
+        int bt = (int)p->boxType, gtaG = gear, sel = v->pedOwn ? v->sel : 3, ped = v->pedOwn;
+        int man = ped && sel >= 5, needCl = ped && sel == 6;            /* manual stepping R N 1 2 3 ...; H-pattern box that wants the clutch */   /* selector: 0 P, 1 R, 2 N, 3 D, 4 S (AI and traffic: D, GTA picks reverse) */
         float wd = 0; int nw2 = 0; for (int i = 0; i < nw; i++) if (p->driven[i] > 0.5f) { wd += v->ws[i].w; nw2++; }
         wd = nw2 ? wd / nw2 : 0;
         float tR = p->tyreR > 0.1f ? p->tyreR : 0.33f, kR = Rg / tR * RPM_W;
@@ -597,9 +598,10 @@ static void vehStep(Veh *v, u64 *wp, int nw, float dt)
         v->thrAvg += (thr - v->thrAvg) * (dt / 0.6f > 1 ? 1 : dt / 0.6f);
         int rev = 0, neutral = 0;
         if (!v->pedOwn) rev = gtaG <= 0 && v->vxB < 1.5f;                          /* AI / traffic: GTA's own reverse */
-        else if (p->manual < 0.5f) { rev = sel == 1; neutral = sel == 0 || sel == 2; if (sel == 0) { brk = 1; hand = 1; } }
-        else rev = v->gOwn == 1 && v->revReq;                                       /* manual: below first is reverse */
-        if (rev || neutral) { if (fabsf(v->vxB) < 3.0f) v->gOwn = 1; }
+        else if (!man) { rev = sel == 1; neutral = sel == 0 || sel == 2; if (sel == 0) { brk = 1; hand = 1; } }
+        else { rev = v->gM < 0; neutral = v->gM == 0; }                            /* manual: R N 1 2 3 ... */
+        if ((rev || neutral) && !man) { if (fabsf(v->vxB) < 3.0f) v->gOwn = 1; }
+        if (man && v->pedOwn && v->shT <= 0 && (rev || neutral)) { int req0 = (int)InterlockedExchange(&v->shiftReq, 0); if (req0 > 0) { v->gM++; v->shT = 0.15f; } else if (req0 < 0 && v->gM == 0 && fabsf(v->vxB) < 2.0f) { v->gM = -1; v->shT = 0.15f; } }
         else if (bt == 6 && p->cvtLow > 0.5f && p->cvtHigh > 0.1f)
         {   /* CVT: holds the engine where the throttle asks for, between the ratio ends */
             float want = idl + (pk - idl) * (sel == 4 ? 0.55f + 0.45f * thr : 0.2f + 0.8f * thr);
@@ -613,11 +615,24 @@ static void vehStep(Veh *v, u64 *wp, int nw, float dt)
         {
             int g = v->gOwn, req = (int)InterlockedExchange(&v->shiftReq, 0);
             float rpm = RPMG(g);
-            if (p->manual > 0.5f)
-            {   /* by hand; the box refuses a downshift that would over-rev; down from first = reverse (stopped) */
-                if (req > 0) { if (v->revReq) v->revReq = 0; else if (g < ng) g++; }
-                else if (req < 0) { if (g > 1 && RPMG(g - 1) < red * 1.02f) g--; else if (g == 1 && fabsf(v->vxB) < 2.0f) v->revReq = 1; }
-                if (rpm > red * 1.04f && g < ng && bt != 1 && bt != 4) g++;          /* automated boxes protect the engine */
+            if (man)
+            {   /* by hand: R N 1 2 3 ...; the box refuses a downshift that would over-rev; R only when (nearly) stopped */
+                int m = v->gM;
+                if (req > 0 && m < ng) m++;
+                else if (req < 0)
+                {
+                    if (m > 1) { if (RPMG(m - 1) < red * 1.02f) m--; }
+                    else if (m == 1) m = 0;
+                    else if (m == 0 && fabsf(v->vxB) < 2.0f) m = -1;
+                }
+                if (m >= 1 && rpm > red * 1.04f && m < ng && bt != 1 && bt != 4) m++;   /* automated boxes protect the engine */
+                if (m != v->gM)
+                {
+                    float st = p->shiftT > 0.01f ? p->shiftT : 0.3f;
+                    if (needCl && v->pClutch < 0.5f && m >= 1 && v->gM >= 1) st *= 3.0f;   /* no clutch: a slow, graunchy shift */
+                    v->gM = m; v->shT = st; v->sinceShift = 0;
+                }
+                g = m >= 1 ? m : 1;
             }
             else
             {   /* automatic: shift points from throttle (S holds gears longer), hysteresis so it never hunts */
@@ -631,7 +646,8 @@ static void vehStep(Veh *v, u64 *wp, int nw, float dt)
                 else if (v->sinceShift > 0.4f && g > 1 && thr > 0.92f && thr - v->thrAvg > 0.25f && RPMG(g - 1) < red * 0.88f) g--;   /* kick-down: a sudden full throttle */
                 else if (v->sinceShift > 0.6f && g > 1 && brk > 0.3f && rpm < red * 0.4f && RPMG(g - 1) < red * 0.75f) g--;        /* braking into a corner */
             }
-            if (g != v->gOwn) { v->gOwn = g; v->shT = p->shiftT > 0.01f ? p->shiftT : 0.3f; v->sinceShift = 0; }
+            if (g != v->gOwn && !man) { v->gOwn = g; v->shT = p->shiftT > 0.01f ? p->shiftT : 0.3f; v->sinceShift = 0; }
+            else if (man) v->gOwn = g;
         }
         if (v->shT > 0) v->shT -= dt;
         gear = rev ? 0 : v->gOwn;
@@ -643,7 +659,8 @@ static void vehStep(Veh *v, u64 *wp, int nw, float dt)
         }
         else clutch = 1.0f;
         if (bt == 2 && gear == 1 && !neutral) { float ws = fabsf(wd) * fabsf(ratio) * kR, er = v->engW * RPM_W; if (er > ws + 50) { float sl = 1 - ws / er; if (sl < 0) sl = 0; tqMul *= 1 + ((p->tcStall > 1 ? p->tcStall : 2.0f) - 1) * sl; } }
-        *(short *)(veh + 0x880) = (short)gear; *(short *)(veh + 0x882) = (short)gear;
+        if (v->pedOwn && v->pClutch > 0.05f) { float cp = 1.0f - v->pClutch; if (cp < clutch) clutch = cp; }   /* clutch pedal */
+        { short hg = *(short *)(veh + 0x886); short gw = (short)(gear > hg && hg > 0 ? hg : gear); *(short *)(veh + 0x880) = gw; *(short *)(veh + 0x882) = gw; }
         #undef RPMG
     }
     if (hand > 0.5f && thr > 0.1f && p->bike < 0.5f) clutch = 0.0f;                 /* handbrake + throttle: clutch in (rev up, drift entries) */

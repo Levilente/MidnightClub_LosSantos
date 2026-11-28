@@ -1,4 +1,11 @@
 # Changelog
+
+## 0.63.0
+- Real gearbox is always on, with three modes (Driving settings → Gearbox): Automatic (GTA-like: throttle goes, brake brakes, keep braking at a standstill to reverse; brake is the throttle in reverse), Manual (the gears the car really has: manual / DCT / sequential / automated manual R-N-1-2-3..., automatic cars P-R-N-D-S selector with D1/S3 on the HUD), Manual w/ clutch (H-pattern cars need LB / L1 / Left Alt held while shifting, otherwise slow, rough shifts).
+- Own gearbox uses every real gear from the spec sheet (e.g. Jubilee's 8-speed), not the set squeezed into GTA's gear count – fixes the huge 2→3 gap and weak pull in 3rd.
+- Shift buttons read through the frontend controls (Circle/B up, Square/X down), cinematic camera, duck, weapon wheel and radio wheel blocked in the car.
+- Manual mode starts in 1st, shows N/R on the HUD; clutch pedal opens the clutch (revving).
+
 ## 0.62.0 (2026-11-28)
 - Gearbox fixes: the automatic was hunting (the Jubilee threw gears around). GTA briefly reports gear 0 during its own shifts and we took that as reverse and dropped to first; the shift points had no hysteresis. Now: an upshift only happens if the next gear stays well above the downshift point, downshifts wait 0.9 s after a shift, kick-down needs a sudden full throttle, and GTA's reverse is only followed for AI and traffic.
 - Selector P R N D S (Driving > Manual gearbox off): Square / Left Shift moves it forward, Circle / Left Ctrl back; P and R only when (nearly) stopped; P holds the car, N frees the engine, S holds gears longer and shifts near the redline. The pedals go straight to the gearbox: braking at a standstill in D no longer reverses, R drives backwards with the throttle. The HUD shows the selector and gear (D4, S3, R, N, P).

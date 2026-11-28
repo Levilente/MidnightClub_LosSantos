@@ -427,44 +427,62 @@ namespace MidnightClub.Physics
         // Automatic mode: Square / Left Shift moves the selector P R N D S forward, Circle / Left Ctrl back (P and R only
         // when nearly stopped). Manual mode: Circle / Left Shift up, Square / Left Ctrl down (down from first = reverse).
         // The pedals go straight to the gearbox (no GTA brake-to-reverse); neutral or handbrake + throttle revs the engine.
-        private bool kUp, kDn; private int sel = 3, selCar;
+        private bool kUp, kDn; private int sel = 3, selCar; private float revHold;
         public static readonly string[] SelNames = { "P", "R", "N", "D", "S" };
         public int Selector { get { return sel; } }
         public bool OwnBoxOn { get { return cfg.OwnGearbox; } }
-        public bool ManualMode { get { return cfg.ManualShift; } }
+        /// <summary>The player steps through the gears himself (manual mode on a manual, dual-clutch, sequential or automated manual box)</summary>
+        public bool ManualMode { get { return cfg.GearMode > 0 && SteppedBox; } }
+        /// <summary>Manual mode on an automatic car: the player moves the P-R-N-D-S selector</summary>
+        public bool SelectorMode { get { return cfg.GearMode > 0 && !SteppedBox; } }
+        private static bool SteppedBox { get { int b = SimWorld.PlayerBox; return b == 1 || b == 3 || b == 4 || b == 5; } }
+        private static bool Pressed(int group, Control c) { return Function.Call<bool>(Hash.IS_DISABLED_CONTROL_JUST_PRESSED, group, (int)c); }
         private void ManualShifting(Vehicle car)
         {
-            if (!cfg.OwnGearbox || !Native.DriveActive || car.Model.IsBike) return;
-            if (car.Handle != selCar) { selCar = car.Handle; sel = 3; }
+            if (!Native.DriveActive || car.Model.IsBike) return;
+            if (car.Handle != selCar) { selCar = car.Handle; sel = cfg.GearMode > 0 && !SteppedBox ? 0 : 3; revHold = 0; }
             bool pad = Game.LastInputMethod == InputMethod.GamePad;
-            if (pad)
-            {
-                foreach (var c in new[] { Control.VehicleCinCam, Control.VehicleDuck, Control.VehicleSelectNextWeapon, Control.VehicleSelectPrevWeapon, Control.SelectWeapon, Control.VehicleAim })
-                    Function.Call(Hash.DISABLE_CONTROL_ACTION, 0, (int)c, true);
-            }
-            bool circle = pad && Function.Call<bool>(Hash.IS_DISABLED_CONTROL_JUST_PRESSED, 0, (int)Control.VehicleCinCam);
-            bool square = pad && Function.Call<bool>(Hash.IS_DISABLED_CONTROL_JUST_PRESSED, 0, (int)Control.VehicleDuck);
+            // Circle / B and Square / X are the shift buttons: no cinematic camera, no weapon wheel, no ducking; LB / L1 the clutch
+            foreach (var c in new[] { Control.VehicleCinCam, Control.VehicleDuck, Control.VehicleSelectNextWeapon, Control.VehicleSelectPrevWeapon,
+                                      Control.SelectWeapon, Control.VehicleAim, Control.VehicleRadioWheel })
+                if (pad || c == Control.VehicleCinCam || c == Control.VehicleDuck) Function.Call(Hash.DISABLE_CONTROL_ACTION, 0, (int)c, true);
+            bool up = pad && (Pressed(2, Control.FrontendCancel) || Pressed(0, Control.VehicleCinCam));
+            bool dn = pad && (Pressed(2, Control.FrontendX) || Pressed(0, Control.VehicleDuck));
             bool ku = Game.IsKeyPressed(System.Windows.Forms.Keys.LShiftKey), kd = Game.IsKeyPressed(System.Windows.Forms.Keys.LControlKey);
-            bool kbUp = ku && !kUp, kbDn = kd && !kDn; kUp = ku; kDn = kd;
-            float spd = car.Speed;
-            if (cfg.ManualShift)
-            {
-                if (circle || kbUp) SimWorld.Shift(car, 1); else if (square || kbDn) SimWorld.Shift(car, -1);
-            }
-            else
-            {
-                int dir = square || kbUp ? 1 : circle || kbDn ? -1 : 0;
-                if (dir != 0)
-                {
-                    int n = (sel + dir + 5) % 5;
-                    if ((n == 0 || n == 1) && spd > 1.5f) n = dir > 0 ? 2 : 3;                         // P / R only when (nearly) stopped
-                    if (sel == 1 && n == 0 && spd > 1.5f) n = sel;
-                    sel = n;
-                }
-            }
+            if (ku && !kUp) up = true; if (kd && !kDn) dn = true; kUp = ku; kDn = kd;
+            float clutch = 0f;
+            if (pad) clutch = Function.Call<bool>(Hash.IS_DISABLED_CONTROL_PRESSED, 2, (int)Control.FrontendLb) ? 1f : 0f;
+            if (Game.IsKeyPressed(System.Windows.Forms.Keys.LMenu)) clutch = 1f;
             float thr = Function.Call<float>(Hash.GET_CONTROL_NORMAL, 0, (int)Control.VehicleAccelerate);
             float brk = Function.Call<float>(Hash.GET_CONTROL_NORMAL, 0, (int)Control.VehicleBrake);
-            SimWorld.Drive(car, cfg.ManualShift ? 3 : sel, thr, brk);
+            float fwd = Vector3.Dot(car.Velocity, car.ForwardVector);
+            int box = SimWorld.PlayerBox;
+            if (cfg.GearMode == 0)
+            {   // automatic, like GTA: brake held at a standstill engages reverse, throttle at a standstill engages drive;
+                // in reverse the brake pedal is the throttle and the throttle brakes
+                if (sel != 1) sel = 3;
+                if (sel == 3 && fwd < 0.6f && brk > 0.3f && thr < 0.1f) { revHold += Game.LastFrameTime; if (revHold > 0.25f) { sel = 1; revHold = 0; } }
+                else if (sel == 1 && fwd > -0.6f && thr > 0.3f && brk < 0.1f) { revHold += Game.LastFrameTime; if (revHold > 0.15f) { sel = 3; revHold = 0; } }
+                else revHold = 0;
+                if (sel == 1) { float t = thr; thr = brk; brk = t; }
+                SimWorld.Drive(car, sel, thr, brk, 0f);
+                return;
+            }
+            if (SteppedBox)
+            {   // manual, dual clutch, sequential, automated manual: R N 1 2 3 ...
+                if (up) SimWorld.Shift(car, 1); else if (dn) SimWorld.Shift(car, -1);
+                SimWorld.Drive(car, cfg.GearMode == 2 && box == 1 ? 6 : 5, thr, brk, clutch);
+                return;
+            }
+            // automatic, CVT, single speed: the selector P R N D S (P and R only when nearly stopped)
+            int dir = up ? 1 : dn ? -1 : 0;
+            if (dir != 0)
+            {
+                int n = Math.Max(0, Math.Min(4, sel + dir));
+                if ((n == 0 || n == 1) && Math.Abs(fwd) > 1.5f) n = sel;
+                sel = n;
+            }
+            SimWorld.Drive(car, sel, thr, brk, 0f);
         }
 
         // ------------------------------------------------------------------ gamepad steering assist

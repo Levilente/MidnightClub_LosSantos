@@ -59,8 +59,11 @@ namespace MidnightClub.Physics
         private static int nextDump;
         /// <summary>New tyres on your car (workshop repair / compound change): wear back to zero.</summary>
         [DllImport("MidnightClubPhysics.asi", CallingConvention = CallingConvention.Cdecl)] private static extern void MCP_VehShift(long veh, int dir);
-        [DllImport("MidnightClubPhysics.asi", CallingConvention = CallingConvention.Cdecl)] private static extern void MCP_VehDrive(long veh, int own, int sel, float thr, float brk);
-        public static void Drive(Vehicle car, int sel, float thr, float brk) { try { if (Available && car != null && car.Exists()) MCP_VehDrive(car.MemoryAddress.ToInt64(), 1, sel, thr, brk); } catch { } }
+        [DllImport("MidnightClubPhysics.asi", CallingConvention = CallingConvention.Cdecl)] private static extern void MCP_VehDrive(long veh, int own, int sel, float thr, float brk, float clutch);
+        /// <summary>sel: 0 P, 1 R, 2 N, 3 D, 4 S (automatic selector), 5 manual R-N-1-2-3, 6 manual that needs the clutch to shift cleanly</summary>
+        public static void Drive(Vehicle car, int sel, float thr, float brk, float clutch) { try { if (Available && car != null && car.Exists()) MCP_VehDrive(car.MemoryAddress.ToInt64(), 1, sel, thr, brk, clutch); } catch { } }
+        /// <summary>The player's car's real gearbox type: 1 manual, 2 torque-converter automatic, 3 dual clutch, 4 sequential, 5 automated manual, 6 CVT, 7 single speed</summary>
+        public static int PlayerBox = 2;
         public static void Shift(Vehicle car, int dir) { try { if (Available && car != null && car.Exists()) MCP_VehShift(car.MemoryAddress.ToInt64(), dir); } catch { } }
         /// <summary>Own gearbox's gear and the brake disc temperatures of your car (from the native model).</summary>
         public static int OwnGear { get { return (int)st[84]; } }
@@ -275,8 +278,12 @@ namespace MidnightClub.Physics
             p[64] = s.Year < 1975 ? 0.05f : s.Year < 1990 ? 0.1f : sportyCar ? 0.3f : heavy ? 0.2f : 0.25f;
             p[65] = s.Year < 1975 ? 0.05f : s.Year < 1990 ? 0.1f : sportyCar ? 0.2f : 0.15f;
             // gearbox: overall ratios ([0] reverse)
-            p[70] = L.Gear.Overall(1) * 1.05f;
-            for (int i = 1; i <= Math.Min(11, L.Gear.Gears); i++) p[70 + i] = L.Gear.Overall(i);
+            // (own gearbox: every real gear, e.g. all eight of an 8-speed automatic; GTA's own box: spread over its gear count)
+            bool ownAll = cfg.OwnGearbox && cfg.NativePhysics && !s.Bike;
+            int ngear = ownAll ? L.Gear.FullGears : L.Gear.Gears;
+            p[41] = ngear;
+            p[70] = (ownAll ? L.Gear.FullOverall(1) : L.Gear.Overall(1)) * 1.05f;
+            for (int i = 1; i <= Math.Min(11, ngear); i++) p[70 + i] = ownAll ? L.Gear.FullOverall(i) : L.Gear.Overall(i);
             // driven wheels (GTA's own flags, our drive split decides the torque)
             var wheels = car.Wheels.GetAllWheels();
             for (int i = 0; i < wc && i < wheels.Length; i++) p[82 + i] = wheels[i].IsDrivingWheel ? 1f : 0f;
@@ -369,10 +376,10 @@ namespace MidnightClub.Physics
             int bt = bx == "manual" ? 1 : bx == "automatic" ? 2 : bx == "dual-clutch" ? 3 : bx == "sequential" ? 4 : bx == "automated manual" ? 5 : bx == "CVT" ? 6 : bx == "single-speed" ? 7 : 2;
             p[212] = cfg.OwnGearbox && cfg.NativePhysics && !s.Bike && L.Gear.Gears >= 1 ? 1f : 0f;
             if (player && (Vehicles.Setup.Has(rec, "gearbox") || Vehicles.Setup.Has(rec, "gearbox2"))) bt = 4;   // manual swap: the race gearbox is a sequential manual
-            p[213] = bt;
+            p[213] = bt; if (player) PlayerBox = bt;
             float shMs = sh != null && sh.drivetrain != null && sh.drivetrain.gearbox != null && sh.drivetrain.gearbox.shiftMs > 0 ? sh.drivetrain.gearbox.shiftMs : bt == 3 ? 120 : bt == 4 ? 70 : bt == 5 ? 180 : bt == 1 ? 350 : 280;
             if (player && Vehicles.Setup.Has(rec, "gearbox")) shMs *= 0.6f;                          // race gearbox: quicker shifts
-            p[214] = shMs / 1000f; p[215] = 2.0f; p[216] = player && cfg.ManualShift ? 1f : 0f; p[217] = L.Engine.PeakHpRpm;
+            p[214] = shMs / 1000f; p[215] = 2.0f; p[216] = 0f; p[217] = L.Engine.PeakHpRpm;
             if (bt == 6) { p[218] = L.Gear.Final * 2.4f; p[219] = L.Gear.Final * 0.45f; }
             p[220] = 1f;
             if (sh != null && sh.brakes != null && sh.brakes.front != null)
