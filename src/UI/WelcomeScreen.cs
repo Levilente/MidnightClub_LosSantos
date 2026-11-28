@@ -25,17 +25,23 @@ namespace MidnightClub.UI
             "Exit to Story Mode or quit the game. Progress is saved."
         };
 
+        /// <summary>Next showing starts high above the city (session start) and drops into the car when it closes.</summary>
+        public static bool Aerial;
+        private static readonly Vector3 CityLook = new Vector3(-150f, -800f, 120f);   // downtown Los Santos
+
         public static Choice Show(SaveData d, string dayName)
         {
             var ped = Game.Player.Character; var car = ped.CurrentVehicle;
-            Camera cam = null;
+            Camera cam = null; bool aerial = Aerial; Aerial = false;
+            Vector3 skyFrom = Vector3.Zero;
             try
             {
                 if (car != null && car.Exists())
                 {
                     cam = Camera.Create(ScriptedCameraNameHash.DefaultScriptedCamera, true);
-                    cam.FieldOfView = 42f;
+                    cam.FieldOfView = aerial ? 50f : 42f;
                     World.RenderingCamera = cam;
+                    if (aerial) { skyFrom = car.Position + new Vector3(0f, 0f, 320f); Function.Call(Hash.FREEZE_ENTITY_POSITION, car, true); }   // held while the streets around it stream out
                 }
                 int sel = 0; float ang = 200f, selY = -1f; int start = Game.GameTime;
                 if (Screen.IsFadedOut || Screen.IsFadingOut) Screen.FadeIn(600);     // entering Midnight Club: straight from black into the welcome screen
@@ -46,7 +52,16 @@ namespace MidnightClub.UI
                     Theme.FullscreenFrame();
                     Hud.HideComponentThisFrame(HudComponent.WantedStars);
                     Function.Call(Hash.HIDE_HUD_AND_RADAR_THIS_FRAME);
-                    if (cam != null && car.Exists())
+                    if (cam != null && car.Exists() && aerial)
+                    {   // Midnight Club LA: a slow flight high over the city
+                        ang += 0.004f * Game.LastFrameTime * 1000f / 16f;
+                        float rad = ang * (float)Math.PI / 180f;
+                        var c = (car.Position + CityLook) * 0.5f;
+                        cam.Position = c + new Vector3((float)Math.Cos(rad) * 900f, (float)Math.Sin(rad) * 900f, 420f);
+                        cam.PointAt(c + new Vector3(0, 0, 40f));
+                        Function.Call(Hash.SET_FOCUS_POS_AND_VEL, cam.Position.X, cam.Position.Y, cam.Position.Z, 0f, 0f, 0f);
+                    }
+                    else if (cam != null && car.Exists())
                     {
                         ang += 0.012f * Game.LastFrameTime * 1000f / 16f;
                         float r = Math.Max(5.5f, car.Model.Dimensions.frontTopRight.Y * 2.4f), rad = ang * (float)Math.PI / 180f;
@@ -144,10 +159,38 @@ namespace MidnightClub.UI
             }
             finally
             {
+                if (cam != null && aerial && car != null && car.Exists())
+                {   // drop in: the camera dives from the sky down behind the car, then the game takes over
+                    try
+                    {
+                        Function.Call(Hash.CLEAR_FOCUS);
+                        var cp = car.Position;
+                        Function.Call(Hash.NEW_LOAD_SCENE_START_SPHERE, cp.X, cp.Y, cp.Z, 90f, 0);
+                        var from = cam.Position; var fromLook = (car.Position + CityLook) * 0.5f + new Vector3(0, 0, 40f);
+                        var behind = car.Position - car.ForwardVector * 6f + new Vector3(0, 0, 2.2f);
+                        int t0 = Game.GameTime; const float dur = 2600f;
+                        while (Game.GameTime - t0 < dur)
+                        {
+                            float t = (Game.GameTime - t0) / dur, e = t * t * (3f - 2f * t), e2 = 1f - (float)Math.Pow(1f - t, 3);
+                            var p = Vector3.Lerp(from, behind, e2); p.Z = Lerp(from.Z, behind.Z, e);
+                            cam.Position = p; cam.PointAt(Vector3.Lerp(fromLook, car.Position + new Vector3(0, 0, 0.6f), e2));
+                            cam.FieldOfView = Lerp(50f, 60f, e);
+                            Game.DisableAllControlsThisFrame(); Function.Call(Hash.HIDE_HUD_AND_RADAR_THIS_FRAME);
+                            Script.Wait(0);
+                        }
+                        int tl = Game.GameTime; while (!Function.Call<bool>(Hash.IS_NEW_LOAD_SCENE_LOADED) && Game.GameTime - tl < 3000) Script.Wait(0);
+                        Function.Call(Hash.NEW_LOAD_SCENE_STOP);
+                        Function.Call(Hash.SET_GAMEPLAY_CAM_RELATIVE_HEADING, 0f);
+                    }
+                    catch { }
+                    Function.Call(Hash.FREEZE_ENTITY_POSITION, car, false); car.PlaceOnGround();
+                }
                 if (cam != null) { World.RenderingCamera = null; cam.Delete(); }
+                Function.Call(Hash.CLEAR_FOCUS);
             }
         }
 
+        private static float Lerp(float a, float b, float t) { return a + (b - a) * t; }
         private static void Wait() { int t = Game.GameTime + 250; while (Game.GameTime < t) { Game.DisableAllControlsThisFrame(); Script.Wait(0); } }
         private static void Sound(string n) { Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, n, "HUD_FRONTEND_DEFAULT_SOUNDSET", true); }
     }

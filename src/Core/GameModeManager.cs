@@ -150,8 +150,10 @@ namespace MidnightClub.Core
                 lastAutoSave = Game.GameTime;
                 SetState(GameMode.MIDNIGHT_CLUB);
                 UI.Minimap.Refresh(45);          // the radar shows nothing after the Online map loads until the big map is opened once
-                if (startGarage != null && !needCreator) { Script.Wait(0); Garages.EnterOnStart(startGarage); }
-                else if (!cfg.ShowWelcome) Screen.FadeIn(cfg.TransitionFadeMs);
+                // the session starts in front of the active car's garage; the welcome screen shows the city from the sky
+                // and drops into the car (no garage interior first)
+                UI.WelcomeScreen.Aerial = cfg.ShowWelcome && !needCreator;
+                if (!cfg.ShowWelcome) Screen.FadeIn(cfg.TransitionFadeMs);
                 // with the welcome screen on, the screen stays black and the welcome screen fades in itself (no gameplay flash)
                 UI.Toast.Post(isNew ? "~p~MIDNIGHT CLUB~s~: welcome to the streets. ~b~" + cfg.ToggleKey + "~s~ (or hold ~INPUT_NEXT_CAMERA~ on a controller) returns to Story Mode. Phone: ~INPUT_PHONE~."
                                               : "~p~MIDNIGHT CLUB~s~: welcome back.");

@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.68.0
+- Session start like Midnight Club LA: the game loads straight into the welcome screen over a slow flight high above Los Santos; Hit the streets (or any choice) dives the camera down behind your active car, parked in front of the garage it lives in – no garage interior first.
+- Garage interior: the minimap is hidden.
+
+
 ## 0.67.0
 - Performance shop laid out like Forza Horizon: Engine (intake, fuel system, ignition, exhaust, camshaft, valves, displacement, pistons & compression, intercooler, oil cooling, flywheel – Street / Sport / Race each – plus ECU, turbo / supercharger, anti-lag, nitrous), Platform & handling (brakes, springs & dampers, anti-roll bars, weight reduction), Drivetrain (clutch, transmission, driveline, differential), Aero, Conversion (engine and drivetrain swaps). Where GTA and Midnight Club both have a race level, ours is the race level.
 - Engine parts shape the real torque curve where they work (cams and valves top end, displacement everywhere...), the flywheel lowers the engine inertia, the clutch shortens the shifts, the driveline cuts losses.

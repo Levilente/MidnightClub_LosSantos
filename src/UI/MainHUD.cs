@@ -63,7 +63,7 @@ namespace MidnightClub.UI
             float xa = (Game.GameTime - xpAt) / 1000f;
             if (xpText != null && xa < 2.2f) Kit.Chip(xpText, rx - Ds.Width(xpText, 0.26f, Ds.Display) - Ds.Px(Th.Px(16f)), cy0 + ch + Th.Px(20f) - Ds.EaseOut(Math.Min(1f, xa / 0.3f)) * Th.Px(6f), Ds.A(Coral, xa > 1.6f ? (2.2f - xa) / 0.6f : 1f), Ds.A(Color.White, xa > 1.6f ? (2.2f - xa) / 0.6f : 1f), 0.26f);
             tx = rx;
-            Minimap.Draw();
+            if (!Garages.GarageManager.InsideAny) Minimap.Draw();
             float age = (Game.GameTime - deltaAt) / 1000f;
             if (deltaText != null && age < 3.2f)
             {

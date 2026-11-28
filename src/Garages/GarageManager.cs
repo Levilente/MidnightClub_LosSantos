@@ -29,7 +29,9 @@ namespace MidnightClub.Garages
         private readonly List<Vehicle> display = new List<Vehicle>();
         private GarageDefinition nearby;
         private int pinnedInterior, roomInterior, roomKey;
-        public bool IsInside { get; private set; }
+        public bool IsInside { get { return InsideAny; } private set { InsideAny = value; } }
+        /// <summary>The player is in a garage interior (the HUD and the map stay hidden).</summary>
+        public static bool InsideAny;
         private const float MarkerDrawDistance = 60f;
 
         public string StarterGarageId { get; set; }
