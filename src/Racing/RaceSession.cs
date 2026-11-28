@@ -743,7 +743,7 @@ namespace MidnightClub.Racing
                 }
             }
             draft = UI.Ds.Step(draft, best > 0 ? 1f : 0f, best > 0 ? 0.9f : 2.5f);
-            if (draft > 0.25f && best > 0) car.Velocity += car.ForwardVector * (1.2f + 1.6f * best) * draft * UI.Ds.Dt;
+            if (draft > 0.25f && best > 0 && !Physics.Native.DriveActive) car.Velocity += car.ForwardVector * (1.2f + 1.6f * best) * draft * UI.Ds.Dt;
             draftFx = UI.Ds.Damp(draftFx, draft > 0.25f && best > 0 ? 1f : 0f, 6f);
             if (draftFx > 0.02f)
             {

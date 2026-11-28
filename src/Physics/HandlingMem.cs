@@ -16,6 +16,16 @@ namespace MidnightClub.Physics
         public const int DriveBias = 0x48, BrakeBias = 0x74, TractionBias = 0xB0, SuspBias = 0xD4, ArbBias = 0xE0;
         public const int TractionMax = 0x88, TractionMin = 0x90, TractionLateral = 0x98, SpringDelta = 0xA0;
 
+        public const int Drag = 0x10, Downforce = 0x14;
+        /// <summary>GTA's own aerodynamics off (drag and the downforce modifier): the native simulation applies the real ones.</summary>
+        public static void ZeroGtaAero(HandlingData h)
+        {
+            if (h == null || !h.IsValid) return;
+            W(h, Drag, 0f);
+            float d = R(h, Downforce); if (d > 0.05f && d < 50f) W(h, Downforce, 0f);   // only where it looks like the modifier
+        }
+        public static string AeroInfo(byte[] snap) { return snap == null ? "?" : "drag " + S(snap, Drag).ToString("0.#####") + ", downforce mod " + S(snap, Downforce).ToString("0.###"); }
+
         public static byte[] Snapshot(HandlingData h)
         {
             var b = new byte[Size];

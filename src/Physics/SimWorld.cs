@@ -56,7 +56,33 @@ namespace MidnightClub.Physics
         private static float travelLog;
         [DllImport("MidnightClubPhysics.asi", CallingConvention = CallingConvention.Cdecl)] private static extern void MCP_VehTyresNew(long veh);
         [DllImport("MidnightClubPhysics.asi", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Unicode)] private static extern int MCP_SimDump(string path);
-        private static int nextDump;
+        private static int nextDump, nextDraft;
+        /// <summary>How deep the player's car sits in another vehicle's wake (0..1): the native aero takes up to 45 % of the drag
+        /// and a third of the downforce away there.</summary>
+        public static float Draft;
+        private static float DraftOf(Vehicle car)
+        {
+            try
+            {
+                if (car.Speed < 12f) return 0f;
+                Vector3 f = car.ForwardVector, pos = car.Position; float best = 0f;
+                Vector3 mn, mx; car.Model.GetDimensions(out mn, out mx); float ownA = Math.Max(1f, (mx.X - mn.X) * (mx.Z - mn.Z));
+                foreach (var o in World.GetNearbyVehicles(pos, 45f))
+                {
+                    if (o == null || !o.Exists() || o.Handle == car.Handle) continue;
+                    Vector3 d = o.Position - pos; float along = Vector3.Dot(d, f);
+                    if (along < 2.5f || along > 45f) continue;
+                    if (Vector3.Dot(o.Velocity, f) < car.Speed * 0.6f) continue;               // it has to be moving our way
+                    float lat = (d - f * along).Length(), spread = 0.9f + 0.035f * along;       // the wake widens behind it
+                    Vector3 a, b; o.Model.GetDimensions(out a, out b);
+                    float size = Math.Max(0.5f, Math.Min(2.2f, (b.X - a.X) * (b.Z - a.Z) / ownA)); // a truck's wake is a lot bigger
+                    float wake = (1f - along / 45f) * (float)Math.Exp(-(lat / spread) * (lat / spread)) * size;
+                    if (wake > best) best = wake;
+                }
+                return Math.Min(1f, best);
+            }
+            catch { return 0f; }
+        }
         /// <summary>New tyres on your car (workshop repair / compound change): wear back to zero.</summary>
         [DllImport("MidnightClubPhysics.asi", CallingConvention = CallingConvention.Cdecl)] private static extern void MCP_VehShift(long veh, int dir);
         [DllImport("MidnightClubPhysics.asi", CallingConvention = CallingConvention.Cdecl)] private static extern void MCP_VehDrive(long veh, int own, int sel, float thr, float brk, float clutch);
@@ -111,6 +137,7 @@ namespace MidnightClub.Physics
                 // your car: every frame (inputs come from the car itself; parameters change with tuning / weather)
                 if (pOk)
                 {
+                    if (Game.GameTime >= nextDraft) { nextDraft = Game.GameTime + 100; Draft = DraftOf(playerCar); }
                     var p = Build(playerCar, playerLive, rec, cfg, true, false);
                     PlayerActive = p != null && MCP_VehSet(playerAddr, p, p.Length) != 0;
                     if (PlayerActive && MCP_VehState(playerAddr, st, st.Length) > 0)
@@ -201,7 +228,7 @@ namespace MidnightClub.Physics
             var ms = new ModelStock { Hash = hash, Raw = HandlingMem.Snapshot(h) };
             models[hash] = ms;
             if (L.Spec.Curated) h.Mass = L.Mass;
-            h.InitialDragCoefficient = h.InitialDragCoefficient * 0.03f;
+            h.InitialDragCoefficient = 0f; HandlingMem.ZeroGtaAero(h);   // the native simulation does the aero
             // GTA's AI plans its corner and braking speeds from the handling grip: give it the real tyre's
             h.TractionCurveMax = SimPhysics.GripK * L.Tyre.MuY;
             h.TractionCurveMin = h.TractionCurveMax * (0.5f + 0.5f * L.Tyre.SlideY);
@@ -381,7 +408,7 @@ namespace MidnightClub.Physics
             if (player && Vehicles.Setup.Has(rec, "gearbox")) shMs *= 0.6f;                          // race gearbox: quicker shifts
             p[214] = shMs / 1000f; p[215] = 2.0f; p[216] = 0f; p[217] = L.Engine.PeakHpRpm;
             if (bt == 6) { p[218] = L.Gear.Final * 2.4f; p[219] = L.Gear.Final * 0.45f; }
-            p[220] = 1f;
+            p[220] = 1f; p[229] = player ? Draft : 0f;
             if (sh != null && sh.brakes != null && sh.brakes.front != null)
             {
                 Func<SpecBrake, float> disc = br => { float d = br.sizeMm > 100 ? br.sizeMm : 300; string ty = br.type ?? ""; float dm = 9e-5f * d * d; return ty.StartsWith("carbon") ? dm * 0.5f : ty.StartsWith("solid") ? dm * 0.7f : ty == "drum" ? dm * 1.6f : dm; };

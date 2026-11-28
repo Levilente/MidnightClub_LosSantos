@@ -97,7 +97,7 @@ namespace MidnightClub.Physics
                 BiasT = h.TractionBiasFront, BiasB = h.BrakeBiasFront, Raise = h.SuspensionRaise, FlatVel = h.InitialDriveMaxFlatVelocity, DriveF = h.InitialDriveForce,
                 Mass = h.Mass, DriveBias = h.DriveBiasFront, ArbBias = h.AntiRollBarBiasFront, SuspBias = h.SuspensionBiasFront, TLoss = h.TractionLossMultiplier,
                 MaxVel = h.InitialDriveMaxVelocity, Drag = h.InitialDragCoefficient, DriveInertia = h.DriveInertia, ClutchUp = h.ClutchChangeRateScaleUpShift, ClutchDown = h.ClutchChangeRateScaleDownShift, Gears = h.InitialDriveGears, Raw = HandlingMem.Snapshot(h) };
-            Log.Info("Handling memory " + hash + ": " + HandlingMem.Describe(s.Raw));
+            Log.Info("Handling memory " + hash + ": " + HandlingMem.Describe(s.Raw) + ", " + HandlingMem.AeroInfo(s.Raw));
             return s;
         }
 
@@ -120,7 +120,7 @@ namespace MidnightClub.Physics
         {
             SyncInduction(car, rec);
             int hash = car.Model.Hash, compound = Math.Max(0, Math.Min(5, rec.TyreCompound));
-            string key = hash + "|" + Setup.Key(rec) + "|" + compound + "|" + Mod(car, 11) + "|" + Mod(car, 12) + "|" + Mod(car, 13) + "|" + Mod(car, 15) + "|" + rec.EcuLevel + "|" + car.HighGear + "|" + car.Handle;
+            string key = hash + "|" + Setup.Key(rec) + "|" + compound + "|" + Mod(car, 11) + "|" + Mod(car, 12) + "|" + Mod(car, 13) + "|" + Mod(car, 15) + "|" + Mod(car, 0) + "|" + rec.EcuLevel + "|" + car.HighGear + "|" + car.Handle;
             if (appliedModel == hash && appliedKey == key) return;
             Restore();
             var h = car.HandlingData; if (h == null || !h.IsValid) return;
@@ -148,7 +148,8 @@ namespace MidnightClub.Physics
             }
             if (spec.Curated && !bike) HandlingMem.SetBias(h, HandlingMem.DriveBias, spec.FrontDrive >= 0.95f ? 1f : spec.FrontDrive, s.Raw);
             h.InitialDriveGears = Math.Max(1, car.HighGear);
-            h.InitialDragCoefficient = s.Drag * 0.03f;                    // the real aero drag is applied every frame instead
+            h.InitialDragCoefficient = cfg.NativePhysics ? 0f : s.Drag * 0.03f;   // the real aero (drag, lift / downforce, slipstream) is simulated instead
+            if (cfg.NativePhysics) HandlingMem.ZeroGtaAero(h);
             h.InitialDriveForce = s.DriveF;
             // tyres: Pacejka set of the fitted compound
             var t = L.Tyre;

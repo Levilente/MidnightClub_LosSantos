@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.64.0
+- Aero fully taken over from GTA: its drag coefficient and downforce modifier are zeroed on every simulated car; the native model applies the real ones only.
+- Real air: density from altitude, drag grows when the car slides sideways (side area), downforce / lift fades with the slip angle.
+- Real slipstream: following any vehicle (bigger ones more) puts you in its wake – up to 45 % less drag and a third less downforce – replacing the old velocity push in races.
+- Spoiler body mods add rear downforce and a little drag (bigger wings more); the adjustable aero kit still overrides.
+- Hidden-resistance measurement stays as a safety net (should read ~0 now); handling log shows GTA's stock drag / downforce values.
+
+
 ## 0.63.1
 - Speedometer: P, D and S gear glyphs (the HUD could only draw digits, N and R, so D3 showed as 3 and P as nothing).
 - Hidden resistance: the car measures what GTA still adds on its own along the heading (its drag / speed limiter, ~3–5 kN on the Jubilee at 80–130 km/h, which ate most of the pull in the higher gears) against everything the simulation applies (tyres, aero, slope) and cancels it. Logged in the Native world line.

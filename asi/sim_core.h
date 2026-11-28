@@ -39,7 +39,7 @@ typedef struct
                                                                               body inertia targets: yaw radius of gyration / half wheelbase, roll radius of gyration / track */
     float ownBox, boxType, shiftT, tcStall, manual, peakHpRpm, cvtLow, cvtHigh;   /* 212..219 own gearbox: type 1 manual 2 torque-converter auto 3 dual clutch 4 sequential 5 automated manual 6 CVT 7 single speed; shift time (s); converter stall torque ratio; player shifts by hand; CVT overall ratio range */
     float brakeOn, brakeFade, brakeMassF, brakeMassR, ackermann, bumpCamF, bumpCamR, bumpToeF;   /* 220..227 brake heat: fade starts at (C), disc mass per wheel (kg); Ackermann share; camber / toe change per metre of bump (rad/m) */
-    float clutchReq, pad229;                                                      /* 228: the gearbox needs the clutch pedal to shift cleanly (H-pattern manual, clutch mode) */
+    float clutchReq, draft;   /* 229: depth in another vehicle's wake (0..1) */                                                      /* 228: the gearbox needs the clutch pedal to shift cleanly (H-pattern manual, clutch mode) */
     float dmgToe[MAXW];                                                          /* 230..239 misalignment from crash damage (rad) */
 } VParams;
 #define VP_N ((int)(sizeof(VParams) / 4))
@@ -292,11 +292,17 @@ static int vehTyre(Veh *v, int i, u64 wheel, u64 inst, float *out, float *lin, f
     float sp = len3(lv), aero[3] = { 0, 0, 0 }, down[3] = { 0, 0, 0 };
     if (sp > 1.0f && (v->p.cda > 0 || v->p.cla != 0))
     {
-        float q = 0.5f * 1.2f * sp, ng = (float)(v->nGround > 0 ? v->nGround : v->nw);
+        /* real air: density from the altitude (Mount Chiliad ~9 % thinner), drag that grows when the car goes sideways
+           (side area ~2.5x the frontal drag area at 90 degrees), a wake behind other vehicles (less drag, less downforce) */
+        float alt = rf(v->veh, 0x98); if (!(alt > -50.0f && alt < 3000.0f)) alt = 0;
+        float rho = 1.225f * expf(-alt / 8500.0f), dr = v->p.draft > 0 ? (v->p.draft > 1 ? 1 : v->p.draft) : 0;
+        float cb = sp > 1.0f ? dot3(lv, F) / sp : 1.0f, sb2 = 1.0f - cb * cb; if (sb2 < 0) sb2 = 0;
+        float cdaE = v->p.cda * (1.0f + 1.5f * sb2) * (1.0f - 0.45f * dr), claE = v->p.cla * (1.0f - 0.35f * dr * (v->p.cla > 0 ? 1.0f : 0.0f)) * cb * cb;
+        float q = 0.5f * rho * sp, ng = (float)(v->nGround > 0 ? v->nGround : v->nw);
         int nf = 0, nr = 0; for (int j = 0; j < v->nw; j++) { if (v->ws[j].front) nf++; else nr++; }
         float af = v->p.aeroFront > 0.01f && v->p.aeroFront < 0.99f ? v->p.aeroFront : 0.45f;
         float share = s->front ? (nf ? af / nf : 0) : (nr ? (1 - af) / nr : 0);
-        for (int j = 0; j < 3; j++) { aero[j] = -q * v->p.cda * lv[j] / ng; down[j] = -q * sp * v->p.cla * share * U[j]; }
+        for (int j = 0; j < 3; j++) { aero[j] = -q * cdaE * lv[j] / ng; down[j] = -q * sp * claE * share * U[j]; }
         float td[3], ad[3]; cross3(r0, down, td); angOfV(v, wheel, inst, M, td, ad);
         for (int j = 0; j < 3; j++) na[j] += ad[j];
     }
@@ -501,7 +507,8 @@ static void vehStep(Veh *v, u64 *wp, int nw, float dt)
         {
             float fs = 0; for (int i = 0; i < v->nw; i++) fs += v->ws[i].fLong;
             float sg = vx >= 0 ? 1.0f : -1.0f, sp = fabsf(vx);
-            float aero = -0.5f * 1.2f * p->cda * vx * sp, grav = -m * 9.81f * v->fwdZ;
+            float alt = rf(veh, 0x98); if (!(alt > -50.0f && alt < 3000.0f)) alt = 0; float dr = p->draft > 0 ? (p->draft > 1 ? 1 : p->draft) : 0;
+            float aero = -0.5f * 1.225f * expf(-alt / 8500.0f) * p->cda * (1.0f - 0.45f * dr) * vx * sp, grav = -m * 9.81f * v->fwdZ;
             float x = m * (vx - v->vxPrev) / dt - (fs + aero + grav + sg * v->comp);
             float lim = 0.6f * m * 9.81f; if (x > lim) x = lim; if (x < -lim) x = -lim;
             v->resX += (x - v->resX) * (dt / 2.0f);

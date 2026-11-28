@@ -48,8 +48,8 @@ namespace MidnightClub.Vehicles
         }
         private static Live BuildWith(Vehicle car, OwnedVehicle r, CarSpec s, int compound, float stockMass, int gears)
         {
-            int eng = Function.Call<int>(Hash.GET_VEHICLE_MOD, car, 11);
-            string key = car.Model.Hash + "|" + Setup.Key(r) + "|" + compound + "|" + eng + "|" + gears + "|" + (r != null ? r.EcuLevel + "|" + r.EngineSound : "");
+            int eng = Function.Call<int>(Hash.GET_VEHICLE_MOD, car, 11), wing = Function.Call<int>(Hash.GET_VEHICLE_MOD, car, 0);
+            string key = car.Model.Hash + "|" + Setup.Key(r) + "|" + compound + "|" + eng + "|" + wing + "|" + gears + "|" + (r != null ? r.EcuLevel + "|" + r.EngineSound : "");
             Live L; if (cache.TryGetValue(key, out L)) return L;
             L = new Live { Key = key, Spec = s };
             bool gtaTurbo = Engine.TurboStage(r) > 0 || (s.Ind == Induction.Turbo && Engine.ScStage(r) == 0);
@@ -79,6 +79,11 @@ namespace MidnightClub.Vehicles
                 float q = 0.5f * Perf.Rho * 55.56f * 55.56f;
                 float cf = fk * 9.81f / q, cr = rk * 9.81f / q;
                 L.Cla = Math.Max(0f, s.ClA) * 0.5f + cf + cr; L.AeroFront = cf / (cf + cr); L.Cda = s.CdA + 0.3f * (cf + cr);
+            }
+            else if (wing >= 0 && !s.Bike)
+            {   // a fitted spoiler / wing body mod: rear downforce (~40 kgf at 200 km/h for a street wing, more for the bigger ones) and a little drag
+                float cr = 0.16f + 0.03f * Math.Min(4, wing), front = Math.Max(0f, L.Cla) * L.AeroFront;
+                L.Cla += cr; L.Cda += 0.2f * cr; L.AeroFront = L.Cla > 0.01f ? Math.Max(0.15f, front / L.Cla) : 0.3f;
             }
             L.Perf = Perf.Run(s, L.Engine, L.Gear, L.Mass, L.Cda, L.Cla, L.AeroFront, L.Tyre, Setup.Has(r, "awd") ? 0.35f : Setup.Has(r, "rwd") ? 0f : s.FrontDrive, s.FrontPct, s.CgH, s.Year);
             if (cache.Count > 64) cache.Clear();
