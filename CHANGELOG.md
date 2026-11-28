@@ -1,4 +1,9 @@
 # Changelog
+## 0.46.0 (2026-11-28): native tyre model, first version
+- **Pacejka inside GTA's physics step** (MidnightClubPhysics.asi): every friction evaluation of your wheels (4x per wheel per physics step) gets its force from the Magic Formula of the fitted tyre at the wheel's real load, with GTA's per-wheel slip (lateral slip velocity, longitudinal slip, contact speed) and MF combined slip. GTA's own force direction is kept, its magnitude is the model's.
+- **Bump rubber**: a kerb can no longer push a load spike of more than ~2.2x the static wheel load straight through the spring; above that the bump rubber takes it progressively (kerb snapping).
+- Settings > Driving > Native tyre model (on by default); the script tyre model is the fallback when the plugin is missing or off.
+
 ## 0.45.0 (2026-11-28): native physics, stage 2 (read-only hooks)
 - New **MidnightClubPhysics.asi** (game folder): hooks GTA's per-wheel tyre-friction and suspension functions (found in the wheel integrator, which runs Runge-Kutta 4 every physics step) only on request and only if the code matches byte for byte. Read-only: it calls GTA's own code and records the results for the player's car.
 - Settings > Driving > **Native physics test (developer)**: installs the hooks and records 15 s (scripts\MidnightClub\probe\hook.bin + drive.bin).

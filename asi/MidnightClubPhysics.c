@@ -28,6 +28,48 @@ typedef struct { uint32_t tick; uint16_t kind, wheel; float dt, load; float out[
 static Rec *ring; static volatile LONG head; static volatile LONG recording;
 static volatile LONG calls[2];
 
+static float rf(u64 p, int o); static float asf(u64 v);
+/* ---- stage 3: the model (parameters from the C# mod, per player car) ---- */
+#include <math.h>
+typedef struct { float on, muY, muX, loadSens, By, Cy, Ey, Bx, Cx, Ex, Rb1, Rb2, Rc, fz0, grip, staticLoad, bumpK, scaleMin, scaleMax, pad; } Model;
+static volatile Model model;
+static volatile LONG scaled;
+static float mf(float x, float b, float c, float e) { float bx = b * x; return sinf(c * atanf(bx - e * (bx - atanf(bx)))); }
+static float muAt(float base, float fz) { float d = model.fz0 > 1.0f ? (fz - model.fz0) / model.fz0 : 0.0f; if (d < -0.9f) d = -0.9f; if (d > 3.0f) d = 3.0f; float m = base * (1.0f + model.loadSens * d); return m < 0.05f ? 0.05f : m; }
+static void tyreModel(u64 wheel, float load, float *out, float *lin, float *ang)
+{
+    if (!(model.on > 0.5f) || load < 1.0f) return;
+    float fh = sqrtf(out[0] * out[0] + out[1] * out[1]);
+    if (fh < 30.0f) return;
+    float vx = rf(wheel, 0xB0), vy = rf(wheel, 0xB4), vz = rf(wheel, 0xB8);
+    float v = sqrtf(vx * vx + vy * vy + vz * vz);
+    float vs = rf(wheel, 0x1C4), vlong = rf(wheel, 0x1C0);
+    float alpha = atan2f(fabsf(vs), v > 1.0f ? v : 1.0f);
+    float kappa = fabsf(vlong) / (v > 2.5f ? v : 2.5f); if (kappa > 1.0f) kappa = 1.0f;
+    /* Magic Formula, combined slip (MF weighting functions) */
+    float fy = muAt(model.muY, load) * load * mf(alpha, model.By, model.Cy, model.Ey);
+    float fx = muAt(model.muX, load) * load * mf(kappa, model.Bx, model.Cx, model.Ex);
+    float gyk = cosf(model.Rc * atanf(model.Rb1 * cosf(atanf(model.Rb2 * alpha)) * kappa)); if (gyk < 0.02f) gyk = 0.02f;
+    float gxa = cosf(model.Rc * atanf(model.Rb1 * cosf(atanf(model.Rb2 * kappa)) * alpha)); if (gxa < 0.02f) gxa = 0.02f;
+    float f = sqrtf(fy * gyk * fy * gyk + fx * gxa * fx * gxa) * model.grip;
+    float k = f / fh;
+    if (k < model.scaleMin) k = model.scaleMin; if (k > model.scaleMax) k = model.scaleMax;
+    out[0] *= k; out[1] *= k; out[2] *= k;
+    for (int i = 0; i < 3; i++) { lin[i] *= k; ang[i] *= k; }
+    InterlockedIncrement(&scaled);
+}
+/* bump rubber + digressive damping: a kerb can't fire a spike several times the static load through the spring */
+static void suspModel(float *out, float *lin, float *ang, float *loadOut)
+{
+    if (!(model.on > 0.5f) || model.staticLoad < 1.0f) return;
+    float z = out[2], lim = model.staticLoad * model.bumpK;
+    if (z <= lim) return;
+    float nz = lim + (z - lim) * 0.35f, k = nz / z;
+    out[0] *= k; out[1] *= k; out[2] = nz;
+    for (int i = 0; i < 3; i++) { lin[i] *= k; ang[i] *= k; }
+    if (loadOut) *loadOut *= k;
+}
+
 static int whichWheel(u64 w) { for (int i = 0; i < 4; i++) if (watch[i] == w && w) return i; return -1; }
 static float rf(u64 p, int o) { return p ? *(float *)(p + o) : 0.0f; }
 static float asf(u64 v) { float f; memcpy(&f, &v, 4); return f; }
@@ -37,6 +79,7 @@ static void Friction(u64 wheel, u64 inst, u64 outVec, u64 lin, u64 ang, u64 st1,
     origFriction(wheel, inst, outVec, lin, ang, st1, st2, spin, load, a10, a11, a12, a13, ctx, other, dt);
     InterlockedIncrement(&calls[0]);
     int i = whichWheel(wheel);
+    if (i >= 0 && outVec && lin && ang) tyreModel(wheel, asf(load), (float *)outVec, (float *)lin, (float *)ang);
     if (i < 0 || !recording || !ring) return;
     LONG n = InterlockedIncrement(&head) - 1; Rec *r = &ring[n % CAP];
     r->tick = GetTickCount(); r->kind = 1; r->wheel = (uint16_t)i; r->dt = asf(dt); r->load = asf(load);
@@ -50,6 +93,7 @@ static void Susp(u64 wheel, u64 inst, u64 outVec, u64 lin, u64 ang, u64 loadOut,
     origSusp(wheel, inst, outVec, lin, ang, loadOut, slot, a8, a9, ctx, other, dt);
     InterlockedIncrement(&calls[1]);
     int i = whichWheel(wheel);
+    if (i >= 0 && outVec && lin && ang) suspModel((float *)outVec, (float *)lin, (float *)ang, (float *)loadOut);
     if (i < 0 || !recording || !ring) return;
     LONG n = InterlockedIncrement(&head) - 1; Rec *r = &ring[n % CAP];
     r->tick = GetTickCount(); r->kind = 2; r->wheel = (uint16_t)i; r->dt = asf(dt); r->load = rf(loadOut, 0);
@@ -106,6 +150,8 @@ __declspec(dllexport) int MCP_Install(void)
     return 1;
 }
 __declspec(dllexport) const char *MCP_Status(void) { return status; }
+__declspec(dllexport) void MCP_SetModel(const float *p, int n) { if (n > (int)(sizeof(Model) / 4)) n = sizeof(Model) / 4; memcpy((void *)&model, p, (size_t)n * 4); }
+__declspec(dllexport) int MCP_Scaled(void) { return scaled; }
 __declspec(dllexport) void MCP_SetWheels(u64 a, u64 b, u64 c, u64 d) { watch[0] = a; watch[1] = b; watch[2] = c; watch[3] = d; }
 __declspec(dllexport) void MCP_Record(int on)
 {

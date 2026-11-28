@@ -39,6 +39,7 @@ namespace MidnightClub.Core
         public string UiTheme = "Auto";
         public bool RealDrivetrain = true, InversePower = true;
         public int TcsLevel = 4, AbsLevel = 6, EscLevel = 3;
+        public bool NativePhysics = true;                               // MidnightClubPhysics.asi tyre / suspension model
         public int Difficulty = 2;                                      // 0 Novice .. 5 Unbeatable
         public static readonly string[] DifficultyNames = { "Novice", "Easy", "Medium", "Hard", "Expert", "Unbeatable" };
         public float AiSkill { get { return new[] { 0.84f, 0.9f, 0.97f, 1.03f, 1.09f, 1.15f }[Math.Max(0, Math.Min(5, Difficulty))]; } }
@@ -121,6 +122,7 @@ namespace MidnightClub.Core
             c.AbsLevel = Math.Max(0, Math.Min(10, Get(s, "Assists", "ABS", c.AbsLevel)));
             c.EscLevel = Math.Max(0, Math.Min(10, Get(s, "Assists", "StabilityManagement", c.EscLevel)));
             c.Difficulty = Math.Max(0, Math.Min(5, Get(s, "Gameplay", "Difficulty", c.Difficulty)));
+            c.NativePhysics = Get(s, "Physics", "Native", c.NativePhysics);
             c.PoliceEnabled = Get(s, "Police", "Enabled", c.PoliceEnabled);
             c.AlwaysNight = Get(s, "World", "AlwaysNight", c.AlwaysNight);
             c.TrafficDensity = Get(s, "World", "TrafficDensity", c.TrafficDensity); c.ParkedDensity = Get(s, "World", "ParkedDensity", c.ParkedDensity);

@@ -183,6 +183,7 @@ namespace MidnightClub.Physics
             }
             catch (Exception ex) { Log.Error("Sim restore", ex); }
             appliedModel = 0; appliedKey = null; appliedCar = null; Live = null;
+            Native.Off();
             Drivetrain.Off();
         }
 
@@ -306,6 +307,7 @@ namespace MidnightClub.Physics
             float fz0 = m * g / 4f;
             var t = L.Tyre;
             float wet = 1f - t.WetLoss * Clamp(WorldSim.Weather.Wetness, 0f, 1f);
+            Native.Update(car, L, wet, cfg.NativePhysics);
             float gf, gr;
             if (spec.Bike)
             {
@@ -338,10 +340,11 @@ namespace MidnightClub.Physics
                 gf *= 1f - (1f - gyF) * 0.3f;
                 gr *= 1f - (1f - gyR) * (hand ? 0.6f : 0.45f * (0.5f + 0.5f * (rearDrive > 0.3f ? lockA : 1f)));
             }
+            if (Native.Active) { gf = gr = 1f; }       // the native model does load sensitivity and combined slip per wheel, at GTA's physics rate
             fF += (Clamp(gf, 0.06f, 1.8f) - fF) * Math.Min(1f, dt / 0.05f);
             fR += (Clamp(gr, 0.06f, 1.8f) - fR) * Math.Min(1f, dt / 0.05f);
             float load = (fzf + fzr) / Math.Max(1f, m * g);
-            WriteGrip(h, L, fF, fR, wet, (float)Math.Pow(Math.Max(0.5f, load), 0.25));
+            WriteGrip(h, L, fF, fR, Native.Active ? 1f : wet, (float)Math.Pow(Math.Max(0.5f, load), 0.25));
             // ---- ABS: modulate brake pressure when the measured wheels start to lock
             AbsActive = false;
             if (absL > 0 && brake > 0.05f && vx > 3f)
