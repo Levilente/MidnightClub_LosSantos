@@ -103,6 +103,7 @@ namespace MidnightClub.Racing
                     Function.Call(Hash.SET_VEHICLE_EXPLODES_ON_HIGH_EXPLOSION_DAMAGE, car, false);
                     var b = UI.BlipRegistry.Own(car.AddBlip()); b.Color = BlipColor.Red; b.Scale = 0.7f; b.Name = names[i]; b.IsShortRange = false;
                     Racers.Add(new Racer { Name = names[i], Ped = ped, Car = car, Blip = b, Skill = (0.92f + (float)rnd.NextDouble() * 0.16f) * Core.Config.Current.AiSkill });
+                    Physics.SimWorld.Rivals.Add(car.Handle);   // race assists on the native simulation
                 }
                 catch (Exception ex) { Log.Error("Spawning opponent", ex); }
             }
@@ -127,11 +128,11 @@ namespace MidnightClub.Racing
             if (r.Role == "Drafter")
             {
                 float mult = gap < 6f ? 1.4f : gap > 45f ? 0.82f : 1.08f;
-                Function.Call(Hash.SET_VEHICLE_CHEAT_POWER_INCREASE, r.Car, mult * r.Skill);
+                Physics.SimWorld.Power(r.Car, mult * r.Skill, 1500);
                 return;
             }
             // blocker: hunt the closest opponent right behind you
-            Function.Call(Hash.SET_VEHICLE_CHEAT_POWER_INCREASE, r.Car, (gap < -30f ? 1.3f : 1.05f) * r.Skill);
+            Physics.SimWorld.Power(r.Car, (gap < -30f ? 1.3f : 1.05f) * r.Skill, 1500);
             if (now - r.CrewTaskAt < 3000) return;
             r.CrewTaskAt = now;
             Racer target = null; float best = 60f;
@@ -298,7 +299,7 @@ namespace MidnightClub.Racing
         {
             float gap = Player.Progress - r.Progress;   // > 0 = opponent behind
             float mult = gap > 400f ? 1.25f : gap > 150f ? 1.12f : gap < -400f ? 0.92f : 1f;
-            Function.Call(Hash.SET_VEHICLE_CHEAT_POWER_INCREASE, r.Car, mult * r.Skill);
+            Physics.SimWorld.Power(r.Car, mult * r.Skill, 1500);
         }
 
         private void Unstick(Racer r, int now)
@@ -869,6 +870,7 @@ namespace MidnightClub.Racing
         // ------------------------------------------------------------------ cleanup
         public void Cleanup()
         {
+            foreach (var r in Racers) try { if (r.Car != null) Physics.SimWorld.Rivals.Remove(r.Car.Handle); } catch { }
             foreach (var pr in pillarProps) try { if (pr.Exists()) pr.Delete(); } catch { }
             pillarProps.Clear();
             if (Rival != null) Rival.Delete();

@@ -28,76 +28,16 @@ namespace MidnightClub.Physics
 
 
         public static bool Active { get; private set; }
-        /// <summary>Our own tyre forces, wheel spin, engine, clutch, differentials, brakes, ABS and TCS run natively.</summary>
-        public static bool DriveActive { get; private set; }
-        public static float Rpm { get; private set; }
-        public static bool TcsOn { get; private set; }
-        public static bool AbsOn { get; private set; }
-        private static int driveAvail = -1; private static readonly float[] curveBuf = new float[EngineState.N], state = new float[20];
-        private static float lastSteps, lastOwn, lastFallback; private static int nextDriveLog;
+        /// <summary>Your car runs on the native simulation (see SimWorld).</summary>
+        public static bool DriveActive { get { return SimWorld.PlayerActive; } }
+        public static float Rpm { get { return SimWorld.Rpm; } }
+        public static bool TcsOn { get { return SimWorld.TcsOn; } }
+        public static bool AbsOn { get { return SimWorld.AbsOn; } }
+        public static bool EscOn { get { return SimWorld.EscOn; } }
 
-        /// <summary>Per frame: the driver's inputs and the powertrain for the native drivetrain.</summary>
-        public static void Drive(Vehicle car, Vehicles.Drivetrain.Live L, Persistence.OwnedVehicle rec, float escCut, int tcsL, int absL, bool hand, float dt)
+        /// <summary>Installs the hooks once; false when the .asi is missing or the game's code isn't recognised.</summary>
+        public static bool EnsureInstalled()
         {
-            if (!Active || L == null || L.Spec.Bike || car.Wheels.Count != 4) { DriveOff(); return; }
-            try
-            {
-                if (driveAvail < 0) { driveAvail = MCP_DriveAvailable(); Core.Log.Info("Native drivetrain: " + (driveAvail != 0 ? "available" : "wheel step not hooked, not available")); }
-                if (driveAvail == 0) { DriveActive = false; return; }
-                var s = L.Spec; var h = car.HandlingData;
-                int gear = car.CurrentGear;
-                float thr = Math.Max(0f, Math.Min(1f, gear == 0 ? Math.Abs(car.Throttle) : car.Throttle)) * (1f - Math.Max(0f, Math.Min(0.95f, escCut)));
-                float brake = Math.Max(0f, Math.Min(1f, car.BrakePower));
-                float ratio = gear > 0 ? L.Gear.Overall(gear) : gear == 0 ? -L.Gear.Overall(1) * 1.05f : 0f;
-                float rpmNow = Rpm > 100f ? Rpm : s.Idle;
-                L.Engine.CurveNow(curveBuf, rpmNow, thr, dt);
-                MCP_SetCurve(curveBuf, curveBuf.Length);
-                float m = L.Mass, g = 9.81f;
-                int brakeLvl = Math.Max(0, Function.Call<int>(GTA.Native.Hash.GET_VEHICLE_MOD, car, 12) + 1);
-                float bias = Math.Max(0.35f, Math.Min(0.8f, HandlingMem.GetBias(h, HandlingMem.BrakeBias)));
-                float cap = m * g * 1.55f * (1f + 0.07f * brakeLvl);       // the brakes can lock the tyres; the tyre sets the limit
-                float fd = Vehicles.Setup.Has(rec, "awd") ? 0.35f : Vehicles.Setup.Has(rec, "rwd") ? 0f : s.FrontDrive;
-                string kind = s.Kind ?? "";
-                bool diff = Vehicles.Setup.Has(rec, "diff");
-                float lockA = diff ? Math.Max(0f, Math.Min(1f, (50f + 5f * Vehicles.Setup.TuneValue(rec, 18)) / 100f)) : kind == "Super" || kind == "Sports" ? 0.35f : kind == "Muscle" ? 0.25f : 0.08f;
-                float preload = diff ? 60f : 15f;
-                float frontLock = fd > 0.95f ? (diff ? lockA * 0.6f : 0.05f) : 0.1f;
-                float tyreR = L.Gear.TyreR;
-                float wheelI = 1.15f * (tyreR / 0.33f) * (tyreR / 0.33f) * (kind == "SUVs" || kind == "Vans" || kind == "OffRoad" || kind == "Industrial" ? 1.6f : 1f);
-                float engI = s.Ind == Induction.Electric ? 0.06f : 0.07f + 0.03f * Math.Max(1f, s.Litres > 0f ? s.Litres : 3f);
-                float launch = Math.Min(s.Redline * 0.55f, Math.Max(s.Idle * 1.8f, L.Engine.PeakNmRpm * 0.7f));
-                var p = new float[]
-                {
-                    1f, thr, brake, hand ? 1f : 0f, Math.Max(0f, Math.Min(1f, car.Clutch)), ratio, tyreR, L.Gear.Efficiency, engI, wheelI,
-                    cap * bias, cap * (1f - bias), m * g * (1f - s.FrontPct) * 1.1f, fd, preload * 0.5f, frontLock, frontLock * 0.5f, preload, lockA, lockA * 0.5f,
-                    120f, 0.35f, s.Idle, s.Redline, L.Engine.PeakNm, launch, tcsL, absL, 1f, L.Engine.MaxRpm,
-                    0.25f, 0f, 0f, 0f
-                };
-                MCP_SetDrive(p, p.Length);
-                MCP_GetState(state, state.Length);
-                Rpm = state[0]; TcsOn = state[1] > 0.5f; AbsOn = state[2] > 0.5f;
-                DriveActive = true;
-                if (Game.GameTime > nextDriveLog)
-                {
-                    nextDriveLog = Game.GameTime + 20000;
-                    Core.Log.Info("Native drivetrain: " + (state[15] - lastSteps) + " steps, " + (state[16] - lastOwn) + " own tyre evaluations, " + (state[17] - lastFallback) + " axis fallbacks in 20 s; body coupling " + (state[18] < -1.5f ? "MISMATCH, own forces disabled" : "error " + (state[18] * 100f).ToString("0.0") + " %") + "; rpm " + Rpm.ToString("0")
-                        + "; spin " + state[3].ToString("0.0") + "/" + state[4].ToString("0.0") + "/" + state[5].ToString("0.0") + "/" + state[6].ToString("0.0") + " rad/s, slip " + state[7].ToString("0.00") + "/" + state[8].ToString("0.00") + "/" + state[9].ToString("0.00") + "/" + state[10].ToString("0.00"));
-                    lastSteps = state[15]; lastOwn = state[16]; lastFallback = state[17];
-                }
-            }
-            catch (EntryPointNotFoundException) { driveAvail = 0; DriveActive = false; Core.Log.Info("Native drivetrain: old MidnightClubPhysics.asi, not available"); }
-            catch (Exception ex) { Core.Log.Error("Native drivetrain", ex); driveAvail = 0; DriveOff(); }
-        }
-        public static void DriveOff()
-        {
-            if (DriveActive) { try { MCP_SetDrive(new float[] { 0f }, 1); } catch { } }
-            DriveActive = false; TcsOn = AbsOn = false; Rpm = 0f;
-        }
-        private static bool tried, available; private static int carHandle; private static int nextUpdate, lastScaled, lastSusp, nextLog;
-
-        public static void Update(Vehicle car, Vehicles.Drivetrain.Live L, float wet, bool enabled)
-        {
-            if (!enabled || car == null || L == null) { Off(); return; }
             if (!tried)
             {
                 tried = true;
@@ -105,7 +45,15 @@ namespace MidnightClub.Physics
                 catch (DllNotFoundException) { available = false; Core.Log.Info("Native physics: MidnightClubPhysics.asi not found, using the script model"); }
                 catch (Exception ex) { available = false; Core.Log.Error("Native physics", ex); }
             }
-            if (!available) { Active = false; return; }
+            return available;
+        }
+        public static void DriveOff() { }
+        private static bool tried, available; private static int carHandle; private static int nextUpdate, lastScaled, lastSusp, nextLog;
+
+        public static void Update(Vehicle car, Vehicles.Drivetrain.Live L, float wet, bool enabled)
+        {
+            if (!enabled || car == null || L == null) { Off(); return; }
+            if (!EnsureInstalled()) { Active = false; return; }
             try
             {
                 if (car.Handle != carHandle)
@@ -178,7 +126,6 @@ namespace MidnightClub.Physics
         public static void Off()
         {
             if (!Active && carHandle == 0) return;
-            DriveOff();
             try { if (available) { MCP_SetModel(new float[] { 0f }, 1); MCP_SetAxle(0, new float[] { 0f }, 1); MCP_SetAxle(1, new float[] { 0f }, 1); MCP_SetWheels(0, 0, 0, 0); } } catch { }
             Active = false; carHandle = 0;
         }

@@ -202,6 +202,9 @@ namespace MidnightClub.Vehicles
                 EngineRpm = Math.Max(L.Spec.Idle, Physics.Native.Rpm);
                 float ovn = L.Gear.Overall(g);
                 AccelDemand = L.Engine.SteadyTorque(EngineRpm) * ovn * L.Gear.Efficiency / L.Gear.TyreR / Math.Max(1f, L.Mass);
+                var en = L.Engine;
+                en.BoostState = Physics.SimWorld.Boost;
+                en.BoostNowBar = en.Ind == Physics.Induction.Turbo ? en.BoostBar * Physics.SimWorld.Boost : en.Ind == Physics.Induction.Supercharged ? en.BoostBar * thr * Math.Min(1f, EngineRpm / (L.Spec.Redline * 0.35f)) : 0f;
                 TorqueMult = 1f; prevM = smoothM = 1f;
                 return;
             }

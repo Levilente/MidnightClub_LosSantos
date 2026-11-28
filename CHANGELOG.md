@@ -1,4 +1,14 @@
 # Changelog
+## 0.50.0 (2026-11-28)
+- The native simulation runs for every vehicle around you, not only yours: race opponents, traffic, police, trucks (up to 10 wheels, tandem axles), motorbikes, quads and parked cars (up to 72 vehicles within 160 m).
+  - Each vehicle gets its real data (engine curve, gearbox, tyres, brakes, differentials, suspension, aero, mass); the .asi reads every driver's pedals, handbrake, gear and clutch straight from the vehicle at physics rate, so the AI drives exactly the same model as you.
+  - Real masses in every model's handling: collisions carry real momentum. Everything is restored when you leave the mode.
+  - Brake-based stability control (ESC) at physics rate for everybody (the old angular-velocity correction is gone), ABS / TCS by era for traffic, race assists for opponents.
+  - Turbo lag, aero drag / downforce and rolling resistance moved into the .asi (per vehicle).
+  - Motorbikes: our longitudinal force, wheel spin and brakes; GTA's lean / camber side force limited to our friction circle.
+  - Suspension: per-wheel springs from the wheel's static load (trucks included), ride height measured from GTA's own first.
+- AI: GTA's driving AI plans corner and braking speeds from the real tyre grip; race catch-up, crew, police and nitrous / slipstream / Agro now change the simulated engine power.
+
 ## 0.49.0 (2026-11-28)
 - Full native simulation (MidnightClubPhysics.asi stage 4), at GTA's physics rate:
   - Own tyre forces: slip from the contact-point velocity of each Runge-Kutta stage against the wheel's own spin, Pacejka per direction, load sensitivity, combined slip (normalised slip / friction ellipse), sliding grip held at ~80 % of peak. Forces enter the body exactly like GTA's (F/m, I^-1 (r x F) in the body frame): lateral force at the roll centre, longitudinal force near the contact patch, so squat, dive and wheelies come from the physics.

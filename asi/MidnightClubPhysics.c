@@ -106,9 +106,14 @@ static void Friction(u64 wheel, u64 inst, u64 outVec, u64 lin, u64 ang, u64 st1,
 {
     origFriction(wheel, inst, outVec, lin, ang, st1, st2, spin, load, a10, a11, a12, a13, ctx, other, dt);
     InterlockedIncrement(&calls[0]);
+    Veh *v = cur;
+    if (v && outVec && lin && ang)
+    {
+        int k = wheelIdx(v, wheel);
+        if (k >= 0) { vehTyre(v, k, wheel, inst, (float *)outVec, (float *)lin, (float *)ang, asf(load), st1, st2, a10, a11, a12, asf(dt)); return; }
+    }
     int i = whichWheel(wheel);
-    if (i >= 0 && outVec && lin && ang && !ownTyre(i, wheel, inst, (float *)outVec, (float *)lin, (float *)ang, asf(load), st1, st2, a10, a11, a12, asf(dt)))
-        tyreModel(wheel, asf(load), (float *)outVec, (float *)lin, (float *)ang);
+    if (!stepHooked && i >= 0 && outVec && lin && ang) tyreModel(wheel, asf(load), (float *)outVec, (float *)lin, (float *)ang);
     if (i < 0 || !recording || !ring) return;
     LONG n = InterlockedIncrement(&head) - 1; Rec *r = &ring[n % CAP];
     r->tick = GetTickCount(); r->kind = 1; r->wheel = (uint16_t)i; r->dt = asf(dt); r->load = asf(load);
@@ -121,8 +126,14 @@ static void Susp(u64 wheel, u64 inst, u64 outVec, u64 lin, u64 ang, u64 loadOut,
 {
     origSusp(wheel, inst, outVec, lin, ang, loadOut, slot, a8, a9, ctx, other, dt);
     InterlockedIncrement(&calls[1]);
+    Veh *v = cur;
+    if (v && outVec && lin && ang)
+    {
+        int k = wheelIdx(v, wheel);
+        if (k >= 0) { vehSusp(v, k, wheel, other, (float *)outVec, (float *)lin, (float *)ang, (float *)loadOut); return; }
+    }
     int i = whichWheel(wheel);
-    if (i >= 0 && outVec && lin && ang && !ownSusp(i, wheel, other, (float *)outVec, (float *)lin, (float *)ang, (float *)loadOut)) suspModel((float *)outVec, (float *)lin, (float *)ang, (float *)loadOut);
+    if (!stepHooked && i >= 0 && outVec && lin && ang && !ownSusp(i, wheel, other, (float *)outVec, (float *)lin, (float *)ang, (float *)loadOut)) suspModel((float *)outVec, (float *)lin, (float *)ang, (float *)loadOut);
     if (i < 0 || !recording || !ring) return;
     LONG n = InterlockedIncrement(&head) - 1; Rec *r = &ring[n % CAP];
     r->tick = GetTickCount(); r->kind = 2; r->wheel = (uint16_t)i; r->dt = asf(dt); r->load = rf(loadOut, 0);
@@ -134,12 +145,14 @@ static void Susp(u64 wheel, u64 inst, u64 outVec, u64 lin, u64 ang, u64 loadOut,
 /* per-vehicle wheel integration step (0xF27F40): after it, our wheel spins / drivetrain for the player's car */
 static void Step(u64 ctx, u64 b70, u64 b80, u64 out, u64 wheels, u64 count, u64 a7, u64 gear, u64 dt, u64 a10, u64 a11)
 {
+    Veh *v = NULL; int nw = (int)(count & 0xFFFFFFFF);
+    if (b70 && wheels && nw > 0 && nw <= MAXW) v = findVeh(b70 - 0xB70);
+    if (v && v->nw != nw) { u64 *wp = (u64 *)wheels; for (int i = 0; i < nw; i++) v->wheel[i] = wp[i]; v->nw = nw; }
+    if (v && v->nw == nw) { u64 *wp = (u64 *)wheels; if (wp[0] != v->wheel[0]) for (int i = 0; i < nw; i++) v->wheel[i] = wp[i]; }
+    Veh *prev = cur; cur = v;
     origStep(ctx, b70, b80, out, wheels, count, a7, gear, dt, a10, a11);
-    if (!wheels || !watch[0] || (count & 0xFFFFFFFF) != 4) return;
-    u64 *wp = (u64 *)wheels;
-    if (wp[0] != watch[0]) return;
-    u64 w4[4] = { watch[0], watch[1], watch[2], watch[3] };
-    driveStep(w4, asf(dt));
+    cur = prev;
+    if (v) vehStep(v, (u64 *)wheels, nw, asf(dt));
 }
 
 /* trampoline: the 12 stolen push bytes, then jmp [rip+0] back to target+12 */
@@ -192,30 +205,47 @@ __declspec(dllexport) int MCP_Install(void)
     return 1;
 }
 __declspec(dllexport) const char *MCP_Status(void) { return status; }
-__declspec(dllexport) void MCP_SetModel(const float *p, int n) { if (n > (int)(sizeof(Model) / 4)) n = sizeof(Model) / 4; memcpy((void *)&model, p, (size_t)n * 4); if (model.on > 0.5f) peaks(); }
+__declspec(dllexport) void MCP_SetModel(const float *p, int n) { if (n > (int)(sizeof(Model) / 4)) n = sizeof(Model) / 4; memcpy((void *)&model, p, (size_t)n * 4); }
 __declspec(dllexport) int MCP_DriveAvailable(void) { return stepHooked; }
-__declspec(dllexport) void MCP_SetDrive(const float *p, int n)
+/* register / update a vehicle (CVehicle address) with its parameters (VParams layout, see sim_core.h) */
+__declspec(dllexport) int MCP_VehSet(u64 veh, const float *p, int n)
 {
-    if (!stepHooked) { drv.on = 0; return; }
-    if (n > (int)(sizeof(Drive) / 4)) n = sizeof(Drive) / 4;
-    int was = drv.on > 0.5f; memcpy((void *)&drv, p, (size_t)n * 4);
-    if (!was && drv.on > 0.5f) { for (int i = 0; i < 4; i++) { ws[i].init = 0; ws[i].seen = 0; } tcsF = 1; engW = drv.idle / RPM_W; }
+    if (!stepHooked || !veh) return 0;
+    if (n > VP_N) n = VP_N;
+    Veh *v = findVeh(veh);
+    if (v) { memcpy(&v->p, p, (size_t)n * 4); vpeaks(v); return 1; }
+    for (int i = 0; i < MAXV; i++)
+    {
+        if (InterlockedCompareExchange(&vehs[i].used, 1, 0) != 0) continue;
+        Veh *w = &vehs[i];
+        memset((char *)w + sizeof(LONG), 0, sizeof(Veh) - sizeof(LONG));
+        w->veh = veh; memcpy(&w->p, p, (size_t)n * 4); vpeaks(w);
+        w->tcsF = 1; w->engW = (w->p.idle > 100 ? w->p.idle : 800) / RPM_W;
+        w->used = 2;
+        return 1;
+    }
+    return 0;
 }
-__declspec(dllexport) void MCP_SetCurve(const float *t, int n) { if (n > CURVE_N) n = CURVE_N; for (int i = 0; i < n; i++) curve[i] = t[i]; }
-/* state for the mod: rpm, tcs, abs, spin x4, slip ratio x4, tan(slip angle) x4, steps, own evaluations, axis fallbacks, coupling error */
-__declspec(dllexport) int MCP_GetState(float *o, int n)
+__declspec(dllexport) void MCP_VehDrop(u64 veh) { Veh *v = findVeh(veh); if (v) { v->used = 0; } }
+__declspec(dllexport) void MCP_VehDropAll(void) { for (int i = 0; i < MAXV; i++) vehs[i].used = 0; }
+__declspec(dllexport) int MCP_VehCount(void) { int c = 0; for (int i = 0; i < MAXV; i++) if (vehs[i].used == 2) c++; return c; }
+/* state: rpm, tcs, abs, esc, boost, steps, own evaluations, coupling (err ratio, -2 = disabled), suspension ready, wheels, spin x10, slip x10 */
+__declspec(dllexport) int MCP_VehState(u64 veh, float *o, int n)
 {
-    float v[20]; v[0] = engW * RPM_W; v[1] = (float)tcsLive; v[2] = (float)absLive;
-    for (int i = 0; i < 4; i++) { v[3 + i] = ws[i].w; v[7 + i] = ws[i].kappa; v[11 + i] = ws[i].ta; }
-    v[15] = (float)steps; v[16] = (float)ownCount; v[17] = (float)axisFallback; v[18] = coupleBad ? -2.0f : angMag > 1e-6 ? (float)(angErr / angMag) : -1.0f; v[19] = tcsF;
-    if (n > 20) n = 20; for (int i = 0; i < n; i++) o[i] = v[i];
-    return n;
+    Veh *v = findVeh(veh); if (!v) return 0;
+    float s[30]; memset(s, 0, sizeof s);
+    s[0] = v->engW * RPM_W; s[1] = (float)v->tcsAct; s[2] = (float)v->absAct; s[3] = (float)v->escAct; s[4] = v->boost;
+    s[5] = (float)v->steps; s[6] = (float)v->own; s[7] = v->bad ? -2.0f : v->angMag > 1e-6 ? (float)(v->angErr / v->angMag) : -1.0f;
+    s[8] = (float)v->susReady; s[9] = (float)v->nw;
+    for (int i = 0; i < 10 && i < v->nw; i++) { s[10 + i] = v->ws[i].w; s[20 + i] = v->ws[i].kappa; }
+    if (n > 30) n = 30; memcpy(o, s, (size_t)n * 4); return n;
 }
+__declspec(dllexport) int MCP_AxisFallbacks(void) { return axisFallback; }
 __declspec(dllexport) int MCP_Scaled(void) { return scaled; }
 __declspec(dllexport) int MCP_SuspDone(void) { return suspDone; }
 __declspec(dllexport) void MCP_SetAxle(int which, const float *p, int n) { if (which < 0 || which > 1) return; if (n > (int)(sizeof(Axle) / 4)) n = sizeof(Axle) / 4; memcpy((void *)&axle[which], p, (size_t)n * 4); }
 __declspec(dllexport) float MCP_Comp(int i) { return 0; }
-__declspec(dllexport) void MCP_SetWheels(u64 a, u64 b, u64 c, u64 d) { if (watch[0] != a) for (int i = 0; i < 4; i++) ws[i].init = 0; watch[0] = a; watch[1] = b; watch[2] = c; watch[3] = d; }
+__declspec(dllexport) void MCP_SetWheels(u64 a, u64 b, u64 c, u64 d) { watch[0] = a; watch[1] = b; watch[2] = c; watch[3] = d; }
 __declspec(dllexport) void MCP_Record(int on)
 {
     if (on && !ring) ring = (Rec *)VirtualAlloc(NULL, sizeof(Rec) * CAP, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);

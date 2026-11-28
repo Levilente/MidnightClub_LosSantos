@@ -335,7 +335,7 @@ namespace MidnightClub.Police
                 Function.Call(Hash.SET_VEHICLE_SIREN, car, true);
                 Function.Call(Hash.TASK_VEHICLE_CHASE, drv, player);
                 Function.Call(Hash.SET_TASK_VEHICLE_CHASE_IDEAL_PURSUIT_DISTANCE, drv, 0f);
-                Function.Call(Hash.SET_VEHICLE_CHEAT_POWER_INCREASE, car, 1f + 0.08f * Level);
+                Physics.SimWorld.Power(car, 1f + 0.08f * Level, 600000);
             }
             var b = UI.BlipRegistry.Own(car.AddBlip()); b.Sprite = heli ? BlipSprite.PoliceHelicopterAnimated : BlipSprite.PoliceCar; b.Color = BlipColor.Red; b.Scale = 0.75f;
             units.Add(new Unit { Car = car, Driver = drv, Heli = heli, Blip = b });

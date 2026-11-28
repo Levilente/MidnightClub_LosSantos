@@ -122,7 +122,7 @@ namespace MidnightClub.Explore
             if (now - countdownEnd < 400)
             {
                 Function.Call(Hash.TASK_VEHICLE_DRIVE_WANDER, foe.Driver, foe.Car, 70f, (int)VehicleDrivingFlags.DrivingModeAvoidVehiclesReckless);
-                Function.Call(Hash.SET_VEHICLE_CHEAT_POWER_INCREASE, foe.Car, 1.2f);
+                Physics.SimWorld.Power(foe.Car, 1.2f, 600000);
             }
             var rel = foe.Car.Position - car.Position; float gap = rel.Length();
             bool foeAhead = Vector3.Dot(rel, car.ForwardVector) > 0;
@@ -152,7 +152,7 @@ namespace MidnightClub.Explore
             Battling = false; var f = foe; foe = null;
             if (f != null)
             {
-                try { if (f.Driver.Exists() && f.Car.Exists()) { Function.Call(Hash.TASK_VEHICLE_DRIVE_WANDER, f.Driver, f.Car, 20f, 786603); Function.Call(Hash.SET_VEHICLE_CHEAT_POWER_INCREASE, f.Car, 1f); } } catch { }
+                try { if (f.Driver.Exists() && f.Car.Exists()) { Function.Call(Hash.TASK_VEHICLE_DRIVE_WANDER, f.Driver, f.Car, 20f, 786603); Physics.SimWorld.Power(f.Car, 1f, 0); } } catch { }
                 Remove(f, false);
             }
             if (silent) return;

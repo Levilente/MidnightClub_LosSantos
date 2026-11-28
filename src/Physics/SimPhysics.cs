@@ -31,6 +31,7 @@ namespace MidnightClub.Physics
         private int appliedModel; private string appliedKey; private Vehicle appliedCar;
         private byte[] curRaw; private int kerbLogAt; private float baseTMax, baseSlide, baseBias = 0.5f, baseLat, baseBrake, baseSteer;
         public Drivetrain.Live Live { get; private set; }
+        public int AppliedModel { get { return appliedModel; } }
         public float SlipDeg { get; private set; }
         public bool TcsActive { get; private set; }
         public bool AbsActive { get; private set; }
@@ -41,7 +42,7 @@ namespace MidnightClub.Physics
             Instance = this; this.vehicles = vehicles; this.registry = registry; this.cfg = cfg;
             Drivetrain.Init(dataDir); Probe.BaseDir = Path.GetDirectoryName(dataDir.TrimEnd('\\', '/'));
             EventBus.Subscribe<MidnightTickEvent>(e => Tick());
-            EventBus.Subscribe<ModeChangedEvent>(e => { if (e.To != GameMode.MIDNIGHT_CLUB) Restore(); });
+            EventBus.Subscribe<ModeChangedEvent>(e => { if (e.To != GameMode.MIDNIGHT_CLUB) { Restore(); SimWorld.Off(); } });
         }
 
         // ------------------------------------------------------------------ spawn: gearbox
@@ -81,6 +82,7 @@ namespace MidnightClub.Physics
         private Stock Capture(int hash, HandlingData h)
         {
             Stock s; if (stocks.TryGetValue(hash, out s)) return s;
+            SimWorld.ReleaseModel(hash);       // the world simulation may have this model's handling changed
             stocks[hash] = s = new Stock { TMax = h.TractionCurveMax, TMin = h.TractionCurveMin, TLat = h.TractionCurveLateral, LowLoss = h.LowSpeedTractionLossMultiplier, Steer = h.SteeringLock, Brake = h.BrakeForce, HBrake = h.HandBrakeForce, Com = h.CenterOfMassOffset,
                 SForce = h.SuspensionForce, SComp = h.SuspensionCompressionDamping, SReb = h.SuspensionReboundDamping, SUp = h.SuspensionUpperLimit, SLow = h.SuspensionLowerLimit,
                 Arb = h.AntiRollBarForce, RollF = h.RollCenterHeightFront, RollR = h.RollCenterHeightRear, Inertia = h.InertiaMultiplier,
@@ -194,7 +196,12 @@ namespace MidnightClub.Physics
         {
             Probe.Tick();
             var car = vehicles.Current; var rec = vehicles.CurrentRecord; var ped = Game.Player.Character;
-            if (car == null || !car.Exists() || rec == null || !ped.IsInVehicle(car) || car.Driver != ped || car.Model.IsBicycle || car.IsDead) { Restore(); prevVx = float.NaN; return; }
+            if (car == null || !car.Exists() || rec == null || !ped.IsInVehicle(car) || car.Driver != ped || car.Model.IsBicycle || car.IsDead)
+            {
+                Restore(); prevVx = float.NaN;
+                try { SimWorld.Tick(null, null, null, cfg, cfg.NativePhysics); } catch (Exception ex) { Log.Error("Native world", ex); }
+                return;
+            }
             try
             {
                 Apply(car, rec);
@@ -264,7 +271,7 @@ namespace MidnightClub.Physics
             Drivetrain.TcsCut = Native.DriveActive ? 0f : tcs;       // the native drivetrain runs its own TCS at physics rate
             // stability management: when the body slip grows past the limit and the yaw makes it worse, brake the yaw and cut power
             float escWant = 0f;
-            if (escL > 0 && ground && speed > 6f && vx > 0f)
+            if (escL > 0 && ground && speed > 6f && vx > 0f && !Native.DriveActive)   // native: brake-based ESC at physics rate
             {
                 float lim = (30f - 2f * escL) * 0.01745f, ab = Math.Abs(beta);
                 bool worsening = Math.Sign(yaw) == Math.Sign(beta) || Math.Abs(yaw) < 0.05f;
@@ -280,15 +287,15 @@ namespace MidnightClub.Physics
             }
             esc += (escWant - esc) * Math.Min(1f, dt / (escWant > esc ? 0.05f : 0.25f));
             EscActive = esc > 0.05f;
-            Native.Drive(car, L, rec, esc, tcsL, absL, hand, dt);
-            if (Native.DriveActive) { TcsActive = Native.TcsOn; }
+            SimWorld.Tick(car, L, rec, cfg, cfg.NativePhysics);
+            if (Native.DriveActive) { TcsActive = Native.TcsOn; EscActive = Native.EscOn; }
             Drivetrain.EscCut = esc;
             // ---- powertrain
             float slideCos = speed > 3f && vx > 0f ? Math.Abs(vx) / Math.Max(0.1f, (float)Math.Sqrt(vx * vx + vy * vy)) : 1f;
             Drivetrain.Tick(car, L, rec, dt, st.DriveF, gtaAccel, clean && !float.IsNaN(gtaAccel), slideCos);
             // ---- aero: drag and downforce (lift on old shapes), plus the extra rolling drag of soft or knobbly tyres
             var nv = v;
-            if (speed > 1f)
+            if (speed > 1f && !Native.DriveActive)          // native: drag, downforce and rolling resistance are simulated per wheel
             {
                 float q = 0.5f * Perf.Rho * speed * speed;
                 float drag = q * L.Cda / L.Mass + (L.Tyre.Rolling - 0.012f) * 9.81f;

@@ -80,7 +80,7 @@ namespace MidnightClub.Gameplay
             Nitrous(car, rec, dt);
             Special(car, dt);
             if (StyleSystem.Instance != null && StyleSystem.Instance.Slipstreaming && !nosOn)
-                Function.Call(Hash.SET_VEHICLE_CHEAT_POWER_INCREASE, car, 1.12f * Vehicles.Drivetrain.TorqueMult);
+                Physics.SimWorld.Power(car, 1.12f * Vehicles.Drivetrain.TorqueMult, 250);
             DrawBars(rec);
         }
 
@@ -96,7 +96,7 @@ namespace MidnightClub.Gameplay
             {
                 nosOn = true;
                 nos = Math.Max(0f, nos - burn * dt);
-                Function.Call(Hash.SET_VEHICLE_CHEAT_POWER_INCREASE, car, (1.6f + 0.35f * rec.NosLevel) * Vehicles.Drivetrain.TorqueMult);
+                Physics.SimWorld.Power(car, (1.6f + 0.35f * rec.NosLevel) * Vehicles.Drivetrain.TorqueMult, 250);
                 car.ApplyForceRelative(new Vector3(0f, 0.3f + 0.15f * rec.NosLevel, 0f), Vector3.Zero, ForceType.ExternalForce);
                 CameraSystem.BoostFov = 12f; CameraSystem.BoostShake = 0.6f;
                 if (!fxNos) { Screen.StartEffect(ScreenEffect.RaceTurbo, 0, true); fxNos = true; Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "Boost", "DLC_IE_Stunt_Race_Sounds", true); }
@@ -134,7 +134,7 @@ namespace MidnightClub.Gameplay
                     if (!fxZone) { Screen.StartEffect(ScreenEffect.FocusIn, 0, true); fxZone = true; }
                     break;
                 case "Agro":
-                    Function.Call(Hash.SET_VEHICLE_CHEAT_POWER_INCREASE, car, 1.35f);
+                    Physics.SimWorld.Power(car, 1.35f, 250);
                     CameraSystem.BoostShake = 0.4f;
                     foreach (var o in World.GetNearbyVehicles(car.Position, 5.5f))
                     {
