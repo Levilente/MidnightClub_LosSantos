@@ -29,7 +29,7 @@ typedef struct
     float powC, longAt, tcs, abs, esc, mass, cda, cla, wheelbase, bike;         /* 30..39 */
     float parked, gears, frontShare, brakeBias, hold, power, pad46, pad47, pad48, pad49;  /* 40..49 */
     float susOn, fF, fR, zbl, zbh, zrl, zrh, arbF, arbR, knee;                   /* 50..59 suspension: ride frequency front/rear (Hz), damping ratios, ARB / spring ratio */
-    float bumpFrac, bumpK, maxFk, travel, pad64, pad65, pad66, pad67, pad68, pad69;   /* 60..69 travel: GTA's wheel travel (handling upper - lower limit, m) */
+    float bumpFrac, bumpK, maxFk, travel, antiF, antiR, pad66, pad67, pad68, pad69;   /* 60..69 travel: GTA's wheel travel (handling upper - lower limit, m); anti-dive / anti-squat share per axle */
     float ratios[12];                                                           /* 70..81  [0] reverse, [g] overall ratio of gear g */
     float driven[MAXW];                                                         /* 82..91  1 = driven wheel */
     float full[CURVE_N], nb[CURVE_N];                                           /* 92..187 full-load torque, off-boost torque (Nm, 0..maxRpm) */
@@ -51,7 +51,7 @@ typedef struct
     /* own wheel-ground contact: the wheel (unsprung mass) on its tyre spring, the body on the suspension */
     float s, sv, x1, ft; int calls, gc, cinit;
     /* tyre: lagged slip (relaxation length), camber, temperature, wear */
-    float taL, taRaw, vy, fxL, fyL, gam, temp, wear, muF, press, ftF, surf;
+    float taL, taRaw, vy, fxL, fyL, gam, temp, wear, muF, press, ftF, surf, xLast;
 } WSim;
 
 typedef struct
@@ -66,7 +66,7 @@ typedef struct
     double sErr, sMag; LONG sN; int strutOk, strutBad; float M[12]; int Mok; float bodyMass;
     LONG steps, own;
     float iGta[3], iTgt[3], iInv[3];
-    unsigned short xh[2][128]; int xhN[2]; float tLearn[2];   /* where GTA's wheel really stops (compression histogram, 5 mm bins) */   /* body inertia GTA uses / our target (roll, pitch, yaw), per principal axis the factor on our torques */
+    int clampN[2]; float tLearn[2];   /* where GTA's wheel really stops: its compression held bit-exact step after step above the ride height */   /* body inertia GTA uses / our target (roll, pitch, yaw), per principal axis the factor on our torques */
 } Veh;
 static volatile int axisMode; static volatile LONG axA, axB;   /* which GTA tyre axis is the heading (1 = first, 2 = second), learned near straight ahead */
 
@@ -226,7 +226,18 @@ static int vehTyre(Veh *v, int i, u64 wheel, u64 inst, float *out, float *lin, f
     /* lateral force enters the body at the suspension's real roll centre (GTA uses 0.3-0.45 m to hide body roll,
        which moves the load transfer into rigid links: an instant, snappy body); longitudinal near the contact patch */
     float rcOwn = s->front ? v->p.rcF : v->p.rcR; if (!(rcOwn > 0.005f && rcOwn < 0.8f)) rcOwn = -1;
-    float rLat[3], rLong[3], gLat[3], gLong[3]; lever(wheel, inst, c, com, v->p.longAt, rcOwn, rLat, rLong); lever(wheel, inst, c, com, v->p.longAt, -1, gLat, gLong);
+    float rLat[3], rLong[3], gLat[3], gLong[3]; lever(wheel, inst, c, com, v->p.longAt, rcOwn, rLat, rLong);
+    {   /* anti-dive / anti-squat: the suspension links carry part of the braking and driving force, so the longitudinal
+           force acts as if at that share of the centre-of-mass height (real cars 10-35 %; GTA: near the ground) */
+        float A = s->front ? v->p.antiF : v->p.antiR;
+        if (A > 0.01f && A < 0.8f)
+        {
+            float hc = (com[0] - c[0]) * U[0] + (com[1] - c[1]) * U[1] + (com[2] - c[2]) * U[2];
+            float dh = A * hc - hc - dot3(rLong, U);
+            if (hc > 0.1f && hc < 2.0f) for (int j = 0; j < 3; j++) rLong[j] += dh * U[j];
+        }
+    }
+    lever(wheel, inst, c, com, v->p.longAt, -1, gLat, gLong);
     const float *M = (const float *)Mp;
     float gtaLat = dot3(out, side);
     {   /* check our body coupling against GTA's own force */
@@ -289,22 +300,15 @@ static float suspTravel(const Veh *v, int ax)
     if (v->tLearn[ax] > 0.08f && v->tLearn[ax] < T) T = v->tLearn[ax];
     return T;
 }
-static void learnTravel(Veh *v, int ax)
+/* once per physics step per wheel: a hard stop shows as the same compression, bit for bit, step after step
+   (a held corner or a cruise still moves it by a few micrometres) */
+static void watchStop(Veh *v, WSim *s, int ax, float x)
 {
-    unsigned short *h = v->xh[ax]; long tot = 0; for (int b = 0; b < 128; b++) tot += h[b];
-    if (tot > 1000)
+    if (x == s->xLast && x > v->x0[ax] + 0.025f && x > 0.08f && fabsf(v->vxB) > 3.0f)
     {
-        for (int b = 126; b > 2; b--)
-        {
-            if (h[b] < 0.02 * tot) continue;
-            long above = 0; for (int j = b + 1; j < b + 5 && j < 128; j++) above += h[j];
-            float edge = (b + 1) * 0.005f;
-            if (h[b] >= 0.02 * tot && above < 0.01 * tot && edge > v->x0[ax] + 0.025f && (v->tLearn[ax] <= 0 || edge < v->tLearn[ax])) v->tLearn[ax] = edge;
-            break;
-        }
+        if (++v->clampN[ax] >= 40 && (v->tLearn[ax] <= 0 || x + 0.002f < v->tLearn[ax])) v->tLearn[ax] = x + 0.002f;
     }
-    for (int b = 0; b < 128; b++) h[b] >>= 1;
-    v->xhN[ax] = 0;
+    s->xLast = x;
 }
 static float susForce(const Veh *v, u64 wheel, int i, float sS, float vS, float sOther, int hasOther)
 {
@@ -346,9 +350,7 @@ static int vehSusp(Veh *v, int i, u64 wheel, u64 inst, u64 other, float *out, fl
         return 0;
     }
     if (!s->cinit || gz < 20.0f) return 0;                       /* no contact for GTA: nothing to push */
-    {   int ax = rf(wheel, 0x140) < 0 ? 1 : 0, b = (int)(x * 200.0f);
-        if (b >= 0 && b < 128 && v->xh[ax][b] < 65000) v->xh[ax][b]++;
-        if (++v->xhN[ax] >= 6000) learnTravel(v, ax); }
+    if (s->calls == 1) watchStop(v, s, rf(wheel, 0x140) < 0 ? 1 : 0, x);
     float dx = x - s->x1, sS = s->s + dx; if (sS < 0) sS = 0;   /* the wheel holds its place during the step, the body moves */
     int j = s->pair; float so = j >= 0 && j < v->nw ? v->ws[j].s : 0;
     float F = susForce(v, wheel, i, sS, s->sv, so, j >= 0);

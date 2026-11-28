@@ -262,6 +262,10 @@ namespace MidnightClub.Physics
             p[60] = 1.7f; p[61] = 4f; p[62] = 3.5f;
             p[63] = h != null && h.IsValid ? h.SuspensionUpperLimit - h.SuspensionLowerLimit : 0f;   // GTA's wheel travel
             if (player) travelLog = p[63];
+            // anti-dive / anti-squat (share of the braking / driving force the links carry): modern sports cars most, old cars least
+            bool sportyCar = kind == "Super" || kind == "Sports";
+            p[64] = s.Year < 1975 ? 0.05f : s.Year < 1990 ? 0.1f : sportyCar ? 0.3f : heavy ? 0.2f : 0.25f;
+            p[65] = s.Year < 1975 ? 0.05f : s.Year < 1990 ? 0.1f : sportyCar ? 0.2f : 0.15f;
             // gearbox: overall ratios ([0] reverse)
             p[70] = L.Gear.Overall(1) * 1.05f;
             for (int i = 1; i <= Math.Min(11, L.Gear.Gears); i++) p[70 + i] = L.Gear.Overall(i);

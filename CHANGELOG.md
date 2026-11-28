@@ -1,4 +1,11 @@
 # Changelog
+## 0.57.0 (2026-11-28)
+- New: a full-vehicle test bench (tools/bench/bench.c). Body heave, roll, pitch, yaw and planar motion, four wheels on their tyre springs, our tyre model, and GTA's rigid wheel stop, running the game's own suspension and tyre code. Every handling change is now checked there before it ships: ride position, roll and pitch per g, step steer, one-side kerb, pothole, plain turn-in against a scandi flick with the driver catching the slide.
+  - It reproduces the old bouncing exactly (wrong travel: the Jubilee at 78 % of its travel, hundreds of rigid contacts when braking) and shows 0.56+ free of it.
+  - Results (Jubilee / Elegy RH8 / Futo): roll 4.6 / 2.5 / 4.5 deg per g, pitch 3.1 / 1.4 / 2.9 deg per g, kerb settled in 0.35 / 0.23 / 0.29 s, no rigid contact anywhere; the flick gives 20-50 % more yaw than a plain turn-in and every slide can be caught.
+- Anti-dive / anti-squat: the suspension links carry part of the braking and driving force (modern sports cars 30 / 20 %, other modern cars 25 / 15 %, 80s cars 10 %, older 5 %), so the nose dives and the tail squats like the real car instead of GTA's near-ground lever.
+- The hard-stop watch from 0.56 no longer uses a histogram (a long held corner could look like a stop): the stop is the compression held bit for bit, step after step, while moving.
+
 ## 0.56.0 (2026-11-28)
 - The real cause of the bouncing, from the new recording: 0.54 took the wrong value for GTA's wheel travel (CWheel+0x130 is 0.67 m on the Jubilee, but the wheel really stops hard at 0.255 m of compression). The car rested at 80 % of the real travel, so the rear wheels sat on GTA's rigid stop 35-45 % of the time: the springs had nothing left to do and every bump went into the rigid contact.
   - the travel now comes from the handling (upper - lower limit), and the mod also watches where each axle's wheel really stops and uses that if it is lower;
