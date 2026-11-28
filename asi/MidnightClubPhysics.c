@@ -130,7 +130,7 @@ static void Susp(u64 wheel, u64 inst, u64 outVec, u64 lin, u64 ang, u64 loadOut,
     if (v && outVec && lin && ang)
     {
         int k = wheelIdx(v, wheel);
-        if (k >= 0) { vehSusp(v, k, wheel, other, (float *)outVec, (float *)lin, (float *)ang, (float *)loadOut); return; }
+        if (k >= 0) { vehSusp(v, k, wheel, inst, other, (float *)outVec, (float *)lin, (float *)ang, (float *)loadOut); return; }
     }
     int i = whichWheel(wheel);
     if (!stepHooked && i >= 0 && outVec && lin && ang && !ownSusp(i, wheel, other, (float *)outVec, (float *)lin, (float *)ang, (float *)loadOut)) suspModel((float *)outVec, (float *)lin, (float *)ang, (float *)loadOut);
@@ -221,6 +221,7 @@ __declspec(dllexport) int MCP_VehSet(u64 veh, const float *p, int n)
         memset((char *)w + sizeof(LONG), 0, sizeof(Veh) - sizeof(LONG));
         w->veh = veh; w->wkey = *(u64 *)(veh + 0xC30); memcpy(&w->p, p, (size_t)n * 4); vpeaks(w);
         w->tcsF = 1; w->engW = (w->p.idle > 100 ? w->p.idle : 800) / RPM_W;
+        for (int q = 0; q < MAXW; q++) w->ws[q].pair = -1;
         w->used = 2;
         return 1;
     }
@@ -229,17 +230,25 @@ __declspec(dllexport) int MCP_VehSet(u64 veh, const float *p, int n)
 __declspec(dllexport) void MCP_VehDrop(u64 veh) { Veh *v = findVeh(veh); if (v) { v->used = 0; } }
 __declspec(dllexport) void MCP_VehDropAll(void) { for (int i = 0; i < MAXV; i++) vehs[i].used = 0; }
 __declspec(dllexport) int MCP_VehCount(void) { int c = 0; for (int i = 0; i < MAXV; i++) if (vehs[i].used == 2) c++; return c; }
-/* state: rpm, tcs, abs, esc, boost, steps, own evaluations, coupling (err ratio, -2 = disabled), suspension ready, wheels, spin x10, slip x10 */
+/* state: rpm, tcs, abs, esc, boost, steps, own evaluations, coupling (err ratio, -2 = disabled), suspension ready, wheels,
+   spin x10 (10..19), slip ratio x10 (20..29), tyre temp C x10 (30..39), wear x10 (40..49), hot pressure psi x10 (50..59),
+   tan slip angle x10 (60..69), tan peak slip angle (70), strut mode (71: 1 own, -1 GTA direction, 0 checking), axis mode (72) */
 __declspec(dllexport) int MCP_VehState(u64 veh, float *o, int n)
 {
     Veh *v = findVeh(veh); if (!v) return 0;
-    float s[30]; memset(s, 0, sizeof s);
+    float s[73]; memset(s, 0, sizeof s);
     s[0] = v->engW * RPM_W; s[1] = (float)v->tcsAct; s[2] = (float)v->absAct; s[3] = (float)v->escAct; s[4] = v->boost;
     s[5] = (float)v->steps; s[6] = (float)v->own; s[7] = v->bad ? -2.0f : v->angMag > 1e-6 ? (float)(v->angErr / v->angMag) : -1.0f;
     s[8] = (float)v->susReady; s[9] = (float)v->nw;
-    for (int i = 0; i < 10 && i < v->nw; i++) { s[10 + i] = v->ws[i].w; s[20 + i] = v->ws[i].kappa; }
-    if (n > 30) n = 30; memcpy(o, s, (size_t)n * 4); return n;
+    for (int i = 0; i < 10 && i < v->nw; i++)
+    {
+        s[10 + i] = v->ws[i].w; s[20 + i] = v->ws[i].kappa; s[30 + i] = v->ws[i].temp; s[40 + i] = v->ws[i].wear;
+        s[50 + i] = v->ws[i].press; s[60 + i] = v->ws[i].ta;
+    }
+    s[70] = v->aPeakTan; s[71] = v->strutOk ? 1.0f : v->strutBad ? -1.0f : 0.0f; s[72] = (float)axisMode;
+    if (n > 73) n = 73; memcpy(o, s, (size_t)n * 4); return n;
 }
+__declspec(dllexport) void MCP_VehTyresNew(u64 veh) { Veh *v = findVeh(veh); if (v) for (int i = 0; i < MAXW; i++) v->ws[i].wear = 0; }
 __declspec(dllexport) int MCP_AxisFallbacks(void) { return axisFallback; }
 __declspec(dllexport) int MCP_Scaled(void) { return scaled; }
 __declspec(dllexport) int MCP_SuspDone(void) { return suspDone; }

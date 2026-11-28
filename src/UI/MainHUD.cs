@@ -201,6 +201,20 @@ namespace MidnightClub.UI
                     if (a.Value) Ds.T(a.Key, SX(ax), SY(70f), 0.2f, Ds.Amber, Ds.Display);
                     ax += 24f;
                 }
+                // tyre temperatures (front left, front right, rear left, rear right): blue cold, green in the window, amber / red hot
+                if (Physics.SimWorld.PlayerActive && Physics.SimWorld.TyreTemp[0] > 1f)
+                {
+                    float opt = Physics.SimWorld.OptTemp, bx = SX(84f), by = SY(66f), bw = Ds.Px(7f * su), bh = 10f * su, gx = Ds.Px(2f * su), gy = 2f * su;
+                    for (int i = 0; i < 4; i++)
+                    {
+                        float tc = Physics.SimWorld.TyreTemp[i], d = tc - opt;
+                        Color c = d < -25f ? Color.FromArgb(220, 70, 150, 255) : d < -10f ? Color.FromArgb(220, 90, 210, 230) : d <= 15f ? Color.FromArgb(220, 80, 220, 110) : d <= 30f ? Color.FromArgb(230, 255, 180, 40) : Color.FromArgb(240, 255, 60, 50);
+                        float wear = Physics.SimWorld.TyreWear[i];
+                        float tx0 = bx + (i % 2) * (bw + gx), ty0 = by + (i / 2) * (bh + gy);
+                        Ds.Rect(tx0, ty0, bw, bh, Color.FromArgb(120, 0, 0, 0));
+                        Ds.Rect(tx0, ty0 + bh * Math.Min(0.9f, wear), bw, bh * (1f - Math.Min(0.9f, wear)), c);
+                    }
+                }
             }
             // NOS / ability rows: the reference NOS row sits 36 ref px under the boost row; without turbo the rows move up
             rowBase = turbo ? 0f : -36f;

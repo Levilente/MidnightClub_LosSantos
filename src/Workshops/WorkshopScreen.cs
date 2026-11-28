@@ -569,7 +569,7 @@ namespace MidnightClub.Workshops
                     if (locked) { Flash(c == 3 ? "Race slicks: Southside Speed Lab only." : c == 5 ? "Drag radials: muscle and racing workshops." : "Drift compound: Runway Tuning LSIA or Southside Speed Lab."); return; }
                     if (!Pay(prices[c], FitmentManager.CompoundNames[c] + " tyres")) return;
                     rec.TyreCompound = c;
-                    
+                    Physics.SimWorld.NewTyres(car);
                     Bought(FitmentManager.CompoundNames[c] + " tyres", prices[c]);
                 }) { Value = () => rec.TyreCompound == c ? "~g~FITTED" : (prices[c] == 0 ? "Free" : "$" + prices[c].ToString("N0")), Description = () => desc(c) });
             }
@@ -794,6 +794,7 @@ namespace MidnightClub.Workshops
             Function.Call(Hash.SET_VEHICLE_FIXED, car); Function.Call(Hash.SET_VEHICLE_DEFORMATION_FIXED, car);
             car.EngineHealth = 1000f; car.BodyHealth = 1000f; car.DirtLevel = 0f;
             rec.Stats.Repairs++;
+            Physics.SimWorld.NewTyres(car);
             Bought("Full repair", c, countAsMod: false);
         }
 

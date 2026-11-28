@@ -33,6 +33,8 @@ typedef struct
     float ratios[12];                                                           /* 70..81  [0] reverse, [g] overall ratio of gear g */
     float driven[MAXW];                                                         /* 82..91  1 = driven wheel */
     float full[CURVE_N], nb[CURVE_N];                                           /* 92..187 full-load torque, off-boost torque (Nm, 0..maxRpm) */
+    float ambient, tOpt, tWin, relax, pressF, pressR, pOpt, camF;              /* 188..195 tyre temperature window (C), relaxation length (m), cold pressures / optimum (psi), static camber (rad) */
+    float camR, caster, toeF, unsprung, kt, camGain, coldLoss, hotLoss;         /* 196..203 caster, front toe (rad, + = out), unsprung mass per corner (kg), tyre vertical stiffness (N/m), camber recovery, grip loss cold / hot */
 } VParams;
 #define VP_N ((int)(sizeof(VParams) / 4))
 
@@ -44,6 +46,10 @@ typedef struct
     float x0sum; int x0n;          /* static compression measurement */
     int front, init, pair;
     LONG seen;
+    /* own wheel-ground contact: the wheel (unsprung mass) on its tyre spring, the body on the suspension */
+    float s, sv, x1, ft; int calls, gc, cinit;
+    /* tyre: lagged slip (relaxation length), camber, temperature, wear */
+    float taL, taRaw, vy, fxL, fyL, gam, temp, wear, muF, press;
 } WSim;
 
 typedef struct
@@ -55,8 +61,10 @@ typedef struct
     float engW, tcsF, boost, dt, yaw, vxB, escCut; int tcsAct, absAct, escAct, nGround, pairsDone, susReady;
     float x0[2]; int x0steps;
     double angErr, angMag; LONG angN; int bad;
+    double sErr, sMag; LONG sN; int strutOk, strutBad; float M[12]; int Mok;
     LONG steps, own;
 } Veh;
+static volatile int axisMode; static volatile LONG axA, axB;   /* which GTA tyre axis is the heading (1 = first, 2 = second), learned near straight ahead */
 
 static Veh vehs[MAXV];
 static __thread Veh *cur;          /* vehicle whose wheel step is running on this thread */
@@ -135,7 +143,13 @@ static int vehTyre(Veh *v, int i, u64 wheel, u64 inst, float *out, float *lin, f
     float *a1 = (float *)st1, *a2 = (float *)st2, la1 = len3(a1), la2 = len3(a2), fwd[3], side[3];
     if (la1 > 0.9f && la1 < 1.1f && la2 > 0.9f && la2 < 1.1f && fabsf(dot3(a1, a2)) < 0.2f)
     {
-        float *f = fabsf(dot3(a1, F)) >= fabsf(dot3(a2, F)) ? a1 : a2, *g = f == a1 ? a2 : a1;
+        /* GTA's axis order is fixed: learn it while the wheel points nearly straight ahead, then always use it
+           (at big steering angles the side axis can be closer to the car's nose than the heading) */
+        float d1 = fabsf(dot3(a1, F)), d2 = fabsf(dot3(a2, F));
+        if (!axisMode) { if (d1 > 0.98f) InterlockedIncrement(&axA); else if (d2 > 0.98f) InterlockedIncrement(&axB);
+                         if (axA > 400 && axA > 20 * axB) axisMode = 1; else if (axB > 400 && axB > 20 * axA) axisMode = 2; }
+        float *f = axisMode == 1 ? a1 : axisMode == 2 ? a2 : (d1 >= d2 ? a1 : a2), *g = f == a1 ? a2 : a1;
+        if (!axisMode && fabsf(d1 - d2) < 0.5f) return 0;              /* not learned yet and ambiguous: leave it to GTA */
         float sf = dot3(f, F) >= 0 ? 1.0f : -1.0f, sg = dot3(g, Rt) >= 0 ? 1.0f : -1.0f;
         for (int j = 0; j < 3; j++) { fwd[j] = f[j] * sf; side[j] = g[j] * sg; }
     }
@@ -147,9 +161,15 @@ static int vehTyre(Veh *v, int i, u64 wheel, u64 inst, float *out, float *lin, f
     float rel[3] = { lv[0] + wr[0] - rf(wheel, 0x90), lv[1] + wr[1] - rf(wheel, 0x94), lv[2] + wr[2] - rf(wheel, 0x98) };
     float vx = dot3(rel, fwd), vy = dot3(rel, side);
     float den = fabsf(vx), vm = vmin(v->dt); if (den < vm) den = vm;
+    float sgn = dot3(r0, Rt) > 0 ? 1.0f : -1.0f;
     float kappa = (s->w * R - vx) / den, ta = vy / den;
+    if (s->front) ta -= sgn * v->p.toeF;                                 /* toe: a static slip angle per wheel */
+    ta -= 0.1f * s->gam * sgn;                                           /* camber thrust: a leaning tyre pushes towards its lean */
+    float bl = (fabsf(vx) + 1.0f) * (v->dt > 0.001f ? v->dt : 0.011f) / (v->p.relax > 0.05f ? v->p.relax : 0.45f); if (bl > 1) bl = 1;
+    float taE = s->taL + bl * (ta - s->taL);                             /* relaxation length: side force builds up over the first ~0.5 m */
     float g = rf(wheel, 0x1A8); if (!(g > 0.3f)) g = 1.0f; if (g > 1.2f) g = 1.2f;
-    float muS = v->p.wet * g;
+    float muS = v->p.wet * g * (s->muF > 0.3f ? s->muF : 1.0f);
+    s->taRaw = ta; s->vy = vy; ta = taE;
     float fx, fy; vtyre(v, kappa, ta, load, muS, &fx, &fy);
     float rLat[3], rLong[3]; lever(wheel, inst, c, com, v->p.longAt, rLat, rLong);
     const float *M = (const float *)Mp;
@@ -183,7 +203,8 @@ static int vehTyre(Veh *v, int i, u64 wheel, u64 inst, float *out, float *lin, f
     }
     float im = rf(inst, 0x3C);
     for (int j = 0; j < 3; j++) { out[j] = Fw[j]; lin[j] = Fw[j] * km + aero[j] * im; ang[j] = na[j]; }
-    s->vx = vx; s->ta = ta; s->fz = load; s->mu = muS; s->kappa = kappa;
+    s->vx = vx; s->ta = ta; s->fz = load; s->mu = muS; s->kappa = kappa; s->fxL = fx; s->fyL = latF;
+    if (i == 0) { for (int j = 0; j < 12; j++) v->M[j] = M[j]; v->Mok = 1; }
     s->lx = dot3(r0, Rt); s->ly = dot3(r0, F);
     if (i == 0) { v->yaw = dot3(av, U); v->vxB = dot3(lv, F); }
     InterlockedIncrement(&s->seen);
@@ -191,40 +212,100 @@ static int vehTyre(Veh *v, int i, u64 wheel, u64 inst, float *out, float *lin, f
     return 1;
 }
 
-/* ---------------- suspension: spring from the ride frequency on the wheel's static load, preload that keeps
-   GTA's own ride height (measured over the first seconds), digressive dampers, bump stop, anti-roll bar ---------- */
-static int vehSusp(Veh *v, int i, u64 wheel, u64 other, float *out, float *lin, float *ang, float *loadOut)
+/* ---------------- suspension and wheel-ground contact ----------------
+   Spring from the ride frequency on the wheel's static load, preload that keeps GTA's own ride height (measured
+   over the first seconds), digressive dampers, progressive bump stop, anti-roll bar. Between the suspension and the
+   road sits the wheel itself: an unsprung mass on the tyre's vertical spring, integrated after each step. A kerb or
+   a bump compresses the tyre first and kicks the wheel up; the body only feels it through the spring and damper,
+   and the tyre's grip follows the real tyre load (a hopping wheel loses grip). The force acts along the strut
+   (the body's vertical axis), not along a steep kerb-edge contact normal, so kerbs don't snap the car sideways. */
+static float susMc(const Veh *v, u64 wheel) { float sh = rf(wheel, 0x13C); if (sh < 0.02f || sh > 0.8f) sh = 1.0f / (v->nw > 0 ? v->nw : 4); return v->p.mass * sh; }
+static float susForce(const Veh *v, u64 wheel, int i, float sS, float vS, float sOther, int hasOther)
+{
+    int ax = rf(wheel, 0x140) < 0 ? 1 : 0;
+    float mc = susMc(v, wheel), f = ax ? v->p.fR : v->p.fF, w = 6.2831853f * f;
+    float k = mc * w * w, cc = 2.0f * sqrtf(k * mc), kt = v->p.kt > 1000 ? v->p.kt : 220000.0f;
+    float x0 = v->x0[ax] > 0.01f ? v->x0[ax] : 0.1f, s0 = x0 - mc * 9.81f / kt; if (s0 < 0.01f) s0 = 0.01f;
+    float pre = mc * 9.81f - k * s0;
+    float fs = pre + k * sS, fd, kn = v->p.knee > 0.01f ? v->p.knee : 0.1f;
+    if (vS >= 0) fd = vS < kn ? cc * v->p.zbl * vS : cc * (v->p.zbl * kn + v->p.zbh * (vS - kn));
+    else { float u = -vS; fd = -(u < kn ? cc * v->p.zrl * u : cc * (v->p.zrl * kn + v->p.zrh * (u - kn))); }
+    float bumpAt = s0 * (v->p.bumpFrac > 0.5f ? v->p.bumpFrac : 1.7f); if (bumpAt > 0.22f) bumpAt = 0.22f;
+    float fb = sS > bumpAt ? k * (v->p.bumpK > 0 ? v->p.bumpK : 4.0f) * (sS - bumpAt) * (sS - bumpAt) * 50.0f : 0.0f;
+    float fa = hasOther ? k * (ax ? v->p.arbR : v->p.arbF) * (sS - sOther) : 0.0f;
+    float fo = fs + fd + fb + fa, mx = mc * 9.81f * (v->p.maxFk > 0 ? v->p.maxFk : 3.5f);
+    if (fo < 0) fo = 0; if (fo > mx) fo = mx;
+    (void)i; return fo;
+}
+static int vehSusp(Veh *v, int i, u64 wheel, u64 inst, u64 other, float *out, float *lin, float *ang, float *loadOut)
 {
     if (!(v->p.susOn > 0.5f) || v->p.bike > 0.5f || i < 0) return 0;
     WSim *s = &v->ws[i];
-    float x = rf(wheel, 0x160), prev = rf(wheel, 0x164);
-    int ax = rf(wheel, 0x140) < 0 ? 1 : 0;
+    float x = rf(wheel, 0x160);
+    float gz = fabsf(out[2]);
+    if (s->calls == 0) s->x1 = x;
+    s->calls++;
+    if (gz > 20.0f) s->gc = 1;
     if (!v->susReady)
     {
-        if (x > 0.005f && x < 0.6f && fabsf(out[2]) > 20.0f) { s->x0sum += x; s->x0n++; }
+        if (x > 0.005f && x < 0.6f && gz > 20.0f) { s->x0sum += x; s->x0n++; }
         return 0;
     }
-    float share = rf(wheel, 0x13C); if (share < 0.02f || share > 0.8f) share = 1.0f / v->nw;
-    float mc = v->p.mass * share, f = ax ? v->p.fR : v->p.fF, w = 6.2831853f * f;
-    float k = mc * w * w, cc = 2.0f * sqrtf(k * mc), x0 = v->x0[ax] > 0.01f ? v->x0[ax] : 0.1f;
-    float pre = mc * 9.81f - k * x0;
-    float dt = v->dt > 0.001f ? v->dt : 1.0f / 60;
-    float vel = (x - prev) / dt;
-    if (vel > 2.5f || vel < -2.5f) return 0;                      /* an impact, not suspension travel */
-    float fs = pre + k * x, fd, kn = v->p.knee > 0.01f ? v->p.knee : 0.1f;
-    if (vel >= 0) fd = vel < kn ? cc * v->p.zbl * vel : cc * (v->p.zbl * kn + v->p.zbh * (vel - kn));
-    else { float u = -vel; fd = -(u < kn ? cc * v->p.zrl * u : cc * (v->p.zrl * kn + v->p.zrh * (u - kn))); }
-    float bumpAt = x0 * (v->p.bumpFrac > 0.5f ? v->p.bumpFrac : 1.7f); if (bumpAt > 0.22f) bumpAt = 0.22f;
-    float fb = x > bumpAt ? k * (v->p.bumpK > 0 ? v->p.bumpK : 4.0f) * (x - bumpAt) * (x - bumpAt) * 50.0f : 0.0f;
-    float fa = other ? k * (ax ? v->p.arbR : v->p.arbF) * (x - rf(other, 0x160)) : 0.0f;
-    float fo = fs + fd + fb + fa, mx = mc * 9.81f * (v->p.maxFk > 0 ? v->p.maxFk : 3.5f);
-    if (fo < 0) fo = 0; if (fo > mx) fo = mx;
-    float gz = fabsf(out[2]);
-    if (gz < 20.0f) return 0;
-    float sc = fo / gz;
-    for (int j = 0; j < 3; j++) { out[j] *= sc; lin[j] *= sc; ang[j] *= sc; }
-    if (loadOut) *loadOut *= sc;
+    if (!s->cinit || gz < 20.0f) return 0;                       /* no contact for GTA: nothing to push */
+    float dx = x - s->x1, sS = s->s + dx; if (sS < 0) sS = 0;   /* the wheel holds its place during the step, the body moves */
+    int j = s->pair; float so = j >= 0 && j < v->nw ? v->ws[j].s : 0;
+    float F = susForce(v, wheel, i, sS, s->sv, so, j >= 0);
+    const float *U = (const float *)(inst + 0x60);
+    float c[3] = { rf(wheel, 0x50), rf(wheel, 0x54), rf(wheel, 0x58) }, com[3] = { rf(inst, 0x70), rf(inst, 0x74), rf(inst, 0x78) };
+    float r[3] = { c[0] - com[0], c[1] - com[1], c[2] - com[2] };
+    if (v->Mok && !v->strutOk && !v->strutBad)
+    {   /* check that we can rebuild GTA's own suspension torque before we use our own direction */
+        float t[3], pa[3]; cross3(r, out, t); angOf(wheel, inst, v->M, t, pa);
+        float e = sqrtf((pa[0] - ang[0]) * (pa[0] - ang[0]) + (pa[1] - ang[1]) * (pa[1] - ang[1]) + (pa[2] - ang[2]) * (pa[2] - ang[2]));
+        v->sErr += e; v->sMag += len3(ang); v->sN++;
+        if (v->sN > 1500) { if (v->sErr < 0.15 * v->sMag) v->strutOk = 1; else v->strutBad = 1; }
+    }
+    if (v->strutOk)
+    {
+        float km = rf(wheel, 0x144) * rf(inst, 0x3C), o[3] = { F * U[0], F * U[1], F * U[2] }, t[3], na[3];
+        cross3(r, o, t); angOf(wheel, inst, v->M, t, na);
+        if (!(fabsf(o[0] + o[1] + o[2] + na[0] + na[1] + na[2]) < 1e8f)) return 0;
+        for (int q = 0; q < 3; q++) { out[q] = o[q]; lin[q] = o[q] * km; ang[q] = na[q]; }
+    }
+    else
+    {
+        float sc = F / gz;
+        for (int q = 0; q < 3; q++) { out[q] *= sc; lin[q] *= sc; ang[q] *= sc; }
+    }
+    if (loadOut) *loadOut = s->ft;                               /* the tyre's grip comes from the tyre's own load */
     return 1;
+}
+/* after the step: the wheel on its tyre spring against the suspension, in sub-steps */
+static void wheelHop(Veh *v, int i, u64 wheel, float dt)
+{
+    WSim *s = &v->ws[i];
+    float x = rf(wheel, 0x160), kt = v->p.kt > 1000 ? v->p.kt : 220000.0f, mu = v->p.unsprung > 5 ? v->p.unsprung : 40.0f;
+    kt *= s->press > 5 && v->p.pOpt > 5 ? s->press / v->p.pOpt : 1.0f;
+    float mc = susMc(v, wheel);
+    if (!s->cinit)
+    {
+        s->s = x - mc * 9.81f / kt; if (s->s < 0) s->s = 0; s->sv = 0; s->ft = mc * 9.81f; s->cinit = 1; s->calls = 0; s->gc = 0;
+        return;
+    }
+    float xe = s->gc ? x : -0.05f, xs = s->calls > 0 && s->gc ? s->x1 : xe, xr = (xe - xs) / dt;
+    float ct = 2.0f * 0.08f * sqrtf(kt * mu), ft = 0;
+    int j = s->pair; float so = j >= 0 && j < v->nw ? v->ws[j].s : 0;
+    const int m = 10; float h = dt / m;
+    for (int k = 0; k < m; k++)
+    {
+        float xt = xs + (xe - xs) * (k + 1) / m, d = xt - s->s;
+        ft = d > 0 ? kt * d + ct * (xr - s->sv) : 0; if (ft < 0) ft = 0;
+        float fs = susForce(v, wheel, i, s->s, s->sv, so, j >= 0);
+        s->sv += h * (ft - fs) / mu; s->s += h * s->sv;
+        if (s->s < 0) { s->s = 0; if (s->sv < 0) s->sv = 0; }
+        if (s->s > 0.4f) { s->s = 0.4f; if (s->sv > 0) s->sv = 0; }
+    }
+    s->ft = ft; s->calls = 0; s->gc = 0;
 }
 
 static float vcurve(const Veh *v, const float *t, float rpm)
@@ -280,6 +361,8 @@ static void vehStep(Veh *v, u64 *wp, int nw, float dt)
         if (n[0] && n[1]) { v->x0[0] = s[0] / n[0]; v->x0[1] = s[1] / n[1]; v->susReady = 1; }
         else if (v->x0steps > 1500) { v->x0[0] = v->x0[1] = 0.1f; v->susReady = 1; }
     }
+    if (v->susReady && p->susOn > 0.5f && p->bike < 0.5f) { for (int i = 0; i < nw; i++) if (wp[i]) wheelHop(v, i, wp[i], dt); }
+    else for (int i = 0; i < nw; i++) { v->ws[i].calls = 0; v->ws[i].gc = 0; }
     /* driver inputs, straight from the vehicle */
     float thr = *(float *)(veh + 0x8D8); thr = thr < 0 ? -thr : thr; if (thr > 1) thr = 1;
     float brk = *(float *)(veh + 0x9E8); if (brk < 0) brk = 0; if (brk > 1) brk = 1;
@@ -306,6 +389,38 @@ static void vehStep(Veh *v, u64 *wp, int nw, float dt)
     }
     v->nGround = nGround;
     if (!v->pairsDone && nGround == nw && nw >= 4) pairUp(v);
+    /* tyre state per wheel: camber from body roll and caster, relaxation, temperature, pressure, wear */
+    {
+        float amb = p->ambient > -30 && p->ambient < 60 ? p->ambient : 20.0f;
+        for (int i = 0; i < nw; i++)
+        {
+            WSim *s = &v->ws[i];
+            if (s->temp == 0) { s->temp = amb + 5; }
+            float sgn = s->lx > 0 ? 1.0f : -1.0f, g0 = s->front ? p->camF : p->camR, roll = 0;
+            int j = s->pair;
+            if (j >= 0 && j < nw) { float tr = fabsf(s->lx - v->ws[j].lx); if (tr > 0.5f) { float sR = s->lx > 0 ? s->s : v->ws[j].s, sL = s->lx > 0 ? v->ws[j].s : s->s; roll = (sR - sL) / tr; } }
+            s->gam = g0 + sgn * (1 - p->camGain) * roll + (s->front ? -sgn * sinf(p->caster) * steer : 0.0f);
+            float bl = (fabsf(s->vx) + 1.0f) * dt / (p->relax > 0.05f ? p->relax : 0.45f); if (bl > 1) bl = 1;
+            s->taL += bl * (s->taRaw - s->taL);
+            if (s->fz <= 0) s->taL *= 0.9f;
+            /* heat: sliding power into the tread + rolling hysteresis, cooled by the air */
+            float den = fabsf(s->vx) > 2 ? fabsf(s->vx) : 2, slipX = s->kappa * den;
+            float pSl = s->fz > 0 ? fabsf(s->fxL * slipX) + fabsf(s->fyL * s->vy) : 0;
+            float pRo = s->fz > 0 ? 0.5f * p->rolling * s->fz * fabsf(s->vx) : 0;
+            float hc = 15.0f + 2.5f * fabsf(s->vx);
+            s->temp += dt * (0.45f * pSl + pRo - hc * (s->temp - amb)) / 7000.0f;
+            if (s->temp > 160) s->temp = 160; if (s->temp < amb - 5) s->temp = amb - 5;
+            s->wear += 6e-8f * pSl * dt; if (s->wear > 1) s->wear = 1;
+            float pc = s->front ? p->pressF : p->pressR; if (pc < 10) pc = 32;
+            s->press = pc * (s->temp + 273.0f) / (amb + 273.0f);
+            float tw = p->tWin > 5 ? p->tWin : 40, dT = (s->temp - (p->tOpt > 0 ? p->tOpt : 80)) / tw;
+            float muT = dT < 0 ? 1 - p->coldLoss * (dT * dT > 1 ? 1 : dT * dT) : 1 - p->hotLoss * (dT * dT > 2.5f ? 2.5f : dT * dT);
+            float po = p->pOpt > 5 ? p->pOpt : 32, dp = (s->press - po) / po;
+            float muP = 1 - 0.3f * dp * dp, muW = 1 - 0.25f * s->wear, muC = 1 - 5.0f * s->gam * s->gam;
+            float mu = muT * muP * muW * muC; if (mu < 0.5f) mu = 0.5f; if (mu > 1.1f) mu = 1.1f;
+            s->muF = mu;
+        }
+    }
     for (int i = 0; i < nw; i++) share[i] = 0;
     {
         float fs = p->frontShare; int nf = 0, nr = 0;

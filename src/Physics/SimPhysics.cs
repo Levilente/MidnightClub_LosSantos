@@ -408,7 +408,7 @@ namespace MidnightClub.Physics
         // the assist turns it into a steering angle that doesn't go past the front tyres' peak slip angle at speed,
         // smooths the rate the wheel can turn (faster at low speed), and adds a little counter-steer when the rear
         // steps out. The raw stick is read on its own axis and the result is fed to GTA as the steering input.
-        private bool assistOn; private float steerOut;
+        private bool assistOn; private float steerOut, frontCut;
         private void GamepadAssist(Vehicle car, Drivetrain.Live L, float speed, float vx, float beta, float yaw, float dt)
         {
             int lvl = Math.Max(0, Math.Min(10, cfg.SteerAssist));
@@ -424,6 +424,14 @@ namespace MidnightClub.Physics
             float peak = L.Tyre.PeakDeg * 0.01745f * 1.4f;
             float path = (float)Math.Atan(Math.Max(1f, L.Spec.Wheelbase) * Math.Abs(yaw) / v);
             float maxAngle = Math.Min(lockRad, peak * (1.25f - 0.35f * k) + path);
+            // with the native tyres: the front tyres' real slip angle (like AC's Advanced Gamepad Assist): past the peak, take lock off
+            if (Native.DriveActive && SimWorld.PeakSlip > 0.01f && speed > 8f)
+            {
+                float over = Math.Abs(SimWorld.FrontSlip) / SimWorld.PeakSlip - (1.15f - 0.1f * k);
+                if (over > 0f) frontCut = Math.Min(0.6f, frontCut + over * dt * (4f + 4f * k)); else frontCut = Math.Max(0f, frontCut - dt * 2.5f);
+                maxAngle *= 1f - frontCut;
+            }
+            else frontCut = 0f;
             float blend = Math.Min(1f, Math.Max(0f, (speed - 6f) / 14f));            // full lock when parking
             float limit = lockRad + (maxAngle - lockRad) * blend * k;
             float want = shaped * limit / lockRad;

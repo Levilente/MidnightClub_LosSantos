@@ -17,6 +17,7 @@ namespace MidnightClub.Physics
             public float Rb1 = 11f, Rb2 = 8f, Rc = 1.05f;    // combined slip
             public float WetLoss, OffroadLoss = 1f, Rolling = 0.012f;
             public float PeakDeg, PeakK, SlideY, SlideX;     // derived
+            public float TOpt = 75f, TWin = 40f, ColdLoss = 0.06f, HotLoss = 0.12f, POpt = 34f, Relax = 0.45f;   // working temperature (C), grip lost cold / hot, best hot pressure (psi), relaxation length (m)
         }
 
         // factory / aftermarket / special types
@@ -42,6 +43,20 @@ namespace MidnightClub.Physics
             if (id == Slick || id == Semi) m.Rb1 = 13f;
             if (id == Drag) { m.Rolling = 0.02f; m.Rb1 = 9f; }
             if (id == Knobbly) m.Rolling = 0.02f;
+            switch (id)
+            {
+                case Vintage: m.TOpt = 55f; m.TWin = 45f; m.ColdLoss = 0.04f; m.HotLoss = 0.18f; m.POpt = 30f; m.Relax = 0.6f; break;
+                case Touring: m.TOpt = 60f; m.TWin = 45f; m.ColdLoss = 0.04f; m.HotLoss = 0.15f; m.POpt = 35f; m.Relax = 0.5f; break;
+                case Uhp: m.TOpt = 70f; m.TWin = 40f; m.ColdLoss = 0.06f; m.HotLoss = 0.13f; m.POpt = 35f; m.Relax = 0.45f; break;
+                case Sport: m.TOpt = 75f; m.TWin = 35f; m.ColdLoss = 0.08f; m.HotLoss = 0.13f; m.POpt = 34f; m.Relax = 0.42f; break;
+                case Semi: m.TOpt = 85f; m.TWin = 30f; m.ColdLoss = 0.13f; m.HotLoss = 0.14f; m.POpt = 32f; m.Relax = 0.36f; break;
+                case Slick: m.TOpt = 95f; m.TWin = 25f; m.ColdLoss = 0.25f; m.HotLoss = 0.16f; m.POpt = 28f; m.Relax = 0.3f; break;
+                case Drift: m.TOpt = 80f; m.TWin = 45f; m.ColdLoss = 0.05f; m.HotLoss = 0.08f; m.POpt = 36f; m.Relax = 0.45f; break;
+                case Drag: m.TOpt = 70f; m.TWin = 35f; m.ColdLoss = 0.15f; m.HotLoss = 0.12f; m.POpt = 22f; m.Relax = 0.5f; break;
+                case BikeSport: m.TOpt = 70f; m.TWin = 35f; m.ColdLoss = 0.1f; m.HotLoss = 0.12f; m.POpt = 36f; m.Relax = 0.3f; break;
+                case BikeTrack: m.TOpt = 85f; m.TWin = 28f; m.ColdLoss = 0.2f; m.HotLoss = 0.14f; m.POpt = 33f; m.Relax = 0.28f; break;
+                case Knobbly: m.TOpt = 45f; m.TWin = 50f; m.ColdLoss = 0.03f; m.HotLoss = 0.1f; m.POpt = 26f; m.Relax = 0.7f; break;
+            }
             // derived shape numbers
             float best = 0f, at = 0f;
             for (int i = 1; i <= 400; i++) { float a = i * 0.0015f; float f = Shape(a, m.By, m.Cy, m.Ey); if (f > best) { best = f; at = a; } }

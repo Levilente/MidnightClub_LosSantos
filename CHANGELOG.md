@@ -1,4 +1,11 @@
 # Changelog
+## 0.51.0 (2026-11-28)
+- Fix: at big steering angles (e.g. the Futo's drift lock) steering right turned the car left: the tyre's heading and side axes were picked by which was closer to the car's nose. GTA's axis order is now learned near straight ahead and always used.
+- Own wheel-ground contact: every wheel is an unsprung mass on the tyre's vertical spring between the road and the suspension, integrated after each physics step. Kerbs and bumps compress the tyre and kick the wheel up; the body feels them only through spring, damper and bump stop; a hopping wheel loses grip (tyre load = tyre spring force). The suspension force acts along the strut, not along a kerb-edge contact normal: no more kerb snapping sideways.
+- Tyres: relaxation length (side force builds up over the first ~0.3-0.7 m per compound), camber from static setting + body roll + caster (camber thrust and grip loss), toe, temperature (sliding power + rolling heat, air cooling; grip window per compound: slicks need heat, street tyres work cold), hot pressure from the cold setting (tuning pressures now matter), wear (new tyres at repair / compound change).
+- Gamepad steering assist uses the front tyres' real slip angle: past the peak it takes lock off (like AC's Advanced Gamepad Assist).
+- HUD: tyre temperature squares (blue cold, green in the window, amber/red hot; the fill shows wear).
+
 ## 0.50.1 (2026-11-28)
 - Fix: the native simulation never actually ran (0 steps in the log): the wheel step identified vehicles by a stack copy instead of the vehicle. Vehicles are now matched by their own wheel pointer array, so own tyre forces, wheel spin, engine, diffs, brakes, assists and boost really drive every registered vehicle.
 - Fix: a text-drawing exception could throw you out of the workshop.
