@@ -35,7 +35,7 @@ static void setup(void)
     P->susOn = 1; P->mass = C.m; P->fF = C.fF; P->fR = C.fR; P->zbl = C.zbl; P->zbh = C.zbh; P->zrl = C.zrl; P->zrh = C.zrh; P->knee = C.knee;
     P->arbF = C.arbF; P->arbR = C.arbR; P->maxFk = 3.5f; P->kt = C.kt; P->unsprung = C.unspr; P->travel = C.travel; P->rcF = C.rcF; P->rcR = C.rcR; P->antiF = C.antiF; P->antiR = C.antiR;
     /* touring tyre */
-    P->muY = 0.92f; P->muX = 0.96f; P->loadSens = -0.12f; P->By = 7.211f; P->Cy = 1.5f; P->Ey = -1.32f; P->Bx = 13.383f; P->Cx = 1.65f; P->Ex = 0.34f; P->wet = 1;
+    P->muY = 0.92f; P->muX = 0.96f; P->loadSens = -0.12f; P->By = 10.667f; P->Cy = 1.5f; P->Ey = -1.11f; P->Bx = 13.383f; P->Cx = 1.65f; P->Ex = 0.34f; P->wet = 1;
     vpeaks(v);
     v->x0[0] = v->x0[1] = C.x0;
     float a = C.wb * (1 - C.frontPct), b = C.wb * C.frontPct;   /* CoM to front / rear axle */

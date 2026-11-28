@@ -72,7 +72,7 @@ static volatile int axisMode; static volatile LONG axA, axB;   /* which GTA tyre
 
 static Veh vehs[MAXV];
 /* diagnostics recorder (one vehicle, one record per physics step) */
-typedef struct { float t, dt, mass, speed, yaw, vxB, thr, brk, steer, gear; float w[4][14]; } SRec;
+typedef struct { float t, dt, mass, speed, yaw, vxB, thr, brk, steer, gear; float w[4][14]; uint32_t trans[32]; float rpm, clutchOwn, pad[2]; } SRec;   /* trans: raw CVehicle+0x870..0x8EF (GTA's gearbox fields) */
 #define SREC_CAP 8000
 static SRec *srec; static volatile LONG srecHead; static float srecT;
 static __thread Veh *cur;          /* vehicle whose wheel step is running on this thread */
@@ -697,6 +697,7 @@ static void vehStep(Veh *v, u64 *wp, int nw, float dt)
             LONG k = InterlockedIncrement(&srecHead) - 1; SRec *r = &srec[k % SREC_CAP];
             srecT += dt;
             r->t = srecT; r->dt = dt; r->mass = v->bodyMass; r->speed = vAvg; r->yaw = v->yaw; r->vxB = v->vxB; r->thr = thr; r->brk = brk; r->steer = steer; r->gear = (float)gear;
+            memcpy(r->trans, (const void *)(veh + 0x870), sizeof r->trans); r->rpm = v->engW * RPM_W; r->clutchOwn = clutch;
             for (int i = 0; i < 4; i++)
             {
                 WSim *s = &v->ws[i]; float *q = r->w[i];

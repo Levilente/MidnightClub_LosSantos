@@ -1,4 +1,10 @@
 # Changelog
+## 0.58.0 (2026-11-28)
+- Tyres felt like they slide, and the recording showed why: our side-force curves were far too soft. A touring tyre reached its peak only at 10 deg of slip angle and built just 19 % of its grip at 1 deg (cornering stiffness 10.8 per rad); real road tyres peak at 6-8 deg with 15-20 per rad. The car had to drift through every corner to make its grip.
+  - New curves per compound, real peak slip angles and cornering stiffness: bias-ply 9 deg / 11, touring 7 / 16, ultra-high performance 6 / 20, sport 5.5 / 21, semi-slick 5 / 23, race slick 4.5 / 26, drift 8 / 17 (wide plateau), knobbly 10 / 9.
+  - Bench (Jubilee / Elegy / Futo): turn-in responds 15-20 % faster, a normal turn-in now runs at 3-4 deg body slip instead of 9-11 (it used to slide), the grip limit is reached cleanly; a scandi flick still rotates the car (12-13 deg) and can be caught.
+- The recording now also logs GTA's gearbox fields (CVehicle+0x870..0x8EF), the engine speed and the clutch: groundwork for taking over the gearbox.
+
 ## 0.57.0 (2026-11-28)
 - New: a full-vehicle test bench (tools/bench/bench.c). Body heave, roll, pitch, yaw and planar motion, four wheels on their tyre springs, our tyre model, and GTA's rigid wheel stop, running the game's own suspension and tyre code. Every handling change is now checked there before it ships: ride position, roll and pitch per g, step steer, one-side kerb, pothole, plain turn-in against a scandi flick with the driver catching the slide.
   - It reproduces the old bouncing exactly (wrong travel: the Jubilee at 78 % of its travel, hundreds of rigid contacts when braking) and shows 0.56+ free of it.
