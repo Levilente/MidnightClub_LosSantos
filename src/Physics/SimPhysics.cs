@@ -431,8 +431,8 @@ namespace MidnightClub.Physics
             // gamepad: Circle / B up, Square / X down (their own actions, cinematic camera and duck, are switched off)
             bool pad = Game.LastInputMethod == InputMethod.GamePad;
             if (pad) { Function.Call(Hash.DISABLE_CONTROL_ACTION, 0, (int)Control.VehicleCinCam, true); Function.Call(Hash.DISABLE_CONTROL_ACTION, 0, (int)Control.VehicleDuck, true); }
-            bool up = pad && Game.IsDisabledControlJustPressed(Control.VehicleCinCam);
-            bool dn = pad && Game.IsDisabledControlJustPressed(Control.VehicleDuck);
+            bool up = pad && Function.Call<bool>(Hash.IS_DISABLED_CONTROL_JUST_PRESSED, 0, (int)Control.VehicleCinCam);
+            bool dn = pad && Function.Call<bool>(Hash.IS_DISABLED_CONTROL_JUST_PRESSED, 0, (int)Control.VehicleDuck);
             bool ku = Game.IsKeyPressed(System.Windows.Forms.Keys.LShiftKey), kd = Game.IsKeyPressed(System.Windows.Forms.Keys.LControlKey);
             if (ku && !kUp) up = true; if (kd && !kDn) dn = true; kUp = ku; kDn = kd;
             if (up) SimWorld.Shift(car, 1); else if (dn) SimWorld.Shift(car, -1);
