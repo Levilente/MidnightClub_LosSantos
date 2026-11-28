@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.65.0
+- Chase cameras, sense of speed: in a drift the camera swings to the inside and aims inside, so the car slides out towards the edge of the picture (action cam the most); cornering G throws the car to the outside of the frame.
+- Spring arm: the camera height rides on a soft spring – it floats on take-off, sinks and bounces back on landing (slopes don't lag).
+- NFS ProStreet-style: every gear lets the camera 6 cm further back, with a small tug on each upshift.
+- Dynamic FOV: speed, plus a few degrees under hard acceleration, narrower under braking.
+
+
 ## 0.64.2
 - Crash fix: GTA's drag / downforce are scaled to 2 % instead of 0 (GTA divides by the drag; a truck spawning with 0 crashed the game).
 - GTA's engine rpm now follows the simulated engine (offset found at runtime): engine sound, rev band and exhaust rev in neutral and no longer "drive" when the car is held on the brake in D.

@@ -232,7 +232,16 @@ namespace MidnightClub.Cameras
             float gk = cfg.CameraGForce;
             var fwd = car.ForwardVector; var vel = car.Velocity;
             float target = car.Heading;
-            if (speed > 5f && Vector3.Dot(vel, fwd) > 0f) target = LerpAngle(car.Heading, (float)(Math.Atan2(-vel.X, vel.Y) * 180.0 / Math.PI), action ? 0.85f : 0.35f);   // show the drift (action: swings out to the side like NFS)
+            if (speed > 5f && Vector3.Dot(vel, fwd) > 0f)
+            {   // drift: the camera swings to the INSIDE of the slide (past the nose), so the car slides out towards the edge of
+                // the picture like NFS; the action cam swings the most
+                float slip = DeltaAngle((float)(Math.Atan2(-vel.X, vel.Y) * 180.0 / Math.PI), car.Heading);
+                float k = (action ? 0.45f : far ? 0.2f : 0.25f) * Clamp((speed - 5f) / 10f, 0f, 1f);
+                target = car.Heading + Clamp(slip, -50f, 50f) * k;
+                driftT = Clamp(slip / 40f, -1f, 1f) * Clamp((speed - 5f) / 10f, 0f, 1f);
+            }
+            else driftT = 0f;
+            drift = SmoothDamp(drift, driftT, ref driftVel, 0.35f, dt);
             camYaw = SmoothDampAngle(camYaw, target, ref camYawVel, action ? 0.3f : far ? 0.2f : 0.16f, dt);
             float rel = DeltaAngle(car.Heading, camYaw);
             float relMax = action ? 60f : 30f;
@@ -242,10 +251,23 @@ namespace MidnightClub.Cameras
             // smoothed pivot height (no suspension bob), slight pull-back under acceleration
             var pos = car.Position;
             if (!pivotInit || pos.DistanceTo(pivot) > 12f) { pivot = pos; pivotInit = true; pivotZVel = 0f; }
-            pivot = new Vector3(pos.X, pos.Y, SmoothDamp(pivot.Z, pos.Z, ref pivotZVel, 0.09f, dt));
+            {   // spring arm: the height rides on a soft spring (relative to the car's own vertical speed, so slopes don't lag):
+                // it sinks and bounces back after a jump landing, floats up on take-off
+                float w = 6.5f, zeta = 0.42f, vz = car.Velocity.Z;
+                float acc = w * w * (pos.Z - pivot.Z) + 2f * zeta * w * (vz - pivotZVel);
+                pivotZVel += acc * dt; float pz = pivot.Z + pivotZVel * dt;
+                pz = Clamp(pz, pos.Z - 1.0f, pos.Z + 1.0f);
+                pivot = new Vector3(pos.X, pos.Y, pz);
+            }
             pull = SmoothDamp(pull, Clamp(gLong, -0.8f, 1.2f) * 0.45f * gk, ref pullVel, 0.35f, dt);                       // G: accelerating pulls the camera back, braking pushes it in
-            side = SmoothDamp(side, Clamp(gLat, -1.2f, 1.2f) * 0.3f * gk, ref sideVel, 0.3f, dt);                     // G: cornering slides it to the outside
-            float radius = halfLen + p.RadiusExtra + pull;
+            side = SmoothDamp(side, -Clamp(gLat, -1.2f, 1.2f) * 0.35f * gk, ref sideVel, 0.3f, dt);                    // G: the car is thrown to the outside of the picture
+            // NFS ProStreet: every gear lets the camera a few centimetres further back (speed you can feel), with a small
+            // tug on each upshift
+            int gNow = Physics.Native.DriveActive ? Math.Max(1, Physics.SimWorld.OwnGear) : Math.Max(1, car.CurrentGear);
+            if (gNow > camGear && camGear > 0 && gLong > 0.05f) gearKick = 0.25f;
+            camGear = gNow; gearKick = Math.Max(0f, gearKick - dt * 0.6f);
+            gearBack = SmoothDamp(gearBack, Math.Min(10, gNow - 1) * 0.06f * Clamp(speed / 8f, 0f, 1f), ref gearBackVel, 0.6f, dt);
+            float radius = halfLen + p.RadiusExtra + pull + gearBack + gearKick * (float)Math.Sin(Math.Min(1f, (0.25f - gearKick) / 0.25f) * Math.PI);
             float height = p.Height - groundOff;
             var back = Dir(yaw);
             var anchor = pos + new Vector3(0, 0, 0.5f);
@@ -261,7 +283,8 @@ namespace MidnightClub.Cameras
             var local = car.GetPositionOffset(camW);
             Function.Call(Hash.ATTACH_CAM_TO_ENTITY, cam, car, local.X, local.Y, local.Z, true);
             attached = true;
-            var tgtW = new Vector3(pivot.X, pivot.Y, pivot.Z) + back * p.LookAhead + new Vector3(0, 0, p.TargetHeight - groundOff - lookPitch * 0.04f);
+            // drift: the view aims at the inside of the slide, so the car drifts out towards the edge of the picture
+            var tgtW = new Vector3(pivot.X, pivot.Y, pivot.Z) + back * p.LookAhead - rightW * drift * (action ? 1.6f : 0.9f) + new Vector3(0, 0, p.TargetHeight - groundOff - lookPitch * 0.04f);
             var d = tgtW - camW;
             float pitch = (float)(Math.Atan2(d.Z, Math.Sqrt(d.X * d.X + d.Y * d.Y)) * 180.0 / Math.PI);
             float yawW = (float)(Math.Atan2(-d.X, d.Y) * 180.0 / Math.PI);
@@ -272,11 +295,13 @@ namespace MidnightClub.Cameras
             if (sh > 0f) { pitch += (Noise(11f) * 0.6f + Noise(17f) * 0.4f) * sh * 0.35f; yawW += Noise(13f) * sh * 0.25f; roll += Noise(9f) * sh * 0.3f; }
             pitch += Clamp(gLong, -1f, 1f) * 0.8f * gk;                                                               // G: nose of the view dips under braking
             Function.Call(Hash.SET_CAM_ROT, cam, pitch, roll, yawW, 2);
+            // dynamic FOV: widens with speed, a little more while accelerating hard, narrows a touch under braking
             float speedFov = (float)Math.Pow(Clamp(speed * 3.6f / 300f, 0f, 1f), 1.25) * 16f * cfg.CameraFovScale;
-            fov = SmoothDamp(fov, Clamp(p.BaseFov + speedFov + BoostFov, 30f, 120f), ref fovVel, 0.35f, dt);
+            float accFov = Clamp(gLong, -0.8f, 0.8f) * 4f * cfg.CameraFovScale;
+            fov = SmoothDamp(fov, Clamp(p.BaseFov + speedFov + accFov + BoostFov, 30f, 120f), ref fovVel, 0.35f, dt);
             cam.FieldOfView = fov;
         }
-        private Vector3 pivot; private bool pivotInit; private float pivotZVel, pull, pullVel, side, sideVel;
+        private Vector3 pivot; private bool pivotInit; private float pivotZVel, pull, pullVel, side, sideVel, gearBack, gearBackVel, gearKick, drift, driftT, driftVel; private int camGear;
         private float fovVel;
 
         /// <summary>Camera position in car space for an orbit angle (deg, + = left of the car's heading).</summary>
