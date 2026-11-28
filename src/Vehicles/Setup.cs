@@ -26,11 +26,11 @@ namespace MidnightClub.Vehicles
             I("Alignment", "Caster", "springs", v => (5.5f + v * 0.15f).ToString("0.0") + "°"),
             I("Anti-roll bars", "Front", "arb", v => (25f + v * 2.3f).ToString("0.0")),
             I("Anti-roll bars", "Rear", "arb", v => (25f + v * 2.3f).ToString("0.0")),
-            I("Springs", "Front stiffness", "springs", v => (110f + v * 9f).ToString("0") + " N/mm"),
-            I("Springs", "Rear stiffness", "springs", v => (100f + v * 8f).ToString("0") + " N/mm"),
-            I("Springs", "Ride height", "springs", v => (12f + v * 0.9f).ToString("0.0") + " cm"),
-            I("Damping", "Rebound", "springs", v => (8f + v * 0.6f).ToString("0.0")),
-            I("Damping", "Bump", "springs", v => (5f + v * 0.4f).ToString("0.0")),
+            I("Springs & dampers", "Front stiffness", "springs", v => (110f + v * 9f).ToString("0") + " N/mm"),
+            I("Springs & dampers", "Rear stiffness", "springs", v => (100f + v * 8f).ToString("0") + " N/mm"),
+            I("Springs & dampers", "Ride height", "springs", v => (12f + v * 0.9f).ToString("0.0") + " cm"),
+            I("Springs & dampers", "Rebound", "springs", v => (8f + v * 0.6f).ToString("0.0")),
+            I("Springs & dampers", "Bump", "springs", v => (5f + v * 0.4f).ToString("0.0")),
             I("Aero", "Front downforce", "aero", v => (60 + (v + 10) * 6).ToString() + " kgf @200"),
             I("Aero", "Rear downforce", "aero", v => (90 + (v + 10) * 9).ToString() + " kgf @200"),
             I("Brakes", "Balance", "brakes", v => (55 + v * 1.5f).ToString("0") + "% front"),
@@ -44,7 +44,7 @@ namespace MidnightClub.Vehicles
         public const int FinalDriveIndex = 2, GearIndex0 = 22;
         private static Item G(int n)
         {
-            return I("Gear ratios", "Gear " + n, "gearbox2", v =>
+            return I("Gearing", "Gear " + n, "gearbox2", v =>
             {
                 var s = Drivetrain.Current;
                 if (s == null) return (1f - 0.03f * v).ToString("x0.00");
@@ -59,34 +59,61 @@ namespace MidnightClub.Vehicles
         public static int Count { get { return Items.Length; } }
 
         public sealed class Part { public string Id, Name, Desc; public long Price; public int Pi; public string Needs; }
-        public static readonly Part[] Parts =
+        public static readonly Part[] Parts = new Part[][]
         {
-            new Part { Id = "springs", Name = "Race springs & dampers", Desc = "Adjustable coilovers with camber plates: unlocks springs, ride height (real: the car sits lower, less bump travel), damping, alignment and the camber / tyre-size fitment.", Price = 9000, Pi = 8 },
-            new Part { Id = "spacers", Name = "Wheel spacers & adjustable hubs", Desc = "Hub spacers from 0 to +15 cm per side, adjustable in Wheels > Fitment: a wider track rolls less and transfers less load (more grip), but the steering gets heavier and kerbs bite.", Price = 3500, Pi = 2 },
-            new Part { Id = "arb", Name = "Race anti-roll bars", Desc = "Adjustable front and rear bars.", Price = 4500, Pi = 4 },
-            new Part { Id = "diff", Name = "Race differential", Desc = "Limited-slip diff with adjustable lock (and centre balance on AWD).", Price = 7500, Pi = 6 },
-            new Part { Id = "gearbox", Name = "Race gearbox", Desc = "Close-ratio six-speed with automatic ratios (every car becomes a 6-speed) and an adjustable final drive. The car is rebuilt when you drive out.", Price = 8000, Pi = 6 },
-            new Part { Id = "gearbox2", Name = "Fully adjustable gearbox", Desc = "Arrives with the race gearbox's six ratios; every gear can then be tuned on top of the final drive.", Price = 16000, Pi = 5, Needs = "gearbox" },
-            new Part { Id = "brakes", Name = "Race brake kit", Desc = "Adjustable balance and pressure, better bite.", Price = 6000, Pi = 5 },
-            new Part { Id = "aero", Name = "Adjustable aero", Desc = "Splitter and wing with adjustable downforce: grip at speed, costs top speed.", Price = 11000, Pi = 10 },
-            new Part { Id = "weight1", Name = "Weight reduction: street", Desc = "-4% weight.", Price = 5000, Pi = 8 },
-            new Part { Id = "weight2", Name = "Weight reduction: sport", Desc = "-8% weight (needs street).", Price = 12000, Pi = 10, Needs = "weight1" },
-            new Part { Id = "weight3", Name = "Weight reduction: race", Desc = "-12% weight, stripped interior (needs sport).", Price = 25000, Pi = 14, Needs = "weight2" },
-            new Part { Id = "awd", Name = "AWD conversion", Desc = "All-wheel drive: launches and traction. Replaces RWD conversion.", Price = 30000, Pi = 15 },
-            new Part { Id = "rwd", Name = "RWD conversion", Desc = "Rear-wheel drive: the drift build. Replaces AWD conversion.", Price = 18000, Pi = 2 },
-            new Part { Id = "turbo1", Name = "Turbo stage 1", Desc = "Turbo kit (or an uprated turbo on a turbo engine): low boost, quick spool.", Price = 6500, Pi = 8 },
-            new Part { Id = "turbo2", Name = "Turbo stage 2", Desc = "Bigger turbo, more boost: strong mid-range, a little more lag.", Price = 9500, Pi = 8, Needs = "turbo1" },
-            new Part { Id = "turbo3", Name = "Turbo stage 3", Desc = "Big single turbo: huge top end, real lag below the boost threshold.", Price = 14000, Pi = 10, Needs = "turbo2" },
-            new Part { Id = "sc1", Name = "Supercharger stage 1", Desc = "Positive-displacement supercharger: instant boost from idle, no lag, some drive loss.", Price = 7500, Pi = 8 },
-            new Part { Id = "sc2", Name = "Supercharger stage 2", Desc = "Smaller pulley, more boost everywhere.", Price = 10000, Pi = 8, Needs = "sc1" },
-            new Part { Id = "sc3", Name = "Supercharger stage 3", Desc = "Large twin-screw blower: massive torque from low revs.", Price = 14500, Pi = 10, Needs = "sc2" },
-            new Part { Id = "als", Name = "Anti-lag system", Desc = "Keeps the turbo spooled: pops and crackles off throttle, boost holds between shifts. Needs a turbo.", Price = 9500, Pi = 6 },
-            new Part { Id = "pipe", Name = "Straight-pipe exhaust", Desc = "Loud, raw and raspy. A little more power.", Price = 3500, Pi = 2 },
-        };
+
+            new[] { new Part { Id = "springs", Name = "Race coilovers (adjustable)", Desc = "Adjustable coilovers with camber plates: unlocks springs, ride height (real: the car sits lower, less bump travel), damping, alignment and the camber / tyre-size fitment.", Price = 9000, Pi = 8 } },
+            new[] { new Part { Id = "spacers", Name = "Wheel spacers & adjustable hubs", Desc = "Hub spacers from 0 to +15 cm per side, adjustable in Wheels > Fitment: a wider track rolls less and transfers less load (more grip), but the steering gets heavier and kerbs bite.", Price = 3500, Pi = 2 } },
+            new[] { new Part { Id = "arb", Name = "Anti-roll bars: Race (adjustable)", Desc = "Adjustable front and rear bars.", Price = 4500, Pi = 4 } },
+            new[] { new Part { Id = "diff", Name = "Differential: Race (adjustable)", Desc = "Limited-slip diff with adjustable lock (and centre balance on AWD).", Price = 7500, Pi = 6 } },
+            new[] { new Part { Id = "gearbox", Name = "Race gearbox", Desc = "Close-ratio six-speed with automatic ratios (every car becomes a 6-speed) and an adjustable final drive. The car is rebuilt when you drive out.", Price = 8000, Pi = 6 } },
+            new[] { new Part { Id = "gearbox2", Name = "Race gearbox, fully adjustable", Desc = "Arrives with the race gearbox's six ratios; every gear can then be tuned on top of the final drive.", Price = 16000, Pi = 5, Needs = "gearbox" } },
+            new[] { new Part { Id = "brakes", Name = "Race brake kit (adjustable)", Desc = "Adjustable balance and pressure, better bite.", Price = 6000, Pi = 5 } },
+            new[] { new Part { Id = "aero", Name = "Race splitter & wing (adjustable)", Desc = "Splitter and wing with adjustable downforce: grip at speed, costs top speed.", Price = 11000, Pi = 10 } },
+            new[] { new Part { Id = "weight1", Name = "Weight reduction: Street", Desc = "-4% weight.", Price = 5000, Pi = 8 } },
+            new[] { new Part { Id = "weight2", Name = "Weight reduction: Sport", Desc = "-8% weight (needs street).", Price = 12000, Pi = 10, Needs = "weight1" } },
+            new[] { new Part { Id = "weight3", Name = "Weight reduction: Race", Desc = "-12% weight, stripped interior (needs sport).", Price = 25000, Pi = 14, Needs = "weight2" } },
+            new[] { new Part { Id = "awd", Name = "AWD conversion", Desc = "All-wheel drive: launches and traction. Replaces RWD conversion.", Price = 30000, Pi = 15 } },
+            new[] { new Part { Id = "rwd", Name = "RWD conversion", Desc = "Rear-wheel drive: the drift build. Replaces AWD conversion.", Price = 18000, Pi = 2 } },
+            new[] { new Part { Id = "turbo1", Name = "Turbo stage 1", Desc = "Turbo kit (or an uprated turbo on a turbo engine): low boost, quick spool.", Price = 6500, Pi = 8 } },
+            new[] { new Part { Id = "turbo2", Name = "Turbo stage 2", Desc = "Bigger turbo, more boost: strong mid-range, a little more lag.", Price = 9500, Pi = 8, Needs = "turbo1" } },
+            new[] { new Part { Id = "turbo3", Name = "Turbo stage 3", Desc = "Big single turbo: huge top end, real lag below the boost threshold.", Price = 14000, Pi = 10, Needs = "turbo2" } },
+            new[] { new Part { Id = "sc1", Name = "Supercharger stage 1", Desc = "Positive-displacement supercharger: instant boost from idle, no lag, some drive loss.", Price = 7500, Pi = 8 } },
+            new[] { new Part { Id = "sc2", Name = "Supercharger stage 2", Desc = "Smaller pulley, more boost everywhere.", Price = 10000, Pi = 8, Needs = "sc1" } },
+            new[] { new Part { Id = "sc3", Name = "Supercharger stage 3", Desc = "Large twin-screw blower: massive torque from low revs.", Price = 14500, Pi = 10, Needs = "sc2" } },
+            new[] { new Part { Id = "als", Name = "Anti-lag system", Desc = "Keeps the turbo spooled: pops and crackles off throttle, boost holds between shifts. Needs a turbo.", Price = 9500, Pi = 6 } },
+            new[] { new Part { Id = "pipe", Name = "Exhaust: Race (straight pipe)", Desc = "Free-flowing race exhaust: loud, raw and raspy, more top-end power, quicker spool.", Price = 3500, Pi = 2, Needs = "exh2" } },
+            // engine parts, Forza style: street / sport / race each
+            P("intake", "Intake", "Air filter, intake tract and throttle body: more top-end power.", 1500, 2),
+            P("fuel", "Fuel system", "Injectors and pump: more power across the rev range.", 1800, 2),
+            P("ign", "Ignition", "Coils, plugs and timing: a little more power everywhere.", 1200, 1),
+            P("exh", "Exhaust", "Headers and a freer exhaust: more power, a deeper note.", 2000, 2, 2),
+            P("cam", "Camshaft", "Hotter cams: much more top end, a little less low down.", 2500, 3),
+            P("valves", "Valves", "Bigger valves and stiffer springs: more top-end power.", 2200, 2),
+            P("disp", "Displacement", "Bore and stroke: more torque everywhere.", 6000, 4),
+            P("pistons", "Pistons & compression", "Forged pistons and a higher compression ratio: more power.", 3500, 3),
+            P("ic", "Intercooler", "Cooler charge air (turbo or supercharger only): more power under boost.", 2000, 2),
+            P("oil", "Oil cooling", "Oil cooler: holds power on long full-throttle runs.", 1000, 1),
+            P("fly", "Flywheel", "Lighter flywheel: the engine revs up and down much faster.", 1200, 1),
+            // drivetrain parts
+            P("clutch", "Clutch", "Sport / race clutch: quicker, firmer shifts.", 1500, 1, 2),
+            P("driveline", "Driveline", "Lighter driveshafts and joints: less power lost, less rotating mass.", 1800, 1, 2),
+
+        }.SelectMany(x => x).ToArray();
 
         /// <summary>Camber and tyre size are set on the coilovers (or the old fitment kit); track width needs the spacers.</summary>
         public static bool CanCamber(OwnedVehicle r) { return r != null && (r.FitKit || Has(r, "springs")); }
         public static bool CanSpace(OwnedVehicle r) { return r != null && (r.FitKit || Has(r, "spacers")); }
+        /// <summary>A staged part family: Street / Sport / Race (or Sport / Race for two levels), each needing the one below.</summary>
+        private static Part[] P(string id, string name, string desc, long price, int pi, int levels = 3)
+        {
+            string[] lv = levels == 2 ? new[] { "Sport", "Race" } : new[] { "Street", "Sport", "Race" };
+            var l = new Part[levels];
+            for (int i = 0; i < levels; i++) l[i] = new Part { Id = id + (i + 1), Name = name + ": " + lv[i], Desc = desc, Price = price * (i + 1) + price * i / 2, Pi = pi, Needs = i > 0 ? id + i : null };
+            return l;
+        }
+        /// <summary>Level (0 stock .. 3) of a staged part family (intake1..3 etc.).</summary>
+        public static int Level(OwnedVehicle r, string family) { if (r == null || r.Parts == null) return 0; for (int i = 3; i >= 1; i--) if (r.Parts.Contains(family + i)) return i; return 0; }
         public static bool Has(OwnedVehicle r, string part) { return part == null || (r != null && r.Parts != null && r.Parts.Contains(part)); }
         public static int[] Get(OwnedVehicle r)
         {
@@ -174,7 +201,9 @@ namespace MidnightClub.Vehicles
             if (rec == null) { m.Add(new MenuItem("Get in one of your cars first") { Enabled = false }); return m; }
             var info = VehicleRegistry.Instance != null ? VehicleRegistry.Instance.Get(rec.ModelHash) : null;
             m.Subtitle = rec.Title() + "  ·  " + Era.Label(Era.Year(info)) + "  ·  " + PerformanceIndex.Label(PerformanceIndex.Of(rec));
-            foreach (var g in Items.Where(x => !x.Hidden).Select(x => x.Group).Distinct())
+            string[] order = { "Tyres", "Alignment", "Springs & dampers", "Anti-roll bars", "Brakes", "Differential", "Gearing", "Aero", "Steering" };
+            var groups = Items.Where(x => !x.Hidden).Select(x => x.Group).Distinct().OrderBy(x => { int o = Array.IndexOf(order, x); return o < 0 ? 99 : o; });
+            foreach (var g in groups)
             {
                 var grp = g;
                 var gi = Items.Select((x, i) => new { x, i }).Where(z => z.x.Group == grp && !z.x.Hidden).ToList();

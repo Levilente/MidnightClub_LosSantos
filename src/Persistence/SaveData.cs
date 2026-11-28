@@ -117,6 +117,7 @@ namespace MidnightClub.Persistence
         [DataMember] public float CamberF, CamberR;                  // degrees, negative = top of wheel in
         [DataMember] public float TrackF, TrackR;                    // cm wider (+) / narrower (-) per side
         [DataMember] public float TyreF, TyreR;                      // tyre diameter multiplier, 0 = stock (1.0)
+        [DataMember] public float RimF, RimR, ProfF, ProfR, WidthF, WidthR;   // real tyre size per axle: rim (inch), profile (%), width (mm); 0 = stock
         [DataMember] public int TyreCompound;                        // 0 street, 1 sport, 2 semi-slick, 3 race slick, 4 drift
         [DataMember] public bool LetteredTyres;
         [DataMember] public float Heat;                               // police attention on this car (0-5)

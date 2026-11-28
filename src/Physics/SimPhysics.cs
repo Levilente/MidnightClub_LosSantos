@@ -120,7 +120,7 @@ namespace MidnightClub.Physics
         {
             SyncInduction(car, rec);
             int hash = car.Model.Hash, compound = Math.Max(0, Math.Min(5, rec.TyreCompound));
-            string key = hash + "|" + Setup.Key(rec) + "|" + compound + "|" + Mod(car, 11) + "|" + Mod(car, 12) + "|" + Mod(car, 13) + "|" + Mod(car, 15) + "|" + Mod(car, 0) + "|" + rec.EcuLevel + "|" + car.HighGear + "|" + car.Handle;
+            string key = hash + "|" + Setup.Key(rec) + "|" + compound + "|" + Mod(car, 11) + "|" + Mod(car, 12) + "|" + Mod(car, 13) + "|" + Mod(car, 15) + "|" + Mod(car, 0) + "|" + rec.RimF + "," + rec.ProfF + "," + rec.WidthF + "," + rec.RimR + "," + rec.ProfR + "," + rec.WidthR + "|" + rec.EcuLevel + "|" + car.HighGear + "|" + car.Handle;
             if (appliedModel == hash && appliedKey == key) return;
             Restore();
             var h = car.HandlingData; if (h == null || !h.IsValid) return;

@@ -356,11 +356,26 @@ namespace MidnightClub.Garages
                 Function.Call(Hash.SET_ENTITY_VISIBLE, ped, true, false);
                 if (chosen == null) chosen = cur ?? saves.Data.Vehicles.FirstOrDefault();
                 try
+                {   // stream the street in before the car appears there (otherwise it rolls out into an empty world)
+                    var so = g.SpawnOut.Position;
+                    ped.Position = so + new Vector3(0, 0, 1f);
+                    Function.Call(Hash.SET_FOCUS_POS_AND_VEL, so.X, so.Y, so.Z, 0f, 0f, 0f);
+                    Function.Call(Hash.NEW_LOAD_SCENE_START_SPHERE, so.X, so.Y, so.Z, 70f, 0);
+                    Function.Call(Hash.REQUEST_COLLISION_AT_COORD, so.X, so.Y, so.Z);
+                    int tl = Game.GameTime;
+                    while (!Function.Call<bool>(Hash.IS_NEW_LOAD_SCENE_LOADED) && Game.GameTime - tl < 5000) Script.Wait(50);
+                    Function.Call(Hash.NEW_LOAD_SCENE_STOP);
+                    Function.Call(Hash.CLEAR_FOCUS);
+                }
+                catch (Exception ex) { Log.Error("Streaming the garage exit", ex); }
+                try
                 {
                     var car = vehicles.Spawn(chosen, g.SpawnOut.Position, g.SpawnOut.Heading);
                     ped.SetIntoVehicle(car, VehicleSeat.Driver);
-                    car.IsEngineRunning = true;
+                    car.IsEngineRunning = true; car.PlaceOnGround();
+                    Function.Call(Hash.SET_VEHICLE_ON_GROUND_PROPERLY, car, 5f);
                     saves.Data.CurrentVehicleId = chosen.Id;
+                    Script.Wait(400);                                // let the street and the car settle before the fade-in
                 }
                 catch (Exception ex) { Log.Error("Spawning car outside garage", ex); }
                 IsInside = false;

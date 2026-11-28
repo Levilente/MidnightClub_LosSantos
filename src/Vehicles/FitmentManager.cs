@@ -50,13 +50,16 @@ namespace MidnightClub.Vehicles
             if (!cfg.FitmentEnabled || car == null || !car.Exists() || rec == null || car.Model.IsBike) return;
             var wheels = Stock(car);
             if (wheels == null) return;
-            bool cam = Setup.CanCamber(rec), spc = Setup.CanSpace(rec);
-            if (!cam && !spc) return;   // never touch cars without coilovers / spacers
+            bool cam = Setup.CanCamber(rec), spc = Setup.CanSpace(rec), sized = TyreSize.Custom(rec, true) || TyreSize.Custom(rec, false);
+            if (!cam && !spc && !sized) return;   // never touch stock cars
+            var spec = Physics.RealData.For(car);
             foreach (var w in wheels)
             {
                 float camber = cam ? (w.Front ? rec.CamberF : rec.CamberR) * (float)(Math.PI / 180.0) * cfg.CamberSign : 0f;
                 float track = spc ? (w.Front ? rec.TrackF : rec.TrackR) / 100f : 0f;
-                float tyre = cam ? Mult(w.Front ? rec.TyreF : rec.TyreR) : 1f;
+                bool sz = TyreSize.Custom(rec, w.Front);
+                float tyre = sz ? TyreSize.RadiusRatio(rec, spec, w.Front) : cam ? Mult(w.Front ? rec.TyreF : rec.TyreR) : 1f;
+                float rimK = sz ? TyreSize.RimRatio(rec, spec, w.Front) : 1f;
                 float y = w.YRot + (w.Left ? camber : -camber);
                 float x = w.X + Math.Sign(w.X) * track;
                 float t = w.Tyre * tyre;
@@ -65,7 +68,7 @@ namespace MidnightClub.Vehicles
                 *(float*)(a + OffInvYRot) = -y;
                 *(float*)(a + OffXOffset) = x;
                 *(float*)(a + OffTyreRadius) = t;
-                if (*(float*)(a + OffRimRadius) > t * 0.95f) *(float*)(a + OffRimRadius) = Math.Min(w.Rim, t * 0.95f);
+                *(float*)(a + OffRimRadius) = Math.Min(w.Rim * rimK, t * 0.95f);
             }
         }
 

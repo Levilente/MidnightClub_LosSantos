@@ -160,7 +160,7 @@ namespace MidnightClub.UI
                 if (!string.IsNullOrEmpty(d))
                 {
                     y += pad + Th.Px(10f);
-                    int lines = 1 + (int)(Ds.Width(d, 0.3f) / (w - Ds.Px(Th.Px(40f))));
+                    int lines = Ds.WrapLines(d, 0.3f, w - Ds.Px(Th.Px(44f)), Ds.Body);
                     float dh = Th.Px(28f) + lines * Th.Px(30f);
                     Kit.Glass(x, y, w, dh, Th.R_Lg, a);
                     Kit.Pill(x + Ds.Px(Th.Px(12f)), y + Th.Px(14f), Ds.Px(Th.Px(4f)), dh - Th.Px(28f), Ds.A(acc, a));

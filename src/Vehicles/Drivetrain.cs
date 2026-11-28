@@ -49,7 +49,7 @@ namespace MidnightClub.Vehicles
         private static Live BuildWith(Vehicle car, OwnedVehicle r, CarSpec s, int compound, float stockMass, int gears)
         {
             int eng = Function.Call<int>(Hash.GET_VEHICLE_MOD, car, 11), wing = Function.Call<int>(Hash.GET_VEHICLE_MOD, car, 0);
-            string key = car.Model.Hash + "|" + Setup.Key(r) + "|" + compound + "|" + eng + "|" + wing + "|" + gears + "|" + (r != null ? r.EcuLevel + "|" + r.EngineSound : "");
+            string key = car.Model.Hash + "|" + Setup.Key(r) + "|" + compound + "|" + eng + "|" + wing + "|" + gears + "|" + (r != null ? r.RimF + "," + r.ProfF + "," + r.WidthF + "," + r.RimR + "," + r.ProfR + "," + r.WidthR : "") + "|" + (r != null ? r.EcuLevel + "|" + r.EngineSound : "");
             Live L; if (cache.TryGetValue(key, out L)) return L;
             L = new Live { Key = key, Spec = s };
             bool gtaTurbo = Engine.TurboStage(r) > 0 || (s.Ind == Induction.Turbo && Engine.ScStage(r) == 0);
@@ -63,7 +63,11 @@ namespace MidnightClub.Vehicles
                 var sh = s.Sheet; string kind = sh.kind ?? "car";
                 string kF = compound == 0 ? sh.tyres.front.compound : Physics.TyrePhys.KeyOf(L.Tyre.Id), kR = compound == 0 ? sh.tyres.rear.compound : kF;
                 float fzF = L.Mass * 9.81f * s.FrontPct / (s.Bike ? 1f : 2f), fzR = L.Mass * 9.81f * (1f - s.FrontPct) / (s.Bike ? 1f : 2f);
-                L.TyreF = Physics.TyrePhys.Compute(sh.tyres.front, kF, fzF, kind); L.TyreR = Physics.TyrePhys.Compute(sh.tyres.rear, kR, fzR, kind);
+                // the fitted tyre sizes (width / profile / rim) replace the factory ones; a wider tyre grips a little more
+                Physics.SpecTyre tF = TyreSize.Sized(r, sh.tyres.front, true), tR = TyreSize.Sized(r, sh.tyres.rear, false);
+                L.TyreF = Physics.TyrePhys.Compute(tF, kF, fzF, kind); L.TyreR = Physics.TyrePhys.Compute(tR, kR, fzR, kind);
+                if (tF != sh.tyres.front && sh.tyres.front.widthM > 0.05f) { float g = (float)Math.Pow(tF.widthM / sh.tyres.front.widthM, 0.08); L.TyreF.MuY *= g; L.TyreF.MuX *= g; }
+                if (tR != sh.tyres.rear && sh.tyres.rear.widthM > 0.05f) { float g = (float)Math.Pow(tR.widthM / sh.tyres.rear.widthM, 0.08); L.TyreR.MuY *= g; L.TyreR.MuX *= g; }
                 var m = (Tyres.Mf)typeof(Tyres.Mf).GetMethod("MemberwiseClone", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).Invoke(L.Tyre, null);
                 Physics.TyrePhys.Comp cp; Physics.TyrePhys.Comps.TryGetValue(kF, out cp);
                 m.By = L.TyreF.By; m.Cy = L.TyreF.Cy; m.Ey = L.TyreF.Ey; m.MuY = L.TyreF.MuY; m.MuX = L.TyreF.MuX; m.Relax = L.TyreF.Relax; m.PeakDeg = L.TyreF.PeakDeg;

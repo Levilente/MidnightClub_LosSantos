@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.67.0
+- Performance shop laid out like Forza Horizon: Engine (intake, fuel system, ignition, exhaust, camshaft, valves, displacement, pistons & compression, intercooler, oil cooling, flywheel – Street / Sport / Race each – plus ECU, turbo / supercharger, anti-lag, nitrous), Platform & handling (brakes, springs & dampers, anti-roll bars, weight reduction), Drivetrain (clutch, transmission, driveline, differential), Aero, Conversion (engine and drivetrain swaps). Where GTA and Midnight Club both have a race level, ours is the race level.
+- Engine parts shape the real torque curve where they work (cams and valves top end, displacement everywhere...), the flywheel lowers the engine inertia, the clutch shortens the shifts, the driveline cuts losses.
+- Wheels tab: Rims (all categories in one list), Tyre & rim size (rim diameter, width, profile per axle – rolling radius, gearing, grip, stiffness and the look), Adjust fitment (camber with the coilovers, wheel spacers bought here), compound, sidewalls, smoke.
+- Tuning menu in a sensible order: Tyres, Alignment, Springs & dampers, Anti-roll bars, Brakes, Differential, Gearing (final drive + gears), Aero, Steering.
+- Text boxes grow with their text (real word-wrap measurement).
+- Interior shop: the camera snaps to the part (steering wheel, dials, plaques, shifter, seats, door, dashboard).
+- Workshops: the shop takes over at the door, cameras never sit inside a wall, the car drives out through the door first; garages: the street is streamed in before the car is put outside.
+
+
 ## 0.66.2
 - Workshops: one upgrade path per system. Transmission: GTA's levels, then Race gearbox, then Fully adjustable gearbox; Suspension: GTA's levels, then Race coilovers; Brakes: GTA's levels, then Race brake kit. Buying a level includes everything below it, picking a lower one takes the higher ones off.
 - Wheel spacers are bought in Wheels > Adjust fitment (the only place).

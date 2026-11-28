@@ -187,7 +187,9 @@ namespace MidnightClub.Workshops
             foreach (var kv in names)
             {
                 if (Function.Call<int>(Hash.GET_NUM_VEHICLE_MODS, car, kv.Key) <= 0) continue;
-                AddModMenu(m, kv.Value, kv.Key, 0.007, "interior", cosmetic: true);
+                string f = kv.Key == 33 ? "int_steer" : kv.Key == 30 ? "int_dials" : kv.Key == 35 ? "int_plaque" : kv.Key == 34 ? "int_shifter" : kv.Key == 32 ? "int_seats"
+                         : kv.Key == 31 ? "int_door" : kv.Key == 29 || kv.Key == 28 ? "int_dash" : kv.Key == 36 || kv.Key == 37 ? "rear" : "interior";
+                AddModMenu(m, kv.Value, kv.Key, 0.007, f, cosmetic: true);
             }
             m.Add(new MenuItem("Interior colour", () => menus.Push(ColorList("Interior", () => { var o = new OutputArgument(); Function.Call(Hash.GET_VEHICLE_EXTRA_COLOUR_5, car, o); return o.GetResult<int>(); }, c => Function.Call(Hash.SET_VEHICLE_EXTRA_COLOUR_5, car, c), 600))));
             m.Add(new MenuItem("Dashboard colour", () => menus.Push(ColorList("Dashboard", () => { var o = new OutputArgument(); Function.Call(Hash.GET_VEHICLE_EXTRA_COLOUR_6, car, o); return o.GetResult<int>(); }, c => Function.Call(Hash.SET_VEHICLE_EXTRA_COLOUR_6, car, c), 500))));
@@ -292,42 +294,81 @@ namespace MidnightClub.Workshops
         {
             var m = new Menu("Performance", Title());
             m.OnOpen = () => { focus = "default"; curTab = 3; };
-            Func<string[], string> owned = ids => { int n = ids.Count(i => Setup.Has(rec, i)); return n == 0 ? "" : n + " race part" + (n == 1 ? "" : "s"); };
+            Func<string[], string> lv = fams => { int n = fams.Sum(f => f == "exh" ? (Setup.Has(rec, "pipe") ? 3 : Setup.Level(rec, "exh")) : Setup.Level(rec, f)); return n == 0 ? "Stock" : n + " upgrade" + (n == 1 ? "" : "s"); };
+            // Forza Horizon's upgrade shop: engine, platform & handling, drivetrain, aero, conversion (tyres and rims: Wheels tab)
             m.Add(new MenuItem("Engine", () => menus.Push(PerfCat("Engine", "front", c =>
             {
-                AddModMenu(c, "Engine upgrade", 11, 0.06, "front");
+                c.Add(PathItem("Intake", "intake")); c.Add(PathItem("Fuel system", "fuel")); c.Add(PathItem("Ignition", "ign"));
+                c.Add(PathItem("Exhaust", "exh", "pipe"));
+                c.Add(PathItem("Camshaft", "cam")); c.Add(PathItem("Valves", "valves")); c.Add(PathItem("Displacement", "disp")); c.Add(PathItem("Pistons & compression", "pistons"));
+                c.Add(PathItem("Intercooler", "ic")); c.Add(PathItem("Oil cooling", "oil")); c.Add(PathItem("Flywheel", "fly"));
                 c.Add(new MenuItem("ECU tune", () => menus.Push(Ecu())) { Value = () => rec.EcuLevel == 0 ? "Stock" : "Stage " + rec.EcuLevel, Description = () => "Remapped engine management: about +3% torque per stage on a naturally aspirated engine, +7% and more boost per stage on a turbo or supercharged one." });
-                c.Add(PartItem("pipe"));
-                c.Add(new MenuItem("Engine swap", () => menus.Push(EngineSwap())) { Value = () => SwapName(rec.EngineSound), Description = () => "Swap in a different engine: new sound and more power. Preview revs it in the bay before you buy." });
-            }))) { Value = () => GtaLevel(11), Description = () => "Engine upgrades, ECU maps, exhaust and engine swaps." });
-            m.Add(new MenuItem("Forced induction", () => menus.Push(PerfCat("Forced induction", "front", c =>
-            {
-                for (int st = 1; st <= 3; st++) { c.Add(InductionItem("turbo", st)); }
-                for (int st = 1; st <= 3; st++) { c.Add(InductionItem("sc", st)); }
+                for (int st = 1; st <= 3; st++) c.Add(InductionItem("turbo", st));
+                for (int st = 1; st <= 3; st++) c.Add(InductionItem("sc", st));
                 c.Add(PartItem("als"));
                 c.Add(new MenuItem("Nitrous kit", () => menus.Push(Nitrous())) { Value = () => rec.NosLevel == 0 ? "None" : "Stage " + rec.NosLevel, Description = () => "Hold Shift (keyboard) or RB / R1 (controller) to fire. Bigger stages: more power, longer burn, faster refill." });
-            }))) { Value = () => InductionValue() + (rec.NosLevel > 0 ? " + NOS" : ""), Description = () => "Turbo or supercharger (3 stages each, never both), anti-lag and nitrous." });
-            m.Add(new MenuItem("Drivetrain", () => menus.Push(PerfCat("Drivetrain", "default", c =>
-            {
-                c.Add(Tree("Transmission", 13, 0.045, "default", "gearbox", "gearbox2"));
-                c.Add(PartItem("diff")); c.Add(PartItem("awd")); c.Add(PartItem("rwd"));
-            }))) { Value = () => owned(new[] { "gearbox", "gearbox2", "diff", "awd", "rwd" }), Description = () => "Gearbox, differential and drivetrain conversions." });
-            m.Add(new MenuItem("Suspension & chassis", () => menus.Push(PerfCat("Suspension & chassis", "side", c =>
-            {
-                c.Add(Tree("Suspension", 15, 0.03, "side", "springs"));
-                c.Add(PartItem("arb"));
-                c.Add(PartItem("weight1")); c.Add(PartItem("weight2")); c.Add(PartItem("weight3"));
-            }))) { Value = () => owned(new[] { "springs", "arb", "weight1", "weight2", "weight3" }), Description = () => "Springs, dampers, anti-roll bars and weight reduction." });
-            m.Add(new MenuItem("Brakes", () => menus.Push(PerfCat("Brakes", "side", c =>
+            }))) { Value = () => lv(new[] { "intake", "fuel", "ign", "exh", "cam", "valves", "disp", "pistons", "ic", "oil", "fly" }), Description = () => "Intake, fuel, ignition, exhaust, cams, valves, displacement, pistons, intercooler, oil cooling, flywheel, ECU, turbo / supercharger, anti-lag and nitrous." });
+            m.Add(new MenuItem("Platform & handling", () => menus.Push(PerfCat("Platform & handling", "side", c =>
             {
                 c.Add(Tree("Brakes", 12, 0.03, "side", "brakes"));
-            }))) { Value = () => GtaLevel(12), Description = () => "Brake upgrades and the adjustable race brake kit." });
-            m.Add(new MenuItem("Tyres & aero", () => menus.Push(PerfCat("Tyres & aero", "side", c =>
+                c.Add(Tree("Springs & dampers", 15, 0.03, "side", "springs"));
+                c.Add(PartItem("arb"));
+                c.Add(PathItem("Weight reduction", "weight"));
+            }))) { Value = () => GtaLevel(12), Description = () => "Brakes, springs and dampers, anti-roll bars and weight reduction." });
+            m.Add(new MenuItem("Drivetrain", () => menus.Push(PerfCat("Drivetrain", "default", c =>
             {
-                c.Add(new MenuItem("Tyre compound", () => menus.Push(Compounds())) { Value = () => FitmentManager.CompoundNames[rec.TyreCompound], Description = () => "Street, sport, semi-slick, slick, drift, rally and off-road rubber." });
-                c.Add(PartItem("aero"));
-            }))) { Value = () => FitmentManager.CompoundNames[rec.TyreCompound], Description = () => "Tyre compounds and adjustable downforce." });
+                c.Add(PathItem("Clutch", "clutch"));
+                c.Add(Tree("Transmission", 13, 0.045, "default", "gearbox", "gearbox2"));
+                c.Add(PathItem("Driveline", "driveline"));
+                c.Add(PartItem("diff"));
+            }))) { Value = () => lv(new[] { "clutch", "driveline" }), Description = () => "Clutch, transmission, driveline and differential." });
+            m.Add(new MenuItem("Aero", () => menus.Push(PerfCat("Aero", "rear", c => { c.Add(PartItem("aero")); }))) { Value = () => Setup.Has(rec, "aero") ? "Race" : "Stock", Description = () => "Adjustable splitter and wing (the cosmetic spoilers are in Body)." });
+            m.Add(new MenuItem("Conversion", () => menus.Push(PerfCat("Conversion", "front", c =>
+            {
+                c.Add(new MenuItem("Engine swap", () => menus.Push(EngineSwap())) { Value = () => SwapName(rec.EngineSound), Description = () => "Swap in a different engine: new sound and more power. Preview revs it in the bay before you buy." });
+                c.Add(PartItem("awd")); c.Add(PartItem("rwd"));
+            }))) { Value = () => Setup.Has(rec, "awd") ? "AWD" : Setup.Has(rec, "rwd") ? "RWD" : "", Description = () => "Engine swaps and drivetrain swaps." });
             return m;
+        }
+
+        /// <summary>A staged part family (Street / Sport / Race) as one row with its own level list.</summary>
+        private MenuItem PathItem(string label, string family, string raceId = null)
+        {
+            if (rec.Parts == null) rec.Parts = new List<string>();
+            var ids = Setup.Parts.Where(p => p.Id.StartsWith(family) && p.Id.Length == family.Length + 1 && char.IsDigit(p.Id[family.Length])).Select(p => p.Id).ToList();
+            if (raceId != null) ids.Add(raceId);
+            Func<string, long> price = id => Disc(PricingEngine.Round(Setup.Parts.First(x => x.Id == id).Price + bp * 0.004 * (ids.IndexOf(id) + 1)), 3);
+            Func<int> level = () => { for (int j = ids.Count - 1; j >= 0; j--) if (rec.Parts.Contains(ids[j])) return j + 1; return 0; };
+            Func<int, string> lname = l => l == 0 ? "Stock" : Setup.Parts.First(x => x.Id == ids[l - 1]).Name.Split(':').Last().Trim();
+            Func<int, long> cost = l => { long p = 0; for (int j = level(); j < l; j++) p += price(ids[j]); return p; };
+            bool icBlocked = family == "ic" && !TurboEngine() && Physics.Engine.ScStage(rec) == 0 && Physics.RealData.For(car).Ind != Physics.Induction.Supercharged;
+            return new MenuItem(label, () =>
+            {
+                if (icBlocked) { Flash("An intercooler needs a turbo or a supercharger."); return; }
+                var m = new Menu(label, Title()) { IsShopList = true };
+                for (int l = 0; l <= ids.Count; l++)
+                {
+                    int L = l;
+                    m.Add(new MenuItem(lname(L), () =>
+                    {
+                        int cur = level(); if (L == cur) return;
+                        if (L > cur)
+                        {
+                            long p = cost(L); if (p > 0 && !Pay(p, label + ": " + lname(L))) return;
+                            for (int j = 0; j < L; j++) if (!rec.Parts.Contains(ids[j])) rec.Parts.Add(ids[j]);
+                            Bought(label + ": " + lname(L), p);
+                        }
+                        else { for (int j = L; j < ids.Count; j++) rec.Parts.Remove(ids[j]); saves.IsDirty = true; Flash(label + ": " + lname(L)); }
+                        Setup.ApplyAudio(car, rec);
+                    })
+                    {
+                        Value = () => L == level() ? "~g~INSTALLED" : L < level() ? "" : "$" + cost(L).ToString("N0") + "  ·  PI +" + Enumerable.Range(level(), Math.Max(0, L - level())).Sum(j => Setup.Parts.First(x => x.Id == ids[j]).Pi),
+                        Description = () => L == 0 ? "Factory part." : Setup.Parts.First(x => x.Id == ids[L - 1]).Desc + (L > 1 ? " Includes the levels below." : "")
+                    });
+                }
+                m.Selected = level();
+                menus.Push(m);
+            }) { Value = () => icBlocked ? "Needs boost" : lname(level()), Description = () => Setup.Parts.First(x => x.Id == ids[0]).Desc };
         }
 
         /// <summary>One upgrade path per system: GTA's own levels (street / sport / race...) and then our race parts as the
@@ -340,11 +381,13 @@ namespace MidnightClub.Workshops
             int tab = curTab;
             Func<int, long> gtaPrice = i => i < 0 ? 0 : Disc(PricingEngine.Round((800 + bp * factor) * (i + 1)), tab);
             Func<string, long> partPrice = id => Disc(PricingEngine.Round(Setup.Parts.First(x => x.Id == id).Price + bp * 0.015), 3);
+            int gtaAll = count;
+            if (parts.Length > 0 && count >= 2) count -= 1;                       // where GTA and we both have a race level, ours is the race level
             int top = count + parts.Length;                                   // levels 0 = stock, 1..count = GTA, then the parts
             Func<int> level = () =>
             {
                 for (int j = parts.Length - 1; j >= 0; j--) if (rec.Parts.Contains(parts[j])) return count + 1 + j;
-                return Function.Call<int>(Hash.GET_VEHICLE_MOD, car, type) + 1;
+                return Math.Min(count, Function.Call<int>(Hash.GET_VEHICLE_MOD, car, type) + 1);
             };
             Func<int, string> name = l => l == 0 ? "Stock" : l <= count ? PerfName(type, l - 1) : Setup.Parts.First(x => x.Id == parts[l - count - 1]).Name;
             Func<int, long> cost = l =>
@@ -360,7 +403,7 @@ namespace MidnightClub.Workshops
                 var m = new Menu(label, Title()) { IsShopList = true };
                 m.OnOpen = () => focus = camFocus;
                 int installedMod = Function.Call<int>(Hash.GET_VEHICLE_MOD, car, type);
-                m.OnHighlight = i => { if (i >= 1 && i <= count) Function.Call(Hash.SET_VEHICLE_MOD, car, type, i - 1, false); else if (i == 0) Function.Call(Hash.SET_VEHICLE_MOD, car, type, -1, false); else if (count > 0) Function.Call(Hash.SET_VEHICLE_MOD, car, type, count - 1, false); };
+                m.OnHighlight = i => { if (i >= 1 && i <= count) Function.Call(Hash.SET_VEHICLE_MOD, car, type, i - 1, false); else if (i == 0) Function.Call(Hash.SET_VEHICLE_MOD, car, type, -1, false); else if (gtaAll > 0) Function.Call(Hash.SET_VEHICLE_MOD, car, type, gtaAll - 1, false); };
                 m.OnBack = () => { Function.Call(Hash.SET_VEHICLE_MOD, car, type, installedMod, false); menus.Pop(); };
                 for (int l = 0; l <= top; l++)
                 {
@@ -380,7 +423,7 @@ namespace MidnightClub.Workshops
                             for (int j = 0; j < parts.Length; j++) if (count + 1 + j > L) rec.Parts.Remove(parts[j]);
                             saves.IsDirty = true; Flash(label + ": " + name(L));
                         }
-                        installedMod = Math.Min(L, count) - 1;
+                        installedMod = L > count ? gtaAll - 1 : L - 1;
                         Function.Call(Hash.SET_VEHICLE_MOD, car, type, installedMod, false);
                         Setup.ApplyAudio(car, rec);
                     })
@@ -587,13 +630,21 @@ namespace MidnightClub.Workshops
         {
             var m = new Menu("Wheels", Title());
             m.OnOpen = () => { focus = "side"; curTab = 4; };
-            m.Add(new MenuItem("Adjust fitment", () => menus.Push(Fitment())) { Value = () => Setup.CanCamber(rec) || Setup.CanSpace(rec) ? "" : "Needs parts",
-                Description = () => "Camber and tyre size (with coilovers), track width (with wheel spacers), per axle. Real: they change the grip, the roll and the load transfer, not only the look." });
-            foreach (var wt in AllWheelTypes())
+            m.Add(new MenuItem("Rims", () =>
             {
-                var type = wt;
-                m.Add(new MenuItem(WheelTypeName(type), () => menus.Push(WheelList(type))) { Value = () => car.Mods.WheelType == type ? "~g~CURRENT" : "" });
-            }
+                var r = new Menu("Rims", Title());
+                r.OnOpen = () => focus = "side";
+                foreach (var wt in AllWheelTypes())
+                {
+                    var type = wt;
+                    r.Add(new MenuItem(WheelTypeName(type), () => menus.Push(WheelList(type))) { Value = () => car.Mods.WheelType == type ? "~g~CURRENT" : "" });
+                }
+                menus.Push(r);
+            }) { Value = () => WheelTypeName(car.Mods.WheelType), Description = () => "Every rim style the car takes, by category (the online ones too). GTA fits one style on all four wheels." });
+            m.Add(new MenuItem("Tyre & rim size", () => menus.Push(TyreSizes())) { Value = () => SizeLabel(true) + (SizeLabel(true) != SizeLabel(false) ? "  ·  " + SizeLabel(false) : ""),
+                Description = () => "Rim diameter, tyre width and profile per axle. Real: the rolling radius, the gearing, the grip and the tyre's stiffness change with it, and so does the look." });
+            m.Add(new MenuItem("Adjust fitment", () => menus.Push(Fitment())) { Value = () => Setup.CanCamber(rec) || Setup.CanSpace(rec) ? "" : "Spacers / coilovers",
+                Description = () => "Camber (with the race coilovers) and wheel spacers (buy them here), per axle. Real: they change the grip, the roll and the load transfer." });
             m.Add(new MenuItem("Tyre compound", () => menus.Push(Compounds())) { Value = () => FitmentManager.CompoundNames[rec.TyreCompound] });
             m.Add(new MenuItem("Lettered sidewalls", () =>
             {
@@ -652,7 +703,7 @@ namespace MidnightClub.Workshops
                 if (!cam && !spc)
                 {
                     m.Add(PartItem("spacers"));
-                    m.Add(new MenuItem("Camber / tyre size: needs coilovers") { Enabled = false, Description = () => "Performance > Suspension & chassis > Suspension: the top level is the race coilovers." });
+                    m.Add(new MenuItem("Camber: needs the race coilovers") { Enabled = false, Description = () => "Performance > Platform & handling > Springs & dampers: the top level is the race coilovers." });
                     return;
                 }
                 if (cam)
@@ -665,18 +716,51 @@ namespace MidnightClub.Workshops
                     m.Add(Adjust("Front spacers", () => rec.TrackF, v => rec.TrackF = v, 0f, 15f, 0.5f, "+0.0 cm;-0.0 cm;0 cm", "front"));
                     m.Add(Adjust("Rear spacers", () => rec.TrackR, v => rec.TrackR = v, 0f, 15f, 0.5f, "+0.0 cm;-0.0 cm;0 cm", "rear"));
                 }
-                if (cam)
-                {
-                    m.Add(Adjust("Front tyre diameter", () => rec.TyreF <= 0 ? 1f : rec.TyreF, v => rec.TyreF = v, 0.85f, 1.2f, 0.01f, "0%", "front", percent: true));
-                    m.Add(Adjust("Rear tyre diameter", () => rec.TyreR <= 0 ? 1f : rec.TyreR, v => rec.TyreR = v, 0.85f, 1.2f, 0.01f, "0%", "rear", percent: true));
-                }
                 if (!spc) m.Add(PartItem("spacers"));
-                if (!cam) m.Add(new MenuItem("Camber / tyre size: needs coilovers") { Enabled = false, Description = () => "Performance > Suspension & chassis > Suspension: the top level is the race coilovers." });
+                if (!cam) m.Add(new MenuItem("Camber: needs the race coilovers") { Enabled = false, Description = () => "Performance > Platform & handling > Springs & dampers: the top level is the race coilovers." });
                 m.Add(new MenuItem("Reset to stock", () =>
                 {
                     rec.CamberF = rec.CamberR = rec.TrackF = rec.TrackR = 0f; rec.TyreF = rec.TyreR = 0f;
                     saves.IsDirty = true; Flash("Fitment reset to stock.");
                 }));
+            };
+            return m;
+        }
+
+        private string SizeLabel(bool front)
+        {
+            var st = TyreSize.Stock(Physics.RealData.For(car), front); if (st == null) return "";
+            float w, p, r; TyreSize.Get(rec, st, front, out w, out p, out r); return TyreSize.Label(w, p, r);
+        }
+        private Menu TyreSizes()
+        {
+            var m = new Menu("Tyre & rim size", Title());
+            m.OnOpen = () =>
+            {
+                m.Items.Clear(); focus = "side";
+                var spec = Physics.RealData.For(car);
+                foreach (bool front in new[] { true, false })
+                {
+                    bool f = front; var st = TyreSize.Stock(spec, f);
+                    if (st == null) { m.Add(new MenuItem("No tyre data for this car") { Enabled = false }); return; }
+                    string ax = f ? "Front" : "Rear";
+                    float w0 = st.widthM * 1000f, p0 = st.aspect * 100f, r0 = st.rimIn;
+                    Func<float> gw = () => { float w, p, r; TyreSize.Get(rec, st, f, out w, out p, out r); return w; };
+                    Func<float> gp = () => { float w, p, r; TyreSize.Get(rec, st, f, out w, out p, out r); return p; };
+                    Func<float> gr = () => { float w, p, r; TyreSize.Get(rec, st, f, out w, out p, out r); return r; };
+                    Func<float, float, float, bool> fits = (w, p, r) => { float rad = r * 0.0127f + w / 1000f * p / 100f; return rad / Math.Max(0.15f, st.radiusM) > 0.88f && rad / Math.Max(0.15f, st.radiusM) < 1.14f; };
+                    Action<float, float, float> set = (w, p, r) =>
+                    {
+                        if (!fits(w, p, r)) { Flash("That size doesn't fit under the arches."); return; }
+                        if (f) { rec.WidthF = w; rec.ProfF = p; rec.RimF = r; } else { rec.WidthR = w; rec.ProfR = p; rec.RimR = r; }
+                        saves.IsDirty = true; focus = f ? "front" : "rear";
+                    };
+                    m.Add(new MenuItem(ax + " rim diameter") { Value = () => gr().ToString("0") + "\"", OnAdjust = d => set(gw(), gp(), Math.Max(13f, Math.Min(24f, gr() + d))), Description = () => "Stock " + r0.ToString("0") + "\". A bigger rim with a lower profile keeps the rolling radius; the tyre gets stiffer and sharper." });
+                    m.Add(new MenuItem(ax + " tyre width") { Value = () => gw().ToString("0") + " mm", OnAdjust = d => set(Math.Max(145f, Math.Min(355f, gw() + d * 10f)), gp(), gr()), Description = () => "Stock " + w0.ToString("0") + " mm. Wider: more grip and a stiffer carcass, more rolling resistance." });
+                    m.Add(new MenuItem(ax + " tyre profile") { Value = () => gp().ToString("0") + "%", OnAdjust = d => set(gw(), Math.Max(20f, Math.Min(80f, gp() + d * 5f)), gr()), Description = () => "Stock " + p0.ToString("0") + "%. Lower: sharper response, harsher ride, smaller rolling radius (shorter gearing)." });
+                }
+                m.Add(new MenuItem("Copy front to rear", () => { rec.WidthR = rec.WidthF; rec.ProfR = rec.ProfF; rec.RimR = rec.RimF; saves.IsDirty = true; Flash("Rear set like the front."); }));
+                m.Add(new MenuItem("Factory sizes", () => { rec.WidthF = rec.WidthR = rec.ProfF = rec.ProfR = rec.RimF = rec.RimR = 0f; saves.IsDirty = true; Flash("Factory tyre sizes."); }));
             };
             return m;
         }
@@ -970,6 +1054,29 @@ namespace MidnightClub.Workshops
             }
             target += userYaw; height = Math.Max(0.25f, height + userPitch);
             orbit = orbit + ((((target - orbit) % 360f) + 540f) % 360f - 180f) * Math.Min(1f, dt * 4f);
+            if (focus.StartsWith("int_"))
+            {   // like the base game's mod shop: the camera snaps to the part (from the steering wheel's real position)
+                int wb = Function.Call<int>(Hash.GET_ENTITY_BONE_INDEX_BY_NAME, car, "steeringwheel");
+                var sw = wb >= 0 ? car.GetPositionOffset(Function.Call<Vector3>(Hash.GET_WORLD_POSITION_OF_ENTITY_BONE, car, wb)) : new Vector3(-0.37f, 0.45f, 0.45f);
+                float sx = sw.X; Vector3 c, t;
+                switch (focus)
+                {
+                    case "int_steer": c = new Vector3(sx + 0.42f, sw.Y - 0.55f, sw.Z + 0.18f); t = sw; break;
+                    case "int_dials": c = new Vector3(sx + 0.12f, sw.Y - 0.45f, sw.Z + 0.22f); t = sw + new Vector3(0f, 0.22f, 0.1f); break;
+                    case "int_plaque": c = new Vector3(sx + 0.05f, sw.Y - 0.5f, sw.Z + 0.25f); t = new Vector3(-sx * 0.9f, sw.Y + 0.02f, sw.Z - 0.02f); break;
+                    case "int_shifter": c = new Vector3(sx + 0.25f, sw.Y - 0.75f, sw.Z + 0.3f); t = new Vector3(0f, sw.Y - 0.3f, sw.Z - 0.3f); break;
+                    case "int_seats": c = new Vector3(-sx * 0.8f, sw.Y + 0.25f, sw.Z + 0.35f); t = new Vector3(sx, sw.Y - 0.75f, sw.Z - 0.05f); break;
+                    case "int_door": c = new Vector3(-sx * 0.5f, sw.Y - 0.55f, sw.Z + 0.2f); t = new Vector3(sx - 0.3f, sw.Y - 0.45f, sw.Z - 0.35f); break;
+                    default: c = new Vector3(-sx * 0.6f, sw.Y - 0.7f, sw.Z + 0.3f); t = new Vector3(0f, sw.Y + 0.2f, sw.Z + 0.05f); break;   // dashboard, ornaments
+                }
+                c += new Vector3((float)Math.Sin(userYaw * Math.PI / 180.0) * 0.15f, 0f, userPitch * 0.1f);
+                var cw = car.GetOffsetPosition(c);
+                cam.Position = Vector3.Lerp(cam.Position, cw, Math.Min(1f, dt * 5f));
+                cam.PointAt(car.GetOffsetPosition(t));
+                Function.Call(Hash.SET_ENTITY_LOCALLY_INVISIBLE, Game.Player.Character);
+                UI.Studio.Light(car, cw);
+                return;
+            }
             if (focus == "interior")
             {
                 var ip = car.GetOffsetPosition(new Vector3(0.55f, -0.75f, 0.62f));
@@ -1076,7 +1183,7 @@ namespace MidnightClub.Workshops
                 string d = cur.Description != null ? Clean(cur.Description()) : null;
                 if (m.IsShopList || !string.IsNullOrEmpty(d))
                 {
-                    int lines = string.IsNullOrEmpty(d) ? 0 : 1 + (int)(UI.Ds.Width(d, 0.28f) / (lw - UI.Ds.Px(UI.Th.Px(40f))));
+                    int lines = string.IsNullOrEmpty(d) ? 0 : UI.Ds.WrapLines(d, 0.28f, lw - UI.Ds.Px(UI.Th.Px(40f)), Font.ChaletLondon);
                     float bh = (m.IsShopList ? UI.Th.Px(84f) : UI.Th.Px(20f)) + lines * UI.Th.Px(28f) + UI.Th.Px(10f);
                     bh = Math.Min(bh, 0.955f - UI.Th.Px(80f) - y);
                     if (bh > UI.Th.Px(40f))
@@ -1104,7 +1211,7 @@ namespace MidnightClub.Workshops
             if (Game.GameTime < shopCardUntil)
             {
                 float a = UI.Ds.Clamp01((shopCardUntil - Game.GameTime) / 500f), cw = 0.25f, cx = 0.96f - cw, cy0 = 0.045f + chh + UI.Th.Px(12f);
-                int lines = 1 + (int)(UI.Ds.Width(w.Description ?? "", 0.28f) / (cw - UI.Ds.Px(UI.Th.Px(40f))));
+                int lines = UI.Ds.WrapLines(w.Description ?? "", 0.28f, cw - UI.Ds.Px(UI.Th.Px(40f)), Font.ChaletLondon);
                 float bh = UI.Th.Px(66f) + lines * UI.Th.Px(28f);
                 UI.Kit.Glass(cx, cy0, cw, bh, UI.Th.R_Lg, a);
                 UI.Ds.TM(w.Name.ToUpperInvariant(), cx + UI.Ds.Px(UI.Th.Px(20f)), cy0 + UI.Th.Px(28f), 0.5f, UI.Ds.A(UI.Th.Text, a), Cond);

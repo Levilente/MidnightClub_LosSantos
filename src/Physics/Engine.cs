@@ -8,6 +8,7 @@ namespace MidnightClub.Physics
     /// (spool rpm, lag), supercharger drive loss, and the live boost state.</summary>
     public sealed class EngineState
     {
+        public float InertiaMult = 1f;   // lighter flywheel
         public const int N = 48;
         public float[] Full = new float[N], NoBoost = new float[N];
         public float Redline, Idle, MaxRpm, PeakHp, PeakHpRpm, PeakNm, PeakNmRpm;
@@ -141,15 +142,24 @@ namespace MidnightClub.Physics
             if (Setup.Has(r, "pipe")) tau *= 0.95f;
             e.SpoolTau = tau;
             e.ScLoss = ind == Induction.Supercharged ? 0.03f + 0.02f * Math.Max(ss, 1) : 0f;
+            // engine parts (street / sport / race): each shapes the curve where that part really works
+            int lIn = Setup.Level(r, "intake"), lFu = Setup.Level(r, "fuel"), lIg = Setup.Level(r, "ign"), lEx = Setup.Has(r, "pipe") ? 3 : Setup.Level(r, "exh"),
+                lCa = Setup.Level(r, "cam"), lVa = Setup.Level(r, "valves"), lDi = Setup.Level(r, "disp"), lPi = Setup.Level(r, "pistons"),
+                lIc = boosted ? Setup.Level(r, "ic") : 0, lOi = Setup.Level(r, "oil");
+            float pLow = 1f + 0.01f * lIn + 0.015f * lFu + 0.01f * lIg + 0.01f * lEx - 0.015f * lCa + 0.04f * lDi + 0.025f * lPi + 0.025f * lIc;
+            float pHigh = 1f + 0.025f * lIn + 0.015f * lFu + 0.01f * lIg + 0.02f * lEx + 0.04f * lCa + 0.02f * lVa + 0.035f * lDi + 0.025f * lPi + 0.025f * lIc + 0.01f * lOi;
+            if (Setup.Has(r, "pipe")) tuneMult /= 1.02f;                       // the race exhaust is counted in the parts now
+            e.InertiaMult = 1f - 0.15f * Setup.Level(r, "fly");
             for (int i = 0; i < EngineState.N; i++)
             {
                 float full;
+                float wHi = Ramp(rpm[i], nmRpm, s.HpRpm), part = pLow + (pHigh - pLow) * wHi;
                 if (keepFactory) full = fac[i];
                 else if (ind == Induction.Turbo) full = na[i] * (1f + 0.85f * bar * Ramp(rpm[i], spoolLo, spoolHi));
                 else if (ind == Induction.Supercharged) full = na[i] * (1f + 0.75f * bar * Ramp(rpm[i], spoolLo, spoolHi));
                 else full = na[i];
-                e.Full[i] = full * tuneMult;
-                e.NoBoost[i] = (ind == Induction.Turbo ? na[i] : full) * tuneMult;
+                e.Full[i] = full * tuneMult * part;
+                e.NoBoost[i] = (ind == Induction.Turbo ? na[i] : full) * tuneMult * part;
             }
             // peaks
             for (int i = 0; i < EngineState.N; i++)
@@ -202,11 +212,13 @@ namespace MidnightClub.Physics
         {
             var g = new Gearing { Gears = Math.Max(1, gears), TyreR = s.TyreR, RaceBox = Setup.Has(r, "gearbox") };
             g.Efficiency = s.Bike ? 0.92f : s.FrontDrive >= 0.95f ? 0.90f : s.FrontDrive > 0.05f ? 0.83f : 0.88f;
+            float dl = 0.012f * Setup.Level(r, "driveline");                    // lighter driveline: less loss
             g.Ratios = new float[g.Gears];
             var sb = s.Sheet != null && s.Sheet.drivetrain != null ? s.Sheet.drivetrain.gearbox : null;
             if (sb != null && sb.ratios != null && sb.ratios.Length > 0 && !(g.RaceBox && g.Gears == 6))
             {   // the real gearbox: its own ratios and final drive (spread over GTA's gear count if that differs)
                 g.Efficiency = s.Sheet.drivetrain.efficiency > 0.5f ? s.Sheet.drivetrain.efficiency : g.Efficiency;
+                g.Efficiency = Math.Min(0.95f, g.Efficiency + dl);
                 int n = sb.ratios.Length;
                 for (int i = 0; i < g.Gears; i++) g.Ratios[i] = g.Gears == n ? sb.ratios[i] : sb.ratios[g.Gears == 1 ? 0 : (int)Math.Round(i * (n - 1) / (float)(g.Gears - 1))];
                 g.Final = sb.finalDrive > 0.5f ? sb.finalDrive : 3.5f;

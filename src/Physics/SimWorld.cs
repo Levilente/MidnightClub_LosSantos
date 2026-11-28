@@ -287,8 +287,8 @@ namespace MidnightClub.Physics
             if (paramCache.TryGetValue(key, out p) && !player) return p;
             p = new float[VP];
             p[0] = 1f; p[1] = t.MuY; p[2] = t.MuX; p[3] = t.LoadSens; p[4] = t.By; p[5] = t.Cy; p[6] = t.Ey; p[7] = t.Bx; p[8] = t.Cx; p[9] = t.Ex;
-            p[10] = wet; p[11] = t.Rolling; p[12] = s.Idle; p[13] = s.Redline; p[14] = L.Engine.PeakNm; p[15] = L.Engine.MaxRpm;
-            p[16] = s.Ind == Induction.Electric ? 0.06f : 0.07f + 0.03f * Math.Max(1f, s.Litres > 0f ? s.Litres : 3f);
+            p[10] = wet; p[11] = t.Rolling; p[12] = s.Idle; p[13] = L.Engine.Redline; p[14] = L.Engine.PeakNm; p[15] = L.Engine.MaxRpm;
+            p[16] = (s.Ind == Induction.Electric ? 0.06f : 0.07f + 0.03f * Math.Max(1f, s.Litres > 0f ? s.Litres : 3f)) * (player ? L.Engine.InertiaMult : 1f);
             p[17] = L.Gear.Efficiency; p[18] = Math.Min(s.Redline * 0.55f, Math.Max(s.Idle * 1.8f, L.Engine.PeakNmRpm * 0.7f)); p[19] = L.Engine.SpoolTau;
             p[20] = L.Engine.Ind == Induction.Turbo ? 1f : 0f; p[21] = L.Engine.Als ? 1f : 0f; p[22] = L.Gear.TyreR;
             string kind = s.Kind ?? "";
@@ -435,6 +435,7 @@ namespace MidnightClub.Physics
             p[213] = bt; if (player) PlayerBox = bt;
             float shMs = sh != null && sh.drivetrain != null && sh.drivetrain.gearbox != null && sh.drivetrain.gearbox.shiftMs > 0 ? sh.drivetrain.gearbox.shiftMs : bt == 3 ? 120 : bt == 4 ? 70 : bt == 5 ? 180 : bt == 1 ? 350 : 280;
             if (player && Vehicles.Setup.Has(rec, "gearbox")) shMs *= 0.6f;                          // race gearbox: quicker shifts
+            if (player) shMs *= 1f - 0.2f * Vehicles.Setup.Level(rec, "clutch");   // sport / race clutch
             p[214] = shMs / 1000f; p[215] = 2.0f; p[216] = 0f; p[217] = L.Engine.PeakHpRpm;
             if (bt == 6) { p[218] = L.Gear.Final * 2.4f; p[219] = L.Gear.Final * 0.45f; }
             p[220] = 1f; p[229] = player ? Draft : 0f;

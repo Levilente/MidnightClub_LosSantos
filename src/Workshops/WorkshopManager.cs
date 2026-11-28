@@ -123,7 +123,7 @@ namespace MidnightClub.Workshops
                 else if (d > 140f) CloseGates(w);
                 if (d > 90f) continue;
                 if (!Explore.Discovery.Known("ws:" + w.Id)) continue;
-                if (d < 9f) nearby = w;
+                if (d < 14f) nearby = w;
             }
             var car = vehicles.Current;
             var ped = Game.Player.Character;
@@ -137,7 +137,7 @@ namespace MidnightClub.Workshops
             var toBay = nearby.Position - car.Position; toBay.Z = 0;
             float dist = toBay.Length();
             bool heading = Vector3.Dot(car.Velocity, toBay) > 0.5f || Vector3.Dot(car.ForwardVector, toBay) > 0.3f * dist;
-            if (dist < 4.5f || (dist < 8.5f && heading && car.Speed > 0.5f)) Enter(nearby);
+            if (dist < 6f || (dist < 13f && heading && car.Speed > 0.5f && Vector3.Dot(car.Velocity, toBay) > 0.4f * car.Speed * dist)) Enter(nearby);   // take over at the door, not inside
         }
         private WorkshopDefinition cooldownShop;
 
@@ -154,7 +154,7 @@ namespace MidnightClub.Workshops
                 var ent = Entrance(w); var outDir = ent - w.Position; outDir.Z = 0; if (outDir.Length() < 1f) outDir = -car.ForwardVector; outDir.Normalize();
                 var side = new Vector3(-outDir.Y, outDir.X, 0f);
                 // drive-in shot: from inside the bay, looking back at the door
-                cine = Camera.Create(ScriptedCameraNameHash.DefaultScriptedCamera, w.Position - outDir * 3.2f + side * 2.2f + new Vector3(0, 0, 1.5f), Vector3.Zero, 52f, true, EulerRotationOrder.YXZ);
+                cine = Camera.Create(ScriptedCameraNameHash.DefaultScriptedCamera, ClearCam(w.Position + new Vector3(0, 0, 1.5f), new[] { -outDir * 3.2f + side * 2.2f, -outDir * 3.2f - side * 2.2f, -outDir * 2f, side * 1.5f }, car), Vector3.Zero, 52f, true, EulerRotationOrder.YXZ);
                 cine.PointAt(car);
                 Function.Call(Hash.RENDER_SCRIPT_CAMS, true, true, 700, true, false, 0);
                 Function.Call(Hash.PLAY_SOUND_FRONTEND, -1, "Garage_Door_Open", "GTAO_Script_Doors_Faded_Screen_Sounds", true);
@@ -179,15 +179,18 @@ namespace MidnightClub.Workshops
                 car = vehicles.Current;
                 if (car != null && car.Exists())
                 {
-                    var exitDir = outside - car.Position; exitDir.Z = 0;
+                    // out through the door: the door point first, then straight on to the street
+                    var door = Entrance(w);
+                    var exitDir = door - car.Position; exitDir.Z = 0;
+                    if (exitDir.Length() < 2f) { exitDir = outside - car.Position; exitDir.Z = 0; }
                     if (exitDir.Length() < 2f) exitDir = -car.ForwardVector;
                     exitDir.Normalize();
-                    var goal = outside + exitDir * 5f;
+                    var goal = (door.DistanceTo(car.Position) > 3f ? door : outside) + exitDir * 6f;
                     GTA.UI.Screen.FadeOut(200); Script.Wait(220);
                     car.Heading = (float)(Math.Atan2(-exitDir.X, exitDir.Y) * 180.0 / Math.PI);
                     car.Velocity = Vector3.Zero; car.PlaceOnGround();
                     var side2 = new Vector3(-exitDir.Y, exitDir.X, 0f);
-                    cine = Camera.Create(ScriptedCameraNameHash.DefaultScriptedCamera, outside + exitDir * 7f + side2 * 4.5f + new Vector3(0, 0, 1.6f), Vector3.Zero, 50f, true, EulerRotationOrder.YXZ);
+                    cine = Camera.Create(ScriptedCameraNameHash.DefaultScriptedCamera, ClearCam(goal + new Vector3(0, 0, 1.6f), new[] { exitDir * 3f + side2 * 4.5f, exitDir * 3f - side2 * 4.5f, exitDir * 6f, side2 * 3f }, car), Vector3.Zero, 50f, true, EulerRotationOrder.YXZ);
                     cine.PointAt(car);
                     Function.Call(Hash.RENDER_SCRIPT_CAMS, true, false, 0, true, false, 0);
                     GTA.UI.Screen.FadeIn(300);
@@ -222,6 +225,22 @@ namespace MidnightClub.Workshops
                 Cameras.CameraSystem.Suspended = false;
                 IsBusy = false; cooldownShop = w;
             }
+        }
+
+        /// <summary>A camera spot near a base point that is not inside a wall: the first candidate the base point can see
+        /// (pulled in short of anything in the way), else the base point itself.</summary>
+        private static Vector3 ClearCam(Vector3 basePt, Vector3[] offsets, Entity ignore)
+        {
+            Vector3 best = basePt; float bestLen = -1f;
+            foreach (var o in offsets)
+            {
+                var want = basePt + o;
+                var hit = World.Raycast(basePt, want, IntersectFlags.Map | IntersectFlags.Objects, ignore);
+                float len = hit.DidHit ? Math.Max(0f, hit.HitPosition.DistanceTo(basePt) - 0.5f) : o.Length();
+                if (!hit.DidHit) return want;
+                if (len > bestLen) { bestLen = len; var d = o; d.Normalize(); best = basePt + d * len; }
+            }
+            return best;
         }
 
         /// <summary>Lets the game drive the player's car to a point (shop entry / exit), controls locked, with a timeout.</summary>

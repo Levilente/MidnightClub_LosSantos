@@ -223,6 +223,19 @@ namespace MidnightClub.UI
         public static void TM(string s, float x, float cy, float scale, Color c, Font f = Body, Alignment a = Alignment.Left)
         { T(s, x, cy - MidOffset(scale, f), scale, c, f, a); }
 
+        /// <summary>How many lines GTA's word wrap makes of a text in a box this wide (whole words move down, with a margin).</summary>
+        public static int WrapLines(string s, float scale, float maxW, Font f = Body)
+        {
+            if (string.IsNullOrEmpty(s) || maxW <= 0f) return 0;
+            int lines = 1; float cur = 0f, sp = Width(" ", scale, f); float lim = maxW * 0.97f;
+            foreach (var word in s.Split(' '))
+            {
+                float w = Width(word, scale, f);
+                if (cur > 0f && cur + sp + w > lim) { lines++; cur = w; }
+                else cur += (cur > 0f ? sp : 0f) + w;
+            }
+            return lines;
+        }
         public static float Width(string s, float scale, Font f = Body)
         {
             Function.Call(Hash.BEGIN_TEXT_COMMAND_GET_SCREEN_WIDTH_OF_DISPLAY_TEXT, "STRING");
