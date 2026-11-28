@@ -148,7 +148,7 @@ namespace MidnightClub.Physics
             }
             if (spec.Curated && !bike) HandlingMem.SetBias(h, HandlingMem.DriveBias, spec.FrontDrive >= 0.95f ? 1f : spec.FrontDrive, s.Raw);
             h.InitialDriveGears = Math.Max(1, car.HighGear);
-            h.InitialDragCoefficient = cfg.NativePhysics ? 0f : s.Drag * 0.03f;   // the real aero (drag, lift / downforce, slipstream) is simulated instead
+            h.InitialDragCoefficient = s.Drag * (cfg.NativePhysics ? 0.02f : 0.03f);   // never 0: GTA divides by it   // the real aero (drag, lift / downforce, slipstream) is simulated instead
             if (cfg.NativePhysics) HandlingMem.ZeroGtaAero(h);
             h.InitialDriveForce = s.DriveF;
             // tyres: Pacejka set of the fitted compound

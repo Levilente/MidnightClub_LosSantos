@@ -142,7 +142,11 @@ namespace MidnightClub.UI
             inst = this;
             if (Core.Config.Current != null && Core.Config.Current.SpeedEffects) SpeedLines(v);
             speedShown = Ds.Damp(speedShown, v.Speed * 3.6f, 14f);
-            rpmShown = Ds.Damp(rpmShown, Math.Max(0f, Math.Min(1f, v.CurrentRPM)), 18f);
+            float rpmT = v.CurrentRPM;
+            var dl = Vehicles.Drivetrain.Current;
+            if (Physics.Native.DriveActive && dl != null && dl.Spec != null && dl.Spec.Redline > dl.Spec.Idle + 500f)   // the simulated engine, not GTA's
+                rpmT = 0.2f + 0.8f * (Vehicles.Drivetrain.EngineRpm - dl.Spec.Idle) / (dl.Spec.Redline - dl.Spec.Idle);
+            rpmShown = Ds.Damp(rpmShown, Math.Max(0f, Math.Min(1f, rpmT)), 18f);
             int kmh = (int)Math.Round(speedShown);
             bool turbo = Vehicles.Drivetrain.Current != null ? Vehicles.Drivetrain.HasBoost : r != null && r.Toggles != null && r.Toggles.Contains(18);
             bool nos = r != null && r.NosLevel > 0;
@@ -207,16 +211,16 @@ namespace MidnightClub.UI
             var sim = Physics.SimPhysics.Instance;
             if (sim != null && dts != null)
             {
-                float ax = 26f;
+                float ax = 4f;
                 foreach (var a in new[] { new KeyValuePair<string, bool>("TCS", sim.TcsActive), new KeyValuePair<string, bool>("ABS", sim.AbsActive), new KeyValuePair<string, bool>("ESC", sim.EscActive) })
                 {
-                    Ds.T(a.Key, SX(ax), SY(24f), 0.2f, a.Value ? Ds.Amber : Color.FromArgb(60, 255, 255, 255), Ds.Display);
-                    ax += 19f;
+                    Ds.T(a.Key, SX(ax), SY(39f), 0.17f, a.Value ? Ds.Amber : Color.FromArgb(60, 255, 255, 255), Ds.Display);
+                    ax += 17f;
                 }
                 // tyre temperatures (front left, front right, rear left, rear right): blue cold, green in the window, amber / red hot
                 if (Physics.SimWorld.PlayerActive && Physics.SimWorld.TyreTemp[0] > 1f)
                 {
-                    float opt = Physics.SimWorld.OptTemp, bx = SX(6f), by = SY(22f), bw = Ds.Px(7f * su), bh = 10f * su, gx = Ds.Px(2f * su), gy = 2f * su;
+                    float opt = Physics.SimWorld.OptTemp, bx = SX(6f), by = SY(14f), bw = Ds.Px(7f * su), bh = 10f * su, gx = Ds.Px(2f * su), gy = 2f * su;
                     for (int i = 0; i < 4; i++)
                     {
                         float tc = Physics.SimWorld.TyreTemp[i], d = tc - opt;

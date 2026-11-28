@@ -16,6 +16,30 @@ namespace MidnightClub.Physics
     public static class SimWorld
     {
         [DllImport("MidnightClubPhysics.asi", CallingConvention = CallingConvention.Cdecl)] private static extern int MCP_DriveAvailable();
+        [DllImport("MidnightClubPhysics.asi", CallingConvention = CallingConvention.Cdecl)] private static extern void MCP_SetRpmOffset(int off);
+        private static int rpmOffState;   // 0 not searched, 1 found, -1 not found
+        /// <summary>Finds where GTA keeps the engine rpm in the vehicle (write a marker through the script API, look for it)
+        /// so the native engine can drive GTA's rpm: sound and rev needle follow the simulated engine.</summary>
+        private static void FindRpmOffset(Vehicle car)
+        {
+            if (rpmOffState != 0) return;
+            try
+            {
+                long a = car.MemoryAddress.ToInt64(); float old = car.CurrentRPM; int found = 0;
+                foreach (float mark in new[] { 0.31415f, 0.77731f })
+                {
+                    car.CurrentRPM = mark; int hit = 0;
+                    for (int o = 0x600; o < 0xB00; o += 4)
+                        if (BitConverter.ToSingle(BitConverter.GetBytes(Marshal.ReadInt32(new IntPtr(a + o))), 0) == mark) { hit = o; break; }
+                    if (hit == 0 || (found != 0 && hit != found)) { found = -1; break; }
+                    found = hit;
+                }
+                car.CurrentRPM = old;
+                if (found > 0) { MCP_SetRpmOffset(found); rpmOffState = 1; Core.Log.Info("Engine rpm offset 0x" + found.ToString("X")); }
+                else { rpmOffState = -1; Core.Log.Info("Engine rpm offset not found"); }
+            }
+            catch (Exception e) { rpmOffState = -1; Core.Log.Info("Engine rpm offset: " + e.Message); }
+        }
         [DllImport("MidnightClubPhysics.asi", CallingConvention = CallingConvention.Cdecl)] private static extern int MCP_VehSet(long veh, float[] p, int n);
         [DllImport("MidnightClubPhysics.asi", CallingConvention = CallingConvention.Cdecl)] private static extern void MCP_VehDrop(long veh);
         [DllImport("MidnightClubPhysics.asi", CallingConvention = CallingConvention.Cdecl)] private static extern void MCP_VehDropAll();
@@ -140,6 +164,7 @@ namespace MidnightClub.Physics
                     if (Game.GameTime >= nextDraft) { nextDraft = Game.GameTime + 100; Draft = DraftOf(playerCar); }
                     var p = Build(playerCar, playerLive, rec, cfg, true, false);
                     PlayerActive = p != null && MCP_VehSet(playerAddr, p, p.Length) != 0;
+                    if (PlayerActive) FindRpmOffset(playerCar);
                     if (PlayerActive && MCP_VehState(playerAddr, st, st.Length) > 0)
                     {
                         Rpm = st[0]; TcsOn = st[1] > 0.5f; AbsOn = st[2] > 0.5f; EscOn = st[3] > 0.5f; Boost = st[4];
@@ -228,7 +253,7 @@ namespace MidnightClub.Physics
             var ms = new ModelStock { Hash = hash, Raw = HandlingMem.Snapshot(h) };
             models[hash] = ms;
             if (L.Spec.Curated) h.Mass = L.Mass;
-            h.InitialDragCoefficient = 0f; HandlingMem.ZeroGtaAero(h);   // the native simulation does the aero
+            h.InitialDragCoefficient = h.InitialDragCoefficient * 0.02f; HandlingMem.ZeroGtaAero(h);   // the native simulation does the aero (never 0: GTA divides by it)
             // GTA's AI plans its corner and braking speeds from the handling grip: give it the real tyre's
             h.TractionCurveMax = SimPhysics.GripK * L.Tyre.MuY;
             h.TractionCurveMin = h.TractionCurveMax * (0.5f + 0.5f * L.Tyre.SlideY);

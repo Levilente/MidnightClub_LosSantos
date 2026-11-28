@@ -207,6 +207,7 @@ __declspec(dllexport) int MCP_Install(void)
 __declspec(dllexport) const char *MCP_Status(void) { return status; }
 __declspec(dllexport) void MCP_SetModel(const float *p, int n) { if (n > (int)(sizeof(Model) / 4)) n = sizeof(Model) / 4; memcpy((void *)&model, p, (size_t)n * 4); }
 __declspec(dllexport) int MCP_DriveAvailable(void) { return stepHooked; }
+__declspec(dllexport) void MCP_SetRpmOffset(int off) { rpmOff = off; }
 /* register / update a vehicle (CVehicle address) with its parameters (VParams layout, see sim_core.h) */
 __declspec(dllexport) int MCP_VehSet(u64 veh, const float *p, int n)
 {

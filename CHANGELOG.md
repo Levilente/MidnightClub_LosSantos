@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.64.2
+- Crash fix: GTA's drag / downforce are scaled to 2 % instead of 0 (GTA divides by the drag; a truck spawning with 0 crashed the game).
+- GTA's engine rpm now follows the simulated engine (offset found at runtime): engine sound, rev band and exhaust rev in neutral and no longer "drive" when the car is held on the brake in D.
+- Rev band uses the simulated rpm; TCS/ABS/ESC lights smaller and under the tyre block, clear of the rev band.
+
+
 ## 0.64.1
 - Speedometer cleanup: gear letter and number set tight and kept clear of the speed digits (no more overlapping numbers); the gear is white and turns to the shift-light pink only near the limiter; TCS/ABS/ESC lights and tyre temperatures moved to the free top-left corner; the boost gauge stays left of the number and spans the car's own boost range.
 

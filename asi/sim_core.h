@@ -80,6 +80,7 @@ typedef struct
 static volatile int axisMode; static volatile LONG axA, axB;   /* which GTA tyre axis is the heading (1 = first, 2 = second), learned near straight ahead */
 
 static Veh vehs[MAXV];
+static volatile int rpmOff;        /* CVehicle offset of GTA's engine rpm (0.2 idle .. 1.0 limiter), found by the script */
 /* diagnostics recorder (one vehicle, one record per physics step) */
 typedef struct { float t, dt, mass, speed, yaw, vxB, thr, brk, steer, gear; float w[4][14]; uint32_t trans[32]; float rpm, clutchOwn, pad[2]; } SRec;   /* trans: raw CVehicle+0x870..0x8EF (GTA's gearbox fields) */
 #define SREC_CAP 8000
@@ -859,6 +860,12 @@ static void vehStep(Veh *v, u64 *wp, int nw, float dt)
         *(float *)(wp[i] + 0x170) = -v->ws[i].w;
     }
     if (!(v->engW > 0 && v->engW < 2000)) v->engW = p->idle / RPM_W;
+    if (rpmOff > 0x400 && rpmOff < 0xC00 && p->ownBox > 0.5f && p->bike < 0.5f)
+    {   /* GTA's own rpm follows ours: engine sound, the rev needle of every HUD, the exhaust */
+        float idl = p->idle > 300 ? p->idle : 800, red = p->redline > idl + 500 ? p->redline : idl + 5000;
+        float fr = 0.2f + 0.8f * (v->engW * RPM_W - idl) / (red - idl); if (fr < 0.2f) fr = 0.2f; if (fr > 1.0f) fr = 1.0f;
+        *(float *)(veh + rpmOff) = fr;
+    }
     v->tcsAct = tcsAct; v->absAct = absAct;
     if (p->record > 0.5f)
     {

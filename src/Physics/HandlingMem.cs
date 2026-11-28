@@ -21,8 +21,7 @@ namespace MidnightClub.Physics
         public static void ZeroGtaAero(HandlingData h)
         {
             if (h == null || !h.IsValid) return;
-            W(h, Drag, 0f);
-            float d = R(h, Downforce); if (d > 0.05f && d < 50f) W(h, Downforce, 0f);   // only where it looks like the modifier
+            float d = R(h, Downforce); if (d > 0.05f && d < 50f) W(h, Downforce, d * 0.02f);   // never exactly 0   // only where it looks like the modifier
         }
         public static string AeroInfo(byte[] snap) { return snap == null ? "?" : "drag " + S(snap, Drag).ToString("0.#####") + ", downforce mod " + S(snap, Downforce).ToString("0.###"); }
 
