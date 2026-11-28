@@ -1,4 +1,8 @@
 # Changelog
+## 0.42.4 (2026-11-28)
+- Fix: cars floated and slid on the new suspension. The suspension values were written as absolute numbers, but GTA exposes them in its own internal form; they are now scaled from each car's own values by the real ratios (frequency squared for springs, frequency x damping for dampers, roll stiffness, travel).
+- Fix: the session starts in the active car's garage (the garage list wasn't loaded yet at spawn time).
+
 ## 0.42.2 (2026-11-28)
 - Every session starts inside the garage your active car lives in (else the last garage you used, else any garage you own). The old "start in last garage" switch is gone.
 

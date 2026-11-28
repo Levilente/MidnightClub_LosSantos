@@ -35,30 +35,25 @@ namespace MidnightClub.Physics
             return f + 0.15f * level + (coilovers ? 0.25f : 0f);
         }
 
+        /// <summary>Applied relative to the car's own GTA values (whose units SHVDN exposes in GTA's internal form): the
+        /// stock car is taken as the type's base frequency, and the real ratios (frequency squared for springs,
+        /// frequency x damping ratio for dampers, roll stiffness, travel) scale it from there.</summary>
         public static void Apply(HandlingData h, CarSpec s, int level, bool coilovers, bool raceBars)
         {
             if (s.Bike) return;   // bikes keep GTA's own (their suspension model is separate)
-            float f = RideHz(s, level, coilovers);
-            float zc = coilovers ? 0.36f : 0.28f, zr = coilovers ? 0.62f : 0.48f;
-            h.SuspensionForce = 0.95f * f * f;
-            h.SuspensionCompressionDamping = 3.2f * zc * f;
-            h.SuspensionReboundDamping = 3.2f * zr * f;
-            float up, low, arb;
-            switch (s.Kind ?? "")
-            {
-                case "Super": up = 0.08f; low = -0.09f; arb = 0.9f; break;
-                case "Sports": up = 0.10f; low = -0.11f; arb = 0.75f; break;
-                case "SUVs": case "Vans": up = 0.16f; low = -0.18f; arb = 0.6f; break;
-                case "OffRoad": up = 0.22f; low = -0.25f; arb = 0.3f; break;
-                case "Muscle": case "Sedans": up = 0.12f; low = -0.14f; arb = 0.45f; break;
-                default: up = 0.12f; low = -0.13f; arb = 0.55f; break;
-            }
-            float tr = 1f - 0.08f * level - (coilovers ? 0.06f : 0f);
-            h.SuspensionUpperLimit = up * tr; h.SuspensionLowerLimit = low * tr;
-            h.AntiRollBarForce = arb * (1f + 0.10f * level) * (raceBars ? 1.15f : 1f);
-            h.AntiRollBarBiasFront = s.FrontDrive >= 0.95f ? 0.62f : s.Layout == "RR" ? 0.47f : s.Layout == "MR" || s.Layout == "AWD-M" ? 0.52f : 0.57f;
-            h.SuspensionBiasFront = 0.5f + (s.FrontPct - 0.5f) * 0.6f;         // springs follow the axle loads
-            h.TractionSpringDeltaMax = 0.10f + 0.4f * (up - low) * 0.5f;
+            float fBase = RideHz(s, 0, false), f = RideHz(s, level, coilovers);
+            float era = s.Year < 1975 ? 0.85f : s.Year < 1990 ? 0.93f : 1f;
+            float k = f / (fBase / era);                            // vs. GTA's (era-less) stock car
+            float zc = coilovers ? 1.25f : 1f, zr = coilovers ? 1.3f : 1f;
+            h.SuspensionForce *= k * k;
+            h.SuspensionCompressionDamping *= k * zc;
+            h.SuspensionReboundDamping *= k * zr;
+            float tr = (1f - 0.08f * level - (coilovers ? 0.06f : 0f)) / era;
+            h.SuspensionUpperLimit *= tr; h.SuspensionLowerLimit *= tr;
+            h.AntiRollBarForce *= era * (1f + 0.10f * level) * (raceBars ? 1.15f : 1f);
+            float arbBias = s.FrontDrive >= 0.95f ? 0.62f : s.Layout == "RR" ? 0.47f : s.Layout == "MR" || s.Layout == "AWD-M" ? 0.52f : 0.57f;
+            h.AntiRollBarBiasFront = h.AntiRollBarBiasFront * 0.5f + arbBias * 0.5f;
+            Core.Log.Info("Suspension " + s.Id + ": " + f.ToString("0.00") + " Hz (x" + (k * k).ToString("0.00") + " springs), travel x" + tr.ToString("0.00"));
         }
 
         // ---- kerb-snap filter (per frame, on the ground)

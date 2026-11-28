@@ -33,7 +33,7 @@ namespace MidnightClub.Core
 
     public static class Version
     {
-        public const string Text = "0.42.3";
+        public const string Text = "0.42.4";
         public const int SaveFormat = 1;
     }
 }
