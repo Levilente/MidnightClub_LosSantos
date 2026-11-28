@@ -179,7 +179,7 @@ static int vehTyre(Veh *v, int i, u64 wheel, u64 inst, float *out, float *lin, f
     float kappa = (s->w * R - vx) / den, ta = vy / den;
     if (s->front) ta -= sgn * v->p.toeF;                                 /* toe: a static slip angle per wheel */
     ta -= 0.1f * s->gam * sgn;                                           /* camber thrust: a leaning tyre pushes towards its lean */
-    float bl = (fabsf(vx) + 1.0f) * (v->dt > 0.001f ? v->dt : 0.011f) / (v->p.relax > 0.05f ? v->p.relax : 0.45f); if (bl > 1) bl = 1;
+    float bl = (fabsf(vx) + 3.0f) * (v->dt > 0.001f ? v->dt : 0.011f) / (v->p.relax > 0.05f ? v->p.relax : 0.45f); if (bl > 1) bl = 1;
     float taE = s->taL + bl * (ta - s->taL);                             /* relaxation length: side force builds up over the first ~0.5 m */
     /* ground: GTA's own surface value (1 = road, lower = grass / dirt / sand), scaled by how much this tyre minds loose ground */
     float sf0 = rf(wheel, 0x1A4); if (!(sf0 >= 0 && sf0 <= 1.5f)) sf0 = 1; if (sf0 > 1) sf0 = 1;
@@ -252,15 +252,21 @@ static float susForce(const Veh *v, u64 wheel, int i, float sS, float vS, float 
     int ax = rf(wheel, 0x140) < 0 ? 1 : 0;
     float mc = susMc(v, wheel), f = ax ? v->p.fR : v->p.fF, w = 6.2831853f * f;
     float k = mc * w * w, cc = 2.0f * sqrtf(k * mc), kt = v->p.kt > 1000 ? v->p.kt : 220000.0f;
-    float x0 = v->x0[ax] > 0.01f ? v->x0[ax] : 0.1f, s0 = x0 - mc * 9.81f / kt; if (s0 < 0.01f) s0 = 0.01f;
+    /* GTA's travel (CWheel+0x130): at the end of it GTA makes a rigid body contact, which is what bounced the car.
+       The static position sits at 30-50 % of that travel (GTA's own ride height when it allows), and our bump stop
+       takes the rest progressively so the body never reaches GTA's hard limit. */
+    float T = rf(wheel, 0x130); if (!(T > 0.05f && T < 0.8f)) T = 0.25f;
+    float d0 = mc * 9.81f / kt, x0 = v->x0[ax] > 0.01f ? v->x0[ax] : 0.4f * T, s0 = x0 - d0;
+    if (s0 < 0.3f * T) s0 = 0.3f * T; if (s0 > 0.5f * T) s0 = 0.5f * T;
     float pre = mc * 9.81f - k * s0;
     float fs = pre + k * sS, fd, kn = v->p.knee > 0.01f ? v->p.knee : 0.1f;
     if (vS >= 0) fd = vS < kn ? cc * v->p.zbl * vS : cc * (v->p.zbl * kn + v->p.zbh * (vS - kn));
     else { float u = -vS; fd = -(u < kn ? cc * v->p.zrl * u : cc * (v->p.zrl * kn + v->p.zrh * (u - kn))); }
-    float bumpAt = s0 * (v->p.bumpFrac > 0.5f ? v->p.bumpFrac : 1.7f); if (bumpAt > 0.22f) bumpAt = 0.22f;
-    float fb = sS > bumpAt ? k * (v->p.bumpK > 0 ? v->p.bumpK : 4.0f) * (sS - bumpAt) * (sS - bumpAt) * 50.0f : 0.0f;
+    float bumpAt = T - d0 - 0.06f; if (bumpAt < s0 + 0.03f) bumpAt = s0 + 0.03f;
+    float over = sS - bumpAt, room = T - d0 - 0.01f - bumpAt; if (room < 0.02f) room = 0.02f;
+    float fb = over > 0 ? mc * 9.81f * 4.0f * (over / room) * (over / room) + k * 2.0f * over : 0.0f;   /* progressive rubber: 4 g of the corner's weight at the end */
     float fa = hasOther ? k * (ax ? v->p.arbR : v->p.arbF) * (sS - sOther) : 0.0f;
-    float fo = fs + fd + fb + fa, mx = mc * 9.81f * (v->p.maxFk > 0 ? v->p.maxFk : 3.5f);
+    float fo = fs + fd + fb + fa, mx = mc * 9.81f * (v->p.maxFk > 0 ? v->p.maxFk : 3.5f) + fb;
     if (fo < 0) fo = 0; if (fo > mx) fo = mx;
     (void)i; return fo;
 }
@@ -330,7 +336,7 @@ static void wheelHop(Veh *v, int i, u64 wheel, float dt)
         float fs = susForce(v, wheel, i, s->s, s->sv, so, j >= 0);
         s->sv += h * (ft - fs) / mu; s->s += h * s->sv;
         if (s->s < 0) { s->s = 0; if (s->sv < 0) s->sv = 0; }
-        if (s->s > 0.4f) { s->s = 0.4f; if (s->sv > 0) s->sv = 0; }
+        { float Tm = rf(wheel, 0x130); if (!(Tm > 0.05f && Tm < 0.8f)) Tm = 0.4f; if (s->s > Tm) { s->s = Tm; if (s->sv > 0) s->sv = 0; } }
     }
     s->ft = ft; s->calls = 0; s->gc = 0;
     float a = dt / 0.02f; if (a > 1) a = 1; s->ftF += (ft - s->ftF) * a;
@@ -428,7 +434,7 @@ static void vehStep(Veh *v, u64 *wp, int nw, float dt)
             int j = s->pair;
             if (j >= 0 && j < nw) { float tr = fabsf(s->lx - v->ws[j].lx); if (tr > 0.5f) { float sR = s->lx > 0 ? s->s : v->ws[j].s, sL = s->lx > 0 ? v->ws[j].s : s->s; roll = (sR - sL) / tr; } }
             s->gam = g0 + sgn * (1 - p->camGain) * roll + (s->front ? -sgn * sinf(p->caster) * steer : 0.0f);
-            float bl = (fabsf(s->vx) + 1.0f) * dt / (p->relax > 0.05f ? p->relax : 0.45f); if (bl > 1) bl = 1;
+            float bl = (fabsf(s->vx) + 3.0f) * dt / (p->relax > 0.05f ? p->relax : 0.45f); if (bl > 1) bl = 1;
             s->taL += bl * (s->taRaw - s->taL);
             if (s->fz <= 0) s->taL *= 0.9f;
             /* heat: sliding power into the tread + rolling hysteresis, cooled by the air */
@@ -630,7 +636,7 @@ static void vehStep(Veh *v, u64 *wp, int nw, float dt)
                 WSim *s = &v->ws[i]; float *q = r->w[i];
                 if (i >= nw) { for (int j = 0; j < 14; j++) q[j] = 0; continue; }
                 q[0] = s->fz; q[1] = s->ft; q[2] = rf(wp[i], 0x160); q[3] = s->s; q[4] = s->vx; q[5] = s->vy; q[6] = s->ta; q[7] = s->kappa;
-                q[8] = s->fxL; q[9] = s->fyL; q[10] = s->muF; q[11] = s->temp; q[12] = s->w; q[13] = s->surf;
+                q[8] = s->fxL; q[9] = s->fyL; q[10] = s->muF; q[11] = s->temp; q[12] = s->w; q[13] = rf(wp[i], 0x130);
             }
         }
     }

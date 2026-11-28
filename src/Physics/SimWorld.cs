@@ -253,8 +253,9 @@ namespace MidnightClub.Physics
             p[51] = f * (float)Math.Sqrt(Math.Max(0.3f, 1f + 0.045f * Vehicles.Setup.TuneValue(rec, 9)));
             p[52] = f * (float)Math.Sqrt(Math.Max(0.3f, 1f + 0.045f * Vehicles.Setup.TuneValue(rec, 10)));
             // dampers (share of critical damping of the corner): firm low-speed body control, digressive above the knee
-            p[53] = (coil ? 0.55f : 0.5f) * bump; p[54] = (coil ? 0.28f : 0.25f) * bump; p[55] = (coil ? 0.85f : 0.8f) * reb; p[56] = (coil ? 0.45f : 0.4f) * reb;
-            p[57] = arb * 2f * split; p[58] = arb * 2f * (1f - split); p[59] = 0.12f;
+            // big, slow body motions are damped hard (weight moves heavily, it doesn't bounce); sharp hits less (comfort)
+            p[53] = (coil ? 0.55f : 0.5f) * bump; p[54] = (coil ? 0.44f : 0.4f) * bump; p[55] = (coil ? 0.85f : 0.8f) * reb; p[56] = (coil ? 0.65f : 0.6f) * reb;
+            p[57] = arb * 1.5f * split; p[58] = arb * 1.5f * (1f - split); p[59] = 0.15f;
             p[60] = 1.7f; p[61] = 4f; p[62] = 3.5f;
             // gearbox: overall ratios ([0] reverse)
             p[70] = L.Gear.Overall(1) * 1.05f;

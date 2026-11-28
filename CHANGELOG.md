@@ -1,4 +1,12 @@
 # Changelog
+## 0.54.0 (2026-11-28)
+- The bouncing, found in the recording: GTA keeps a travel limit per wheel (CWheel+0x130) and makes a rigid body contact at its end. Our softer, real springs let the body run into that hard limit (the Jubilee's rear sat at 75-80 % of its travel at rest; our bump stop only started at 22 cm, GTA's limit is ~25 cm), and the hard contact bounced the car. Now:
+  - the bump stop is placed by GTA's real travel and takes the last part progressively (4 g of the corner's weight at the end), so the body never reaches the hard limit;
+  - the car rests at 30-50 % of its travel, leaving room for weight transfer both ways (cars that sat deep in GTA's travel ride a little higher);
+  - dampers are much less digressive: big, slow body motions are damped hard, so weight moves heavily and settles instead of bouncing; softer anti-roll bars, more visible roll;
+  - side force builds faster at walking pace (no lingering slip after a stop).
+- The recording now logs each wheel's GTA travel.
+
 ## 0.53.1 (2026-11-28)
 - Fix: the minimap stayed empty until the big map was opened once (the GTA Online map's radar tiles weren't rebuilt). After entering the mode, as soon as the radar is on screen, the expanded radar is switched on and off once (with the fog of war lifted), which rebuilds them.
 
