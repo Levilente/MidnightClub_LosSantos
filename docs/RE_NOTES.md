@@ -32,3 +32,14 @@ RVAs below are relative to the image base.
 - So 0xF28AE0 = derivative evaluation: all wheel forces (suspension + tyre) for a given state. This is the function the
   native model replaces: same inputs, same 0x110-byte output layout (to be mapped field by field).
 - Next: read 0xF28AE0 / 0xF20010 to find the tyre-force calculation and its inputs; hook point for the native model is 0xF27F40 (per vehicle, per step).
+
+## Stage 2 result (hook recording, Elegy RH8, 15 s)
+- Hooks at +0xF1E8B0 (friction) and +0xF1DB20 (suspension) installed fine; each called 4x per wheel per physics step (RK4).
+- Friction(wheel, inst, outForce, linAcc, angAcc, st1, st2, spinAcc, load, ?, ?, ?, slot, ctx, otherWheel, gravity):
+  outForce = tyre force at the contact, world, N (up to ~10 kN); linAcc = force / mass (m/s2); angAcc = angular acceleration
+  contribution (rad/s2, world); spinAcc = wheel spin acceleration (rad/s2); load = suspension load from Susp (N, median 4.1 kN
+  on a 1740 kg car); last arg = 9.8 (gravity), not dt.
+- Susp(wheel, inst, outForce, linAcc, angAcc, loadOut, slot, ?, ?, ctx, otherWheel, gravity): outForce mostly vertical (N),
+  loadOut = wheel load (N) handed to Friction.
+- Next: map the per-wheel slip state (candidates CWheel 0x1C4, 0x1CC, 0x1D0, 0x1B8, 0x1C0) and the contact frame, then
+  stage 3: replace the outputs with the Pacejka model (force -> lin = F/m, ang = scaled consistently).
