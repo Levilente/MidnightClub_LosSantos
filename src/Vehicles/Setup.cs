@@ -180,7 +180,7 @@ namespace MidnightClub.Vehicles
                 var gi = Items.Select((x, i) => new { x, i }).Where(z => z.x.Group == grp && !z.x.Hidden).ToList();
                 bool locked = gi.All(z => !Has(rec, z.x.Part));
                 string need = locked ? Parts.First(p => p.Id == gi[0].x.Part).Name : null;
-                m.Add(new MenuItem(grp, () => { if (!locked) stack.Push(Page(rec, grp, saves)); else Toast.Post("~r~" + grp + "~s~ tuning needs " + need + " (workshops, Performance > Race parts)."); })
+                m.Add(new MenuItem(grp, () => { if (!locked) stack.Push(Page(rec, grp, saves)); else Toast.Post("~r~" + grp + "~s~ tuning needs " + need + " (workshops: Performance, top of its upgrade path)."); })
                 { Value = () => locked ? "Needs part" : gi.Any(z => Get(rec)[z.i] != 0) ? "Tuned" : "Stock", Description = () => locked ? "Install " + need + " at a workshop to tune this." : string.Join("  ·  ", gi.Select(z => z.x.Name + " " + z.x.Show(Get(rec)[z.i])).ToArray()) });
             }
             m.Add(new MenuItem("Presets", () => stack.Push(Presets(rec, saves))) { Description = () => "Grip, drift, drag, rally and touge baselines." });

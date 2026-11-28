@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.66.2
+- Workshops: one upgrade path per system. Transmission: GTA's levels, then Race gearbox, then Fully adjustable gearbox; Suspension: GTA's levels, then Race coilovers; Brakes: GTA's levels, then Race brake kit. Buying a level includes everything below it, picking a lower one takes the higher ones off.
+- Wheel spacers are bought in Wheels > Adjust fitment (the only place).
+
+
 ## 0.66.1
 - Dealerships: a bought car is driven out of the showroom straight away (the old one goes back to its garage); left / right now move left / right along the stage.
 - Hub > Garage: "Reset to road" puts a stuck car back on the nearest street.

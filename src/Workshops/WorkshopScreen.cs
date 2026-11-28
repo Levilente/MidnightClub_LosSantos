@@ -309,19 +309,18 @@ namespace MidnightClub.Workshops
             }))) { Value = () => InductionValue() + (rec.NosLevel > 0 ? " + NOS" : ""), Description = () => "Turbo or supercharger (3 stages each, never both), anti-lag and nitrous." });
             m.Add(new MenuItem("Drivetrain", () => menus.Push(PerfCat("Drivetrain", "default", c =>
             {
-                AddModMenu(c, "Transmission", 13, 0.045, "default");
-                c.Add(PartItem("gearbox")); c.Add(PartItem("gearbox2")); c.Add(PartItem("diff")); c.Add(PartItem("awd")); c.Add(PartItem("rwd"));
+                c.Add(Tree("Transmission", 13, 0.045, "default", "gearbox", "gearbox2"));
+                c.Add(PartItem("diff")); c.Add(PartItem("awd")); c.Add(PartItem("rwd"));
             }))) { Value = () => owned(new[] { "gearbox", "gearbox2", "diff", "awd", "rwd" }), Description = () => "Gearbox, differential and drivetrain conversions." });
             m.Add(new MenuItem("Suspension & chassis", () => menus.Push(PerfCat("Suspension & chassis", "side", c =>
             {
-                AddModMenu(c, "Suspension", 15, 0.03, "side");
-                c.Add(PartItem("springs")); c.Add(PartItem("arb"));
+                c.Add(Tree("Suspension", 15, 0.03, "side", "springs"));
+                c.Add(PartItem("arb"));
                 c.Add(PartItem("weight1")); c.Add(PartItem("weight2")); c.Add(PartItem("weight3"));
             }))) { Value = () => owned(new[] { "springs", "arb", "weight1", "weight2", "weight3" }), Description = () => "Springs, dampers, anti-roll bars and weight reduction." });
             m.Add(new MenuItem("Brakes", () => menus.Push(PerfCat("Brakes", "side", c =>
             {
-                AddModMenu(c, "Brake upgrade", 12, 0.03, "side");
-                c.Add(PartItem("brakes"));
+                c.Add(Tree("Brakes", 12, 0.03, "side", "brakes"));
             }))) { Value = () => GtaLevel(12), Description = () => "Brake upgrades and the adjustable race brake kit." });
             m.Add(new MenuItem("Tyres & aero", () => menus.Push(PerfCat("Tyres & aero", "side", c =>
             {
@@ -329,6 +328,70 @@ namespace MidnightClub.Workshops
                 c.Add(PartItem("aero"));
             }))) { Value = () => FitmentManager.CompoundNames[rec.TyreCompound], Description = () => "Tyre compounds and adjustable downforce." });
             return m;
+        }
+
+        /// <summary>One upgrade path per system: GTA's own levels (street / sport / race...) and then our race parts as the
+        /// top levels (race gearbox, fully adjustable gearbox; coilovers; race brake kit). Buying a level brings every level
+        /// below it; picking a lower one takes the higher ones off.</summary>
+        private MenuItem Tree(string label, int type, double factor, string camFocus, params string[] parts)
+        {
+            if (rec.Parts == null) rec.Parts = new List<string>();
+            int count = Math.Max(0, Function.Call<int>(Hash.GET_NUM_VEHICLE_MODS, car, type));
+            int tab = curTab;
+            Func<int, long> gtaPrice = i => i < 0 ? 0 : Disc(PricingEngine.Round((800 + bp * factor) * (i + 1)), tab);
+            Func<string, long> partPrice = id => Disc(PricingEngine.Round(Setup.Parts.First(x => x.Id == id).Price + bp * 0.015), 3);
+            int top = count + parts.Length;                                   // levels 0 = stock, 1..count = GTA, then the parts
+            Func<int> level = () =>
+            {
+                for (int j = parts.Length - 1; j >= 0; j--) if (rec.Parts.Contains(parts[j])) return count + 1 + j;
+                return Function.Call<int>(Hash.GET_VEHICLE_MOD, car, type) + 1;
+            };
+            Func<int, string> name = l => l == 0 ? "Stock" : l <= count ? PerfName(type, l - 1) : Setup.Parts.First(x => x.Id == parts[l - count - 1]).Name;
+            Func<int, long> cost = l =>
+            {
+                int cur = level(); if (l <= cur) return 0;
+                int gNow = Math.Max(0, Math.Min(cur, count)), gWant = Math.Min(l, count);
+                long p = Math.Max(0, gtaPrice(gWant - 1) - gtaPrice(gNow - 1));
+                for (int j = 0; j < parts.Length; j++) if (count + 1 + j <= l && !rec.Parts.Contains(parts[j])) p += partPrice(parts[j]);
+                return p;
+            };
+            return new MenuItem(label, () =>
+            {
+                var m = new Menu(label, Title()) { IsShopList = true };
+                m.OnOpen = () => focus = camFocus;
+                int installedMod = Function.Call<int>(Hash.GET_VEHICLE_MOD, car, type);
+                m.OnHighlight = i => { if (i >= 1 && i <= count) Function.Call(Hash.SET_VEHICLE_MOD, car, type, i - 1, false); else if (i == 0) Function.Call(Hash.SET_VEHICLE_MOD, car, type, -1, false); else if (count > 0) Function.Call(Hash.SET_VEHICLE_MOD, car, type, count - 1, false); };
+                m.OnBack = () => { Function.Call(Hash.SET_VEHICLE_MOD, car, type, installedMod, false); menus.Pop(); };
+                for (int l = 0; l <= top; l++)
+                {
+                    int L = l;
+                    m.Add(new MenuItem(name(L), () =>
+                    {
+                        int cur = level(); if (L == cur) return;
+                        if (L > cur)
+                        {
+                            long p = cost(L);
+                            if (p > 0 && !Pay(p, label + ": " + name(L))) { Function.Call(Hash.SET_VEHICLE_MOD, car, type, installedMod, false); return; }
+                            for (int j = 0; j < parts.Length; j++) if (count + 1 + j <= L && !rec.Parts.Contains(parts[j])) rec.Parts.Add(parts[j]);
+                            Bought(label + ": " + name(L), p);
+                        }
+                        else
+                        {
+                            for (int j = 0; j < parts.Length; j++) if (count + 1 + j > L) rec.Parts.Remove(parts[j]);
+                            saves.IsDirty = true; Flash(label + ": " + name(L));
+                        }
+                        installedMod = Math.Min(L, count) - 1;
+                        Function.Call(Hash.SET_VEHICLE_MOD, car, type, installedMod, false);
+                        Setup.ApplyAudio(car, rec);
+                    })
+                    {
+                        Value = () => L == level() ? "~g~INSTALLED" : L < level() ? "" : "$" + cost(L).ToString("N0"),
+                        Description = () => L > count ? Setup.Parts.First(x => x.Id == parts[L - count - 1]).Desc + " Includes every level below it." : L == 0 ? "Factory parts." : "Includes every level below it."
+                    });
+                }
+                m.Selected = Math.Max(0, Math.Min(top, level()));
+                menus.Push(m);
+            }) { Value = () => name(level()), Description = () => "The whole " + label.ToLowerInvariant() + " upgrade path in one place, up to the race parts." };
         }
 
         private string GtaLevel(int type)
@@ -588,7 +651,8 @@ namespace MidnightClub.Workshops
                 bool cam = Setup.CanCamber(rec), spc = Setup.CanSpace(rec);
                 if (!cam && !spc)
                 {
-                    m.Add(new MenuItem("Needs coilovers or wheel spacers") { Enabled = false, Description = () => "Camber and tyre size are set on the Race springs & dampers (coilovers); track width needs Wheel spacers & adjustable hubs. Both: Performance > Race parts." });
+                    m.Add(PartItem("spacers"));
+                    m.Add(new MenuItem("Camber / tyre size: needs coilovers") { Enabled = false, Description = () => "Performance > Suspension & chassis > Suspension: the top level is the race coilovers." });
                     return;
                 }
                 if (cam)
@@ -606,8 +670,8 @@ namespace MidnightClub.Workshops
                     m.Add(Adjust("Front tyre diameter", () => rec.TyreF <= 0 ? 1f : rec.TyreF, v => rec.TyreF = v, 0.85f, 1.2f, 0.01f, "0%", "front", percent: true));
                     m.Add(Adjust("Rear tyre diameter", () => rec.TyreR <= 0 ? 1f : rec.TyreR, v => rec.TyreR = v, 0.85f, 1.2f, 0.01f, "0%", "rear", percent: true));
                 }
-                if (!spc) m.Add(new MenuItem("Track width: needs wheel spacers") { Enabled = false });
-                if (!cam) m.Add(new MenuItem("Camber / tyre size: needs coilovers") { Enabled = false });
+                if (!spc) m.Add(PartItem("spacers"));
+                if (!cam) m.Add(new MenuItem("Camber / tyre size: needs coilovers") { Enabled = false, Description = () => "Performance > Suspension & chassis > Suspension: the top level is the race coilovers." });
                 m.Add(new MenuItem("Reset to stock", () =>
                 {
                     rec.CamberF = rec.CamberR = rec.TrackF = rec.TrackR = 0f; rec.TyreF = rec.TyreR = 0f;
