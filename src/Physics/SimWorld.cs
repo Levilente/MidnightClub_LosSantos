@@ -51,6 +51,8 @@ namespace MidnightClub.Physics
         public static float FrontSlip { get; private set; }
         public static float PeakSlip { get; private set; }
         public static float OptTemp { get; private set; }
+        /// <summary>Mass of the physics body GTA simulates for your car (kg).</summary>
+        public static float BodyMass { get; private set; }
         [DllImport("MidnightClubPhysics.asi", CallingConvention = CallingConvention.Cdecl)] private static extern void MCP_VehTyresNew(long veh);
         [DllImport("MidnightClubPhysics.asi", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Unicode)] private static extern int MCP_SimDump(string path);
         private static int nextDump;
@@ -105,7 +107,7 @@ namespace MidnightClub.Physics
                         Rpm = st[0]; TcsOn = st[1] > 0.5f; AbsOn = st[2] > 0.5f; EscOn = st[3] > 0.5f; Boost = st[4];
                         int nw = Math.Min(4, (int)st[9]);
                         for (int i = 0; i < 4; i++) { TyreTemp[i] = i < nw ? st[30 + i] : 0f; TyreWear[i] = i < nw ? st[40 + i] : 0f; TyrePsi[i] = i < nw ? st[50 + i] : 0f; }
-                        FrontSlip = nw >= 2 ? 0.5f * (st[60] + st[61]) : 0f; PeakSlip = st[70]; OptTemp = playerLive.Tyre.TOpt;
+                        FrontSlip = nw >= 2 ? 0.5f * (st[60] + st[61]) : 0f; PeakSlip = st[70]; OptTemp = playerLive.Tyre.TOpt; BodyMass = st[73];
                     }
                 }
                 else PlayerActive = false;
@@ -250,8 +252,9 @@ namespace MidnightClub.Physics
             p[50] = s.Bike ? 0f : 1f;
             p[51] = f * (float)Math.Sqrt(Math.Max(0.3f, 1f + 0.045f * Vehicles.Setup.TuneValue(rec, 9)));
             p[52] = f * (float)Math.Sqrt(Math.Max(0.3f, 1f + 0.045f * Vehicles.Setup.TuneValue(rec, 10)));
-            p[53] = (coil ? 0.36f : 0.30f) * bump; p[54] = 0.14f * bump; p[55] = (coil ? 0.62f : 0.55f) * reb; p[56] = 0.24f * reb;
-            p[57] = arb * 2f * split; p[58] = arb * 2f * (1f - split); p[59] = 0.10f;
+            // dampers (share of critical damping of the corner): firm low-speed body control, digressive above the knee
+            p[53] = (coil ? 0.55f : 0.5f) * bump; p[54] = (coil ? 0.28f : 0.25f) * bump; p[55] = (coil ? 0.85f : 0.8f) * reb; p[56] = (coil ? 0.45f : 0.4f) * reb;
+            p[57] = arb * 2f * split; p[58] = arb * 2f * (1f - split); p[59] = 0.12f;
             p[60] = 1.7f; p[61] = 4f; p[62] = 3.5f;
             // gearbox: overall ratios ([0] reverse)
             p[70] = L.Gear.Overall(1) * 1.05f;
@@ -287,6 +290,11 @@ namespace MidnightClub.Physics
             p[201] = kind == "Super" ? 0.5f : sporty ? 0.4f : 0.25f;
             p[202] = t.ColdLoss; p[203] = t.HotLoss;
             p[204] = 0.65f * t.OffroadLoss; p[205] = player && cfg.DevMode ? 1f : 0f; p[206] = L.AeroFront;
+            // real roll-centre heights (m above the ground) by suspension type
+            float rcF = kind == "Super" ? 0.04f : sporty ? 0.07f : heavy ? 0.15f : 0.06f, rcR = kind == "Super" ? 0.08f : kind == "Muscle" ? 0.25f : sporty ? 0.11f : heavy ? 0.28f : 0.12f;
+            if (s.Year < 1975) { rcF += 0.03f; rcR = Math.Max(rcR, 0.25f); }          // old cars: live rear axles
+            float rh = 0.009f * Vehicles.Setup.TuneValue(rec, 11);                       // ride height (0.9 cm per step) moves the roll centres with it
+            p[207] = Math.Max(0.0f, rcF + rh * 1.5f); p[208] = Math.Max(0.0f, rcR + rh * 1.5f);
             // torque curves: full load and off-boost
             for (int i = 0; i < CurveN; i++) { p[92 + i] = L.Engine.Full[i]; p[92 + CurveN + i] = L.Engine.NoBoost[i]; }
             if (L.Engine.Ind == Induction.Supercharged)

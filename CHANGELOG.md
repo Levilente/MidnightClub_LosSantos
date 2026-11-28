@@ -1,4 +1,11 @@
 # Changelog
+## 0.52.0 (2026-11-28)
+Fixes from the first physics recording (probe\sim.bin):
+- Suspension damping: the dampers were far too digressive (effective ~17 % of critical at body speeds); the body pitched / rolled +-8 cm at 2 Hz and the tyre load swung by 47 % of its mean, with the wheels in the air 5-6 % of the time - that bouncing was most of the "on ice" feel. Now firm low-speed body control (bump 50 %, rebound 80 % of critical up to 0.12 m/s, then 25 % / 40 %): a kerb now overshoots ~35 % and settles in one cycle (was ~65 %).
+- Roll centres: the side force entered the body at GTA's roll-centre height (0.3-0.45 m, a trick to hide body roll), so most of the load transfer went through rigid links - instantly: a snappy body. Now real roll-centre heights by suspension type (0.04-0.15 m front, 0.08-0.28 m rear), moving with the ride height setting: the load transfer goes through springs, dampers and bars.
+- Real mass: GTA sized one car's physics body at 1300 kg instead of the real 1725 kg (engine, brakes and suspension are built for the real car). Owned cars are now created with the real mass, and a car created before its mass was known is rebuilt once in place while it stands still.
+- Tyre heat: less of the sliding power goes into the tread and the air cools more: street tyres no longer cook to 120 C.
+
 ## 0.51.1 (2026-11-28)
 - Grip fix: tyre friction was multiplied by an unrelated GTA wheel value (it drops to 0.65 on all wheels at times): removed. The ground now comes from GTA's real surface value (road / grass / dirt / sand) scaled by how much each tyre type minds loose ground.
 - Kerbs: the tyre works in the car's own plane; GTA tilts the tyre axes with the contact normal, which on a kerb edge points sideways and turned part of the side force into a sideways / vertical shove.

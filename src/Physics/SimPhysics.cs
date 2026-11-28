@@ -32,6 +32,7 @@ namespace MidnightClub.Physics
         private byte[] curRaw; private int kerbLogAt; private float baseTMax, baseSlide, baseBias = 0.5f, baseLat, baseBrake, baseSteer;
         public Drivetrain.Live Live { get; private set; }
         public int AppliedModel { get { return appliedModel; } }
+        private readonly HashSet<int> massFixed = new HashSet<int>();
         public float SlipDeg { get; private set; }
         public bool TcsActive { get; private set; }
         public bool AbsActive { get; private set; }
@@ -59,6 +60,13 @@ namespace MidnightClub.Physics
                 var s = stocks[model.Hash];
                 int want = Drivetrain.SpawnGears(rec, s.Gears, RealData.PlannedGears(model.Hash, s.Gears));
                 if (want != h.InitialDriveGears) { spawnStockGears = s.Gears; h.InitialDriveGears = want; spawnPatched = model.Hash; }
+                // GTA sizes the physics body from the handling mass when the car is created: give it the real mass now
+                var spec = RealData.Cached(model.Hash);
+                if (spec != null && !spec.Bike)
+                {
+                    float w = Setup.Has(rec, "weight3") ? 0.88f : Setup.Has(rec, "weight2") ? 0.92f : Setup.Has(rec, "weight1") ? 0.96f : 1f;
+                    h.Mass = (spec.Curated ? spec.Kg : s.Mass) * w;
+                }
             }
             catch (Exception ex) { Log.Error("PrepareSpawn", ex); }
         }
@@ -288,6 +296,16 @@ namespace MidnightClub.Physics
             esc += (escWant - esc) * Math.Min(1f, dt / (escWant > esc ? 0.05f : 0.25f));
             EscActive = esc > 0.05f;
             SimWorld.Tick(car, L, rec, cfg, cfg.NativePhysics);
+            // the body GTA simulates must have the real mass (engine, brakes and suspension are sized for it): if the car
+            // was created before the real mass was known, rebuild it once in place while it stands still
+            if (Native.DriveActive && !spec.Bike && SimWorld.BodyMass > 50f && car.Speed < 0.5f && !massFixed.Contains(car.Model.Hash)
+                && Math.Abs(SimWorld.BodyMass - L.Mass) > L.Mass * 0.05f)
+            {
+                massFixed.Add(car.Model.Hash);
+                Log.Info("Body mass " + SimWorld.BodyMass.ToString("0") + " kg, real " + L.Mass.ToString("0") + " kg: rebuilding the car with the real mass");
+                try { h.Mass = L.Mass; vehicles.Respawn(); } catch (Exception ex) { Log.Error("Mass rebuild", ex); }
+                return;
+            }
             if (Native.DriveActive) { TcsActive = Native.TcsOn; EscActive = Native.EscOn; }
             Drivetrain.EscCut = esc;
             // ---- powertrain

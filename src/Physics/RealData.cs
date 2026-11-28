@@ -14,6 +14,8 @@ namespace MidnightClub.Physics
     {
         private static readonly Dictionary<string, CarSpec> curated = new Dictionary<string, CarSpec>(StringComparer.OrdinalIgnoreCase);
         private static readonly Dictionary<int, CarSpec> cache = new Dictionary<int, CarSpec>();
+        /// <summary>The spec of a model seen before (null if not yet built).</summary>
+        public static CarSpec Cached(int hash) { CarSpec s; return cache.TryGetValue(hash, out s) ? s : null; }
 
         //      id, hp @rpm, Nm @rpm, redline, induction(boost), litres, cyl, layout, gears, front drive, kg, front %, CoG h, wheelbase, CdA, ClA
         static RealData()

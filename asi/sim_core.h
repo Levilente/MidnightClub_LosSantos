@@ -35,7 +35,7 @@ typedef struct
     float full[CURVE_N], nb[CURVE_N];                                           /* 92..187 full-load torque, off-boost torque (Nm, 0..maxRpm) */
     float ambient, tOpt, tWin, relax, pressF, pressR, pOpt, camF;              /* 188..195 tyre temperature window (C), relaxation length (m), cold pressures / optimum (psi), static camber (rad) */
     float camR, caster, toeF, unsprung, kt, camGain, coldLoss, hotLoss;         /* 196..203 caster, front toe (rad, + = out), unsprung mass per corner (kg), tyre vertical stiffness (N/m), camber recovery, grip loss cold / hot */
-    float offroad, record, aeroFront, pad207, pad208, pad209, pad210, pad211;     /* 204..211 grip lost on loose ground (share), record this vehicle (diagnostics) */
+    float offroad, record, aeroFront, rcF, rcR, pad209, pad210, pad211;     /* 204..211 grip lost on loose ground (share), record this vehicle (diagnostics) */
 } VParams;
 #define VP_N ((int)(sizeof(VParams) / 4))
 
@@ -106,12 +106,12 @@ static void cross3(const float *a, const float *b, float *o) { o[0] = a[1] * b[2
 static float len3(const float *a) { return sqrtf(dot3(a, a)); }
 
 /* lever arm of a force at this wheel, as GTA builds it (roll-centre height, half tyre width) */
-static void lever(u64 wheel, u64 inst, const float *c, const float *com, float la, float *rLat, float *rLong)
+static void lever(u64 wheel, u64 inst, const float *c, const float *com, float la, float rcOwn, float *rLat, float *rLong)
 {
     uint32_t fl = *(uint32_t *)(wheel + 0x204);
     u64 hd = *(u64 *)(wheel + 0x120);
     int idx = rf(wheel, 0x140) < 0 ? 1 : 0;
-    float rc = hd ? rf(hd, 0xE8 + 4 * idx) : 0.0f, a = 0, b = 0;
+    float rc = rcOwn >= 0 ? rcOwn : hd ? rf(hd, 0xE8 + 4 * idx) : 0.0f, a = 0, b = 0;
     if (fl & 1) { if (!(fl & 0x100)) b = rc; }
     else if (!(fl & 0x820000))
     {
@@ -188,11 +188,14 @@ static int vehTyre(Veh *v, int i, u64 wheel, u64 inst, float *out, float *lin, f
     float muS = v->p.wet * g * (s->muF > 0.3f ? s->muF : 1.0f);
     s->taRaw = ta; s->vy = vy; ta = taE;
     float fx, fy; vtyre(v, kappa, ta, load, muS, &fx, &fy);
-    float rLat[3], rLong[3]; lever(wheel, inst, c, com, v->p.longAt, rLat, rLong);
+    /* lateral force enters the body at the suspension's real roll centre (GTA uses 0.3-0.45 m to hide body roll,
+       which moves the load transfer into rigid links: an instant, snappy body); longitudinal near the contact patch */
+    float rcOwn = s->front ? v->p.rcF : v->p.rcR; if (!(rcOwn > 0.005f && rcOwn < 0.8f)) rcOwn = -1;
+    float rLat[3], rLong[3], gLat[3], gLong[3]; lever(wheel, inst, c, com, v->p.longAt, rcOwn, rLat, rLong); lever(wheel, inst, c, com, v->p.longAt, -1, gLat, gLong);
     const float *M = (const float *)Mp;
     float gtaLat = dot3(out, side);
     {   /* check our body coupling against GTA's own force */
-        float t[3], pa[3]; cross3(rLat, out, t); angOf(wheel, inst, M, t, pa);
+        float t[3], pa[3]; cross3(gLat, out, t); angOf(wheel, inst, M, t, pa);
         float e = (pa[0] - ang[0]) * (pa[0] - ang[0]) + (pa[1] - ang[1]) * (pa[1] - ang[1]) + (pa[2] - ang[2]) * (pa[2] - ang[2]);
         v->angErr += sqrtf(e); v->angMag += len3(ang); v->angN++;
         if (v->angN > 3000 && v->angErr > 0.3 * v->angMag) { v->bad = 1; return 0; }
@@ -432,8 +435,8 @@ static void vehStep(Veh *v, u64 *wp, int nw, float dt)
             float den = fabsf(s->vx) > 2 ? fabsf(s->vx) : 2, slipX = s->kappa * den;
             float pSl = s->fz > 0 ? fabsf(s->fxL * slipX) + fabsf(s->fyL * s->vy) : 0;
             float pRo = s->fz > 0 ? 0.5f * p->rolling * s->fz * fabsf(s->vx) : 0;
-            float hc = 15.0f + 2.5f * fabsf(s->vx);
-            s->temp += dt * (0.45f * pSl + pRo - hc * (s->temp - amb)) / 7000.0f;
+            float hc = 18.0f + 2.8f * fabsf(s->vx);
+            s->temp += dt * (0.4f * pSl + pRo - hc * (s->temp - amb)) / 7000.0f;
             if (s->temp > 160) s->temp = 160; if (s->temp < amb - 5) s->temp = amb - 5;
             s->wear += 6e-8f * pSl * dt; if (s->wear > 1) s->wear = 1;
             float pc = s->front ? p->pressF : p->pressR; if (pc < 10) pc = 32;
