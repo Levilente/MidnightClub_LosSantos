@@ -26,4 +26,9 @@ RVAs below are relative to the image base.
 - 0xF27F40: per-vehicle wheel/transmission integration per physics step; calls 0xF28AE0 four times and 0xF299B0.
 - 0xF299B0 -> 0xF22830: wheel spin integration (writes 0x16C, 0x170, 0x174, 0x1B8, 0x1C0, 0x1C4).
 - 0xF28AE0 -> 0xF1E8B0 -> 0xF20010: candidates for tyre / suspension force (write 0xA0..).
+- 0xF27F40 integrates the wheel/suspension state with **Runge-Kutta 4**: it calls 0xF28AE0 four times (k1..k4, each into a
+  0x110-byte stack struct at rsp+0x430/0x320/0x210/0x100, the next call gets the previous struct as input) and combines
+  them (k1 + 2k2 + 2k3 + k4) x dt/6; the per-wheel result is accumulated into CWheel+0xA0..0xA8. Then 0xF299B0 integrates wheel spin.
+- So 0xF28AE0 = derivative evaluation: all wheel forces (suspension + tyre) for a given state. This is the function the
+  native model replaces: same inputs, same 0x110-byte output layout (to be mapped field by field).
 - Next: read 0xF28AE0 / 0xF20010 to find the tyre-force calculation and its inputs; hook point for the native model is 0xF27F40 (per vehicle, per step).
