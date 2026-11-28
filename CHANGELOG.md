@@ -1,4 +1,7 @@
 # Changelog
+## 0.61.1 (2026-11-28)
+- Manual shifting on the gamepad: Circle (B) shifts up, Square (X) shifts down (their cinematic-camera and duck actions are off while manual shifting is on); the D-pad keeps the radio.
+
 ## 0.61.0 (2026-11-28)
 - Own gearbox (Driving > Real gearbox, on by default): every car shifts like its real box. Automatic logic picks the gear from throttle and rpm (light throttle shifts early, full throttle at the redline, kick-down, downshifts while braking into a corner). Each type behaves like the real thing: a manual or automated-manual opens the clutch for its shift time, a sequential box shifts in ~70 ms, a dual-clutch hands over with only a small torque dip, a torque-converter automatic softens the shift and multiplies torque while the converter slips at launch, a CVT holds the engine speed the throttle asks for. The race gearbox upgrade shortens the shift time. GTA's gear is overwritten every physics step (sound and HUD follow).
 - Manual shifting (Driving > Manual shifting): gamepad D-pad right / left, keyboard Left Shift / Left Ctrl. Downshifts that would over-rev are refused; automated boxes still protect the engine.

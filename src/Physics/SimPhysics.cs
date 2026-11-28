@@ -428,11 +428,11 @@ namespace MidnightClub.Physics
         private void ManualShifting(Vehicle car)
         {
             if (!cfg.ManualShift || !cfg.OwnGearbox || !Native.DriveActive || car.Model.IsBike) return;
-            Function.Call(Hash.DISABLE_CONTROL_ACTION, 0, (int)Control.VehicleNextRadio, true);
-            Function.Call(Hash.DISABLE_CONTROL_ACTION, 0, (int)Control.VehiclePrevRadio, true);
-            Function.Call(Hash.DISABLE_CONTROL_ACTION, 0, (int)Control.VehicleRadioWheel, true);
-            bool up = Game.LastInputMethod == InputMethod.GamePad && Game.IsControlJustPressed(Control.VehicleNextRadio);
-            bool dn = Game.LastInputMethod == InputMethod.GamePad && Game.IsControlJustPressed(Control.VehiclePrevRadio);
+            // gamepad: Circle / B up, Square / X down (their own actions, cinematic camera and duck, are switched off)
+            bool pad = Game.LastInputMethod == InputMethod.GamePad;
+            if (pad) { Function.Call(Hash.DISABLE_CONTROL_ACTION, 0, (int)Control.VehicleCinCam, true); Function.Call(Hash.DISABLE_CONTROL_ACTION, 0, (int)Control.VehicleDuck, true); }
+            bool up = pad && Game.IsDisabledControlJustPressed(Control.VehicleCinCam);
+            bool dn = pad && Game.IsDisabledControlJustPressed(Control.VehicleDuck);
             bool ku = Game.IsKeyPressed(System.Windows.Forms.Keys.LShiftKey), kd = Game.IsKeyPressed(System.Windows.Forms.Keys.LControlKey);
             if (ku && !kUp) up = true; if (kd && !kDn) dn = true; kUp = ku; kDn = kd;
             if (up) SimWorld.Shift(car, 1); else if (dn) SimWorld.Shift(car, -1);
