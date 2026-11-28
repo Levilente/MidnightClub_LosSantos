@@ -343,6 +343,7 @@ def build(r, cls):
     unR = 12 + 1.1 * tR['rimIn'] + 25 * tR['widthM'] + (7 if not bike else 6)
     if kind == 'truck': unF, unR = 180, 350
     if bike: unF, unR = 20, 28
+    unF = min(unF, 0.08 * kg); unR = min(unR, 0.08 * kg)   # small vehicles (karts, ATVs, RC)
     susp = {}
     if not bike and ch != 'kart':
         ms = kg - 2 * unF - 2 * unR
@@ -357,9 +358,17 @@ def build(r, cls):
         KsF = kwF * trF ** 2 / 2; KsR = kwR * trR ** 2 / 2
         KF = Ktot * c[3]; KR = Ktot - KF
         arbKF = max(0.0, KF - KsF) if arbF else 0.0; arbKR = max(0.0, KR - KsR) if arbR else 0.0
+        # springs alone far softer than any real car of this kind rolls (and no bar recorded): such cars carry a front
+        # bar in reality (or stiffer leaf packs); fit the missing stiffness, front first (marked derived)
+        Kmin = ms * 9.81 * max(0.05, cgh - hrc) / math.radians(c[2] * 1.4)
+        if KsF + KsR + arbKF + arbKR < Kmin:
+            need = Kmin - (KsF + KsR + arbKF + arbKR)
+            arbKF += need * 0.7; arbKR += need * 0.3; prov['suspension.arb'] = 'der'
+        # a bar is at most ~3x the axle's spring roll stiffness (heavier bars need matching dampers)
+        arbKF = min(arbKF, 3.0 * KsF); arbKR = min(arbKR, 3.0 * KsR)
         if 'arbF' in ex: arbKF = float(ex['arbF']) * 1000 * trF ** 2
         if 'arbR' in ex: arbKR = float(ex['arbR']) * 1000 * trR ** 2
-        zs = c[6]
+        zs = c[6] * min(1.35, (1.0 + (arbKF + arbKR) / max(1.0, KsF + KsR)) ** 0.25)
         def axle(t, kw, arbK, track, rc, front, bump, droop, fhz):
             return dict(type=SUSP_NAME.get(t, t), code=t, rideHz=round(fhz, 2), wheelRateNmm=round(kw / 1000, 1),
                         springRateNmm=round(kw / MR.get(t, 0.9) ** 2 / 1000, 1), motionRatio=MR.get(t, 0.9),

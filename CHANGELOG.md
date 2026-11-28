@@ -1,4 +1,11 @@
 # Changelog
+## 0.60.1 (2026-11-28)
+- Every spec sheet now goes through the full-vehicle bench (tools/bench/sweep.py: roll and pitch per g, step-steer overshoot, settle time after a kerb, hard-stop contacts, flick and catch), and the outliers were fixed in the generator:
+  - cars whose sheets had no anti-roll bar rolled far more than any real car of their kind (a Fiat 500 at 13.8 deg/g, Willys Jeep 11, Mini 8.4): they now get the missing roll stiffness (front bar first, marked derived), never softer than 1.4x their kind's typical roll;
+  - anti-roll bars are limited to 3x the axle's spring roll stiffness, and the dampers get more roll damping where the bars carry much of it (less roll overshoot);
+  - tiny vehicles (karts, ATVs, the RC car) no longer get more unsprung mass than they weigh.
+  - Result: 536 of 602 four-wheel vehicles inside real-car ranges; the rest are vans and old vans (7-9 deg/g, as real ones), performance SUVs (3.6-4 deg/g), monster trucks and ATVs.
+
 ## 0.60.0 (2026-11-28)
 - Gamepad steering assist rebuilt after Assetto Corsa's Advanced Gamepad Assist (adam10603): full stick puts the front tyres at their real peak slip angle measured against the front axle's actual direction of travel. The old limit added lock from the yaw rate, so when the rear stepped out it kept steering further in and over-rotated the car, even at level 10. Now: the limit may shrink a little when the car oversteers; the wheel self-steers towards the rear axle's path (like caster) with yaw damping, fading out as you move the stick; counter-steering by hand may go as far as the slide needs; dead zone, finer centre, rate slower at speed.
 - Tyre load sensitivity at real values (touring -0.22, UHP -0.18, sport -0.17, semi-slick -0.15, slick -0.12, bias-ply -0.25 per unit of extra load): the loaded outside tyres give relatively less grip, so weight transfer now costs grip the way it does on a real car. Tall, heavy cars (SUVs, old American cars) are no longer glued to the road.
