@@ -171,24 +171,30 @@ namespace MidnightClub.Vehicles
         private static bool refresh;
 
         // ------------------------------------------------------------------ per frame
-        private static float prevM = 1f, smoothM = 1f; private static int gearSince;
+        private static float prevM = 1f, smoothM = 1f; private static int gearSince; private static float[] tops; private static string topsKey;
+        /// <summary>The real ratios are written into GTA's own gear table.</summary>
+        public static bool DirectGears { get; private set; }
         /// <summary>Power multiplier for this frame. measuredAccel: GTA's own longitudinal acceleration over the last frame
         /// (NaN when it can't be measured cleanly).</summary>
         public static void Tick(Vehicle car, Live L, OwnedVehicle r, float dt, float stockDriveForce, float measuredAccel, bool cleanSample, float slideCos)
         {
             Current = L;
+            // real gear ratios straight into GTA's gear table (falls back to re-ranging via flat velocity if the layout isn't recognised)
+            if (tops == null || tops.Length != L.Gear.Gears || topsKey != L.Key) { tops = new float[L.Gear.Gears]; for (int i = 0; i < tops.Length; i++) tops[i] = L.Gear.Speed(i + 1, L.Spec.Redline); topsKey = L.Key; }
+            DirectGears = Physics.VehMem.WriteRatios(car, tops);
             int gear = car.CurrentGear;
             float rpmFrac = car.CurrentRPM, thr = Math.Max(0f, car.Throttle);
             float speed = car.Speed;
             // gear changes: re-range the new gear
-            if (gear != lastGear)
+            if (DirectGears) { if (gear != lastGear) { if (lastGear >= 0) gearSince = Game.GameTime; lastGear = gear; } }
+            else if (gear != lastGear)
             {
                 bool down = lastGear > 0 && gear > 0 && gear < lastGear;
                 if (lastGear >= 0) gearSince = Game.GameTime;
                 lastGear = gear; lastFlat = -1f;
                 if (gear > 0) Flat(car, L, gear, speed, down);
             }
-            else if (gear > 0 && Game.GameTime < settleUntil + 100) Flat(car, L, gear, speed, false);
+            else if (!DirectGears && gear > 0 && Game.GameTime < settleUntil + 100) Flat(car, L, gear, speed, false);
             int g = Math.Max(1, Math.Min(L.Gear.Gears, gear <= 0 ? 1 : gear));
             float rpm = Math.Max(L.Spec.Idle, rpmFrac * L.Spec.Redline);
             EngineRpm = rpm;
@@ -209,7 +215,7 @@ namespace MidnightClub.Vehicles
                     calDirty = true;
                 }
             }
-            if (cleanSample && gear > 0 && rpmFrac > 0.3f && rpmFrac < 0.97f && Game.GameTime - gearSince > 600 && car.Clutch > 0.9f && lastFlat > 0f)
+            if (!DirectGears && cleanSample && gear > 0 && rpmFrac > 0.3f && rpmFrac < 0.97f && Game.GameTime - gearSince > 600 && car.Clutch > 0.9f && lastFlat > 0f)
             {
                 float ws = Math.Abs(car.WheelSpeed);
                 float sm = ws / rpmFrac / lastFlat;

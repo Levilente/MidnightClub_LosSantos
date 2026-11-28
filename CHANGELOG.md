@@ -1,4 +1,9 @@
 # Changelog
+## 0.44.0 (2026-11-28): real gear ratios in GTA's gearbox, per-wheel slip
+- Found GTA's own gear table in the vehicle (probe): the real gear ratios are now written straight into it, so every gear tops out at its real redline speed and the rpm is exact; no more flat-velocity re-ranging (kept as a fallback if the layout isn't recognised).
+- Traction control and ABS read each wheel's real slip from GTA's wheel spin (driven wheels for TCS, any locking wheel for ABS).
+- docs/RE_NOTES.md: memory layout and code map found so far (handling pairs/inverses, gear table, wheel struct, wheel physics job).
+
 ## 0.43.1 (2026-11-28)
 - Tyres: the slot after the traction minimum is 1 / (max - min), the slope of GTA's grip fall-off past the peak. It was left at the stock value, so every changed tyre curve fell off with the wrong slope. Now kept in step.
 - Suspension: softer base (GTA's stock cars ride ~15% stiffer than the real type and damp much harder), softer roll bars.

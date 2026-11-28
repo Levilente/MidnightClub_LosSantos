@@ -228,6 +228,21 @@ namespace MidnightClub.Physics
             float ay = vx * yaw;
             float ws = car.WheelSpeed, kd = speed > 0.5f ? (ws - vx) / Math.Max(Math.Abs(vx), 3f) : 0f;
             kd = Clamp(kd, -1f, 1f);
+            // per-wheel slip from GTA's own wheel spin (probe-mapped memory): driven wheels for traction, all wheels for locking
+            float lockSlip = kd;
+            try
+            {
+                float dMax = float.NaN, aMin = float.NaN;
+                foreach (var wh in car.Wheels.GetAllWheels())
+                {
+                    float sl = VehMem.WheelSlip(wh, vx); if (float.IsNaN(sl) || !wh.IsTouchingSurface) continue;
+                    if (wh.IsDrivingWheel) dMax = float.IsNaN(dMax) ? sl : Math.Max(dMax, sl);
+                    aMin = float.IsNaN(aMin) ? sl : Math.Min(aMin, sl);
+                }
+                if (!float.IsNaN(dMax)) kd = Clamp(dMax, -1f, 1f);
+                if (!float.IsNaN(aMin)) lockSlip = Clamp(aMin, -1f, 1f);
+            }
+            catch { }
             float beta = speed > 3f ? (float)Math.Atan2(vy, Math.Abs(vx)) : 0f;
             SlipDeg = speed > 4f && vx > 0f ? -beta * 57.2958f : 0f;
             bool boosted = Gameplay.Abilities.NosActive || (Gameplay.StyleSystem.Instance != null && Gameplay.StyleSystem.Instance.Slipstreaming);
@@ -332,7 +347,7 @@ namespace MidnightClub.Physics
             if (absL > 0 && brake > 0.05f && vx > 3f)
             {
                 float target = t.PeakK * (1f + (10 - absL) * 0.12f);
-                if (kd < -target && kd > -0.95f) { absMult = Math.Max(0.6f, absMult - dt * 8f); AbsActive = true; }
+                if (lockSlip < -target) { absMult = Math.Max(0.6f, absMult - dt * 8f); AbsActive = true; }
                 else absMult = Math.Min(1f, absMult + dt * 5f);
             }
             else absMult = Math.Min(1f, absMult + dt * 5f);
