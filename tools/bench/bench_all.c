@@ -8,6 +8,7 @@
 #include <stdlib.h>
 typedef uint64_t u64; typedef int LONG;
 #define InterlockedIncrement(p) (++*(p))
+#define InterlockedExchange(p, v) __atomic_exchange_n((p), (v), __ATOMIC_SEQ_CST)
 #define VirtualAlloc(a,b,c,d) calloc(1,b)
 #define MEM_COMMIT 0
 #define MEM_RESERVE 0

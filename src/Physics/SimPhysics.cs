@@ -324,6 +324,7 @@ namespace MidnightClub.Physics
             if (nv != v) car.Velocity = nv;
             setVx = Vector3.Dot(nv, fwd);
             GamepadAssist(car, L, speed, vx, beta, yaw, dt);
+            ManualShifting(car);
             if (!ground) { WriteGrip(h, L, 1f, 1f, 1f); SteeringByspeed(h, speed); return; }
             // ---- tyres: loads, load sensitivity, combined slip
             float m = L.Mass, g = 9.81f, wb = Math.Max(1f, spec.Wheelbase), track = Math.Max(0.6f, spec.Track);
@@ -420,6 +421,21 @@ namespace MidnightClub.Physics
             if (assistOn) { h.SteeringLock = baseSteer; return; }      // the gamepad assist limits the angle itself
             float t = Math.Min(1f, speed / 70f);
             h.SteeringLock = baseSteer * (1f - 0.25f * t * t * (3f - 2f * t));
+        }
+
+        // ------------------------------------------------------------------ manual shifting (own gearbox)
+        private bool kUp, kDn;
+        private void ManualShifting(Vehicle car)
+        {
+            if (!cfg.ManualShift || !cfg.OwnGearbox || !Native.DriveActive || car.Model.IsBike) return;
+            Function.Call(Hash.DISABLE_CONTROL_ACTION, 0, (int)Control.VehicleNextRadio, true);
+            Function.Call(Hash.DISABLE_CONTROL_ACTION, 0, (int)Control.VehiclePrevRadio, true);
+            Function.Call(Hash.DISABLE_CONTROL_ACTION, 0, (int)Control.VehicleRadioWheel, true);
+            bool up = Game.LastInputMethod == InputMethod.GamePad && Game.IsControlJustPressed(Control.VehicleNextRadio);
+            bool dn = Game.LastInputMethod == InputMethod.GamePad && Game.IsControlJustPressed(Control.VehiclePrevRadio);
+            bool ku = Game.IsKeyPressed(System.Windows.Forms.Keys.LShiftKey), kd = Game.IsKeyPressed(System.Windows.Forms.Keys.LControlKey);
+            if (ku && !kUp) up = true; if (kd && !kDn) dn = true; kUp = ku; kDn = kd;
+            if (up) SimWorld.Shift(car, 1); else if (dn) SimWorld.Shift(car, -1);
         }
 
         // ------------------------------------------------------------------ gamepad steering assist

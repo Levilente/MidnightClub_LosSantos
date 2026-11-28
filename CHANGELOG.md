@@ -1,4 +1,12 @@
 # Changelog
+## 0.61.0 (2026-11-28)
+- Own gearbox (Driving > Real gearbox, on by default): every car shifts like its real box. Automatic logic picks the gear from throttle and rpm (light throttle shifts early, full throttle at the redline, kick-down, downshifts while braking into a corner). Each type behaves like the real thing: a manual or automated-manual opens the clutch for its shift time, a sequential box shifts in ~70 ms, a dual-clutch hands over with only a small torque dip, a torque-converter automatic softens the shift and multiplies torque while the converter slips at launch, a CVT holds the engine speed the throttle asks for. The race gearbox upgrade shortens the shift time. GTA's gear is overwritten every physics step (sound and HUD follow).
+- Manual shifting (Driving > Manual shifting): gamepad D-pad right / left, keyboard Left Shift / Left Ctrl. Downshifts that would over-rev are refused; automated boxes still protect the engine.
+- Brake heat and fade: each disc heats with the braking power and cools with speed (convection and radiation); above its limit the pad loses grip (road pads 550 C, performance 650, race 750, carbon-ceramic 900), up to 40 % less brake. Disc mass from the real disc size and type; brake upgrades add mass and heat tolerance.
+- Steering and suspension geometry: Ackermann (front wheels toe out as the lock grows; less on sports cars, none on race and drift cars), camber gain in bump per suspension type (double wishbone and pushrod most, MacPherson less, beam axles none, swing axles a lot), bump steer on struts.
+- Crash damage reaches the mechanics: a hit wheel loses alignment (toe and camber, up to ~2 deg), a damaged engine loses power (down to 55 %).
+- Bench: the sweep also runs every vehicle fully tuned (coilovers, level-4 suspension, race bars, firmer dampers, semi-slicks): 530 of 602 stay inside real-car ranges; the rest are monster trucks, armoured trucks, limousines and buggies.
+
 ## 0.60.1 (2026-11-28)
 - Every spec sheet now goes through the full-vehicle bench (tools/bench/sweep.py: roll and pitch per g, step-steer overshoot, settle time after a kerb, hard-stop contacts, flick and catch), and the outliers were fixed in the generator:
   - cars whose sheets had no anti-roll bar rolled far more than any real car of their kind (a Fiat 500 at 13.8 deg/g, Willys Jeep 11, Mini 8.4): they now get the missing roll stiffness (front bar first, marked derived), never softer than 1.4x their kind's typical roll;

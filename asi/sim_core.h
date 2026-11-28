@@ -37,6 +37,10 @@ typedef struct
     float camR, caster, toeF, unsprung, kt, camGain, coldLoss, hotLoss;         /* 196..203 caster, front toe (rad, + = out), unsprung mass per corner (kg), tyre vertical stiffness (N/m), camber recovery, grip loss cold / hot */
     float offroad, record, aeroFront, rcF, rcR, thermal, yawDI, rollK;       /* 204..211 grip lost on loose ground (share), record this vehicle (diagnostics), ...,
                                                                               body inertia targets: yaw radius of gyration / half wheelbase, roll radius of gyration / track */
+    float ownBox, boxType, shiftT, tcStall, manual, peakHpRpm, cvtLow, cvtHigh;   /* 212..219 own gearbox: type 1 manual 2 torque-converter auto 3 dual clutch 4 sequential 5 automated manual 6 CVT 7 single speed; shift time (s); converter stall torque ratio; player shifts by hand; CVT overall ratio range */
+    float brakeOn, brakeFade, brakeMassF, brakeMassR, ackermann, bumpCamF, bumpCamR, bumpToeF;   /* 220..227 brake heat: fade starts at (C), disc mass per wheel (kg); Ackermann share; camber / toe change per metre of bump (rad/m) */
+    float pad228, pad229;
+    float dmgToe[MAXW];                                                          /* 230..239 misalignment from crash damage (rad) */
 } VParams;
 #define VP_N ((int)(sizeof(VParams) / 4))
 
@@ -52,6 +56,7 @@ typedef struct
     float s, sv, x1, ft; int calls, gc, cinit;
     /* tyre: lagged slip (relaxation length), camber, temperature, wear */
     float taL, taRaw, vy, fxL, fyL, gam, temp, wear, muF, press, ftF, surf, xLast;
+    float btemp, bmu, sRef, bPow;        /* brake disc temperature (C), brake fade factor, suspension reference (static) position */
 } WSim;
 
 typedef struct
@@ -65,6 +70,7 @@ typedef struct
     double angErr, angMag; LONG angN; int bad;
     double sErr, sMag; LONG sN; int strutOk, strutBad; float M[12]; int Mok; float bodyMass;
     LONG steps, own;
+    int gOwn; float shT, sinceShift, cvtR; volatile LONG shiftReq;   /* own gearbox: gear, shift timer, time since the last shift, CVT ratio, requested manual shift */
     float iGta[3], iTgt[3], iInv[3];
     int clampN[2]; float tLearn[2];   /* where GTA's wheel really stops: its compression held bit-exact step after step above the ride height */   /* body inertia GTA uses / our target (roll, pitch, yaw), per principal axis the factor on our torques */
 } Veh;
@@ -223,6 +229,12 @@ static int vehTyre(Veh *v, int i, u64 wheel, u64 inst, float *out, float *lin, f
     float sgn = dot3(r0, Rt) > 0 ? 1.0f : -1.0f;
     float kappa = (s->w * R - vx) / den, ta = vy / den;
     if (s->front) ta -= sgn * v->p.toeF;                                 /* toe: a static slip angle per wheel */
+    {   /* steering geometry: Ackermann (both front wheels toe out as the lock grows), bump steer, crash misalignment */
+        float st = *(float *)(v->veh + 0x9DC), wb = v->p.wheelbase > 1 ? v->p.wheelbase : 2.6f, trk = fabsf(s->lx) * 2.0f;
+        if (s->front && v->p.ackermann > 0.01f && trk > 0.5f) ta -= sgn * v->p.ackermann * st * st * trk / (4.0f * wb);
+        if (s->front && v->p.bumpToeF != 0) ta -= sgn * v->p.bumpToeF * (s->s - s->sRef);
+        if (i >= 0 && i < MAXW && v->p.dmgToe[i] != 0) ta -= sgn * v->p.dmgToe[i];
+    }
     ta -= 0.1f * s->gam * sgn;                                           /* camber thrust: a leaning tyre pushes towards its lean */
     float rlx = !s->front && v->p.relaxR > 0.05f ? v->p.relaxR : v->p.relax;
     float bl = (fabsf(vx) + 3.0f) * (v->dt > 0.001f ? v->dt : 0.011f) / (rlx > 0.05f ? rlx : 0.45f); if (bl > 1) bl = 1;
@@ -521,6 +533,22 @@ static void vehStep(Veh *v, u64 *wp, int nw, float dt)
             int j = s->pair;
             if (j >= 0 && j < nw) { float tr = fabsf(s->lx - v->ws[j].lx); if (tr > 0.5f) { float sR = s->lx > 0 ? s->s : v->ws[j].s, sL = s->lx > 0 ? v->ws[j].s : s->s; roll = (sR - sL) / tr; } }
             s->gam = g0 + sgn * (1 - p->camGain) * roll + (s->front ? -sgn * sinf(p->caster) * steer : 0.0f);
+            if (s->sRef == 0 && s->s > 0) s->sRef = s->s;
+            s->sRef += (s->s - s->sRef) * (dt / 3.0f > 1 ? 1 : dt / 3.0f);                    /* the static position, slowly */
+            s->gam -= (s->front ? p->bumpCamF : p->bumpCamR) * (s->s - s->sRef);                /* camber gain in bump */
+            if (p->dmgToe[i] != 0) s->gam += 0.5f * fabsf(p->dmgToe[i]);
+            /* brake disc heat: braking power in, convection out (faster with speed); fade above the pad's limit */
+            if (s->btemp == 0) s->btemp = amb + 10; if (s->bmu == 0) s->bmu = 1;
+            if (p->brakeOn > 0.5f)
+            {
+                float mD = s->front ? p->brakeMassF : p->brakeMassR; if (mD < 2) mD = 8;
+                float cool = (6.0f + 2.2f * fabsf(s->vx)) * (s->btemp - amb) + 5.0e-11f * powf(s->btemp + 273.0f, 4.0f);
+                s->btemp += dt * (s->bPow - cool) / (mD * 470.0f);
+                if (s->btemp < amb) s->btemp = amb; if (s->btemp > 1100) s->btemp = 1100;
+                float fa = p->brakeFade > 200 ? p->brakeFade : 550, over = s->btemp - fa;
+                s->bmu = over > 0 ? 1.0f - 0.4f * (over / 300.0f > 1 ? 1 : over / 300.0f) : 1.0f;
+            }
+            else s->bmu = 1;
             float rlx = !s->front && p->relaxR > 0.05f ? p->relaxR : p->relax;
             float bl = (fabsf(s->vx) + 3.0f) * dt / (rlx > 0.05f ? rlx : 0.45f); if (bl > 1) bl = 1;
             s->taL += bl * (s->taRaw - s->taL);
@@ -552,6 +580,61 @@ static void vehStep(Veh *v, u64 *wp, int nw, float dt)
         for (int i = 0; i < nw; i++) if (p->driven[i] > 0.5f) share[i] = v->ws[i].front ? fs / nf : (1 - fs) / nr;
     }
     Rg = nd ? Rg / nd : 0.33f;
+    /* ---- own gearbox: the real box decides the gear (GTA's choice is overwritten every step) */
+    float tqMul = 1.0f;
+    if (p->ownBox > 0.5f && p->bike < 0.5f && ng >= 1)
+    {
+        int bt = (int)p->boxType, gtaG = gear;
+        float wd = 0; int nw2 = 0; for (int i = 0; i < nw; i++) if (p->driven[i] > 0.5f) { wd += v->ws[i].w; nw2++; }
+        wd = nw2 ? wd / nw2 : 0;
+        float tR = p->tyreR > 0.1f ? p->tyreR : 0.33f, kR = Rg / tR * RPM_W;
+        #define RPMG(g) (wd * p->ratios[(g)] * kR)
+        if (v->gOwn < 1 || v->gOwn > ng) v->gOwn = gtaG >= 1 && gtaG <= ng ? gtaG : 1;
+        v->sinceShift += dt;
+        if (gtaG <= 0) v->gOwn = 1;                                      /* GTA selected reverse / neutral (stopped, braking): follow it */
+        else if (bt == 6 && p->cvtLow > 0.5f && p->cvtHigh > 0.1f)
+        {   /* CVT: holds the engine where the throttle asks for, between the ratio ends */
+            float want = p->idle + (p->peakHpRpm > 1000 ? p->peakHpRpm : p->redline * 0.8f) * (0.25f + 0.75f * thr) - p->idle * 0.25f;
+            float r = fabsf(wd) * kR > 1 ? want / (fabsf(wd) * kR) : p->cvtLow;
+            if (r > p->cvtLow) r = p->cvtLow; if (r < p->cvtHigh) r = p->cvtHigh;
+            if (v->cvtR <= 0) v->cvtR = p->cvtLow;
+            v->cvtR += (r - v->cvtR) * (dt / 0.35f > 1 ? 1 : dt / 0.35f);
+            v->gOwn = 1;
+        }
+        else if (v->shT <= 0)
+        {
+            int g = v->gOwn, req = (int)InterlockedExchange(&v->shiftReq, 0);
+            float red = p->redline > 1000 ? p->redline : 6500, idl = p->idle > 300 ? p->idle : 800, pk = p->peakHpRpm > 1000 ? p->peakHpRpm : red * 0.85f;
+            float rpm = RPMG(g);
+            if (p->manual > 0.5f)
+            {   /* by hand; the box refuses a downshift that would over-rev */
+                if (req > 0 && g < ng) g++;
+                else if (req < 0 && g > 1 && RPMG(g - 1) < red * 1.02f) g--;
+                if (rpm > red * 1.04f && g < ng && bt != 1) g++;                 /* automated boxes protect the engine */
+            }
+            else if (v->sinceShift > 0.35f)
+            {
+                float up = thr > 0.92f ? red * 0.985f : idl + (pk - idl) * (0.30f + 0.62f * thr);
+                float dn = idl * 1.25f + (pk * 0.55f - idl * 1.25f) * thr;
+                if (rpm > up && g < ng && RPMG(g + 1) > idl * 1.1f) g++;
+                else if (g > 1 && rpm < dn && RPMG(g - 1) < red * 0.9f) g--;
+                else if (g > 1 && thr > 0.9f && rpm < pk * 0.8f && RPMG(g - 1) < red * 0.92f) g--;            /* kick-down */
+                else if (g > 1 && brk > 0.3f && rpm < red * 0.45f && RPMG(g - 1) < red * 0.8f) g--;         /* engine braking into a corner */
+            }
+            if (g != v->gOwn) { v->gOwn = g; v->shT = p->shiftT > 0.01f ? p->shiftT : 0.3f; v->sinceShift = 0; }
+        }
+        if (v->shT > 0) v->shT -= dt;
+        gear = gtaG <= 0 ? gtaG : v->gOwn;
+        ratio = gear <= 0 ? -p->ratios[0] : (bt == 6 && p->cvtLow > 0.5f ? v->cvtR : p->ratios[gear > ng ? ng : gear]);
+        if (v->shT > 0)
+        {   /* the shift itself: a clutch opens (manual, automated, sequential); a dual clutch hands over; a converter auto softens */
+            if (bt == 3) tqMul = 0.75f; else if (bt == 2) tqMul = 0.5f; else clutch = 0.0f;
+        }
+        else clutch = 1.0f;
+        if (bt == 2 && gear == 1) { float ws = fabsf(wd) * fabsf(ratio) * kR, er = v->engW * RPM_W; if (er > ws + 50) { float sl = 1 - ws / er; if (sl < 0) sl = 0; tqMul *= 1 + ((p->tcStall > 1 ? p->tcStall : 2.0f) - 1) * sl; } }
+        if (gear >= 1) { *(short *)(veh + 0x880) = (short)gear; *(short *)(veh + 0x882) = (short)gear; }
+        #undef RPMG
+    }
     float rEff = ratio * Rg / (p->tyreR > 0.1f ? p->tyreR : 0.33f);
     int coupled = fabsf(rEff) > 0.01f && clutch > 0.5f && nd > 0;
     float vAvg = 0; int nv = 0; for (int i = 0; i < nw; i++) if (v->ws[i].fz > 0) { vAvg += v->ws[i].vx; nv++; } if (nv) vAvg /= nv;
@@ -624,7 +707,7 @@ static void vehStep(Veh *v, u64 *wp, int nw, float dt)
             if (v->engW * RPM_W < p->idle) v->engW = p->idle / RPM_W;
             if (v->engW * RPM_W > p->redline * 1.02f) v->engW = p->redline * 1.02f / RPM_W;
         }
-        float tIn = te * rEff * (te > 0 ? p->eff : 1.0f), Td[MAXW], Iw[MAXW];
+        float tIn = te * (te > 0 ? tqMul : 1.0f) * rEff * (te > 0 ? p->eff : 1.0f), Td[MAXW], Iw[MAXW];
         for (int i = 0; i < nw; i++) { Td[i] = tIn * share[i]; Iw[i] = I[i] + Ie * share[i]; }
         /* limited-slip differential per axle: preload + power / coast ramp */
         for (int i = 0; i < nw; i++)
@@ -678,8 +761,11 @@ static void vehStep(Veh *v, u64 *wp, int nw, float dt)
             }
             else s->absF = 1;
             float bAx = s->front ? (nF ? brakeF / nF : 0) : (nR ? brakeR / nR : 0);
-            float tb = (pedal * s->absF + escB[i]) * bAx * R[i] + (!s->front && nR ? hand * p->handCap / nR * R[i] : 0.0f)
+            float tbr = (pedal * s->absF + escB[i]) * bAx * R[i] * (s->bmu > 0.3f ? s->bmu : 1.0f);
+            float tb = tbr + (!s->front && nR ? hand * p->handCap / nR * R[i] : 0.0f)
                      + p->rolling * s->fz * R[i];
+            if (k == 0) s->bPow = 0;
+            s->bPow += tbr * fabsf(s->w) / n;                                      /* braking power into the disc (W) */
             float db = h * tb / Ieff;
             if (fabsf(wn) <= db) wn = 0; else wn -= (wn > 0 ? db : -db);
             s->w = wn;

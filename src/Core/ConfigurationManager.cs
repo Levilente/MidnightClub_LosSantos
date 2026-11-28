@@ -40,6 +40,7 @@ namespace MidnightClub.Core
         public bool RealDrivetrain = true, InversePower = true;
         public int TcsLevel = 4, AbsLevel = 6, EscLevel = 3;
         public bool NativePhysics = true;
+        public bool OwnGearbox = true, ManualShift = false;          // the real gearbox shifts (type, ratios, shift time); player shifts by hand
         public bool TyreTemps = true;                                  // tyre temperature and hot pressure simulated (off: tyres always at working temperature)
         public int SteerAssist = 5;                                    // gamepad steering assist 0 = off .. 10                               // MidnightClubPhysics.asi tyre / suspension model
         public int Difficulty = 2;                                      // 0 Novice .. 5 Unbeatable
@@ -126,6 +127,7 @@ namespace MidnightClub.Core
             c.Difficulty = Math.Max(0, Math.Min(5, Get(s, "Gameplay", "Difficulty", c.Difficulty)));
             c.NativePhysics = Get(s, "Physics", "Native", c.NativePhysics);
             c.TyreTemps = Get(s, "Physics", "TyreTemperature", c.TyreTemps);
+            c.OwnGearbox = Get(s, "Physics", "RealGearbox", c.OwnGearbox); c.ManualShift = Get(s, "Physics", "ManualShift", c.ManualShift);
             c.SteerAssist = Math.Max(0, Math.Min(10, Get(s, "Assists", "GamepadSteering", c.SteerAssist)));
             c.PoliceEnabled = Get(s, "Police", "Enabled", c.PoliceEnabled);
             c.AlwaysNight = Get(s, "World", "AlwaysNight", c.AlwaysNight);

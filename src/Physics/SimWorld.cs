@@ -23,7 +23,7 @@ namespace MidnightClub.Physics
         [DllImport("MidnightClubPhysics.asi", CallingConvention = CallingConvention.Cdecl)] private static extern int MCP_VehState(long veh, float[] o, int n);
         [DllImport("MidnightClubPhysics.asi", CallingConvention = CallingConvention.Cdecl)] private static extern int MCP_AxisFallbacks();
 
-        public const int VP = 212, CurveN = 48;
+        public const int VP = 240, CurveN = 48;
         /// <summary>Opponents in the current race (handles), set by the race code: they get the race assists.</summary>
         public static readonly HashSet<int> Rivals = new HashSet<int>();
         public static bool Available { get; private set; }
@@ -35,7 +35,7 @@ namespace MidnightClub.Physics
         private static readonly Dictionary<int, ModelStock> models = new Dictionary<int, ModelStock>();
         private static readonly Dictionary<string, float[]> paramCache = new Dictionary<string, float[]>();
         private static int avail = -1, nextScan, nextLog, playerHandle; private static long playerAddr;
-        private static readonly float[] st = new float[84];
+        private static readonly float[] st = new float[100];
         private static float lastSteps, lastOwn;
 
         // live state of your car
@@ -58,6 +58,11 @@ namespace MidnightClub.Physics
         [DllImport("MidnightClubPhysics.asi", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Unicode)] private static extern int MCP_SimDump(string path);
         private static int nextDump;
         /// <summary>New tyres on your car (workshop repair / compound change): wear back to zero.</summary>
+        [DllImport("MidnightClubPhysics.asi", CallingConvention = CallingConvention.Cdecl)] private static extern void MCP_VehShift(long veh, int dir);
+        public static void Shift(Vehicle car, int dir) { try { if (Available && car != null && car.Exists()) MCP_VehShift(car.MemoryAddress.ToInt64(), dir); } catch { } }
+        /// <summary>Own gearbox's gear and the brake disc temperatures of your car (from the native model).</summary>
+        public static int OwnGear { get { return (int)st[84]; } }
+        public static float BrakeTemp(int i) { return i >= 0 && i < 10 ? st[86 + i] : 0f; }
         public static void NewTyres(Vehicle car) { try { if (Available && car != null && car.Exists()) MCP_VehTyresNew(car.MemoryAddress.ToInt64()); } catch { } }
 
         private sealed class Pw { public float Mult; public int Until; }
@@ -218,6 +223,7 @@ namespace MidnightClub.Physics
             else { abs = s.Year >= 1992 ? 8 : 0; tcs = s.Year >= 2006 ? 7 : 0; esc = s.Year >= 2008 ? 7 : 0; }
             if (s.Bike) { esc = 0; tcs = player ? tcs : Math.Min(tcs, 5); }
             float pw = PowerOf(car);
+            if (player) { float eh = car.EngineHealth; if (eh < 900f) pw *= 0.55f + 0.45f * Math.Max(0f, eh) / 900f; }   // a damaged engine loses power
             string key = (player ? "P|" : "A|") + (cfg.TyreTemps ? "T" : "t") + (int)(pw * 50f) + "|" + L.Key + "|" + wc + "|" + tcs + "|" + abs + "|" + esc + "|" + (parked ? 1 : 0) + "|" + (int)(wet * 50f) + (player ? "|" + Vehicles.Setup.Key(rec) : "");
             float[] p;
             if (paramCache.TryGetValue(key, out p) && !player) return p;
@@ -355,6 +361,41 @@ namespace MidnightClub.Physics
                 p[4] = L.TyreF.By; p[5] = L.TyreF.Cy; p[6] = L.TyreF.Ey; p[191] = L.TyreF.Relax; p[200] = L.TyreF.Kt;
                 p[46] = L.TyreR.By; p[47] = L.TyreR.Ey; p[48] = L.TyreR.Kt; p[49] = L.TyreR.Relax; p[68] = L.TyreR.MuY / Math.Max(0.1f, L.TyreF.MuY);
                 if (sh != null && sh.tyres != null) { p[199] = sh.tyres.unsprungFrontKg; p[69] = sh.tyres.unsprungRearKg; }
+            }
+            // ---- own gearbox (real type, shift time), brake heat, steering geometry, crash damage
+            string bx = sh != null && sh.drivetrain != null && sh.drivetrain.gearbox != null ? sh.drivetrain.gearbox.type ?? "" : s.Year < 1985 ? "automatic" : "automatic";
+            int bt = bx == "manual" ? 1 : bx == "automatic" ? 2 : bx == "dual-clutch" ? 3 : bx == "sequential" ? 4 : bx == "automated manual" ? 5 : bx == "CVT" ? 6 : bx == "single-speed" ? 7 : 2;
+            p[212] = cfg.OwnGearbox && cfg.NativePhysics && !s.Bike && L.Gear.Gears >= 1 ? 1f : 0f;
+            p[213] = bt;
+            float shMs = sh != null && sh.drivetrain != null && sh.drivetrain.gearbox != null && sh.drivetrain.gearbox.shiftMs > 0 ? sh.drivetrain.gearbox.shiftMs : bt == 3 ? 120 : bt == 4 ? 70 : bt == 5 ? 180 : bt == 1 ? 350 : 280;
+            if (player && Vehicles.Setup.Has(rec, "gearbox")) shMs *= 0.6f;                          // race gearbox: quicker shifts
+            p[214] = shMs / 1000f; p[215] = 2.0f; p[216] = player && cfg.ManualShift ? 1f : 0f; p[217] = L.Engine.PeakHpRpm;
+            if (bt == 6) { p[218] = L.Gear.Final * 2.4f; p[219] = L.Gear.Final * 0.45f; }
+            p[220] = 1f;
+            if (sh != null && sh.brakes != null && sh.brakes.front != null)
+            {
+                Func<SpecBrake, float> disc = br => { float d = br.sizeMm > 100 ? br.sizeMm : 300; string ty = br.type ?? ""; float dm = 9e-5f * d * d; return ty.StartsWith("carbon") ? dm * 0.5f : ty.StartsWith("solid") ? dm * 0.7f : ty == "drum" ? dm * 1.6f : dm; };
+                p[222] = disc(sh.brakes.front) * Math.Max(1, sh.brakes.front.count); p[223] = disc(sh.brakes.rear) * Math.Max(1, sh.brakes.rear.count);
+                bool carbon = (sh.brakes.front.type ?? "").StartsWith("carbon");
+                p[221] = carbon ? 900f : sh.brakes.padMu >= 0.45f ? 750f : sh.brakes.padMu >= 0.42f ? 650f : 550f;
+            }
+            else { p[221] = 550f; p[222] = 9f; p[223] = 7f; }
+            if (player && brakeLvl > 0) { p[221] += 50f * brakeLvl; p[222] *= 1f + 0.1f * brakeLvl; p[223] *= 1f + 0.1f * brakeLvl; }   // bigger, better-cooled brakes
+            string chr = sh != null ? sh.character ?? "" : "";
+            p[224] = chr == "race" || chr == "drift" ? 0f : chr == "sport" || chr == "super" || chr == "hyper" ? 0.35f : 0.6f;
+            Func<string, float> camGain = c2 => c2 == "MS" ? 0.35f : c2 == "DW" ? 0.6f : c2 == "ML" ? 0.5f : c2 == "PR" ? 0.7f : c2 == "SA" ? 0.4f : c2 == "TB" || c2 == "TA" ? 0.1f : c2 == "SW" ? 1.2f : 0f;
+            if (sh != null && sh.suspension != null && sh.suspension.front != null)
+            {
+                p[225] = camGain(sh.suspension.front.code); p[226] = camGain(sh.suspension.rear != null ? sh.suspension.rear.code : "");
+                p[227] = sh.suspension.front.code == "MS" ? 0.03f : sh.suspension.front.code == "LA" || sh.suspension.front.code == "LL" ? 0.0f : 0.015f;
+            }
+            if (player)
+            {   // crash damage: a hit wheel loses its alignment
+                for (int i = 0; i < wc && i < 10; i++)
+                {
+                    float hp = i < wheels.Length ? wheels[i].Health : 1000f;
+                    if (hp >= 0f && hp < 990f) p[230 + i] = (1000f - hp) / 1000f * 0.035f * (i % 2 == 0 ? 1f : -1f);
+                }
             }
             // torque curves: full load and off-boost
             for (int i = 0; i < CurveN; i++) { p[92 + i] = L.Engine.Full[i]; p[92 + CurveN + i] = L.Engine.NoBoost[i]; }
