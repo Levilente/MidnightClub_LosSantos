@@ -224,7 +224,7 @@ namespace MidnightClub.Vehicles
             if (Game.GameTime > calSaveAt) { calSaveAt = Game.GameTime + 30000; SaveCal(); }
             float M = AccelDemand / A(L, stockDriveForce, gi, car.HighGear);
             // GTA cuts drive force when the car is sideways: give it back (a real engine doesn't care about the slide)
-            float rear = 1f - Math.Max(0f, Math.Min(1f, car.HandlingData.DriveBiasFront));
+            float rear = 1f - Physics.HandlingMem.GetBias(car.HandlingData, Physics.HandlingMem.DriveBias);
             if (slideCos < 0.995f && slideCos > 0.2f) M *= 1f + rear * Math.Min(1.6f, 1f / Math.Max(0.35f, slideCos) - 1f);
             M *= (1f - Math.Max(0f, Math.Min(0.95f, TcsCut))) * (1f - Math.Max(0f, Math.Min(0.95f, EscCut)));
             M = Math.Max(0.02f, Math.Min(14f, M));

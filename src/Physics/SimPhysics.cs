@@ -24,12 +24,12 @@ namespace MidnightClub.Physics
         public static bool Active { get { return Instance != null; } }
         public const float GripK = 2.25f;          // GTA traction units per unit of real tyre friction
 
-        private sealed class Stock { public float TMax, TMin, TLat, LowLoss, Steer, Brake, HBrake, SForce, SComp, SReb, SUp, SLow, Arb, RollF, RollR, BiasT, BiasB, Raise, FlatVel, DriveF, Mass, DriveBias, ArbBias, SuspBias, TLoss, MaxVel, Drag, DriveInertia, ClutchUp, ClutchDown; public int Gears; public Vector3 Com, Inertia; }
+        private sealed class Stock { public float TMax, TMin, TLat, LowLoss, Steer, Brake, HBrake, SForce, SComp, SReb, SUp, SLow, Arb, RollF, RollR, BiasT, BiasB, Raise, FlatVel, DriveF, Mass, DriveBias, ArbBias, SuspBias, TLoss, MaxVel, Drag, DriveInertia, ClutchUp, ClutchDown; public int Gears; public Vector3 Com, Inertia; public byte[] Raw; }
 
         private readonly VehicleManager vehicles; private readonly VehicleRegistry registry; private readonly Config cfg;
         private readonly Dictionary<int, Stock> stocks = new Dictionary<int, Stock>();
         private int appliedModel; private string appliedKey; private Vehicle appliedCar;
-        private float baseTMax, baseSlide, baseBias = 0.5f, baseLat, baseBrake, baseSteer;
+        private byte[] curRaw; private int kerbLogAt; private float baseTMax, baseSlide, baseBias = 0.5f, baseLat, baseBrake, baseSteer;
         public Drivetrain.Live Live { get; private set; }
         public float SlipDeg { get; private set; }
         public bool TcsActive { get; private set; }
@@ -86,7 +86,8 @@ namespace MidnightClub.Physics
                 Arb = h.AntiRollBarForce, RollF = h.RollCenterHeightFront, RollR = h.RollCenterHeightRear, Inertia = h.InertiaMultiplier,
                 BiasT = h.TractionBiasFront, BiasB = h.BrakeBiasFront, Raise = h.SuspensionRaise, FlatVel = h.InitialDriveMaxFlatVelocity, DriveF = h.InitialDriveForce,
                 Mass = h.Mass, DriveBias = h.DriveBiasFront, ArbBias = h.AntiRollBarBiasFront, SuspBias = h.SuspensionBiasFront, TLoss = h.TractionLossMultiplier,
-                MaxVel = h.InitialDriveMaxVelocity, Drag = h.InitialDragCoefficient, DriveInertia = h.DriveInertia, ClutchUp = h.ClutchChangeRateScaleUpShift, ClutchDown = h.ClutchChangeRateScaleDownShift, Gears = h.InitialDriveGears };
+                MaxVel = h.InitialDriveMaxVelocity, Drag = h.InitialDragCoefficient, DriveInertia = h.DriveInertia, ClutchUp = h.ClutchChangeRateScaleUpShift, ClutchDown = h.ClutchChangeRateScaleDownShift, Gears = h.InitialDriveGears, Raw = HandlingMem.Snapshot(h) };
+            Log.Info("Handling memory " + hash + ": " + HandlingMem.Describe(s.Raw));
             return s;
         }
 
@@ -98,6 +99,7 @@ namespace MidnightClub.Physics
             h.TractionBiasFront = s.BiasT; h.BrakeBiasFront = s.BiasB; h.SuspensionRaise = s.Raise; h.InitialDriveMaxFlatVelocity = s.FlatVel; h.InitialDriveForce = s.DriveF;
             h.Mass = s.Mass; h.DriveBiasFront = s.DriveBias; h.AntiRollBarBiasFront = s.ArbBias; h.SuspensionBiasFront = s.SuspBias; h.TractionLossMultiplier = s.TLoss;
             h.InitialDriveMaxVelocity = s.MaxVel; h.InitialDragCoefficient = s.Drag; h.DriveInertia = s.DriveInertia; h.ClutchChangeRateScaleUpShift = s.ClutchUp; h.ClutchChangeRateScaleDownShift = s.ClutchDown; h.InitialDriveGears = s.Gears;
+            HandlingMem.Restore(h, s.Raw);   // byte-exact, including the paired / inverse fields
         }
 
         // ------------------------------------------------------------------ handling (per model, only while driving)
@@ -134,7 +136,7 @@ namespace MidnightClub.Physics
                 com.Z = s.Com.Z + Clamp(z - s.Com.Z, -0.15f, 0.04f);   // never raise GTA's CoM much: its bodies roll on a higher roll axis than real cars
                 h.CenterOfMassOffset = com;
             }
-            if (spec.Curated && !bike) h.DriveBiasFront = spec.FrontDrive >= 0.95f ? 1f : spec.FrontDrive;
+            if (spec.Curated && !bike) HandlingMem.SetBias(h, HandlingMem.DriveBias, spec.FrontDrive >= 0.95f ? 1f : spec.FrontDrive, s.Raw);
             h.InitialDriveGears = Math.Max(1, car.HighGear);
             h.InitialDragCoefficient = s.Drag * 0.03f;                    // the real aero drag is applied every frame instead
             h.InitialDriveForce = s.DriveF;
@@ -145,12 +147,12 @@ namespace MidnightClub.Physics
             h.TractionCurveLateral = ToHandlingAngle(s.TLat, t.PeakDeg * 1.4f);   // GTA's slip angle is measured at the body, the tyre's at the contact patch
             h.LowSpeedTractionLossMultiplier = s.LowLoss;
             h.TractionLossMultiplier = s.TLoss * t.OffroadLoss;
-            if (!bike) h.TractionBiasFront = 0.5f;
-            Suspension.Apply(h, spec, susp, Setup.Has(rec, "springs"), Setup.Has(rec, "arb"));
+            if (!bike) HandlingMem.SetBias(h, HandlingMem.TractionBias, 0.5f, s.Raw);
+            Suspension.Apply(h, spec, susp, Setup.Has(rec, "springs"), Setup.Has(rec, "arb"), s.Raw);
             h.BrakeForce = s.Brake * 1.15f;
             h.HandBrakeForce = s.HBrake * 1.2f;
             if (rec != null) Setup.Apply(h, rec);
-            baseTMax = h.TractionCurveMax; baseSlide = h.TractionCurveMin / Math.Max(0.01f, h.TractionCurveMax); baseBias = h.TractionBiasFront; baseLat = h.TractionCurveLateral; baseBrake = h.BrakeForce; baseSteer = h.SteeringLock;
+            baseTMax = h.TractionCurveMax; baseSlide = h.TractionCurveMin / Math.Max(0.01f, h.TractionCurveMax); baseBias = HandlingMem.GetBias(h, HandlingMem.TractionBias); curRaw = s.Raw; HandlingMem.SyncAll(h, s.Raw); baseLat = h.TractionCurveLateral; baseBrake = h.BrakeForce; baseSteer = h.SteeringLock;
             appliedModel = hash; appliedKey = key; appliedCar = car;
             Log.Info("Sim handling " + spec.Id + ": " + h.Mass.ToString("0") + " kg, CoG " + h.CenterOfMassOffset.Y.ToString("0.00") + "/" + h.CenterOfMassOffset.Z.ToString("0.00") + ", drive front " + h.DriveBiasFront.ToString("0.00") + ", grip " + h.TractionCurveMax.ToString("0.00") + " (" + t.Name + ")");
         }
@@ -198,6 +200,7 @@ namespace MidnightClub.Physics
                 var L = Live; if (L == null) return;
                 float dt = Math.Min(0.05f, Math.Max(0.001f, Game.LastFrameTime));
                 if (!car.IsInAir) Suspension.Filter(car, dt, L.Tyre.MuY);
+                if (Game.GameTime > kerbLogAt) { kerbLogAt = Game.GameTime + 15000; if (Suspension.Count > 0) { Log.Info("Kerb filter: " + Suspension.Count + " corrections in 15 s"); Suspension.Count = 0; } }
                 Frame(car, rec, L, dt);
                 Suspension.Set(car.Velocity, car.WorldRotationVelocity);
             }
@@ -231,7 +234,7 @@ namespace MidnightClub.Physics
             bool clean = ground && !boosted && speed > 4f && vx > 0f && Math.Abs(kd) < 0.06f && Math.Abs(beta) < 0.08f && Math.Abs(pitch) < 0.1f && brake < 0.05f && !hand;
             // ---- driver aids
             int tcsL = Math.Max(0, Math.Min(10, cfg.TcsLevel)), absL = Math.Max(0, Math.Min(10, cfg.AbsLevel)), escL = Math.Max(0, Math.Min(10, cfg.EscLevel));
-            float rearDrive = 1f - Clamp(h.DriveBiasFront, 0f, 1f);
+            float rearDrive = 1f - HandlingMem.GetBias(h, HandlingMem.DriveBias);
             // traction control: hold the driven wheels near the tyre's peak slip
             float tcsWant = 0f;
             if (tcsL > 0 && thr > 0.05f && vx > -0.5f)
@@ -297,7 +300,7 @@ namespace MidnightClub.Physics
             else
             {
                 float dy = m * Math.Abs(ay) * cgh / track;
-                float rs = Clamp(0.5f + (h.AntiRollBarBiasFront - 0.5f) * 0.9f + (h.SuspensionBiasFront - 0.5f) * 0.3f, 0.25f, 0.75f);
+                float rs = Clamp(0.5f + (HandlingMem.GetBias(h, HandlingMem.ArbBias) - 0.5f) * 0.9f + (HandlingMem.GetBias(h, HandlingMem.SuspBias) - 0.5f) * 0.3f, 0.25f, 0.75f);
                 Func<float, float, float> cap = (axle, shift) => { float o = axle / 2f + shift, i = Math.Max(0f, axle / 2f - shift); o = axle - i; return Tyres.Mu(t, o, fz0, true) * o + Tyres.Mu(t, i, fz0, true) * i; };
                 gf = 1f + (cap(fzf, dy * rs) / Math.Max(1f, t.MuY * fzfG) - 1f) * 0.5f;
                 gr = 1f + (cap(fzr, dy * (1f - rs)) / Math.Max(1f, t.MuY * fzrG) - 1f) * 0.5f;
@@ -306,10 +309,10 @@ namespace MidnightClub.Physics
                 gr *= (float)Math.Pow(Math.Max(0.2f, (fzr0 + dl) / fzr0), 0.25);
                 // combined slip: longitudinal slip of each axle eats its side grip
                 float alpha = Math.Abs(beta);
-                float frontDrive = Clamp(h.DriveBiasFront, 0f, 1f);
+                float frontDrive = HandlingMem.GetBias(h, HandlingMem.DriveBias);
                 bool absOn = absL > 0;
                 float kb = brake > 0.05f && vx > 2f ? -brake * t.PeakK * (absOn ? 1f + (10 - absL) * 0.12f : 3f) : 0f;
-                float bf = Clamp(h.BrakeBiasFront, 0.2f, 0.8f);
+                float bf = Clamp(HandlingMem.GetBias(h, HandlingMem.BrakeBias), 0.2f, 0.8f);
                 // only the driven wheels' measured spin counts (GTA has a single grip value per axle, so cutting it
                 // for braking slip would cut the braking too); a locked handbrake takes most of the rear side grip
                 float kF = Math.Max(0f, kd) * frontDrive * (thr > 0.05f ? 1f : 0f);
@@ -355,12 +358,13 @@ namespace MidnightClub.Physics
         private void WriteGrip(HandlingData h, Drivetrain.Live L, float f, float r, float wet, float peakShift = 1f)
         {
             float b0 = baseBias;
-            if (L.Spec.Bike) { h.TractionCurveMax = baseTMax * wet * Math.Min(f, r); h.TractionCurveMin = h.TractionCurveMax * baseSlide; return; }
+            if (L.Spec.Bike) { h.TractionCurveMax = baseTMax * wet * Math.Min(f, r); h.TractionCurveMin = h.TractionCurveMax * baseSlide; HandlingMem.SyncAll(h, curRaw); return; }
             float sum = b0 * f + (1f - b0) * r;
             h.TractionCurveMax = baseTMax * wet * sum;
             h.TractionCurveMin = h.TractionCurveMax * baseSlide;
-            h.TractionBiasFront = Clamp(b0 * f / Math.Max(0.01f, sum), 0.12f, 0.88f);
+            HandlingMem.SetBias(h, HandlingMem.TractionBias, Clamp(b0 * f / Math.Max(0.01f, sum), 0.12f, 0.88f), curRaw);
             h.TractionCurveLateral = baseLat * peakShift;
+            HandlingMem.SyncAll(h, curRaw);
         }
 
         private void SteeringByspeed(HandlingData h, float speed)

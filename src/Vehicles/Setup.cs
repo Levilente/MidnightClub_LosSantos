@@ -99,7 +99,7 @@ namespace MidnightClub.Vehicles
             // tyres: lower pressure = more grip, slower response; the balance moves grip front/rear
             float pf = V(0), pr = V(1);
             h.TractionCurveMax *= 1f - 0.004f * (pf + pr) - 0.0015f * (pf * pf + pr * pr) / 10f;
-            h.TractionBiasFront = Clamp(h.TractionBiasFront - 0.004f * (pf - pr), 0.36f, 0.64f);
+            Physics.HandlingMem.SetBias(h, Physics.HandlingMem.TractionBias, Clamp(Physics.HandlingMem.GetBias(h, Physics.HandlingMem.TractionBias) - 0.004f * (pf - pr), 0.36f, 0.64f), null);
             // gearing, aero and power are part of the simulation (Drivetrain / SimPhysics)
             // alignment: negative camber = more cornering grip, less braking; toe out = sharper turn-in; caster = stability
             float camber = -(V(3) + V(4)) / 2f;
@@ -107,22 +107,23 @@ namespace MidnightClub.Vehicles
             h.SteeringLock *= 1f + 0.01f * V(5);
             // anti-roll bars
             float af = V(7), ar = V(8);
-            h.AntiRollBarForce *= 1f + 0.045f * (af + ar) / 2f; h.AntiRollBarBiasFront = Clamp(h.AntiRollBarBiasFront + 0.02f * (af - ar), 0.2f, 0.8f);
+            h.AntiRollBarForce *= 1f + 0.045f * (af + ar) / 2f; Physics.HandlingMem.SetBias(h, Physics.HandlingMem.ArbBias, Clamp(Physics.HandlingMem.GetBias(h, Physics.HandlingMem.ArbBias) + 0.02f * (af - ar), 0.2f, 0.8f), null);
             // springs + height
             float sf = V(9), sr = V(10);
-            h.SuspensionForce *= 1f + 0.045f * (sf + sr) / 2f; h.SuspensionBiasFront = Clamp(h.SuspensionBiasFront + 0.015f * (sf - sr), 0.3f, 0.7f);
+            h.SuspensionForce *= 1f + 0.045f * (sf + sr) / 2f; Physics.HandlingMem.SetBias(h, Physics.HandlingMem.SuspBias, Clamp(Physics.HandlingMem.GetBias(h, Physics.HandlingMem.SuspBias) + 0.015f * (sf - sr), 0.3f, 0.7f), null);
             h.SuspensionRaise += 0.009f * V(11);
             // damping
             h.SuspensionReboundDamping *= 1f + 0.05f * V(12); h.SuspensionCompressionDamping *= 1f + 0.05f * V(13);
             // aero: grip at speed, costs top speed
             // brakes
             if (Has(r, "brakes")) h.BrakeForce *= 1.08f;
-            h.BrakeBiasFront = Clamp(h.BrakeBiasFront + 0.015f * V(16), 0.3f, 0.8f); h.BrakeForce *= 1f + 0.03f * V(17);
+            Physics.HandlingMem.SetBias(h, Physics.HandlingMem.BrakeBias, Clamp(Physics.HandlingMem.GetBias(h, Physics.HandlingMem.BrakeBias) + 0.015f * V(16), 0.3f, 0.8f), null); h.BrakeForce *= 1f + 0.03f * V(17);
             // differential: more accel lock = more power oversteer, decel lock = stability off throttle
             if (Has(r, "diff")) { h.LowSpeedTractionLossMultiplier *= 1f + 0.04f * V(18); h.TractionLossMultiplier *= 1f + 0.02f * V(18); h.TractionCurveMin *= 1f + 0.01f * V(19); }
             // drivetrain conversions + centre balance
-            if (Has(r, "awd")) h.DriveBiasFront = 0.35f; else if (Has(r, "rwd")) h.DriveBiasFront = 0f;
-            if (h.DriveBiasFront > 0.05f && h.DriveBiasFront < 0.95f && Has(r, "diff")) h.DriveBiasFront = Clamp(0.35f - 0.03f * V(20), 0.1f, 0.6f);
+            if (Has(r, "awd")) Physics.HandlingMem.SetBias(h, Physics.HandlingMem.DriveBias, 0.35f, null); else if (Has(r, "rwd")) Physics.HandlingMem.SetBias(h, Physics.HandlingMem.DriveBias, 0f, null);
+            float db = Physics.HandlingMem.GetBias(h, Physics.HandlingMem.DriveBias);
+            if (db > 0.05f && db < 0.95f && Has(r, "diff")) Physics.HandlingMem.SetBias(h, Physics.HandlingMem.DriveBias, Clamp(0.35f - 0.03f * V(20), 0.1f, 0.6f), null);
             // steering
             h.SteeringLock *= 1f + 0.035f * V(21);
             // weight

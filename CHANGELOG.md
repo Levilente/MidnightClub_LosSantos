@@ -1,4 +1,9 @@
 # Changelog
+## 0.43.0 (2026-11-28): handling memory fixed at the root
+- **The cause of the understeer found** (from the probe's memory dump): GTA keeps biases as front/rear pairs and several tyre-curve values with a precomputed inverse next to them; ScriptHookVDotNet writes only one field. Setting the traction balance to 0.5 halved the front grip, the tuning clamps squeezed the suspension and roll-bar balance, and new tyre curves ran with old inverses. All handling writes now go through a writer that keeps both halves and the inverses right (convention detected per car), and the stock block is restored byte-exact.
+- Suspension: lowering per level halved (the car no longer sits down), kerb filter tighter and no longer switched off by kerb contacts (logs how often it corrects).
+- Probe findings stored for the next step: wheel spin rate, tyre forces and loads, suspension compression per wheel (CWheel 0x230 bytes), the wheel-physics code region.
+
 ## 0.42.4 (2026-11-28)
 - Fix: cars floated and slid on the new suspension. The suspension values were written as absolute numbers, but GTA exposes them in its own internal form; they are now scaled from each car's own values by the real ratios (frequency squared for springs, frequency x damping for dampers, roll stiffness, travel).
 - Fix: the session starts in the active car's garage (the garage list wasn't loaded yet at spawn time).

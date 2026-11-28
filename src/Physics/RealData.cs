@@ -178,7 +178,7 @@ namespace MidnightClub.Physics
             bool bike = car.Model.IsBike;
             string k = bike ? "Bike" : info != null ? info.Class.ToString() : "Sedans";
             s.Kind = k; s.Bike = bike;
-            float mass = h.Mass, df = h.InitialDriveForce, bias = h.DriveBiasFront;
+            float mass = h.Mass, df = h.InitialDriveForce, bias = HandlingMem.GetBias(h, HandlingMem.DriveBias);
             s.Kg = mass;
             // power: the class and era set the level, GTA's drive force places the car within it
             float hpt, dfMean, redline, cgh, cda, cla, tyreR = 0.33f; string eng = "I"; int cyl = 4; float litres = 2.0f; Induction ind = Induction.NA;

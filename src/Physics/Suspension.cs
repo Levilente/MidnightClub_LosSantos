@@ -38,7 +38,7 @@ namespace MidnightClub.Physics
         /// <summary>Applied relative to the car's own GTA values (whose units SHVDN exposes in GTA's internal form): the
         /// stock car is taken as the type's base frequency, and the real ratios (frequency squared for springs,
         /// frequency x damping ratio for dampers, roll stiffness, travel) scale it from there.</summary>
-        public static void Apply(HandlingData h, CarSpec s, int level, bool coilovers, bool raceBars)
+        public static void Apply(HandlingData h, CarSpec s, int level, bool coilovers, bool raceBars, byte[] raw)
         {
             if (s.Bike) return;   // bikes keep GTA's own (their suspension model is separate)
             float fBase = RideHz(s, 0, false), f = RideHz(s, level, coilovers);
@@ -48,17 +48,18 @@ namespace MidnightClub.Physics
             h.SuspensionForce *= k * k;
             h.SuspensionCompressionDamping *= k * zc;
             h.SuspensionReboundDamping *= k * zr;
-            float tr = (1f - 0.08f * level - (coilovers ? 0.06f : 0f)) / era;
+            float tr = (1f - 0.04f * level - (coilovers ? 0.03f : 0f)) / era;
             h.SuspensionUpperLimit *= tr; h.SuspensionLowerLimit *= tr;
             h.AntiRollBarForce *= era * (1f + 0.10f * level) * (raceBars ? 1.15f : 1f);
             float arbBias = s.FrontDrive >= 0.95f ? 0.62f : s.Layout == "RR" ? 0.47f : s.Layout == "MR" || s.Layout == "AWD-M" ? 0.52f : 0.57f;
-            h.AntiRollBarBiasFront = h.AntiRollBarBiasFront * 0.5f + arbBias * 0.5f;
+            HandlingMem.SetBias(h, HandlingMem.ArbBias, HandlingMem.GetBias(h, HandlingMem.ArbBias) * 0.5f + arbBias * 0.5f, raw);
             Core.Log.Info("Suspension " + s.Id + ": " + f.ToString("0.00") + " Hz (x" + (k * k).ToString("0.00") + " springs), travel x" + tr.ToString("0.00"));
         }
 
         // ---- kerb-snap filter (per frame, on the ground)
         private static Vector3 lastV, lastW; private static int lastHandle; private static bool have;
         public static bool Filtered { get; private set; }
+        public static int Count;
         public static void Filter(Vehicle car, float dt, float mu)
         {
             Filtered = false;
@@ -70,17 +71,18 @@ namespace MidnightClub.Physics
                 var up = car.UpVector; var right = car.RightVector;
                 var dv = v - lastV;
                 float dUp = Vector3.Dot(dv, up), dSide = Vector3.Dot(dv, right);
-                float maxUp = 9.81f * 2.5f * dt + 0.6f, maxSide = mu * 9.81f * 1.8f * dt + 0.7f;
-                bool crash = dv.Length() > 6f || Function.Call<bool>(Hash.HAS_ENTITY_COLLIDED_WITH_ANYTHING, car);   // a real impact (body contact): leave it to the game; wheel-on-kerb contacts are not body collisions
+                float maxUp = 9.81f * 1.5f * dt + 0.35f, maxSide = mu * 9.81f * 1.3f * dt + 0.25f;
+                bool crash = dv.Length() > 6f;                    // a real impact: leave it to the game
                 var nv = v;
                 if (!crash && dUp > maxUp) { nv -= up * ((dUp - maxUp) * 0.85f); Filtered = true; }
                 if (!crash && Math.Abs(dSide) > maxSide) { nv -= right * ((Math.Abs(dSide) - maxSide) * 0.75f * Math.Sign(dSide)); Filtered = true; }
                 var fwd = car.ForwardVector;
                 var dw = w - lastW;
-                float dRoll = Vector3.Dot(dw, fwd), dPitch = Vector3.Dot(dw, right), maxRate = 18f * dt + 0.6f;
+                float dRoll = Vector3.Dot(dw, fwd), dPitch = Vector3.Dot(dw, right), maxRate = 10f * dt + 0.35f;
                 var nw = w;
                 if (!crash && Math.Abs(dRoll) > maxRate) { nw -= fwd * ((Math.Abs(dRoll) - maxRate) * 0.8f * Math.Sign(dRoll)); Filtered = true; }
                 if (!crash && Math.Abs(dPitch) > maxRate) { nw -= right * ((Math.Abs(dPitch) - maxRate) * 0.8f * Math.Sign(dPitch)); Filtered = true; }
+                if (Filtered) Count++;
                 if (nv != v) { car.Velocity = nv; v = nv; }
                 if (nw != w) { Function.Call(Hash.SET_ENTITY_ANGULAR_VELOCITY, car, nw.X, nw.Y, nw.Z); w = nw; }
             }
