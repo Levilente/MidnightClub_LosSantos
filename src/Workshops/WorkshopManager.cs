@@ -150,6 +150,7 @@ namespace MidnightClub.Workshops
             {
                 Cameras.CameraSystem.Suspended = true;
                 if (Cameras.CameraSystem.Instance != null) Cameras.CameraSystem.Instance.Release();
+                var outside = car.Position;                     // where the car came from: the way out is the way in
                 var ent = Entrance(w); var outDir = ent - w.Position; outDir.Z = 0; if (outDir.Length() < 1f) outDir = -car.ForwardVector; outDir.Normalize();
                 var side = new Vector3(-outDir.Y, outDir.X, 0f);
                 // drive-in shot: from inside the bay, looking back at the door
@@ -172,15 +173,45 @@ namespace MidnightClub.Workshops
                     catch (Exception ex) { Log.Error("Rebuild after workshop", ex); }
                     GTA.UI.Screen.FadeIn(350);
                 }
-                // drive-out shot: from the forecourt, the car rolls out of the door
+                // drive-out: the car is lined up in the bay facing the way it came in, then rolls straight out along
+                // that line (scripted, no road pathfinding that could steer it into props), and gets put outside if
+                // anything blocks it
                 car = vehicles.Current;
                 if (car != null && car.Exists())
                 {
-                    cine = Camera.Create(ScriptedCameraNameHash.DefaultScriptedCamera, w.Position + outDir * 9f + side * 4.5f + new Vector3(0, 0, 1.6f), Vector3.Zero, 50f, true, EulerRotationOrder.YXZ);
+                    var exitDir = outside - car.Position; exitDir.Z = 0;
+                    if (exitDir.Length() < 2f) exitDir = -car.ForwardVector;
+                    exitDir.Normalize();
+                    var goal = outside + exitDir * 5f;
+                    GTA.UI.Screen.FadeOut(200); Script.Wait(220);
+                    car.Heading = (float)(Math.Atan2(-exitDir.X, exitDir.Y) * 180.0 / Math.PI);
+                    car.Velocity = Vector3.Zero; car.PlaceOnGround();
+                    var side2 = new Vector3(-exitDir.Y, exitDir.X, 0f);
+                    cine = Camera.Create(ScriptedCameraNameHash.DefaultScriptedCamera, outside + exitDir * 7f + side2 * 4.5f + new Vector3(0, 0, 1.6f), Vector3.Zero, 50f, true, EulerRotationOrder.YXZ);
                     cine.PointAt(car);
                     Function.Call(Hash.RENDER_SCRIPT_CAMS, true, false, 0, true, false, 0);
-                    DriveTo(ped, car, w.Position + outDir * 10f, 4.5f, 2.5f, 6000);
+                    GTA.UI.Screen.FadeIn(300);
                     Function.Call(Hash.CLEAR_PED_TASKS, ped);
+                    int t0 = Game.GameTime, stuck = -1;
+                    while (Game.GameTime - t0 < 9000 && car.Exists() && car.Position.DistanceTo2D(goal) > 1.5f)
+                    {
+                        Game.DisableAllControlsThisFrame();
+                        Function.Call(Hash.HIDE_HUD_AND_RADAR_THIS_FRAME);
+                        var to = goal - car.Position; to.Z = 0; to.Normalize();
+                        float want = (float)(Math.Atan2(-to.X, to.Y) * 180.0 / Math.PI);
+                        float dh = ((want - car.Heading) % 360f + 540f) % 360f - 180f;
+                        car.Heading += Math.Max(-1.5f, Math.Min(1.5f, dh));
+                        Function.Call(Hash.SET_VEHICLE_FORWARD_SPEED, car, 4.5f);
+                        if (car.Speed < 1f) { if (stuck < 0) stuck = Game.GameTime; else if (Game.GameTime - stuck > 1200) break; } else stuck = -1;
+                        Script.Wait(0);
+                    }
+                    if (car.Exists() && car.Position.DistanceTo2D(goal) > 3f)
+                    {
+                        GTA.UI.Screen.FadeOut(200); Script.Wait(220);
+                        car.Position = goal; car.Heading = (float)(Math.Atan2(-exitDir.X, exitDir.Y) * 180.0 / Math.PI); car.PlaceOnGround();
+                        GTA.UI.Screen.FadeIn(300);
+                    }
+                    Function.Call(Hash.BRING_VEHICLE_TO_HALT, car, 3f, 1, false);
                 }
             }
             catch (Exception ex) { Log.Error("Workshop failed", ex); }

@@ -416,7 +416,7 @@ namespace MidnightClub.Racing
             if (rivalSpec != null && rivalSpec.Car != null && !r.Scored)
             {
                 session.SpawnOpponents(new[] { rivalSpec.Name }, new[] { rivalSpec.Car }, r.Start, heading, saves.Data.RacesStarted);
-                foreach (var x in session.Racers) if (!x.IsPlayer) { x.Skill = rivalSpec.Skill; if (x.Blip != null && x.Blip.Exists()) x.Blip.Color = BlipColor.Purple; }
+                foreach (var x in session.Racers) if (!x.IsPlayer) { x.Skill = rivalSpec.Skill * Config.Current.AiSkill; if (x.Blip != null && x.Blip.Exists()) x.Blip.Color = BlipColor.Purple; }
             }
             else if (r.HasOpponents)
             {
@@ -492,10 +492,12 @@ namespace MidnightClub.Racing
             }
             res.Cash = (long)(r.CashReward * cashF * Career.Mastery.CashMult(vehicles.CurrentRecord) * (r.HotPursuit ? 1.5 : 1.0)); res.Rep = (long)(r.RepReward * repF * (r.HotPursuit ? 1.5 : 1.0));
             if (pos > 0 && s.TakedownCount > 0) { res.Cash += 750L * s.TakedownCount; res.Rep += 25L * s.TakedownCount; }
+            int bonus = Config.Current.PayoutBonus;      // difficulty and driver aids (Forza style)
+            if (bonus > 0) { res.Cash += res.Cash * bonus / 100; res.Rep += res.Rep * bonus / 100; }
             lastTakedowns = s.TakedownCount;
             if (res.Cash > 0 || res.Rep > 0) money.Earn(res.Cash, res.Rep, "race", r.Name + (pos > 0 ? " (P" + pos + ")" : ""), "race-reward:" + r.Id + ":" + saves.Data.RacesStarted);
             // wager
-            lastWagerLine = null;
+            lastWagerLine = bonus > 0 && res.Cash > 0 ? Config.DifficultyNames[Config.Current.Difficulty].ToUpperInvariant() + " + AIDS BONUS  +" + bonus + "%" : null;
             if (activeWager > 0)
             {
                 if (pos == 1) { money.Earn(activeWager * 2, 0, "wager", "Wager won on " + r.Name, null); lastWagerLine = "WAGER WON  +$" + (activeWager * 2).ToString("N0"); }

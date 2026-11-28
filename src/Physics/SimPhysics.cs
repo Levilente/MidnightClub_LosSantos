@@ -21,7 +21,7 @@ namespace MidnightClub.Physics
     {
         public static SimPhysics Instance { get; private set; }
         public static bool Active { get { return Instance != null; } }
-        public const float GripK = 2.45f;          // GTA traction units per unit of real tyre friction
+        public const float GripK = 2.25f;          // GTA traction units per unit of real tyre friction
 
         private sealed class Stock { public float TMax, TMin, TLat, LowLoss, Steer, Brake, HBrake, SForce, SComp, SReb, SUp, SLow, Arb, RollF, RollR, BiasT, BiasB, Raise, FlatVel, DriveF, Mass, DriveBias, ArbBias, SuspBias, TLoss, MaxVel, Drag, DriveInertia, ClutchUp, ClutchDown; public int Gears; public Vector3 Com, Inertia; }
 
@@ -130,7 +130,7 @@ namespace MidnightClub.Physics
                 float z = ground + cg;
                 var com = s.Com;
                 com.Y = s.Com.Y + Clamp(y - s.Com.Y, -0.35f, 0.35f);
-                com.Z = s.Com.Z + Clamp(z - s.Com.Z, -0.22f, 0.22f);
+                com.Z = s.Com.Z + Clamp(z - s.Com.Z, -0.15f, 0.04f);   // never raise GTA's CoM much: its bodies roll on a higher roll axis than real cars
                 h.CenterOfMassOffset = com;
             }
             if (spec.Curated && !bike) h.DriveBiasFront = spec.FrontDrive >= 0.95f ? 1f : spec.FrontDrive;
@@ -140,21 +140,13 @@ namespace MidnightClub.Physics
             // tyres: Pacejka set of the fitted compound
             var t = L.Tyre;
             h.TractionCurveMax = GripK * t.MuY;
-            h.TractionCurveMin = h.TractionCurveMax * (0.7f * t.SlideY + 0.3f * t.SlideX);
-            h.TractionCurveLateral = ToHandlingAngle(s.TLat, t.PeakDeg);
-            h.LowSpeedTractionLossMultiplier = s.LowLoss * 0.3f;          // wheelspin comes from the real torque now
+            h.TractionCurveMin = h.TractionCurveMax * (0.5f + 0.5f * (0.7f * t.SlideY + 0.3f * t.SlideX));   // GTA scrubs past the peak far more than a real tyre: only half the MF fall-off
+            h.TractionCurveLateral = ToHandlingAngle(s.TLat, t.PeakDeg * 1.4f);   // GTA's slip angle is measured at the body, the tyre's at the contact patch
+            h.LowSpeedTractionLossMultiplier = s.LowLoss;
             h.TractionLossMultiplier = s.TLoss * t.OffroadLoss;
             if (!bike) h.TractionBiasFront = 0.5f;
-            // suspension: softer on old and soft-riding cars, each upgrade level stiffer and lower
-            float era = spec.Year < 1975 ? 0.82f : spec.Year < 1990 ? 0.9f : spec.Year < 2005 ? 0.95f : 1f;
-            string k = spec.Kind ?? "";
-            if (k == "Super") era *= 1.05f; else if (k == "Muscle" || k == "SUVs" || k == "Vans" || k == "Sedans") era *= 0.9f;
-            float sp = era * (1f + 0.10f * susp) * (Setup.Has(rec, "springs") ? 1.15f : 1f);
-            float dm = (0.5f + 0.5f * era) * (1f + 0.08f * susp) * (Setup.Has(rec, "springs") ? 1.12f : 1f);
-            h.SuspensionForce = s.SForce * sp;
-            h.SuspensionCompressionDamping = s.SComp * dm; h.SuspensionReboundDamping = s.SReb * dm;
-            h.SuspensionUpperLimit = s.SUp * (1f - 0.04f * susp) / (0.85f + 0.15f * era); h.SuspensionLowerLimit = s.SLow * (1f - 0.04f * susp) / (0.85f + 0.15f * era);
-            h.AntiRollBarForce = s.Arb * era * (1f + 0.10f * susp) * (Setup.Has(rec, "arb") ? 1.1f : 1f);
+            Suspension.Apply(h, spec, susp, Setup.Has(rec, "springs"), Setup.Has(rec, "arb"));
+            h.BrakeForce = s.Brake * 1.15f;
             h.HandBrakeForce = s.HBrake * 1.2f;
             if (rec != null) Setup.Apply(h, rec);
             baseTMax = h.TractionCurveMax; baseSlide = h.TractionCurveMin / Math.Max(0.01f, h.TractionCurveMax); baseBias = h.TractionBiasFront; baseLat = h.TractionCurveLateral; baseBrake = h.BrakeForce; baseSteer = h.SteeringLock;
@@ -203,7 +195,9 @@ namespace MidnightClub.Physics
                 Apply(car, rec);
                 var L = Live; if (L == null) return;
                 float dt = Math.Min(0.05f, Math.Max(0.001f, Game.LastFrameTime));
+                if (!car.IsInAir) Suspension.Filter(car, dt, L.Tyre.MuY);
                 Frame(car, rec, L, dt);
+                Suspension.Set(car.Velocity, car.WorldRotationVelocity);
             }
             catch (Exception ex) { Log.Error("SimPhysics", ex); Restore(); }
         }
@@ -303,24 +297,26 @@ namespace MidnightClub.Physics
                 float dy = m * Math.Abs(ay) * cgh / track;
                 float rs = Clamp(0.5f + (h.AntiRollBarBiasFront - 0.5f) * 0.9f + (h.SuspensionBiasFront - 0.5f) * 0.3f, 0.25f, 0.75f);
                 Func<float, float, float> cap = (axle, shift) => { float o = axle / 2f + shift, i = Math.Max(0f, axle / 2f - shift); o = axle - i; return Tyres.Mu(t, o, fz0, true) * o + Tyres.Mu(t, i, fz0, true) * i; };
-                gf = cap(fzf, dy * rs) / Math.Max(1f, t.MuY * fzfG);
-                gr = cap(fzr, dy * (1f - rs)) / Math.Max(1f, t.MuY * fzrG);
+                gf = 1f + (cap(fzf, dy * rs) / Math.Max(1f, t.MuY * fzfG) - 1f) * 0.5f;
+                gr = 1f + (cap(fzr, dy * (1f - rs)) / Math.Max(1f, t.MuY * fzrG) - 1f) * 0.5f;
                 // part of the fore/aft load transfer explicitly (trail-braking bite, lift-off rotation)
-                gf *= (float)Math.Pow(Math.Max(0.2f, (fzf0 - dl) / fzf0), 0.3);
-                gr *= (float)Math.Pow(Math.Max(0.2f, (fzr0 + dl) / fzr0), 0.3);
+                gf *= (float)Math.Pow(Math.Max(0.2f, (fzf0 - dl) / fzf0), 0.25);
+                gr *= (float)Math.Pow(Math.Max(0.2f, (fzr0 + dl) / fzr0), 0.25);
                 // combined slip: longitudinal slip of each axle eats its side grip
                 float alpha = Math.Abs(beta);
                 float frontDrive = Clamp(h.DriveBiasFront, 0f, 1f);
                 bool absOn = absL > 0;
                 float kb = brake > 0.05f && vx > 2f ? -brake * t.PeakK * (absOn ? 1f + (10 - absL) * 0.12f : 3f) : 0f;
                 float bf = Clamp(h.BrakeBiasFront, 0.2f, 0.8f);
-                float kF = Math.Abs(kd) * frontDrive * (thr > 0.05f ? 1f : 0f) + Math.Abs(kb) * bf * 2f;
-                float kR = Math.Abs(kd) * rearDrive * (thr > 0.05f ? 1f : 0f) + Math.Abs(kb) * (1f - bf) * 2f;
+                // only the driven wheels' measured spin counts (GTA has a single grip value per axle, so cutting it
+                // for braking slip would cut the braking too); a locked handbrake takes most of the rear side grip
+                float kF = Math.Max(0f, kd) * frontDrive * (thr > 0.05f ? 1f : 0f);
+                float kR = Math.Max(0f, kd) * rearDrive * (thr > 0.05f ? 1f : 0f);
                 if (hand && speed > 2f) kR = 1f;
                 float lockA = Setup.Has(rec, "diff") ? Clamp((50f + 5f * Setup.TuneValue(rec, 18)) / 100f, 0f, 1f) : spec.Kind == "Super" || spec.Kind == "Sports" ? 0.4f : 0.15f;
                 float gyF = Tyres.Gyk(t, kF, alpha), gyR = Tyres.Gyk(t, kR, alpha);
-                gf *= 1f - (1f - gyF) * 0.8f;
-                gr *= 1f - (1f - gyR) * (hand ? 0.85f : 0.8f * (0.5f + 0.5f * (rearDrive > 0.3f ? lockA : 1f)));
+                gf *= 1f - (1f - gyF) * 0.3f;
+                gr *= 1f - (1f - gyR) * (hand ? 0.6f : 0.45f * (0.5f + 0.5f * (rearDrive > 0.3f ? lockA : 1f)));
             }
             fF += (Clamp(gf, 0.06f, 1.8f) - fF) * Math.Min(1f, dt / 0.05f);
             fR += (Clamp(gr, 0.06f, 1.8f) - fR) * Math.Min(1f, dt / 0.05f);
@@ -331,7 +327,7 @@ namespace MidnightClub.Physics
             if (absL > 0 && brake > 0.05f && vx > 3f)
             {
                 float target = t.PeakK * (1f + (10 - absL) * 0.12f);
-                if (kd < -target) { absMult = Math.Max(0.25f, absMult - dt * 10f); AbsActive = true; }
+                if (kd < -target && kd > -0.95f) { absMult = Math.Max(0.6f, absMult - dt * 8f); AbsActive = true; }
                 else absMult = Math.Min(1f, absMult + dt * 5f);
             }
             else absMult = Math.Min(1f, absMult + dt * 5f);
@@ -368,7 +364,7 @@ namespace MidnightClub.Physics
         private void SteeringByspeed(HandlingData h, float speed)
         {
             float t = Math.Min(1f, speed / 70f);
-            h.SteeringLock = baseSteer * (1f - 0.38f * t * t * (3f - 2f * t));
+            h.SteeringLock = baseSteer * (1f - 0.25f * t * t * (3f - 2f * t));
         }
     }
 }

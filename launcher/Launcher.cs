@@ -240,6 +240,8 @@ namespace MidnightClubLauncher
             Func<string, string, string, string, string, float, float, float, float, Setting> S = (sec, key, label, desc, icon, min, max, step, def) => new Setting { Sec = sec, Key = key, Label = label, Desc = desc, Icon = icon, Kind = Kind.Slider, Min = min, Max = max, Step = step, Def = def.ToString(CultureInfo.InvariantCulture) };
 
             var drive = new Category { Name = "Driving", Icon = "gauge", Accent = Red };
+            drive.Items.Add(new Setting { Sec = "Gameplay", Key = "Difficulty", Label = "Difficulty", Desc = "Opponent pace. Harder AI and fewer aids pay more.", Icon = "flag", Kind = Kind.Choice, Options = new[] { "Novice", "Easy", "Medium", "Hard", "Expert", "Max" },
+                GetChoice = c => { int v; return int.TryParse(c.Get("Gameplay", "Difficulty", "2"), out v) ? Math.Max(0, Math.Min(5, v)) : 2; }, SetChoice = (c, i) => c.Set("Gameplay", "Difficulty", i.ToString()) });
             { var a = S("Assists", "TractionControl", "Traction control", "0 = off. Higher levels hold the driven wheels closer to the tyre's peak slip and cut power sooner (on bikes it also stops wheelies).", "car-front", 0f, 10f, 1f, 4f); a.Fmt = "0"; drive.Items.Add(a); }
             { var a = S("Assists", "ABS", "ABS", "0 = off: the wheels can lock. Higher levels keep the braking slip closer to the tyre's peak.", "gauge", 0f, 10f, 1f, 6f); a.Fmt = "0"; drive.Items.Add(a); }
             { var a = S("Assists", "StabilityManagement", "Stability management", "0 = off. Higher levels step in earlier when the car slides: they brake the rotation and cut power.", "sparkles", 0f, 10f, 1f, 3f); a.Fmt = "0"; drive.Items.Add(a); }
@@ -668,7 +670,7 @@ namespace MidnightClubLauncher
             if (Hot(id) > 0.01f) Fill(g, r, 18, A(Text1, (int)(14 * Hot(id))));
             IconBadge(g, s.Icon, r.X + 42, r.Y + r.Height / 2, 40, acc);
             Str(g, s.Label, fLabel, Text1, r.X + 78, r.Y + 30);
-            Str(g, s.Desc, fSmall, Text2, r.X + 78, r.Y + 41, StringAlignment.Near, StringAlignment.Near, r.Width - 78 - 340);
+            Str(g, s.Desc, fSmall, Text2, r.X + 78, r.Y + 41, StringAlignment.Near, StringAlignment.Near, r.Width - 78 - (s.Kind == Kind.Choice && s.Options != null ? Math.Max(340, (s.Options.Length > 4 ? 66 : 96) * s.Options.Length + 40) : 340));
             float ctlR = r.Right - 24, cy = r.Y + r.Height / 2;
             AddHit(r, id, null);
             switch (s.Kind)
@@ -710,7 +712,7 @@ namespace MidnightClubLauncher
                 case Kind.Choice:
                 {
                     int cur = s.GetChoice != null ? s.GetChoice(ini) : Array.IndexOf(s.Options, ini.Get(s.Sec, s.Key, s.Def));
-                    float segW = 96, w = segW * s.Options.Length + 8, sx = ctlR - w;
+                    float segW = s.Options.Length > 4 ? 66 : 96, w = segW * s.Options.Length + 8, sx = ctlR - w;
                     var tr = new RectangleF(sx, cy - 20, w, 40);
                     Fill(g, tr, 20, Track);
                     for (int i = 0; i < s.Options.Length; i++)

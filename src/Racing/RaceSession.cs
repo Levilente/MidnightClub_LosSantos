@@ -17,7 +17,7 @@ namespace MidnightClub.Racing
         public string Name; public bool IsPlayer;
         public Ped Ped; public Vehicle Car; public Blip Blip;
         public int Cp; public bool Finished; public int FinishTime; public float Skill = 1f;
-        public int StuckSince = -1, LastTask;
+        public int StuckSince = -1, LastTask; public bool NearMode;
         public float Progress;   // for ranking
         public bool Out;         // eliminated
         public bool IsCrew; public string Role; public int CrewTaskAt;
@@ -102,7 +102,7 @@ namespace MidnightClub.Racing
                     car.IsInvincible = false;
                     Function.Call(Hash.SET_VEHICLE_EXPLODES_ON_HIGH_EXPLOSION_DAMAGE, car, false);
                     var b = UI.BlipRegistry.Own(car.AddBlip()); b.Color = BlipColor.Red; b.Scale = 0.7f; b.Name = names[i]; b.IsShortRange = false;
-                    Racers.Add(new Racer { Name = names[i], Ped = ped, Car = car, Blip = b, Skill = 0.92f + (float)rnd.NextDouble() * 0.16f });
+                    Racers.Add(new Racer { Name = names[i], Ped = ped, Car = car, Blip = b, Skill = (0.92f + (float)rnd.NextDouble() * 0.16f) * Core.Config.Current.AiSkill });
                 }
                 catch (Exception ex) { Log.Error("Spawning opponent", ex); }
             }
@@ -211,8 +211,9 @@ namespace MidnightClub.Racing
             foreach (var r in Racers)
             {
                 if (r.IsPlayer || r.Finished || r.Out || r.Car == null || !r.Car.Exists() || r.Ped == null || !r.Ped.Exists()) continue;
-                if (r.Car.Position.DistanceTo(Cps[r.Cp]) < 18f) { Advance(r, now); if (!r.Finished && !(r.IsCrew && r.Role != "Drafter")) Task(r); }
-                else if (now - r.LastTask > 4000 && !(r.IsCrew && r.Role != "Drafter")) Task(r);
+                bool ctrl = !(r.IsCrew && r.Role != "Drafter");
+                if (AiPassed(r)) { Advance(r, now); if (!r.Finished && ctrl) Task(r); }
+                else if (ctrl && (now - r.LastTask > 4000 || (r.Car.Position.DistanceTo(Cps[r.Cp]) < 55f) != r.NearMode)) Task(r);
                 if (r.IsCrew) CrewTick(r, now); else CatchUp(r);
                 Unstick(r, now);
             }
@@ -258,11 +259,38 @@ namespace MidnightClub.Racing
             if (r.IsPlayer) ShowCheckpoint();
         }
 
+        /// <summary>An AI car has passed its checkpoint when it is close, or when it has crossed the checkpoint's gate
+        /// line (perpendicular to the route) anywhere within the road width: no more driving past in the "wrong"
+        /// lane and U-turning back to touch it.</summary>
+        private bool AiPassed(Racer r)
+        {
+            var cp = Cps[r.Cp]; var pos = r.Car.Position;
+            if (pos.DistanceTo(cp) < 18f) return true;
+            var prev = r.Cp > 0 ? Cps[r.Cp - 1] : Def.Start;
+            var dir = cp - prev; dir.Z = 0; if (dir.Length() < 1f) return false; dir.Normalize();
+            var d = pos - cp; d.Z = 0;
+            float along = GTA.Math.Vector3.Dot(d, dir), side = Math.Abs(d.X * dir.Y - d.Y * dir.X);
+            return along > -1f && along < 25f && side < 28f;
+        }
+
+        // GTA driving flags: swerve around cars (4), steer around stationary cars (8), peds (16), objects (32), use the
+        // oncoming lanes (512), shortcut links (262144), change lanes around obstructions (524288), straight line
+        // (16777216), string-pulling at junctions (33554432): racing lines, not lane discipline.
+        private const int RaceFlags = 4 | 8 | 16 | 32 | 512 | 262144 | 524288 | 33554432;
+        private const int GateFlags = 4 | 8 | 16 | 32 | 512 | 524288 | 16777216;
         private void Task(Racer r)
         {
             r.LastTask = Game.GameTime;
-            var target = Cps[Math.Min(r.Cp, Cps.Count - 1)];
-            Function.Call(Hash.TASK_VEHICLE_DRIVE_TO_COORD, r.Ped, r.Car, target.X, target.Y, target.Z, 70f * r.Skill, 0, r.Car.Model.Hash, (int)VehicleDrivingFlags.DrivingModeAvoidVehiclesReckless, 8f, -1f);
+            int i = Math.Min(r.Cp, Cps.Count - 1);
+            var target = Cps[i];
+            bool near = r.Car.Position.DistanceTo(target) < 55f;
+            r.NearMode = near;
+            if (near && i + 1 < Cps.Count)
+            {
+                // aim through the gate towards the next checkpoint so the car doesn't brake for the point itself
+                var nx = Cps[i + 1] - target; nx.Z = 0; if (nx.Length() > 1f) { nx.Normalize(); target += nx * 10f; }
+            }
+            Function.Call(Hash.TASK_VEHICLE_DRIVE_TO_COORD, r.Ped, r.Car, target.X, target.Y, target.Z, 70f * r.Skill, 0, r.Car.Model.Hash, near ? GateFlags : RaceFlags, near ? 4f : 8f, -1f);
         }
 
         /// <summary>Mild rubber band: opponents far behind the player get a little extra power, far ahead a little less.</summary>

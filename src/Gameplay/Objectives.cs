@@ -20,7 +20,7 @@ namespace MidnightClub.Gameplay
     /// milestones (achievements) with rewards. Both listen to events, nothing polls the world.</summary>
     public sealed class Objectives
     {
-        private sealed class Goal { public string Id, Text; public long Cash, Rep; }
+        private sealed class Goal { public string Id, Title, Text; public long Cash, Rep; }
         private sealed class Milestone { public string Id, Name, Desc; public long Cash, Rep; public Func<SaveData, bool> Done; }
         private readonly SaveManager saves;
         private readonly TransactionManager money;
@@ -28,14 +28,14 @@ namespace MidnightClub.Gameplay
 
         private static readonly List<Goal> Chain = new List<Goal>
         {
-            new Goal { Id = "garage", Text = "Drive into your garage (Davis Lockup, green garage blip)", Cash = 1000, Rep = 25 },
-            new Goal { Id = "workshop", Text = "Buy any upgrade at an LS Customs workshop", Cash = 1500, Rep = 40 },
-            new Goal { Id = "showroom", Text = "Browse a dealership showroom", Cash = 500, Rep = 25 },
-            new Goal { Id = "race", Text = "Win a race (red race-car blips, or the phone's Races app)", Cash = 2500, Rep = 80 },
-            new Goal { Id = "style", Text = "Score a near miss or a drift in traffic", Cash = 500, Rep = 30 },
-            new Goal { Id = "meet", Text = "Show off your car at a car meet (night or weekend)", Cash = 1000, Rep = 50 },
-            new Goal { Id = "police", Text = "Escape a police pursuit", Cash = 2000, Rep = 80 },
-            new Goal { Id = "rival", Text = "Beat a rival in a duel (phone > Rivals)", Cash = 4000, Rep = 120 },
+            new Goal { Id = "garage", Title = "Your first garage", Text = "Drive into your garage (Davis Lockup, green garage blip)", Cash = 1000, Rep = 25 },
+            new Goal { Id = "workshop", Title = "First upgrade", Text = "Buy any upgrade at an LS Customs workshop", Cash = 1500, Rep = 40 },
+            new Goal { Id = "showroom", Title = "Window shopping", Text = "Browse a dealership showroom", Cash = 500, Rep = 25 },
+            new Goal { Id = "race", Title = "First win", Text = "Win a race (red race-car blips, or the phone's Races app)", Cash = 2500, Rep = 80 },
+            new Goal { Id = "style", Title = "Show some style", Text = "Score a near miss or a drift in traffic", Cash = 500, Rep = 30 },
+            new Goal { Id = "meet", Title = "Car meet", Text = "Show off your car at a car meet (night or weekend)", Cash = 1000, Rep = 50 },
+            new Goal { Id = "police", Title = "Outrun the law", Text = "Escape a police pursuit", Cash = 2000, Rep = 80 },
+            new Goal { Id = "rival", Title = "Call out a rival", Text = "Beat a rival in a duel (phone > Rivals)", Cash = 4000, Rep = 120 },
         };
 
         private static readonly List<Milestone> Milestones = new List<Milestone>
@@ -92,18 +92,26 @@ namespace MidnightClub.Gameplay
             CurrentText = g == null ? null : g.Text;
             if (g != null && !RaceManager.IsRacing && !stackOpen() && !Function.Call<bool>(Hash.IS_HELP_MESSAGE_BEING_DISPLAYED) && !Police.PursuitManager.AnyActive)
             {
-                // Top-centre pill: clear of help text (top-left), the feed (bottom-left) and the button bar (bottom-right).
-                // objective capsule: glass pill, accent icon badge, label chip, the goal
-                float h = UI.Th.Px(50f), y0 = UI.Th.Px(18f), cy = y0 + h / 2f;
-                float tw = UI.Ds.Width(g.Text, 0.3f), lw = UI.Ds.Width("OBJECTIVE", 0.22f, UI.Ds.Display) + UI.Ds.Px(UI.Th.Px(16f));
-                float w = UI.Ds.Px(UI.Th.Px(52f)) + lw + UI.Ds.Px(UI.Th.Px(12f)) + tw + UI.Ds.Px(UI.Th.Px(22f)), x = 0.5f - w / 2;
-                UI.Kit.Glass(x, y0, w, h, h * 1080f / 2f, 1f, true);
-                float bs = UI.Th.Px(34f), bcx = x + UI.Ds.Px(UI.Th.Px(8f)) + UI.Ds.Px(bs / 2f);
-                UI.Kit.Round(bcx - UI.Ds.Px(bs / 2f), cy - bs / 2f, UI.Ds.Px(bs), bs, 17f, UI.Th.Accent);
+                // top-left objective list: the main objective with its description, the next ones as titles below
+                var open = Chain.Where(q => !saves.Data.ObjectivesDone.Contains(q.Id)).Take(3).ToList();
+                float x = 0.022f, y = UI.Th.Px(26f), w = UI.Ds.Px(UI.Th.Px(420f)), pad = UI.Ds.Px(UI.Th.Px(18f));
+                var lines = Wrap(g.Text, 0.27f, w - pad * 2f - UI.Ds.Px(UI.Th.Px(46f)));
+                float h = UI.Th.Px(64f) + lines.Count * UI.Th.Px(24f) + (open.Count - 1) * UI.Th.Px(30f) + (open.Count > 1 ? UI.Th.Px(12f) : 0f);
+                UI.Kit.Glass(x, y, w, h, UI.Th.R_Lg, 1f, true);
+                float bs = UI.Th.Px(32f), bcx = x + pad + UI.Ds.Px(bs / 2f), cy = y + UI.Th.Px(34f);
+                UI.Kit.Round(bcx - UI.Ds.Px(bs / 2f), cy - bs / 2f, UI.Ds.Px(bs), bs, 16f, UI.Th.Accent);
                 UI.Textures.Draw("li_target", bcx, cy, bs * 0.6f, System.Drawing.Color.White);
-                float cxp = x + UI.Ds.Px(UI.Th.Px(52f));
-                UI.Kit.Chip("OBJECTIVE", cxp, cy, UI.Ds.A(UI.Th.Accent, 0.18f), UI.Th.Accent, 0.22f);
-                UI.Ds.TM(g.Text, cxp + lw + UI.Ds.Px(UI.Th.Px(12f)), cy, 0.3f, UI.Th.Text);
+                float tx = x + pad + UI.Ds.Px(bs) + UI.Ds.Px(UI.Th.Px(14f));
+                UI.Ds.TM("OBJECTIVE", tx, cy - UI.Th.Px(9f), 0.2f, UI.Th.Accent, UI.Ds.Display);
+                UI.Ds.TM(g.Title.ToUpperInvariant(), tx, cy + UI.Th.Px(10f), 0.34f, UI.Th.Text, UI.Ds.Display);
+                float ly = y + UI.Th.Px(66f);
+                foreach (var l in lines) { UI.Ds.TM(l, tx, ly, 0.27f, UI.Th.Sub); ly += UI.Th.Px(24f); }
+                if (open.Count > 1)
+                {
+                    ly += UI.Th.Px(6f);
+                    UI.Textures.DrawBox("px", x + pad, ly - UI.Th.Px(12f), w - pad * 2f, UI.Th.Px(1f), UI.Ds.A(UI.Th.Text, 0.15f));
+                    foreach (var o in open.Skip(1)) { UI.Ds.Dot(tx - UI.Ds.Px(UI.Th.Px(14f)), ly + UI.Th.Px(4f), UI.Th.Px(7f), UI.Th.Sub); UI.Ds.TM(o.Title, tx, ly + UI.Th.Px(4f), 0.26f, UI.Th.Sub, UI.Ds.Display); ly += UI.Th.Px(30f); }
+                }
             }
             if (Game.GameTime < nextMilestoneCheck) return;
             nextMilestoneCheck = Game.GameTime + 5000;
@@ -118,6 +126,18 @@ namespace MidnightClub.Gameplay
                 UI.Shard.Mid("MILESTONE  ·  " + m.Name.ToUpperInvariant(), m.Desc + "   +$" + m.Cash.ToString("N0") + (m.Rep > 0 ? "  +" + m.Rep + " REP" : ""), UI.Shard.Gold, 5000);
                 saves.IsDirty = true;
             }
+        }
+
+        private static List<string> Wrap(string text, float scale, float maxW)
+        {
+            var res = new List<string>(); string cur = "";
+            foreach (var word in text.Split(' '))
+            {
+                string t = cur.Length == 0 ? word : cur + " " + word;
+                if (UI.Ds.Width(t, scale) > maxW && cur.Length > 0) { res.Add(cur); cur = word; } else cur = t;
+            }
+            if (cur.Length > 0) res.Add(cur);
+            return res;
         }
 
         public Menu MilestonesMenu()

@@ -120,7 +120,7 @@ namespace MidnightClub.Phone
         private string DrivingLabel()
         {
             var cfg = Config.Current;
-            return "TCS " + cfg.TcsLevel + " · ABS " + cfg.AbsLevel + " · ESC " + cfg.EscLevel;
+            return Config.DifficultyNames[cfg.Difficulty] + " · +" + cfg.PayoutBonus + "%";
         }
 
         private Menu SettingsMenu(string group)
@@ -162,8 +162,11 @@ namespace MidnightClub.Phone
             G(num("Speed FOV", "DynamicFovIntensity", () => cfg.CameraFovScale, v => cfg.CameraFovScale = v, 0f, 2f, 0.1f, "Camera"), "Camera", "aperture");
             G(num("Camera shake", "ShakeIntensity", () => cfg.CameraShake, v => cfg.CameraShake = v, 0f, 2f, 0.1f, "Camera"), "Camera", "sparkles");
             Func<string, string, Func<int>, Action<int>, MenuItem> lvl = (label, key, get, set) =>
-                new MenuItem(label) { Value = () => get() == 0 ? "Off" : get() + " / 10", OnAdjust = d => { int v = Math.Max(0, Math.Min(10, get() + d)); set(v); Config.Save("Assists", key, v); } };
+                new MenuItem(label) { Value = () => (get() == 0 ? "Off" : get() + " / 10") + "   (bonus +" + cfg.PayoutBonus + "%)", OnAdjust = d => { int v = Math.Max(0, Math.Min(10, get() + d)); set(v); Config.Save("Assists", key, v); } };
             G(new MenuItem("Physics") { Enabled = false, Value = () => "Simulation", Description = () => "One physics model: real power and torque curves, gearing, weight, centre of gravity, aero and Pacejka tyres for every car and bike." }, "Driving", "gauge");
+            Action<int> setDiff = d => { cfg.Difficulty = (cfg.Difficulty + d + 6) % 6; Config.Save("Gameplay", "Difficulty", cfg.Difficulty); };
+            G(new MenuItem("Difficulty", () => setDiff(1)) { Value = () => Config.DifficultyNames[cfg.Difficulty], OnAdjust = setDiff,
+                Description = () => "How fast and aggressive opponents are. Harder opponents and fewer driver aids pay more: current bonus +" + cfg.PayoutBonus + "% cash and REP." }, "Driving", "flag");
             G(lvl("Traction control", "TractionControl", () => cfg.TcsLevel, v => cfg.TcsLevel = v), "Driving", "car");
             G(lvl("ABS", "ABS", () => cfg.AbsLevel, v => cfg.AbsLevel = v), "Driving", "shield");
             G(lvl("Stability management", "StabilityManagement", () => cfg.EscLevel, v => cfg.EscLevel = v), "Driving", "route");

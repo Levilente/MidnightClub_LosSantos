@@ -38,7 +38,22 @@ namespace MidnightClub.Core
         public bool DynamicWeather = true, SpeedEffects = true;
         public string UiTheme = "Auto";
         public bool RealDrivetrain = true, InversePower = true;
-        public int TcsLevel = 4, AbsLevel = 6, EscLevel = 3;          // driver aids, 0 = off .. 10 = maximum
+        public int TcsLevel = 4, AbsLevel = 6, EscLevel = 3;
+        public int Difficulty = 2;                                      // 0 Novice .. 5 Unbeatable
+        public static readonly string[] DifficultyNames = { "Novice", "Easy", "Medium", "Hard", "Expert", "Unbeatable" };
+        public float AiSkill { get { return new[] { 0.84f, 0.9f, 0.97f, 1.03f, 1.09f, 1.15f }[Math.Max(0, Math.Min(5, Difficulty))]; } }
+        /// <summary>Forza-style reward bonus in percent: harder AI and fewer driver aids pay more.</summary>
+        public int PayoutBonus
+        {
+            get
+            {
+                int b = new[] { 0, 5, 10, 20, 30, 40 }[Math.Max(0, Math.Min(5, Difficulty))];
+                b += TcsLevel == 0 ? 10 : TcsLevel <= 3 ? 5 : 0;
+                b += AbsLevel == 0 ? 5 : AbsLevel <= 3 ? 2 : 0;
+                b += EscLevel == 0 ? 10 : EscLevel <= 3 ? 5 : 0;
+                return b;
+            }
+        }          // driver aids, 0 = off .. 10 = maximum
         public string RadioStation = "";
         public float PoliceSpeedKmh = 115f, PoliceDifficulty = 1f;
         public long TierRep2 = 1000, TierRep3 = 3500, TierRep4 = 9000, TierRep5 = 20000;
@@ -105,6 +120,7 @@ namespace MidnightClub.Core
             c.TcsLevel = Math.Max(0, Math.Min(10, Get(s, "Assists", "TractionControl", c.TcsLevel)));
             c.AbsLevel = Math.Max(0, Math.Min(10, Get(s, "Assists", "ABS", c.AbsLevel)));
             c.EscLevel = Math.Max(0, Math.Min(10, Get(s, "Assists", "StabilityManagement", c.EscLevel)));
+            c.Difficulty = Math.Max(0, Math.Min(5, Get(s, "Gameplay", "Difficulty", c.Difficulty)));
             c.PoliceEnabled = Get(s, "Police", "Enabled", c.PoliceEnabled);
             c.AlwaysNight = Get(s, "World", "AlwaysNight", c.AlwaysNight);
             c.TrafficDensity = Get(s, "World", "TrafficDensity", c.TrafficDensity); c.ParkedDensity = Get(s, "World", "ParkedDensity", c.ParkedDensity);

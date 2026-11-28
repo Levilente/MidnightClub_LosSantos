@@ -31,7 +31,7 @@ namespace MidnightClub.Workshops
         private readonly TransactionManager money;
         private readonly MenuStack menus = new MenuStack();
         private Vehicle car; private OwnedVehicle rec; private VehicleInfo info;
-        private Camera cam; private float orbit = 35f; private string focus = "default";
+        private Camera cam; private float orbit = 35f, userYaw, userPitch; private string focus = "default", lastFocus = "default";
         private bool done; private string note; private int noteUntil;
         private long bp;
 
@@ -852,15 +852,22 @@ namespace MidnightClub.Workshops
         private void Orbit()
         {
             float dt = Game.LastFrameTime;
-            float radius = 5.8f, height = 1.3f, target = orbit;
+            float radius = 5.8f, height = 1.3f, target;
+            // right stick / mouse turns the camera around the car, also when a part has framed it; a new focus resets the offset
+            if (focus != lastFocus) { lastFocus = focus; userYaw = 0f; userPitch = 0f; }
+            float lx = Function.Call<float>(Hash.GET_DISABLED_CONTROL_NORMAL, 0, (int)Control.LookLeftRight);
+            float ly = Function.Call<float>(Hash.GET_DISABLED_CONTROL_NORMAL, 0, (int)Control.LookUpDown);
+            if (Game.LastInputMethod == InputMethod.GamePad) { userYaw += lx * 140f * dt; userPitch = Math.Max(-0.6f, Math.Min(1.4f, userPitch - ly * 1.2f * dt)); }
+            else if (Game.IsControlPressed(Control.Aim) || Function.Call<bool>(Hash.IS_DISABLED_CONTROL_PRESSED, 0, (int)Control.Attack)) { userYaw += lx * 400f * dt; userPitch = Math.Max(-0.6f, Math.Min(1.4f, userPitch - ly * 3f * dt)); }
             switch (focus)
             {
                 case "front": target = 25f; radius = 4.3f; height = 1.0f; break;
                 case "rear": target = 200f; radius = 4.6f; height = 1.2f; break;
                 case "side": target = 95f; radius = 3.8f; height = 0.6f; break;
-                default: target = orbit + dt * 10f; break;
+                default: target = 35f; break;          // no idle spin: the camera stays where you put it
             }
-            orbit = focus == "default" ? target % 360f : orbit + ((((target - orbit) % 360f) + 540f) % 360f - 180f) * Math.Min(1f, dt * 3f);
+            target += userYaw; height = Math.Max(0.25f, height + userPitch);
+            orbit = orbit + ((((target - orbit) % 360f) + 540f) % 360f - 180f) * Math.Min(1f, dt * 4f);
             if (focus == "interior")
             {
                 var ip = car.GetOffsetPosition(new Vector3(0.55f, -0.75f, 0.62f));
