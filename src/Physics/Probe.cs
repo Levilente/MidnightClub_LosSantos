@@ -22,6 +22,38 @@ namespace MidnightClub.Physics
         [DllImport("kernel32.dll")] private static extern bool ReadProcessMemory(IntPtr h, IntPtr addr, byte[] buf, IntPtr size, out IntPtr read);
         [DllImport("kernel32.dll")] private static extern IntPtr GetCurrentProcess();
 
+        [DllImport("MidnightClubPhysics.asi", CallingConvention = CallingConvention.Cdecl)] private static extern int MCP_Install();
+        [DllImport("MidnightClubPhysics.asi", CallingConvention = CallingConvention.Cdecl)] private static extern IntPtr MCP_Status();
+        [DllImport("MidnightClubPhysics.asi", CallingConvention = CallingConvention.Cdecl)] private static extern void MCP_SetWheels(long a, long b, long c, long d);
+        [DllImport("MidnightClubPhysics.asi", CallingConvention = CallingConvention.Cdecl)] private static extern void MCP_Record(int on);
+        [DllImport("MidnightClubPhysics.asi", CallingConvention = CallingConvention.Cdecl)] private static extern int MCP_Calls(int which);
+        [DllImport("MidnightClubPhysics.asi", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Unicode)] private static extern int MCP_Dump(string path);
+
+        private static bool hookRec; private static int hookEnd;
+        /// <summary>Stage 2: installs the native read-only hooks and records 15 s of GTA's own tyre and suspension
+        /// results for the player's car (together with a normal drive recording).</summary>
+        public static void StartHook(string baseDir)
+        {
+            var car = Game.Player.Character.CurrentVehicle;
+            if (car == null || !car.Exists()) { UI.Toast.Post("Native physics test: get in a car first."); return; }
+            try
+            {
+                int ok = MCP_Install();
+                string st = Marshal.PtrToStringAnsi(MCP_Status());
+                Core.Log.Info("Native physics: " + st);
+                if (ok == 0) { Status = "Native: " + st; UI.Toast.Post("Native physics test: " + st); return; }
+                var w = car.Wheels.GetAllWheels(); long[] a = new long[4];
+                for (int i = 0; i < 4 && i < w.Length; i++) a[i] = w[i].MemoryAddress.ToInt64();
+                MCP_SetWheels(a[0], a[1], a[2], a[3]);
+                MCP_Record(1); hookRec = true; hookEnd = Game.GameTime + 15000;
+                skipCode = true; Start(baseDir); skipCode = false;
+                UI.Toast.Post("Native physics test: hooked, recording 15 s. Drive hard: throttle, brakes, corners, a slide.");
+            }
+            catch (DllNotFoundException) { UI.Toast.Post("Native physics test: MidnightClubPhysics.asi is missing from the game folder."); }
+            catch (Exception ex) { Core.Log.Error("native hook", ex); }
+        }
+        private static bool skipCode;
+
         public static bool Recording { get; private set; }
         public static string Status = "";
         private static BinaryWriter rec; private static int recEnd, frames; private static string dir;
@@ -35,7 +67,7 @@ namespace MidnightClub.Physics
             if (car == null || !car.Exists()) { Status = "Get in a car first"; UI.Toast.Post("Physics probe: get in a car first."); return; }
             dir = Path.Combine(baseDir, "probe"); Directory.CreateDirectory(dir);
             try { Offsets(Path.Combine(dir, "offsets.txt")); } catch (Exception ex) { Core.Log.Error("probe offsets", ex); }
-            try { DumpCode(Path.Combine(dir, "code.bin")); } catch (Exception ex) { Core.Log.Error("probe dump", ex); }
+            if (!skipCode) try { DumpCode(Path.Combine(dir, "code.bin")); } catch (Exception ex) { Core.Log.Error("probe dump", ex); }
             rec = new BinaryWriter(File.Create(Path.Combine(dir, "drive.bin")));
             rec.Write(0x4D435052); rec.Write(WheelBytes); rec.Write(VehBytes);
             recEnd = Game.GameTime + 20000; frames = 0; Recording = true;
@@ -45,6 +77,18 @@ namespace MidnightClub.Physics
         /// <summary>Per frame while recording.</summary>
         public static void Tick()
         {
+            if (hookRec && Game.GameTime > hookEnd)
+            {
+                hookRec = false;
+                try
+                {
+                    MCP_Record(0);
+                    int n = MCP_Dump(Path.Combine(dir, "hook.bin"));
+                    string msg = "Native physics test done: " + n + " records, GTA called friction " + MCP_Calls(0) + "x and suspension " + MCP_Calls(1) + "x so far.";
+                    Core.Log.Info(msg); UI.Toast.Post(msg + " Tell Claude."); Status = "Native test done";
+                }
+                catch (Exception ex) { Core.Log.Error("native dump", ex); }
+            }
             if (!Recording) return;
             var car = Game.Player.Character.CurrentVehicle;
             if (car == null || !car.Exists() || Game.GameTime > recEnd) { Stop(); return; }

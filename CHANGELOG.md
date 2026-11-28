@@ -1,4 +1,8 @@
 # Changelog
+## 0.45.0 (2026-11-28): native physics, stage 2 (read-only hooks)
+- New **MidnightClubPhysics.asi** (game folder): hooks GTA's per-wheel tyre-friction and suspension functions (found in the wheel integrator, which runs Runge-Kutta 4 every physics step) only on request and only if the code matches byte for byte. Read-only: it calls GTA's own code and records the results for the player's car.
+- Settings > Driving > **Native physics test (developer)**: installs the hooks and records 15 s (scripts\MidnightClub\probe\hook.bin + drive.bin).
+
 ## 0.44.0 (2026-11-28): real gear ratios in GTA's gearbox, per-wheel slip
 - Found GTA's own gear table in the vehicle (probe): the real gear ratios are now written straight into it, so every gear tops out at its real redline speed and the rpm is exact; no more flat-velocity re-ranging (kept as a fallback if the layout isn't recognised).
 - Traction control and ABS read each wheel's real slip from GTA's wheel spin (driven wheels for TCS, any locking wheel for ABS).
