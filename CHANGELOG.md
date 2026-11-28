@@ -1,4 +1,7 @@
 # Changelog
+## 0.42.1 (2026-11-28): physics probe
+- Settings > Driving > **Physics probe (developer)**: groundwork for the full tyre simulation. Saves the game's decrypted code image, the memory offsets ScriptHookVDotNet found for this build, and 20 s of raw wheel / vehicle memory with the driving state next to it (scripts\MidnightClub\probe). Reads only.
+
 ## 0.42.0 (2026-11-28): handling fixes, real suspension, kerbs, AI lines, difficulty
 - **Understeer and weak brakes fixed**: the combined-slip model cut GTA's single grip value per axle, which also cut braking and front grip whenever the brakes or throttle were on. Now only the driven wheels' measured spin (and a locked handbrake) takes side grip; braking keeps full grip. GTA's wheelspin behaviour is back (stock low-speed traction loss), tyre fall-off halved (GTA scrubs past the peak much more than a real tyre), peak slip angle scaled to GTA's body slip angle, lateral load sensitivity halved, grip scale 2.25, the CoG is never raised much, ABS never drops below 60% pressure, brakes +15%, less speed-steering reduction.
 - **Suspension rebuilt from real chassis numbers**: ride frequency by type and era (luxury ~1.1 Hz, sports ~1.6, super ~1.9, +0.15 Hz per level, coilovers +0.25), dampers from real damping ratios, travel and anti-roll stiffness by type, roll stiffness split by layout, spring split by axle loads.

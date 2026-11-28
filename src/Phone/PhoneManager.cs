@@ -167,6 +167,7 @@ namespace MidnightClub.Phone
             Action<int> setDiff = d => { cfg.Difficulty = (cfg.Difficulty + d + 6) % 6; Config.Save("Gameplay", "Difficulty", cfg.Difficulty); };
             G(new MenuItem("Difficulty", () => setDiff(1)) { Value = () => Config.DifficultyNames[cfg.Difficulty], OnAdjust = setDiff,
                 Description = () => "How fast and aggressive opponents are. Harder opponents and fewer driver aids pay more: current bonus +" + cfg.PayoutBonus + "% cash and REP." }, "Driving", "flag");
+            G(new MenuItem("Physics probe (developer)", () => Physics.Probe.Start(Physics.Probe.BaseDir)) { Value = () => Physics.Probe.Status, Description = () => "For the full tyre simulation: records 20 s of the car's raw wheel data while you drive and saves the game's code image for analysis (scripts\\MidnightClub\\probe). Reads only, changes nothing." }, "Driving", "gauge");
             G(lvl("Traction control", "TractionControl", () => cfg.TcsLevel, v => cfg.TcsLevel = v), "Driving", "car");
             G(lvl("ABS", "ABS", () => cfg.AbsLevel, v => cfg.AbsLevel = v), "Driving", "shield");
             G(lvl("Stability management", "StabilityManagement", () => cfg.EscLevel, v => cfg.EscLevel = v), "Driving", "route");

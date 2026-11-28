@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using GTA;
 using GTA.Math;
 using GTA.Native;
@@ -38,7 +39,7 @@ namespace MidnightClub.Physics
         public SimPhysics(VehicleManager vehicles, VehicleRegistry registry, Config cfg, string dataDir)
         {
             Instance = this; this.vehicles = vehicles; this.registry = registry; this.cfg = cfg;
-            Drivetrain.Init(dataDir);
+            Drivetrain.Init(dataDir); Probe.BaseDir = Path.GetDirectoryName(dataDir.TrimEnd('\\', '/'));
             EventBus.Subscribe<MidnightTickEvent>(e => Tick());
             EventBus.Subscribe<ModeChangedEvent>(e => { if (e.To != GameMode.MIDNIGHT_CLUB) Restore(); });
         }
@@ -188,6 +189,7 @@ namespace MidnightClub.Physics
 
         private void Tick()
         {
+            Probe.Tick();
             var car = vehicles.Current; var rec = vehicles.CurrentRecord; var ped = Game.Player.Character;
             if (car == null || !car.Exists() || rec == null || !ped.IsInVehicle(car) || car.Driver != ped || car.Model.IsBicycle || car.IsDead) { Restore(); prevVx = float.NaN; return; }
             try
