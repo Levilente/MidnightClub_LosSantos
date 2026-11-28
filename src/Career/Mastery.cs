@@ -49,8 +49,8 @@ namespace MidnightClub.Career
             if (l <= was) return;
             seen[r.Id] = l;
             long bonus = 1500L * l;
-            money.Earn(bonus, 50L * l, "mastery", (r.Nickname ?? r.Model) + " mastery " + l, "mastery:" + r.Id + ":" + l);
-            Shard.Mid(l >= MaxLevel ? "CAR MASTERED" : "CAR MASTERY " + l, (r.Nickname ?? r.Model).ToUpperInvariant() + "  ·  +$" + bonus.ToString("N0") + "  ·  +" + ((l - 1) * 3) + "% race winnings in this car", Shard.Gold, 4500);
+            money.Earn(bonus, 50L * l, "mastery", r.Title() + " mastery " + l, "mastery:" + r.Id + ":" + l);
+            Shard.Mid(l >= MaxLevel ? "CAR MASTERED" : "CAR MASTERY " + l, r.Title().ToUpperInvariant() + "  ·  +$" + bonus.ToString("N0") + "  ·  +" + ((l - 1) * 3) + "% race winnings in this car", Shard.Gold, 4500);
         }
     }
 }

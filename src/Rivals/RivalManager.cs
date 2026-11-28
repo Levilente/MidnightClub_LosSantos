@@ -169,7 +169,7 @@ namespace MidnightClub.Rivals
             m.Add(new MenuItem("PINK SLIP RACE", ok ? (Action)(() => stack.Push(PinkConfirm(p, race, their, mine))) : null)
             {
                 Enabled = ok,
-                Value = () => "Win their " + their.DisplayName,
+                Value = () => "Win their " + their.Name,
                 Description = () => !ok ? "You need at least two cars and to be driving one of your own. Put your keys on the line against theirs." : "Your " + (mine.Nickname ?? (myInfo != null ? myInfo.Name : mine.Model)) + " (" + (myInfo != null ? "$" + myInfo.BasePrice.ToString("N0") : "?") + ") against their " + their.Name + " ($" + their.BasePrice.ToString("N0") + "). Winner drives home in both."
             });
         }
@@ -177,14 +177,14 @@ namespace MidnightClub.Rivals
         private Menu PinkConfirm(RivalProfile p, RaceDefinition race, VehicleInfo their, OwnedVehicle mine)
         {
             var m = new Menu("Pink slips", p.Name + " · " + TypeName(p.Style));
-            m.Add(new MenuItem("You put up") { Value = () => mine.Nickname ?? mine.Model, Enabled = false });
+            m.Add(new MenuItem("You put up") { Value = () => mine.Title(), Enabled = false });
             m.Add(new MenuItem("They put up") { Value = () => their.Name + " (" + their.Tier + ")", Enabled = false });
             m.Add(new MenuItem("Race") { Value = () => race.Name, Enabled = false });
             m.Add(new MenuItem("SHAKE ON IT", () =>
             {
                 stack.Close();
                 pinkRival = p.Id; pinkWager = mine.Id; pinkCar = their;
-                Shard.Big("PINK SLIPS", "Your " + (mine.Nickname ?? mine.Model) + " vs their " + their.DisplayName + ". Winner takes the keys.", Shard.Red, 3500);
+                Shard.Big("PINK SLIPS", "Your " + mine.Title() + " vs their " + their.Name + ". Winner takes the keys.", Shard.Red, 3500);
                 Script.Wait(200);
                 ChallengePink(p, race, their);
             }) { Description = () => "Lose or quit and your car is gone for good." });
@@ -213,11 +213,11 @@ namespace MidnightClub.Rivals
             {
                 st.Wins++;
                 var rec = VehicleManager.CreateRecord(pinkCar, 0);
-                rec.Nickname = "Pink slip " + pinkCar.DisplayName;
+                rec.Nickname = "Pink slip " + pinkCar.Name;
                 rec.Mods.AddRange(new[] { new ModEntry(11, 3), new ModEntry(12, 2), new ModEntry(13, 2), new ModEntry(15, 3) });
                 rec.Toggles.Add(18); rec.EcuLevel = 1;
                 if (garages.AssignToFreeGarage(rec)) { saves.Data.Vehicles.Add(rec); Shard.Big("PINK SLIP WON", p.Name + "'s " + pinkCar.Name + " is yours. It's waiting in " + garages.GarageName(rec.GarageId) + ".", Shard.Purple, 6000); }
-                else { money.Earn(pinkCar.BasePrice, 0, "rival", "Pink slip " + pinkCar.Name + " (no garage space, sold)", "pink:" + p.Id + ":" + st.Wins); Shard.Big("PINK SLIP WON", "No garage space, so " + pinkCar.DisplayName + " was sold for $" + pinkCar.BasePrice.ToString("N0") + ".", Shard.Purple, 6000); }
+                else { money.Earn(pinkCar.BasePrice, 0, "rival", "Pink slip " + pinkCar.Name + " (no garage space, sold)", "pink:" + p.Id + ":" + st.Wins); Shard.Big("PINK SLIP WON", "No garage space, so " + pinkCar.Name + " was sold for $" + pinkCar.BasePrice.ToString("N0") + ".", Shard.Purple, 6000); }
                 if (Career.Progression.Instance != null) Career.Progression.Instance.Award(1500, "Pink slip win");
                 pinkRival = null;
             }
@@ -249,7 +249,7 @@ namespace MidnightClub.Rivals
             catch (Exception ex) { Log.Error("Pink slip handover", ex); }
             saves.Save();
             GTA.UI.Screen.FadeIn(400);
-            Shard.Big("PINK SLIP LOST", (p != null ? p.Name : "Your rival") + " drives off in your " + (rec.Nickname ?? rec.Model) + ".", Shard.Red, 6000);
+            Shard.Big("PINK SLIP LOST", (p != null ? p.Name : "Your rival") + " drives off in your " + rec.Title() + ".", Shard.Red, 6000);
         }
 
         private void OnRaceFinished(RaceFinishedEvent e)
@@ -269,7 +269,7 @@ namespace MidnightClub.Rivals
                 if (car != null)
                 {
                     var rec = VehicleManager.CreateRecord(car, 0);
-                    rec.Nickname = p.Name.Split(' ')[0] + "'s " + car.DisplayName;
+                    rec.Nickname = p.Name.Split(' ')[0] + "'s " + car.Name;
                     rec.Mods.AddRange(new[] { new ModEntry(11, 3), new ModEntry(12, 2), new ModEntry(13, 2), new ModEntry(15, 2) });
                     rec.Toggles.Add(18);
                     if (garages.AssignToFreeGarage(rec)) { saves.Data.Vehicles.Add(rec); UI.Toast.Post("~p~" + p.Name + "~s~ handed over the keys: ~g~" + rec.Nickname + "~s~ is in " + garages.GarageName(rec.GarageId) + "."); }

@@ -102,7 +102,7 @@ namespace MidnightClub.Cameras
         {
             if (!driverHidden) return;
             driverHidden = false;
-            try { if (Function.Call<bool>(Hash.DOES_ENTITY_EXIST, hiddenPed)) Function.Call(Hash.SET_ENTITY_VISIBLE, hiddenPed, true, false); } catch { }
+            try { if (Function.Call<bool>(Hash.DOES_ENTITY_EXIST, hiddenPed)) { Function.Call(Hash.SET_ENTITY_VISIBLE, hiddenPed, true, false); Function.Call(Hash.RESET_ENTITY_ALPHA, hiddenPed); } } catch { }
         }
 
         private void Destroy() { Release(); if (cam != null) { try { cam.Delete(); } catch { } cam = null; } }
@@ -146,7 +146,7 @@ namespace MidnightClub.Cameras
             o.Fov *= cfg.CameraFovScale;
 
             if (mode != CameraMode.Cockpit || p.Chase) ShowDriver(ped);
-            ShowDriver(ped);                                  // (older versions hid the ped completely)
+            if (mode != CameraMode.Cockpit && driverHidden) ShowDriver(ped);
             RefineCockpit(car, ped);                          // the eye point is measured in every camera mode
             if (p.Chase) Chase(car, p, o, dt); else Mounted(car, ped, p, o, dt);
             BoostFov = 0f; BoostShake = 0f;
@@ -331,8 +331,10 @@ namespace MidnightClub.Cameras
             float ry = behind || Math.Abs(lookYaw) > 150f ? 180f : Clamp(lookYaw, -maxLook, maxLook);
             if (mode == CameraMode.Cockpit)
             {
-                // only locally invisible: a fully hidden ped stops animating, its head bone freezes wherever it was (behind the headrest)
+                // transparent, not hidden: a hidden ped stops animating and its head bone freezes wherever it was (behind the headrest)
+                if (!driverHidden || hiddenPed != ped.Handle) { Function.Call(Hash.SET_ENTITY_ALPHA, ped, 0, false); driverHidden = true; hiddenPed = ped.Handle; }
                 Function.Call(Hash.SET_ENTITY_LOCALLY_INVISIBLE, ped);
+                Function.Call(Hash.SET_PLAYER_INVISIBLE_LOCALLY, Game.Player.Handle, true);
             }
             bool cockpit = mode == CameraMode.Cockpit;
             float layerScale = cockpit ? 0.7f : 0f;   // hood / bumper / roof: rigidly fixed to the body, only the speed FOV moves
@@ -385,20 +387,7 @@ namespace MidnightClub.Cameras
             if (wheel >= 0)
             {
                 var sw = car.GetPositionOffset(Function.Call<Vector3>(Hash.GET_WORLD_POSITION_OF_ENTITY_BONE, car, wheel));
-                if (h.Y > sw.Y - 0.25f || h.Y < sw.Y - 1.1f)
-                {   // head not where a seated driver's is: after a while take the seat instead (eye ~0.65 m above the cushion)
-                    if (++headBad > 90 && headN == 0)
-                    {
-                        int seat = Function.Call<int>(Hash.GET_ENTITY_BONE_INDEX_BY_NAME, car, "seat_dside_f");
-                        if (seat >= 0)
-                        {
-                            var se = car.GetPositionOffset(Function.Call<Vector3>(Hash.GET_WORLD_POSITION_OF_ENTITY_BONE, car, seat));
-                            cockpitLocal = new Vector3(se.X, Math.Min(se.Y + 0.05f, sw.Y - 0.45f), se.Z + 0.65f + cfg.CockpitCamHeight);
-                        }
-                        headN = 30;
-                    }
-                    return;
-                }
+                if (h.Y > sw.Y - 0.12f || h.Y < sw.Y - 1.6f) return;      // head not where a seated driver's is
             }
             headSum += h; headN++;
             var a = headSum / headN;

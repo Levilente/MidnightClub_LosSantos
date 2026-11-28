@@ -246,7 +246,7 @@ namespace MidnightClub.UI
             if (nos) Row("NOS", Gameplay.Abilities.NosFill, Gameplay.Abilities.NosActive ? Ds.Cyan : Color.White);
             RowX = 1f; RowY = 1f; RowW = 0f;              // Abilities draws its row through MainHUD.Row()
             // car line above the arc
-            string name = r == null ? "" : (string.IsNullOrEmpty(r.Nickname) ? r.Model : r.Nickname);
+            string name = r == null ? "" : r.Title();
             float right = 0.985f, ny = SY(20f) - 0.026f;
             float pbw = r != null ? Vehicles.PerformanceIndex.Badge(Vehicles.PerformanceIndex.Of(r), right - Ds.Px(0.24f), ny, 0.02f) + Ds.Px(0.008f) : 0f;
             Ds.T(Ds.Fit(name.ToUpperInvariant() + (r != null ? "  ·  " + Career.Mastery.Label(r) : ""), 0.24f, Ds.Px(0.24f) - pbw, Ds.Display), right - Ds.Px(0.24f) + pbw, ny + 0.001f, 0.24f, Color.FromArgb(200, 255, 255, 255), Ds.Display);

@@ -470,7 +470,7 @@ namespace MidnightClub.Racing
             int pos = s.Aborted || !s.Player.Finished ? 0 : order.IndexOf(s.Player) + 1;
             if (s.PlayerEliminated && !s.Aborted) pos = s.Racers.Count(x => !x.Out) + 1;
             var res = new RaceResult { RaceId = r.Id, Name = r.Name, Type = r.Kind.ToString(), Utc = DateTime.UtcNow.ToString("o"), Position = pos, Of = s.Racers.Count, TimeMs = s.Player.Finished ? s.Player.FinishTime : 0, Score = (long)s.DriftScore };
-            var rec = vehicles.CurrentRecord; if (rec != null) res.Car = rec.Nickname ?? rec.Model;
+            var rec = vehicles.CurrentRecord; if (rec != null) res.Car = rec.Title();
 
             // rewards
             double cashF = 0, repF = 0;

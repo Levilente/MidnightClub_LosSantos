@@ -72,7 +72,7 @@ namespace MidnightClub.Racing
                     Kit.Glass(x, y, cw, ch2, Th.R_Lg, a);
                     Ds.TM("YOUR CAR", ix, y + Th.Px(22f), 0.24f, Ds.A(Th.Sub, a), Ds.Display);
                     float bw = PerformanceIndex.Badge(pi, ix, y + Th.Px(38f), 0.028f, a);
-                    Ds.TM(Ds.Fit(me != null ? (me.Nickname ?? me.Model).ToUpperInvariant() : "", 0.5f, cw - bw - Ds.Px(Th.Px(70f)), Ds.Display), ix + bw + Ds.Px(Th.Px(12f)), y + Th.Px(53f), 0.5f, Ds.A(Th.Text, a), Ds.Display);
+                    Ds.TM(Ds.Fit(me != null ? me.Title().ToUpperInvariant() : "", 0.5f, cw - bw - Ds.Px(Th.Px(70f)), Ds.Display), ix + bw + Ds.Px(Th.Px(12f)), y + Th.Px(53f), 0.5f, Ds.A(Th.Text, a), Ds.Display);
                     y += ch2 + Th.Px(14f);
                     // wager + crew
                     if (r.HasOpponents)

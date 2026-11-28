@@ -91,6 +91,13 @@ namespace MidnightClub.Persistence
     [DataContract]
     public sealed class OwnedVehicle
     {
+        /// <summary>How the car is called everywhere: its nickname, else the full make and model ("Imponte Phoenix").</summary>
+        public string Title()
+        {
+            if (!string.IsNullOrEmpty(Nickname)) return Nickname;
+            try { var reg = MidnightClub.Vehicles.VehicleRegistry.Instance; var info = reg != null ? reg.Get(ModelHash) : null; if (info != null && !string.IsNullOrEmpty(info.Name)) return info.Name; } catch { }
+            return Model;
+        }
         [DataMember] public string Id;
         [DataMember] public string Model;
         [DataMember] public int ModelHash;

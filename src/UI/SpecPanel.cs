@@ -38,7 +38,28 @@ namespace MidnightClub.UI
         public static string Chip(Drivetrain.Live L)
         {
             if (L == null) return "";
-            return (L.Spec.LayoutLabel + "  ·  " + L.Gear.Gears + "-SPEED  ·  " + (L.Engine.Ind == Physics.Induction.Turbo ? "TURBO" : L.Engine.Ind == Physics.Induction.Supercharged ? "SUPERCHARGED" : L.Engine.Ind == Physics.Induction.Electric ? "ELECTRIC" : "NA")).ToUpperInvariant();
+            return (L.Spec.LayoutLabel + "  ·  " + L.Gear.FullGears + "-SPEED " + BoxShort(L) + "  ·  " + (L.Engine.Ind == Physics.Induction.Turbo ? "TURBO" : L.Engine.Ind == Physics.Induction.Supercharged ? "SUPERCHARGED" : L.Engine.Ind == Physics.Induction.Electric ? "ELECTRIC" : "NA")).ToUpperInvariant();
+        }
+
+        /// <summary>The real gearbox type (the race gearbox makes any car a sequential).</summary>
+        public static string BoxName(Drivetrain.Live L)
+        {
+            if (L.Gear.RaceBox) return "sequential (race)";
+            var gb = L.Spec.Sheet != null && L.Spec.Sheet.drivetrain != null ? L.Spec.Sheet.drivetrain.gearbox : null;
+            string t = gb != null && !string.IsNullOrEmpty(gb.type) ? gb.type : "automatic";
+            return t == "automatic" ? "automatic" : t == "dual-clutch" ? "dual-clutch" : t;
+        }
+        private static string BoxShort(Drivetrain.Live L)
+        {
+            string t = BoxName(L);
+            return t.StartsWith("sequential") ? "SEQ" : t == "manual" ? "MANUAL" : t == "dual-clutch" ? "DCT" : t == "automated manual" ? "AMT" : t == "CVT" ? "CVT" : t == "single-speed" ? "DIRECT" : "AUTO";
+        }
+        private static string Ratios(Drivetrain.Live L)
+        {
+            var f = L.Gear.Full ?? L.Gear.Ratios; if (f == null) return "";
+            var parts = new string[Math.Min(8, f.Length)];
+            for (int i = 0; i < parts.Length; i++) parts[i] = f[i].ToString("0.00", System.Globalization.CultureInfo.InvariantCulture);
+            return string.Join(" ", parts) + (f.Length > 8 ? " …" : "");
         }
 
         /// <summary>The cells: label, value, small line.</summary>
@@ -53,10 +74,11 @@ namespace MidnightClub.UI
                 new[] { "BALANCE", F0(s.FrontPct * 100f) + " / " + F0(100f - s.FrontPct * 100f), "COG " + F2(s.CgH) + " M  ·  WB " + F2(s.Wheelbase) + " M" },
                 new[] { "0-100 KM/H", p.T100 > 0 ? F1(p.T100) + " S" : "-", p.T200 > 0 ? "0-200 " + F1(p.T200) + " S" : "0-200 -" },
                 new[] { "TOP SPEED", F0(p.TopKmh) + " KM/H", p.TopByRedline ? "REV-LIMITED" : "DRAG-LIMITED" },
+                new[] { "GEARBOX", L.Gear.FullGears + "-SPEED " + BoxName(L).ToUpperInvariant(), Ratios(L) },
                 new[] { "QUARTER MILE", p.Quarter > 0 ? F2(p.Quarter) + " S" : "-", p.Quarter > 0 ? "@ " + F0(p.QuarterKmh) + " KM/H" : "" },
                 new[] { "GRIP", F2(p.LatG) + " G", "100-0 IN " + F1(p.Brake100) + " M" },
                 new[] { "ENGINE", s.EngineLabel.ToUpperInvariant(), e.InductionLabel.ToUpperInvariant() },
-                new[] { "DRIVETRAIN", L.Spec.LayoutLabel + "  ·  " + L.Gear.Gears + "-SPEED", "FINAL " + F2(L.Gear.Final) + "  ·  REDLINE " + F0(s.Redline) },
+                new[] { "DRIVETRAIN", L.Spec.LayoutLabel, "FINAL " + F2(L.Gear.Final) + "  ·  REDLINE " + F0(s.Redline) },
                 new[] { "TYRES", L.Tyre.Name.ToUpperInvariant(), "PEAK μ " + F2(L.Tyre.MuY) + " @ " + F1(L.Tyre.PeakDeg) + "°" },
                 new[] { "AERO", "CDA " + F2(L.Cda), (L.Cla >= 0 ? "DOWNFORCE " : "LIFT ") + F0(Math.Abs(p.DownforceKg200)) + " KG @200" },
             };

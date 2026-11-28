@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.66.1
+- Dealerships: a bought car is driven out of the showroom straight away (the old one goes back to its garage); left / right now move left / right along the stage.
+- Hub > Garage: "Reset to road" puts a stuck car back on the nearest street.
+- Car data: gearbox cell (type, number of gears, ratios); the spec chip shows e.g. "8-SPEED AUTO".
+- Every car is called by its full make and model (nickname if you set one).
+- Cockpit cam: the driver is made transparent (still animating) and locally invisible; the eye point is only taken from a seated driver's head (no seat fallback behind the headrest).
+
+
 ## 0.66.0
 - Brakes: the spec caliper torque was a moderate line pressure (Jubilee ~0.8 g); the brake system now has the capacity to lock the tyres (1.3 g ABS era, 1.1 g older, upgrades +8 %/stage), fade starts later (640–950 °C, +70 °C/stage), discs cool realistically with speed; brake disc temperature bars on the speedometer (grey / amber / red = fading) and in the log.
 - Cameras: much stronger cornering swing; settings for cornering swing, action-cam drift swing and the FOV of every camera (bumper, hood, roof lower by default); cockpit eye point measured with the driver animating (never hidden, which froze the head bone behind the headrest), seat-based fallback.

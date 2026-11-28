@@ -81,7 +81,7 @@ namespace MidnightClub.Phone
         {
             var r = saves.Data.Vehicles.FirstOrDefault(v => v.Id == saves.Data.CurrentVehicleId);
             if (r == null) return "";
-            return "  ·  " + (string.IsNullOrEmpty(r.Nickname) ? r.Model : r.Nickname).ToUpperInvariant();
+            return "  ·  " + r.Title().ToUpperInvariant();
         }
 
         private Menu ExitMenu()
@@ -121,6 +121,27 @@ namespace MidnightClub.Phone
         {
             var cfg = Config.Current;
             return Config.DifficultyNames[cfg.Difficulty] + " · +" + cfg.PayoutBonus + "%";
+        }
+
+        /// <summary>Puts the driven car on the nearest road node, the right way round, standing still.</summary>
+        private static void ResetToRoad()
+        {
+            try
+            {
+                var ped = Game.Player.Character; var car = ped.CurrentVehicle;
+                if (car == null || !car.Exists() || Racing.RaceManager.IsRacing) { UI.Toast.Post(car == null ? "Get in a car first." : "Not during a race."); return; }
+                var p = car.Position; var o = new OutputArgument(); var h = new OutputArgument();
+                if (!Function.Call<bool>(Hash.GET_CLOSEST_VEHICLE_NODE_WITH_HEADING, p.X, p.Y, p.Z, o, h, 1, 3f, 0)) { UI.Toast.Post("No road nearby."); return; }
+                var node = o.GetResult<GTA.Math.Vector3>(); float hd = h.GetResult<float>();
+                double r = car.Heading - hd; while (r > 180) r -= 360; while (r < -180) r += 360;
+                if (Math.Abs(r) > 90) hd += 180f;                    // keep roughly the way the car pointed
+                Screen.FadeOut(250); Script.Wait(260);
+                car.Velocity = GTA.Math.Vector3.Zero;
+                car.Position = node + new GTA.Math.Vector3(0, 0, 0.5f); car.Heading = hd; car.PlaceOnGround();
+                Function.Call(Hash.SET_VEHICLE_ON_GROUND_PROPERLY, car, 5f);
+                Script.Wait(100); Screen.FadeIn(300);
+            }
+            catch (Exception ex) { Core.Log.Error("Reset to road", ex); }
         }
 
         private Menu SettingsMenu(string group)
@@ -217,7 +238,7 @@ namespace MidnightClub.Phone
             Instance = this;
             this.saves = saves; this.stack = stack; this.menu = menu; this.calendar = calendar; this.races = races; this.rivalsMenu = rivalsMenu; this.clubsMenu = clubsMenu;
             Func<OwnedVehicle> car = () => saves.Data.Vehicles.FirstOrDefault(v => v.Id == saves.Data.CurrentVehicleId);
-            Func<OwnedVehicle, string> carName = r => r == null ? "No car" : (string.IsNullOrEmpty(r.Nickname) ? r.Model : r.Nickname).ToUpperInvariant();
+            Func<OwnedVehicle, string> carName = r => r == null ? "No car" : r.Title().ToUpperInvariant();
             // ---------------- RACES
             var tRaces = new App { Name = "Races", Icon = "flag", Accent = Th.Red };
             tRaces.Tiles.Add(new Tile { Title = "Race events", Icon = "flag", W = 2, H = 2, Open = () => this.races.RacesMenu(),
@@ -248,6 +269,7 @@ namespace MidnightClub.Phone
                 () => Gameplay.Collection.Instance != null ? Gameplay.Collection.Instance.Unique + " distinct" : ""));
             garage.Tiles.Add(T("Photo mode", "camera", "Freeze the moment: free camera, filters, depth of field.", () => { Leave(); Gameplay.PhotoMode.Run(saves, Vehicles.VehicleManager.Instance); return null; },
                 () => saves.Data.PhotosTaken > 0 ? saves.Data.PhotosTaken + " shots" : "New"));
+            garage.Tiles.Add(T("Reset to road", "route", "Stuck? Puts your car back on the nearest street, facing the traffic's way.", () => { Leave(); ResetToRoad(); return null; }, () => ""));
             apps.Add(garage);
             // ---------------- CAREER
             var career = new App { Name = "Career", Icon = "trophy", Accent = Th.Amber, Badge = () => { int n = saves.Data.Wheelspins + saves.Data.SuperWheelspins; return n > 0 ? n.ToString() : null; } };

@@ -52,7 +52,7 @@ namespace MidnightClub.Dealerships
         private readonly List<Vehicle> cars = new List<Vehicle>();
         private readonly List<Vector3> carPos = new List<Vector3>();
         private Vector3 camPos, camLook; private float yaw, pitch = 8f, zoom = 1f, idle;
-        private float stageZ;
+        private float stageZ; private OwnedVehicle bought;
 
         public void Run()
         {
@@ -96,8 +96,27 @@ namespace MidnightClub.Dealerships
                 Function.Call(Hash.DISPLAY_RADAR, true);
                 if (cam != null) { cam.IsActive = false; cam.Delete(); }
                 var me = Game.Player.Character; var mine = vehicles.Current;
-                if (mine != null && mine.Exists() && !me.IsInVehicle(mine)) me.SetIntoVehicle(mine, VehicleSeat.Driver);
-                Hide(mine, me, false);
+                if (bought != null)
+                {   // the new car rolls out where the old one stood; the old one is back in its garage
+                    try
+                    {
+                        Hide(mine, me, false);
+                        float hd = mine != null && mine.Exists() ? mine.Heading : me.Heading;
+                        if (mine != null && mine.Exists() && me.IsInVehicle(mine)) me.Task.WarpOutOfVehicle(mine);
+                        vehicles.Capture();
+                        var nv = vehicles.Spawn(bought, spot + new Vector3(0, 0, 0.3f), hd);
+                        me.SetIntoVehicle(nv, VehicleSeat.Driver);
+                        nv.IsEngineRunning = true; nv.PlaceOnGround();
+                        saves.Data.CurrentVehicleId = bought.Id; saves.IsDirty = true;
+                        UI.Shard.Mid("NEW CAR", bought.Title().ToUpperInvariant(), UI.Shard.Purple, 2500);
+                    }
+                    catch (Exception ex) { Core.Log.Error("Driving out the new car", ex); }
+                }
+                else
+                {
+                    if (mine != null && mine.Exists() && !me.IsInVehicle(mine)) me.SetIntoVehicle(mine, VehicleSeat.Driver);
+                    Hide(mine, me, false);
+                }
                 Screen.FadeIn(400);
             }
         }
@@ -117,7 +136,7 @@ namespace MidnightClub.Dealerships
             for (int i = 0; i < n; i++)
             {
                 float t = n == 1 ? 0.5f : i / (float)(n - 1);
-                double ang = Math.PI / 2 - span / 2 + span * t;
+                double ang = Math.PI / 2 + span / 2 - span * t;   // the next car sits to the right as seen from the stage camera
                 var p = StageCenter + new Vector3((float)Math.Cos(ang) * radius, (float)Math.Sin(ang) * radius, 0f);
                 p.Z = stageZ + 0.4f;
                 var toC = StageCenter - p;
@@ -237,9 +256,11 @@ namespace MidnightClub.Dealerships
             string garage = mgr.Garages.FindFreeGarage();
             m.Add(new MenuItem("Buy for $" + item.Price.ToString("N0"), () =>
             {
+                mgr.LastPurchased = null;
                 var err = mgr.Purchase(item, d.Name);
                 menus.Close();
-                if (err != null) Flash("~r~" + err); else Flash("~g~Bought!~s~ Delivered to " + mgr.Garages.GarageName(garage) + ".");
+                if (err != null) Flash("~r~" + err);
+                else { bought = mgr.LastPurchased; done = true; }   // drive out in the new car (the old one goes home)
             }) { Description = () => garage == null ? "~r~No free garage space." : "Delivered to " + mgr.Garages.GarageName(garage) + "." });
             m.Add(new MenuItem("Your cash") { Value = () => "$" + saves.Data.Cash.ToString("N0") });
             m.Add(new MenuItem("Cancel", () => menus.Close()));
@@ -310,8 +331,8 @@ namespace MidnightClub.Dealerships
             }
             UI.SpecPanel.HandleToggle();
             var live = Selected != null && Selected.Exists() ? Drivetrain.ForDisplay(Selected, item.Preview) : null;
-            Studio.CarStrip(item.Badge != null ? item.Badge.ToUpperInvariant() : "IN STOCK", v.DisplayName.ToUpperInvariant(),
-                v.Make.ToUpperInvariant() + "   " + VehicleRegistry.ClassName(v.Class).ToUpperInvariant() + "   TIER " + v.Tier
+            Studio.CarStrip(item.Badge != null ? item.Badge.ToUpperInvariant() : "IN STOCK", v.Name.ToUpperInvariant(),
+                VehicleRegistry.ClassName(v.Class).ToUpperInvariant() + "   TIER " + v.Tier
                     + (live != null ? "   " + UI.SpecPanel.Chip(live) : ""),
                 new[] { v.MaxSpeed / maxSpeed, v.Acceleration / maxAccel, v.Braking / maxBrake, v.Traction / maxGrip }, right.ToArray(),
                 "<  " + (index + 1) + " / " + stock.Count + "  >", live);

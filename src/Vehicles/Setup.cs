@@ -170,10 +170,10 @@ namespace MidnightClub.Vehicles
         public static Menu Menu(VehicleManager vehicles, MenuStack stack, SaveManager saves)
         {
             var rec = vehicles.CurrentRecord;
-            var m = new Menu("Tuning", rec == null ? "No car" : (rec.Nickname ?? rec.Model));
+            var m = new Menu("Tuning", rec == null ? "No car" : rec.Title());
             if (rec == null) { m.Add(new MenuItem("Get in one of your cars first") { Enabled = false }); return m; }
             var info = VehicleRegistry.Instance != null ? VehicleRegistry.Instance.Get(rec.ModelHash) : null;
-            m.Subtitle = (rec.Nickname ?? rec.Model) + "  ·  " + Era.Label(Era.Year(info)) + "  ·  " + PerformanceIndex.Label(PerformanceIndex.Of(rec));
+            m.Subtitle = rec.Title() + "  ·  " + Era.Label(Era.Year(info)) + "  ·  " + PerformanceIndex.Label(PerformanceIndex.Of(rec));
             foreach (var g in Items.Where(x => !x.Hidden).Select(x => x.Group).Distinct())
             {
                 var grp = g;

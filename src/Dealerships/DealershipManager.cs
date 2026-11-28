@@ -257,7 +257,7 @@ namespace MidnightClub.Dealerships
                         if (cd < 22f)
                         {
                             var st = Stock(d);
-                            if (i < st.Count) UI.WorldMarker.Label(v.Position + new Vector3(0, 0, 1.9f), st[i].Info.DisplayName, "$" + st[i].Price.ToString("N0"), cd, cd < 6f);
+                            if (i < st.Count) UI.WorldMarker.Label(v.Position + new Vector3(0, 0, 1.9f), st[i].Info.Name, "$" + st[i].Price.ToString("N0"), cd, cd < 6f);
                             if (cd < 6f && (nearCar < 0 || cd < l.Cars[nearCar].Position.DistanceTo(pos))) nearCar = i;
                         }
                     }
@@ -377,6 +377,8 @@ namespace MidnightClub.Dealerships
         // ------------------------------------------------------------------ purchase flow (spec 7.9)
         /// <summary>Validates, charges, creates the owned record, assigns a garage, saves and confirms.
         /// Returns null on success or a user-facing reason.</summary>
+        /// <summary>The car bought last (the showroom drives it out).</summary>
+        public OwnedVehicle LastPurchased;
         public string Purchase(StockItem item, string sourceName)
         {
             var d = saves.Data;
@@ -403,6 +405,7 @@ namespace MidnightClub.Dealerships
             rec.PurchasedAtUtc = DateTime.UtcNow.ToString("o");
             d.Vehicles.Add(rec);
             garages.AssignToFreeGarage(rec, garageId);
+            LastPurchased = rec;
             // 7-8. save, inventory
             if (item.SoldKey != null) d.SoldStock.Add(item.SoldKey);
             saves.Save();
