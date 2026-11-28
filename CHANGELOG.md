@@ -1,4 +1,8 @@
 # Changelog
+## 0.50.1 (2026-11-28)
+- Fix: the native simulation never actually ran (0 steps in the log): the wheel step identified vehicles by a stack copy instead of the vehicle. Vehicles are now matched by their own wheel pointer array, so own tyre forces, wheel spin, engine, diffs, brakes, assists and boost really drive every registered vehicle.
+- Fix: a text-drawing exception could throw you out of the workshop.
+
 ## 0.50.0 (2026-11-28)
 - The native simulation runs for every vehicle around you, not only yours: race opponents, traffic, police, trucks (up to 10 wheels, tandem axles), motorbikes, quads and parked cars (up to 72 vehicles within 160 m).
   - Each vehicle gets its real data (engine curve, gearbox, tyres, brakes, differentials, suspension, aero, mass); the .asi reads every driver's pedals, handbrake, gear and clutch straight from the vehicle at physics rate, so the AI drives exactly the same model as you.

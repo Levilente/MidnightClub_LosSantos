@@ -146,7 +146,7 @@ static void Susp(u64 wheel, u64 inst, u64 outVec, u64 lin, u64 ang, u64 loadOut,
 static void Step(u64 ctx, u64 b70, u64 b80, u64 out, u64 wheels, u64 count, u64 a7, u64 gear, u64 dt, u64 a10, u64 a11)
 {
     Veh *v = NULL; int nw = (int)(count & 0xFFFFFFFF);
-    if (b70 && wheels && nw > 0 && nw <= MAXW) v = findVeh(b70 - 0xB70);
+    if (wheels && nw > 0 && nw <= MAXW) v = findByWheels(wheels);   /* rdx is a stack copy of CVehicle+0xB70, the wheel array pointer is the vehicle's own */
     if (v && v->nw != nw) { u64 *wp = (u64 *)wheels; for (int i = 0; i < nw; i++) v->wheel[i] = wp[i]; v->nw = nw; }
     if (v && v->nw == nw) { u64 *wp = (u64 *)wheels; if (wp[0] != v->wheel[0]) for (int i = 0; i < nw; i++) v->wheel[i] = wp[i]; }
     Veh *prev = cur; cur = v;
@@ -213,13 +213,13 @@ __declspec(dllexport) int MCP_VehSet(u64 veh, const float *p, int n)
     if (!stepHooked || !veh) return 0;
     if (n > VP_N) n = VP_N;
     Veh *v = findVeh(veh);
-    if (v) { memcpy(&v->p, p, (size_t)n * 4); vpeaks(v); return 1; }
+    if (v) { memcpy(&v->p, p, (size_t)n * 4); vpeaks(v); v->wkey = *(u64 *)(veh + 0xC30); return 1; }
     for (int i = 0; i < MAXV; i++)
     {
         if (InterlockedCompareExchange(&vehs[i].used, 1, 0) != 0) continue;
         Veh *w = &vehs[i];
         memset((char *)w + sizeof(LONG), 0, sizeof(Veh) - sizeof(LONG));
-        w->veh = veh; memcpy(&w->p, p, (size_t)n * 4); vpeaks(w);
+        w->veh = veh; w->wkey = *(u64 *)(veh + 0xC30); memcpy(&w->p, p, (size_t)n * 4); vpeaks(w);
         w->tcsF = 1; w->engW = (w->p.idle > 100 ? w->p.idle : 800) / RPM_W;
         w->used = 2;
         return 1;

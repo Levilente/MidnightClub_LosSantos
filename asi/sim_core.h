@@ -49,7 +49,7 @@ typedef struct
 typedef struct
 {
     volatile LONG used;            /* 0 free, 1 being written, 2 ready */
-    u64 veh; int nw; u64 wheel[MAXW];
+    u64 veh, wkey; int nw; u64 wheel[MAXW];   /* wkey = CVehicle+0xC30 (wheel pointer array), what the wheel step gets */
     VParams p; float kPeak, aPeakTan;
     WSim ws[MAXW];
     float engW, tcsF, boost, dt, yaw, vxB, escCut; int tcsAct, absAct, escAct, nGround, pairsDone, susReady;
@@ -119,6 +119,7 @@ static void angOf(u64 wheel, u64 inst, const float *M, const float *t, float *an
 static float vmin(float dt) { float v = 150.0f * dt; return v < 2.0f ? 2.0f : v > 6.0f ? 6.0f : v; }
 
 static Veh *findVeh(u64 veh) { for (int i = 0; i < MAXV; i++) if (vehs[i].used == 2 && vehs[i].veh == veh) return &vehs[i]; return NULL; }
+static Veh *findByWheels(u64 wk) { if (!wk) return NULL; for (int i = 0; i < MAXV; i++) if (vehs[i].used == 2 && vehs[i].wkey == wk) return &vehs[i]; return NULL; }
 static int wheelIdx(Veh *v, u64 wheel) { for (int i = 0; i < v->nw; i++) if (v->wheel[i] == wheel) return i; return -1; }
 
 /* ---------------- tyre force for one friction evaluation; 1 = outputs replaced ---------------- */
