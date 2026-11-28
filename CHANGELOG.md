@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.66.0
+- Brakes: the spec caliper torque was a moderate line pressure (Jubilee ~0.8 g); the brake system now has the capacity to lock the tyres (1.3 g ABS era, 1.1 g older, upgrades +8 %/stage), fade starts later (640–950 °C, +70 °C/stage), discs cool realistically with speed; brake disc temperature bars on the speedometer (grey / amber / red = fading) and in the log.
+- Cameras: much stronger cornering swing; settings for cornering swing, action-cam drift swing and the FOV of every camera (bumper, hood, roof lower by default); cockpit eye point measured with the driver animating (never hidden, which froze the head bone behind the headrest), seat-based fallback.
+- Ride height is real: the native suspension sits the body lower / higher in its travel (less bump travel when lowered).
+- Camber and tyre size are part of the coilovers (no separate fitment kit); new Wheel spacers & adjustable hubs part (0–15 cm per side). Camber changes the tyre's grip (stance costs grip), spacers widen the track in the physics (contact points move out).
+- Wheels: every wheel category the car accepts, the online ones too (Benny's Original / Bespoke, Open Wheel, Street, Track).
+
+
 ## 0.65.2
 - Chase cams: cornering G moves the camera to the inside of the turn, so the car is pulled out towards the outside of the picture.
 

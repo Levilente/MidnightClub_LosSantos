@@ -524,12 +524,12 @@ namespace MidnightClub.Workshops
         {
             var m = new Menu("Wheels", Title());
             m.OnOpen = () => { focus = "side"; curTab = 4; };
-            m.Add(new MenuItem("Adjust fitment", () => menus.Push(Fitment())) { Value = () => rec.FitKit ? "" : "$" + FitKitPrice().ToString("N0"),
-                Description = () => "Camber, track width and tyre diameter per axle (stance). One-time kit, then adjust for free." });
-            foreach (var wt in car.Mods.AllowedWheelTypes)
+            m.Add(new MenuItem("Adjust fitment", () => menus.Push(Fitment())) { Value = () => Setup.CanCamber(rec) || Setup.CanSpace(rec) ? "" : "Needs parts",
+                Description = () => "Camber and tyre size (with coilovers), track width (with wheel spacers), per axle. Real: they change the grip, the roll and the load transfer, not only the look." });
+            foreach (var wt in AllWheelTypes())
             {
                 var type = wt;
-                m.Add(new MenuItem(car.Mods.GetLocalizedWheelTypeName(type), () => menus.Push(WheelList(type))) { Value = () => car.Mods.WheelType == type ? "~g~CURRENT" : "" });
+                m.Add(new MenuItem(WheelTypeName(type), () => menus.Push(WheelList(type))) { Value = () => car.Mods.WheelType == type ? "~g~CURRENT" : "" });
             }
             m.Add(new MenuItem("Tyre compound", () => menus.Push(Compounds())) { Value = () => FitmentManager.CompoundNames[rec.TyreCompound] });
             m.Add(new MenuItem("Lettered sidewalls", () =>
@@ -585,22 +585,29 @@ namespace MidnightClub.Workshops
             {
                 focus = "front";
                 m.Items.Clear();
-                if (!rec.FitKit)
+                bool cam = Setup.CanCamber(rec), spc = Setup.CanSpace(rec);
+                if (!cam && !spc)
                 {
-                    m.Add(new MenuItem("Install adjustable fitment kit", () =>
-                    {
-                        if (!Pay(FitKitPrice(), "fitment kit")) return;
-                        rec.FitKit = true; Bought("Adjustable fitment kit", FitKitPrice());
-                        m.OnOpen(); m.ResetHighlight();
-                    }) { Value = () => "$" + FitKitPrice().ToString("N0"), Description = () => "Coilover tops, adjustable arms and hub spacers. After this, every adjustment is free." });
+                    m.Add(new MenuItem("Needs coilovers or wheel spacers") { Enabled = false, Description = () => "Camber and tyre size are set on the Race springs & dampers (coilovers); track width needs Wheel spacers & adjustable hubs. Both: Performance > Race parts." });
                     return;
                 }
-                m.Add(Adjust("Front camber", () => rec.CamberF, v => rec.CamberF = v, -15f, 5f, 0.5f, "0.0 deg", "front"));
-                m.Add(Adjust("Rear camber", () => rec.CamberR, v => rec.CamberR = v, -15f, 5f, 0.5f, "0.0 deg", "rear"));
-                m.Add(Adjust("Front track width", () => rec.TrackF, v => rec.TrackF = v, -8f, 15f, 0.5f, "+0.0 cm;-0.0 cm;0 cm", "front"));
-                m.Add(Adjust("Rear track width", () => rec.TrackR, v => rec.TrackR = v, -8f, 15f, 0.5f, "+0.0 cm;-0.0 cm;0 cm", "rear"));
-                m.Add(Adjust("Front tyre diameter", () => rec.TyreF <= 0 ? 1f : rec.TyreF, v => rec.TyreF = v, 0.85f, 1.2f, 0.01f, "0%", "front", percent: true));
-                m.Add(Adjust("Rear tyre diameter", () => rec.TyreR <= 0 ? 1f : rec.TyreR, v => rec.TyreR = v, 0.85f, 1.2f, 0.01f, "0%", "rear", percent: true));
+                if (cam)
+                {
+                    m.Add(Adjust("Front camber", () => rec.CamberF, v => rec.CamberF = v, -15f, 5f, 0.5f, "0.0 deg", "front"));
+                    m.Add(Adjust("Rear camber", () => rec.CamberR, v => rec.CamberR = v, -15f, 5f, 0.5f, "0.0 deg", "rear"));
+                }
+                if (spc)
+                {
+                    m.Add(Adjust("Front spacers", () => rec.TrackF, v => rec.TrackF = v, 0f, 15f, 0.5f, "+0.0 cm;-0.0 cm;0 cm", "front"));
+                    m.Add(Adjust("Rear spacers", () => rec.TrackR, v => rec.TrackR = v, 0f, 15f, 0.5f, "+0.0 cm;-0.0 cm;0 cm", "rear"));
+                }
+                if (cam)
+                {
+                    m.Add(Adjust("Front tyre diameter", () => rec.TyreF <= 0 ? 1f : rec.TyreF, v => rec.TyreF = v, 0.85f, 1.2f, 0.01f, "0%", "front", percent: true));
+                    m.Add(Adjust("Rear tyre diameter", () => rec.TyreR <= 0 ? 1f : rec.TyreR, v => rec.TyreR = v, 0.85f, 1.2f, 0.01f, "0%", "rear", percent: true));
+                }
+                if (!spc) m.Add(new MenuItem("Track width: needs wheel spacers") { Enabled = false });
+                if (!cam) m.Add(new MenuItem("Camber / tyre size: needs coilovers") { Enabled = false });
                 m.Add(new MenuItem("Reset to stock", () =>
                 {
                     rec.CamberF = rec.CamberR = rec.TrackF = rec.TrackR = 0f; rec.TyreF = rec.TyreR = 0f;
@@ -625,13 +632,43 @@ namespace MidnightClub.Workshops
             };
         }
 
+        /// <summary>Every wheel category the car can take, the newer online ones (Benny's, open wheel, street, track) included:
+        /// SHVDN's own list stops at the original types.</summary>
+        private List<VehicleWheelType> AllWheelTypes()
+        {
+            var list = new List<VehicleWheelType>();
+            var orig = car.Mods.WheelType; int origIdx = Function.Call<int>(Hash.GET_VEHICLE_MOD, car, 23);
+            bool bike = car.Model.IsBike;
+            for (int t = 0; t <= 12; t++)
+            {
+                if (bike != (t == 6)) continue;
+                try
+                {
+                    Function.Call(Hash.SET_VEHICLE_WHEEL_TYPE, car, t);
+                    if (Function.Call<int>(Hash.GET_NUM_VEHICLE_MODS, car, 23) > 0) list.Add((VehicleWheelType)t);
+                }
+                catch { }
+            }
+            car.Mods.WheelType = orig; Function.Call(Hash.SET_VEHICLE_MOD, car, 23, origIdx, rec.LetteredTyres);
+            if (list.Count == 0) list.AddRange(car.Mods.AllowedWheelTypes);
+            return list;
+        }
+
+        private string WheelTypeName(VehicleWheelType type)
+        {
+            string[] names = { "Sport", "Muscle", "Lowrider", "SUV", "Offroad", "Tuner", "Bike", "High End", "Benny's Original", "Benny's Bespoke", "Open Wheel", "Street", "Track" };
+            int t = (int)type;
+            try { string n = car.Mods.GetLocalizedWheelTypeName(type); if (!string.IsNullOrEmpty(n) && !n.Contains("NULL")) return n; } catch { }
+            return t >= 0 && t < names.Length ? names[t] : "Wheels " + t;
+        }
+
         private Menu WheelList(VehicleWheelType type)
         {
             var origType = car.Mods.WheelType;
             int origIdx = Function.Call<int>(Hash.GET_VEHICLE_MOD, car, 23);
             car.Mods.WheelType = type;
             int count = Function.Call<int>(Hash.GET_NUM_VEHICLE_MODS, car, 23);
-            var m = new Menu(car.Mods.GetLocalizedWheelTypeName(type), Title()) { IsShopList = true };
+            var m = new Menu(WheelTypeName(type), Title()) { IsShopList = true };
             long price = Disc(PricingEngine.Round(500 + bp * 0.008), 4);
             var opts = Enumerable.Range(-1, count + 1).ToList();
             m.OnHighlight = i => { car.Mods.WheelType = type; Function.Call(Hash.SET_VEHICLE_MOD, car, 23, opts[i], rec.LetteredTyres); };

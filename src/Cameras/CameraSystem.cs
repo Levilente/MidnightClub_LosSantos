@@ -128,6 +128,7 @@ namespace MidnightClub.Cameras
             if (active && !Function.Call<bool>(Hash.IS_CAM_RENDERING, cam)) active = false;
             var p = Profiles[(int)mode];
             if (!p.Chase && car.Model.IsBike) p = Profiles[(int)CameraMode.CloseChase];   // bikes: no bumper/hood/cockpit mounts
+            { int pi = Array.IndexOf(Profiles, p); if (pi >= 0 && cfg.CamFov != null && pi < cfg.CamFov.Length && cfg.CamFov[pi] > 10f) p.BaseFov = cfg.CamFov[pi]; }   // the player's FOV per camera
             if (car.Handle != measuredHandle) Measure(car, ped);
             if (!active)
             {
@@ -145,6 +146,8 @@ namespace MidnightClub.Cameras
             o.Fov *= cfg.CameraFovScale;
 
             if (mode != CameraMode.Cockpit || p.Chase) ShowDriver(ped);
+            ShowDriver(ped);                                  // (older versions hid the ped completely)
+            RefineCockpit(car, ped);                          // the eye point is measured in every camera mode
             if (p.Chase) Chase(car, p, o, dt); else Mounted(car, ped, p, o, dt);
             BoostFov = 0f; BoostShake = 0f;
         }
@@ -259,7 +262,7 @@ namespace MidnightClub.Cameras
                 pivot = new Vector3(pos.X, pos.Y, pz);
             }
             pull = SmoothDamp(pull, Clamp(gLong, -0.8f, 1.2f) * 0.45f * gk, ref pullVel, 0.35f, dt);                       // G: accelerating pulls the camera back, braking pushes it in
-            side = SmoothDamp(side, -Clamp(gLat, -1.2f, 1.2f) * 0.4f * gk, ref sideVel, 0.3f, dt);                    // G: turning left the camera moves left, the car is pulled out to the right of the picture
+            side = SmoothDamp(side, -Clamp(gLat, -1.4f, 1.4f) * 0.9f * cfg.CameraSwing, ref sideVel, 0.3f, dt);                    // G: turning left the camera moves left, the car is pulled out to the right of the picture
             // NFS ProStreet: every gear lets the camera a few centimetres further back (speed you can feel), with a small
             // tug on each upshift
             int gNow = Physics.Native.DriveActive ? Math.Max(1, Physics.SimWorld.OwnGear) : Math.Max(1, car.CurrentGear);
@@ -270,7 +273,7 @@ namespace MidnightClub.Cameras
             float height = p.Height - groundOff;
             // action cam in a drift: lets the car further out to the side, drops lower and moves up level with the rear
             // bumper on the inside of the slide (the rotation stays the chase cam's)
-            float ad = action ? Math.Abs(drift) : 0f, lat = action ? -drift * 1.9f : 0f;
+            float ad = action ? Math.Min(1f, Math.Abs(drift) * cfg.CameraDriftSwing) : 0f, lat = action ? -drift * 1.9f * cfg.CameraDriftSwing : 0f;
             if (action) { radius += (halfLen + 0.4f - radius) * ad; height -= 0.5f * ad; }
             // the arm follows the road's slope (smoothed): downhill the camera rises behind the car and looks down the road
             float slopeT = Clamp((float)Math.Asin(Clamp(car.ForwardVector.Z, -1f, 1f)), -0.45f, 0.45f);
@@ -328,8 +331,7 @@ namespace MidnightClub.Cameras
             float ry = behind || Math.Abs(lookYaw) > 150f ? 180f : Clamp(lookYaw, -maxLook, maxLook);
             if (mode == CameraMode.Cockpit)
             {
-                RefineCockpit(car, ped);
-                if (!driverHidden) { Function.Call(Hash.SET_ENTITY_VISIBLE, ped, false, false); driverHidden = true; hiddenPed = ped.Handle; }
+                // only locally invisible: a fully hidden ped stops animating, its head bone freezes wherever it was (behind the headrest)
                 Function.Call(Hash.SET_ENTITY_LOCALLY_INVISIBLE, ped);
             }
             bool cockpit = mode == CameraMode.Cockpit;
@@ -366,7 +368,7 @@ namespace MidnightClub.Cameras
             var head = Function.Call<Vector3>(Hash.GET_PED_BONE_COORDS, ped, 31086, 0f, 0f, 0f);   // SKEL_Head
             var h = car.GetPositionOffset(head);
             cockpitLocal = (h.Length() > 0.1f && h.Length() < 4f) ? new Vector3(h.X, h.Y + 0.14f, h.Z + cfg.CockpitCamHeight) : new Vector3(-0.35f, 0f, max.Z * 0.5f);
-            headN = 0; headSum = Vector3.Zero; seatedAt = 0;
+            headN = 0; headSum = Vector3.Zero; seatedAt = 0; headBad = 0;
         }
         /// <summary>The driver's eye point, measured only once the driver really sits (not while climbing in, when the head
         /// can be behind the headrest), averaged over half a second; the steering wheel must be in front of it.</summary>
@@ -383,13 +385,26 @@ namespace MidnightClub.Cameras
             if (wheel >= 0)
             {
                 var sw = car.GetPositionOffset(Function.Call<Vector3>(Hash.GET_WORLD_POSITION_OF_ENTITY_BONE, car, wheel));
-                if (h.Y > sw.Y - 0.25f || h.Y < sw.Y - 1.1f) return;            // head not where a seated driver's is
+                if (h.Y > sw.Y - 0.25f || h.Y < sw.Y - 1.1f)
+                {   // head not where a seated driver's is: after a while take the seat instead (eye ~0.65 m above the cushion)
+                    if (++headBad > 90 && headN == 0)
+                    {
+                        int seat = Function.Call<int>(Hash.GET_ENTITY_BONE_INDEX_BY_NAME, car, "seat_dside_f");
+                        if (seat >= 0)
+                        {
+                            var se = car.GetPositionOffset(Function.Call<Vector3>(Hash.GET_WORLD_POSITION_OF_ENTITY_BONE, car, seat));
+                            cockpitLocal = new Vector3(se.X, Math.Min(se.Y + 0.05f, sw.Y - 0.45f), se.Z + 0.65f + cfg.CockpitCamHeight);
+                        }
+                        headN = 30;
+                    }
+                    return;
+                }
             }
             headSum += h; headN++;
             var a = headSum / headN;
             cockpitLocal = new Vector3(a.X, a.Y + 0.14f, a.Z + cfg.CockpitCamHeight);
         }
-        private Vector3 headSum; private int headN, seatedAt;
+        private Vector3 headSum; private int headN, seatedAt, headBad;
 
         // ---------------------------------------------------------------- math
         private float Noise(float f) { return (float)(Math.Sin(time * f) * 0.6 + Math.Sin(time * f * 2.3 + 1.7) * 0.4); }

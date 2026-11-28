@@ -14,14 +14,14 @@ namespace MidnightClub.Vehicles
     /// swaps, anti-lag (exhaust pops and quicker boost), straight-pipe exhaust (raspier note).</summary>
     public static class Setup
     {
-        public sealed class Item { public string Group, Name, Part; public Func<int, string> Show; }
+        public sealed class Item { public string Group, Name, Part; public Func<int, string> Show; public bool Hidden; }
         public static readonly Item[] Items =
         {
             I("Tyres", "Front pressure", null, v => (30f + v * 0.4f).ToString("0.0") + " psi"),
             I("Tyres", "Rear pressure", null, v => (30f + v * 0.4f).ToString("0.0") + " psi"),
             I("Gearing", "Final drive", "gearbox", v => ((Drivetrain.Current != null ? Drivetrain.Current.Gear.BaseFinal : 3.55f) * (1f - 0.02f * v)).ToString("0.00") + " : 1"),
-            I("Alignment", "Front camber", "springs", v => (-1.0f + v * 0.25f).ToString("0.0") + "°"),
-            I("Alignment", "Rear camber", "springs", v => (-0.8f + v * 0.2f).ToString("0.0") + "°"),
+            H(I("Alignment", "Front camber", "springs", v => (-1.0f + v * 0.25f).ToString("0.0") + "°")),   // camber lives in the coilovers' fitment page now
+            H(I("Alignment", "Rear camber", "springs", v => (-0.8f + v * 0.2f).ToString("0.0") + "°")),
             I("Alignment", "Front toe", "springs", v => (v * 0.05f).ToString("+0.00;-0.00;0.00") + "°"),
             I("Alignment", "Caster", "springs", v => (5.5f + v * 0.15f).ToString("0.0") + "°"),
             I("Anti-roll bars", "Front", "arb", v => (25f + v * 2.3f).ToString("0.0")),
@@ -55,12 +55,14 @@ namespace MidnightClub.Vehicles
         /// <summary>A tuning value (-10..10), 0 when the part it needs isn't installed.</summary>
         public static int TuneValue(OwnedVehicle r, int i) { if (r == null || i < 0 || i >= Count || !Has(r, Items[i].Part)) return 0; return Math.Max(-10, Math.Min(10, Get(r)[i])); }
         private static Item I(string g, string n, string p, Func<int, string> s) { return new Item { Group = g, Name = n, Part = p, Show = s }; }
+        private static Item H(Item it) { it.Hidden = true; return it; }
         public static int Count { get { return Items.Length; } }
 
         public sealed class Part { public string Id, Name, Desc; public long Price; public int Pi; public string Needs; }
         public static readonly Part[] Parts =
         {
-            new Part { Id = "springs", Name = "Race springs & dampers", Desc = "Adjustable coilovers: unlocks springs, ride height, damping and alignment tuning.", Price = 9000, Pi = 8 },
+            new Part { Id = "springs", Name = "Race springs & dampers", Desc = "Adjustable coilovers with camber plates: unlocks springs, ride height (real: the car sits lower, less bump travel), damping, alignment and the camber / tyre-size fitment.", Price = 9000, Pi = 8 },
+            new Part { Id = "spacers", Name = "Wheel spacers & adjustable hubs", Desc = "Hub spacers from 0 to +15 cm per side, adjustable in Wheels > Fitment: a wider track rolls less and transfers less load (more grip), but the steering gets heavier and kerbs bite.", Price = 3500, Pi = 2 },
             new Part { Id = "arb", Name = "Race anti-roll bars", Desc = "Adjustable front and rear bars.", Price = 4500, Pi = 4 },
             new Part { Id = "diff", Name = "Race differential", Desc = "Limited-slip diff with adjustable lock (and centre balance on AWD).", Price = 7500, Pi = 6 },
             new Part { Id = "gearbox", Name = "Race gearbox", Desc = "Close-ratio six-speed with automatic ratios (every car becomes a 6-speed) and an adjustable final drive. The car is rebuilt when you drive out.", Price = 8000, Pi = 6 },
@@ -82,6 +84,9 @@ namespace MidnightClub.Vehicles
             new Part { Id = "pipe", Name = "Straight-pipe exhaust", Desc = "Loud, raw and raspy. A little more power.", Price = 3500, Pi = 2 },
         };
 
+        /// <summary>Camber and tyre size are set on the coilovers (or the old fitment kit); track width needs the spacers.</summary>
+        public static bool CanCamber(OwnedVehicle r) { return r != null && (r.FitKit || Has(r, "springs")); }
+        public static bool CanSpace(OwnedVehicle r) { return r != null && (r.FitKit || Has(r, "spacers")); }
         public static bool Has(OwnedVehicle r, string part) { return part == null || (r != null && r.Parts != null && r.Parts.Contains(part)); }
         public static int[] Get(OwnedVehicle r)
         {
@@ -111,7 +116,7 @@ namespace MidnightClub.Vehicles
             // springs + height
             float sf = V(9), sr = V(10);
             h.SuspensionForce *= 1f + 0.045f * (sf + sr) / 2f; Physics.HandlingMem.SetBias(h, Physics.HandlingMem.SuspBias, Clamp(Physics.HandlingMem.GetBias(h, Physics.HandlingMem.SuspBias) + 0.015f * (sf - sr), 0.3f, 0.7f), null);
-            h.SuspensionRaise += 0.009f * V(11);
+            // ride height: the native suspension sits the body lower / higher (SimWorld), not GTA's raise
             // damping
             h.SuspensionReboundDamping *= 1f + 0.05f * V(12); h.SuspensionCompressionDamping *= 1f + 0.05f * V(13);
             // aero: grip at speed, costs top speed
@@ -169,10 +174,10 @@ namespace MidnightClub.Vehicles
             if (rec == null) { m.Add(new MenuItem("Get in one of your cars first") { Enabled = false }); return m; }
             var info = VehicleRegistry.Instance != null ? VehicleRegistry.Instance.Get(rec.ModelHash) : null;
             m.Subtitle = (rec.Nickname ?? rec.Model) + "  ·  " + Era.Label(Era.Year(info)) + "  ·  " + PerformanceIndex.Label(PerformanceIndex.Of(rec));
-            foreach (var g in Items.Select(x => x.Group).Distinct())
+            foreach (var g in Items.Where(x => !x.Hidden).Select(x => x.Group).Distinct())
             {
                 var grp = g;
-                var gi = Items.Select((x, i) => new { x, i }).Where(z => z.x.Group == grp).ToList();
+                var gi = Items.Select((x, i) => new { x, i }).Where(z => z.x.Group == grp && !z.x.Hidden).ToList();
                 bool locked = gi.All(z => !Has(rec, z.x.Part));
                 string need = locked ? Parts.First(p => p.Id == gi[0].x.Part).Name : null;
                 m.Add(new MenuItem(grp, () => { if (!locked) stack.Push(Page(rec, grp, saves)); else Toast.Post("~r~" + grp + "~s~ tuning needs " + need + " (workshops, Performance > Race parts)."); })
@@ -189,7 +194,7 @@ namespace MidnightClub.Vehicles
             var t = Get(rec);
             for (int k = 0; k < Items.Length; k++)
             {
-                if (Items[k].Group != grp) continue; int i = k; var it = Items[i];
+                if (Items[k].Group != grp || Items[k].Hidden) continue; int i = k; var it = Items[i];
                 m.Add(new MenuItem(it.Name)
                 {
                     Enabled = Has(rec, it.Part),

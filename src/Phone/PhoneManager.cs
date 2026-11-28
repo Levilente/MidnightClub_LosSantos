@@ -161,6 +161,15 @@ namespace MidnightClub.Phone
             G(num("Camera motion (G)", "GForceIntensity", () => cfg.CameraGForce, v => cfg.CameraGForce = v, 0f, 2f, 0.1f, "Camera"), "Camera", "move");
             G(num("Speed FOV", "DynamicFovIntensity", () => cfg.CameraFovScale, v => cfg.CameraFovScale = v, 0f, 2f, 0.1f, "Camera"), "Camera", "aperture");
             G(num("Camera shake", "ShakeIntensity", () => cfg.CameraShake, v => cfg.CameraShake = v, 0f, 2f, 0.1f, "Camera"), "Camera", "sparkles");
+            G(num("Cornering swing", "Swing", () => cfg.CameraSwing, v => cfg.CameraSwing = v, 0f, 4f, 0.1f, "Camera"), "Camera", "move").Description = () => "How far the chase cameras swing to the inside of a corner, so the G-force pulls the car out towards the edge of the picture. 0 = off.";
+            G(num("Drift swing (action cam)", "DriftSwing", () => cfg.CameraDriftSwing, v => cfg.CameraDriftSwing = v, 0f, 3f, 0.1f, "Camera"), "Camera", "move").Description = () => "Action cam in a drift: how far it lets the car out to the side and moves up beside the rear bumper. 0 = off.";
+            for (int fi = 0; fi < Config.CamFovKeys.Length; fi++)
+            {
+                int k = fi;
+                G(new MenuItem("FOV: " + Config.CamFovNames[k]) { Value = () => cfg.CamFov[k].ToString("0") + "\u00b0",
+                    OnAdjust = d => { cfg.CamFov[k] = Math.Max(30f, Math.Min(110f, cfg.CamFov[k] + d)); Config.Save("Camera", Config.CamFovKeys[k], cfg.CamFov[k]); },
+                    Description = () => "Base field of view of the " + Config.CamFovNames[k].ToLowerInvariant() + " camera (speed FOV adds on top)." }, "Camera", "aperture");
+            }
             Func<string, string, Func<int>, Action<int>, MenuItem> lvl = (label, key, get, set) =>
                 new MenuItem(label) { Value = () => (get() == 0 ? "Off" : get() + " / 10") + "   (bonus +" + cfg.PayoutBonus + "%)", OnAdjust = d => { int v = Math.Max(0, Math.Min(10, get() + d)); set(v); Config.Save("Assists", key, v); } };
             G(new MenuItem("Physics") { Enabled = false, Value = () => "Simulation", Description = () => "One physics model: real power and torque curves, gearing, weight, centre of gravity, aero and Pacejka tyres for every car and bike." }, "Driving", "gauge");

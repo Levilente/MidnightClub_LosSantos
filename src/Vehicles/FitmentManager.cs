@@ -50,13 +50,13 @@ namespace MidnightClub.Vehicles
             if (!cfg.FitmentEnabled || car == null || !car.Exists() || rec == null || car.Model.IsBike) return;
             var wheels = Stock(car);
             if (wheels == null) return;
-            bool stockOnly = !rec.FitKit || (rec.CamberF == 0 && rec.CamberR == 0 && rec.TrackF == 0 && rec.TrackR == 0 && Mult(rec.TyreF) == 1f && Mult(rec.TyreR) == 1f);
-            if (stockOnly && !rec.FitKit) return;   // never touch cars without a kit
+            bool cam = Setup.CanCamber(rec), spc = Setup.CanSpace(rec);
+            if (!cam && !spc) return;   // never touch cars without coilovers / spacers
             foreach (var w in wheels)
             {
-                float camber = (w.Front ? rec.CamberF : rec.CamberR) * (float)(Math.PI / 180.0) * cfg.CamberSign;
-                float track = (w.Front ? rec.TrackF : rec.TrackR) / 100f;
-                float tyre = Mult(w.Front ? rec.TyreF : rec.TyreR);
+                float camber = cam ? (w.Front ? rec.CamberF : rec.CamberR) * (float)(Math.PI / 180.0) * cfg.CamberSign : 0f;
+                float track = spc ? (w.Front ? rec.TrackF : rec.TrackR) / 100f : 0f;
+                float tyre = cam ? Mult(w.Front ? rec.TyreF : rec.TyreR) : 1f;
                 float y = w.YRot + (w.Left ? camber : -camber);
                 float x = w.X + Math.Sign(w.X) * track;
                 float t = w.Tyre * tyre;

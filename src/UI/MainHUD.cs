@@ -230,6 +230,14 @@ namespace MidnightClub.UI
                         Ds.Rect(tx0, ty0, bw, bh, Color.FromArgb(120, 0, 0, 0));
                         Ds.Rect(tx0, ty0 + bh * Math.Min(0.9f, wear), bw, bh * (1f - Math.Min(0.9f, wear)), c);
                     }
+                    // brake discs per axle (thin bars right of the tyres): grey cool, amber getting hot, red fading
+                    float fade = Physics.SimWorld.BrakeFadeC;
+                    for (int ax2 = 0; ax2 < 2; ax2++)
+                    {
+                        float bt = Math.Max(Physics.SimWorld.BrakeTemp(ax2 * 2), Physics.SimWorld.BrakeTemp(ax2 * 2 + 1));
+                        Color bc = bt < fade - 250f ? Color.FromArgb(150, 200, 200, 200) : bt < fade - 80f ? Color.FromArgb(230, 255, 180, 40) : bt < fade ? Color.FromArgb(240, 255, 110, 40) : Color.FromArgb(250, 255, 40, 40);
+                        Ds.Rect(bx + 2f * (bw + gx), by + ax2 * (bh + gy), Ds.Px(2.5f * su), bh, bc);
+                    }
                 }
             }
             // NOS / ability rows: the reference NOS row sits 36 ref px under the boost row; without turbo the rows move up

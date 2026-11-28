@@ -47,7 +47,7 @@ namespace MidnightClub.Physics
         [DllImport("MidnightClubPhysics.asi", CallingConvention = CallingConvention.Cdecl)] private static extern int MCP_VehState(long veh, float[] o, int n);
         [DllImport("MidnightClubPhysics.asi", CallingConvention = CallingConvention.Cdecl)] private static extern int MCP_AxisFallbacks();
 
-        public const int VP = 240, CurveN = 48;
+        public const int VP = 250, CurveN = 48;
         /// <summary>Opponents in the current race (handles), set by the race code: they get the race assists.</summary>
         public static readonly HashSet<int> Rivals = new HashSet<int>();
         public static bool Available { get; private set; }
@@ -117,6 +117,7 @@ namespace MidnightClub.Physics
         public static void Shift(Vehicle car, int dir) { try { if (Available && car != null && car.Exists()) MCP_VehShift(car.MemoryAddress.ToInt64(), dir); } catch { } }
         /// <summary>Own gearbox's gear and the brake disc temperatures of your car (from the native model).</summary>
         public static int OwnGear { get { return (int)st[84]; } }
+        public static float BrakeFadeC = 640f;
         public static float BrakeTemp(int i) { return i >= 0 && i < 10 ? st[86 + i] : 0f; }
         public static void NewTyres(Vehicle car) { try { if (Available && car != null && car.Exists()) MCP_VehTyresNew(car.MemoryAddress.ToInt64()); } catch { } }
 
@@ -192,7 +193,7 @@ namespace MidnightClub.Physics
                         + ", GTA body " + st[73].ToString("0") + " kg (real " + (playerLive != null ? playerLive.Mass.ToString("0") : "?") + ")"
                         + ", inertia roll/pitch/yaw GTA " + st[74].ToString("0") + "/" + st[75].ToString("0") + "/" + st[76].ToString("0") + " real " + st[77].ToString("0") + "/" + st[78].ToString("0") + "/" + st[79].ToString("0") + " kg m2"
                         + ", travel " + st[80].ToString("0.000") + "/" + st[81].ToString("0.000") + " m (handling " + travelLog.ToString("0.000") + "), GTA rest " + st[82].ToString("0.000") + "/" + st[83].ToString("0.000")
-                        + ", rpm " + Rpm.ToString("0") + ", slip " + st[20].ToString("0.00") + "/" + st[21].ToString("0.00") + "/" + st[22].ToString("0.00") + "/" + st[23].ToString("0.00") + ", hidden resistance " + (-st[97]).ToString("0") + " N (cancelled " + st[96].ToString("0") + " N), gear " + st[84].ToString("0") + " sel " + (SimPhysics.Instance != null ? SimPhysics.Instance.Selector : -1) + " box " + PlayerBox);
+                        + ", rpm " + Rpm.ToString("0") + ", slip " + st[20].ToString("0.00") + "/" + st[21].ToString("0.00") + "/" + st[22].ToString("0.00") + "/" + st[23].ToString("0.00") + ", hidden resistance " + (-st[97]).ToString("0") + " N (cancelled " + st[96].ToString("0") + " N), gear " + st[84].ToString("0") + " sel " + (SimPhysics.Instance != null ? SimPhysics.Instance.Selector : -1) + " box " + PlayerBox + ", brakes " + BrakeTemp(0).ToString("0") + "/" + BrakeTemp(2).ToString("0") + " C (fade " + BrakeFadeC.ToString("0") + ")");
                     lastSteps = st[5]; lastOwn = st[6];
                 }
             }
@@ -358,8 +359,8 @@ namespace MidnightClub.Physics
             p[194] = t.POpt;
             bool sporty = kind == "Super" || kind == "Sports" || kind == "Muscle";
             const float D = 0.017453f;
-            p[195] = (player && coil ? -1.0f + 0.25f * Vehicles.Setup.TuneValue(rec, 3) : sporty ? -1.0f : -0.5f) * D;
-            p[196] = (player && coil ? -0.8f + 0.2f * Vehicles.Setup.TuneValue(rec, 4) : sporty ? -0.8f : -0.3f) * D;
+            p[195] = ((sporty ? -1.0f : -0.5f) + (player && Vehicles.Setup.CanCamber(rec) ? rec.CamberF : 0f)) * D;
+            p[196] = ((sporty ? -0.8f : -0.3f) + (player && Vehicles.Setup.CanCamber(rec) ? rec.CamberR : 0f)) * D;
             p[197] = (5.5f + 0.15f * Vehicles.Setup.TuneValue(rec, 6)) * D;
             p[198] = 0.05f * Vehicles.Setup.TuneValue(rec, 5) * D;
             p[199] = wc > 4 ? 110f : heavy ? 60f : s.Bike ? 15f : 38f;
@@ -397,8 +398,8 @@ namespace MidnightClub.Physics
                 }
                 p[64] = sF.antiPct; p[65] = sR.antiPct;
                 p[66] = sF.travelBumpM * (coil ? 0.85f : 1f); p[67] = sR.travelBumpM * (coil ? 0.85f : 1f);
-                p[195] = (sF.camberDeg + (player && coil ? 0.25f * Vehicles.Setup.TuneValue(rec, 3) : 0f)) * D;
-                p[196] = (sR.camberDeg + (player && coil ? 0.2f * Vehicles.Setup.TuneValue(rec, 4) : 0f)) * D;
+                p[195] = (sF.camberDeg + (player && Vehicles.Setup.CanCamber(rec) ? rec.CamberF : 0f)) * D;   // the fitment camber is the real one
+                p[196] = (sR.camberDeg + (player && Vehicles.Setup.CanCamber(rec) ? rec.CamberR : 0f)) * D;
                 if (sF.casterDeg > 0.5f) p[197] = (sF.casterDeg + 0.15f * Vehicles.Setup.TuneValue(rec, 6)) * D;
                 p[198] = (sF.toeDeg + 0.05f * Vehicles.Setup.TuneValue(rec, 5)) * D;
                 p[207] = Math.Max(0.0f, sF.rollCentreM + rh * 1.5f); p[208] = Math.Max(0.0f, sR.rollCentreM + rh * 1.5f);
@@ -408,7 +409,10 @@ namespace MidnightClub.Physics
             {   // brake force at the tyres from the real discs and calipers; the brake upgrades and the bias tune on top
                 float rF = L.TyreF != null ? L.TyreF.Radius : L.Gear.TyreR, rR = L.TyreR != null ? L.TyreR.Radius : L.Gear.TyreR, n = s.Bike ? 1f : 2f;
                 float fF = sh.brakes.front.torqueNm * n / rF, fR = sh.brakes.rear.torqueNm * n / rR;
-                p[24] = (fF + fR) * (1f + 0.07f * brakeLvl) * (player ? 1f + 0.03f * Vehicles.Setup.TuneValue(rec, 17) : 1f);
+                // the spec torque is the calipers at a moderate line pressure; a real brake system can lock the tyres (ABS era:
+                // ~1.3 g of brake capacity, older ~1.1 g), the upgrades add on top
+                float floorG = s.Bike ? 1.1f : wc > 4 ? 0.9f : s.Year >= 1985 ? 1.3f : 1.1f;
+                p[24] = Math.Max(fF + fR, m * g * floorG) * (1f + 0.08f * brakeLvl) * (player ? 1f + 0.03f * Vehicles.Setup.TuneValue(rec, 17) : 1f);
                 p[43] = Math.Max(0.3f, Math.Min(0.85f, fF / Math.Max(1f, fF + fR) + (player ? 0.015f * Vehicles.Setup.TuneValue(rec, 16) : 0f)));
             }
             if (sh != null && sh.drivetrain != null && sh.drivetrain.diffs != null && !diff)
@@ -434,15 +438,21 @@ namespace MidnightClub.Physics
             p[214] = shMs / 1000f; p[215] = 2.0f; p[216] = 0f; p[217] = L.Engine.PeakHpRpm;
             if (bt == 6) { p[218] = L.Gear.Final * 2.4f; p[219] = L.Gear.Final * 0.45f; }
             p[220] = 1f; p[229] = player ? Draft : 0f;
+            // ride height (coilovers): the body sits lower on its springs (+ = lower, m); spacers widen the track (m per side)
+            float lower = player && coil ? -0.009f * Vehicles.Setup.TuneValue(rec, 11) : 0f;
+            p[240] = lower; p[241] = lower;
+            p[242] = player && Vehicles.Setup.CanSpace(rec) ? Math.Max(0f, rec.TrackF) / 100f : 0f;
+            p[243] = player && Vehicles.Setup.CanSpace(rec) ? Math.Max(0f, rec.TrackR) / 100f : 0f;
             if (sh != null && sh.brakes != null && sh.brakes.front != null)
             {
                 Func<SpecBrake, float> disc = br => { float d = br.sizeMm > 100 ? br.sizeMm : 300; string ty = br.type ?? ""; float dm = 9e-5f * d * d; return ty.StartsWith("carbon") ? dm * 0.5f : ty.StartsWith("solid") ? dm * 0.7f : ty == "drum" ? dm * 1.6f : dm; };
                 p[222] = disc(sh.brakes.front) * Math.Max(1, sh.brakes.front.count); p[223] = disc(sh.brakes.rear) * Math.Max(1, sh.brakes.rear.count);
                 bool carbon = (sh.brakes.front.type ?? "").StartsWith("carbon");
-                p[221] = carbon ? 900f : sh.brakes.padMu >= 0.45f ? 750f : sh.brakes.padMu >= 0.42f ? 650f : 550f;
+                p[221] = carbon ? 950f : sh.brakes.padMu >= 0.45f ? 780f : sh.brakes.padMu >= 0.42f ? 700f : 640f;
             }
-            else { p[221] = 550f; p[222] = 9f; p[223] = 7f; }
-            if (player && brakeLvl > 0) { p[221] += 50f * brakeLvl; p[222] *= 1f + 0.1f * brakeLvl; p[223] *= 1f + 0.1f * brakeLvl; }   // bigger, better-cooled brakes
+            else { p[221] = 640f; p[222] = 9f; p[223] = 7f; }
+            if (player && brakeLvl > 0) { p[221] += 70f * brakeLvl; p[222] *= 1f + 0.12f * brakeLvl; p[223] *= 1f + 0.12f * brakeLvl; }   // bigger discs, race pads
+            if (player) BrakeFadeC = p[221];   // bigger, better-cooled brakes
             string chr = sh != null ? sh.character ?? "" : "";
             p[224] = chr == "race" || chr == "drift" ? 0f : chr == "sport" || chr == "super" || chr == "hyper" ? 0.35f : 0.6f;
             Func<string, float> camGain = c2 => c2 == "MS" ? 0.35f : c2 == "DW" ? 0.6f : c2 == "ML" ? 0.5f : c2 == "PR" ? 0.7f : c2 == "SA" ? 0.4f : c2 == "TB" || c2 == "TA" ? 0.1f : c2 == "SW" ? 1.2f : 0f;

@@ -41,6 +41,7 @@ typedef struct
     float brakeOn, brakeFade, brakeMassF, brakeMassR, ackermann, bumpCamF, bumpCamR, bumpToeF;   /* 220..227 brake heat: fade starts at (C), disc mass per wheel (kg); Ackermann share; camber / toe change per metre of bump (rad/m) */
     float clutchReq, draft;   /* 229: depth in another vehicle's wake (0..1) */                                                      /* 228: the gearbox needs the clutch pedal to shift cleanly (H-pattern manual, clutch mode) */
     float dmgToe[MAXW];                                                          /* 230..239 misalignment from crash damage (rad) */
+    float lowerF, lowerR, spacerF, spacerR, pad244[6];                           /* 240..249 ride height drop (m, + = lower), wheel spacers (m per side) */
 } VParams;
 #define VP_N ((int)(sizeof(VParams) / 4))
 
@@ -80,6 +81,16 @@ typedef struct
 static volatile int axisMode; static volatile LONG axA, axB;   /* which GTA tyre axis is the heading (1 = first, 2 = second), learned near straight ahead */
 
 static Veh vehs[MAXV];
+/* wheel spacers: the contact point moves out along the body's side axis (wider track: more roll resistance from the
+   springs, less load transfer, a longer scrub radius) */
+static void spacerShift(const Veh *v, u64 wheel, float *c, const float *com)
+{
+    float d = rf(wheel, 0x140) < 0 ? v->p.spacerR : v->p.spacerF;
+    if (!(d > 0.001f) || !v->Mok) return;
+    const float *R = v->M; float side = (c[0] - com[0]) * R[0] + (c[1] - com[1]) * R[1] + (c[2] - com[2]) * R[2];
+    float sg = side >= 0 ? 1.0f : -1.0f;
+    for (int j = 0; j < 3; j++) c[j] += R[j] * sg * d;
+}
 static volatile int rpmOff;        /* CVehicle offset of GTA's engine rpm (0.2 idle .. 1.0 limiter), found by the script */
 /* diagnostics recorder (one vehicle, one record per physics step) */
 typedef struct { float t, dt, mass, speed, yaw, vxB, thr, brk, steer, gear; float w[4][14]; uint32_t trans[32]; float rpm, clutchOwn, pad[2]; } SRec;   /* trans: raw CVehicle+0x870..0x8EF (GTA's gearbox fields) */
@@ -223,7 +234,7 @@ static int vehTyre(Veh *v, int i, u64 wheel, u64 inst, float *out, float *lin, f
         }
     }
     else { InterlockedIncrement(&axisFallback); return 0; }
-    float c[3] = { rf(wheel, 0x50), rf(wheel, 0x54), rf(wheel, 0x58) }, com[3] = { rf(inst, 0x70), rf(inst, 0x74), rf(inst, 0x78) };
+    float c[3] = { rf(wheel, 0x50), rf(wheel, 0x54), rf(wheel, 0x58) }, com[3] = { rf(inst, 0x70), rf(inst, 0x74), rf(inst, 0x78) }; spacerShift(v, wheel, c, com);
     float r0[3] = { c[0] - com[0], c[1] - com[1], c[2] - com[2] }, wr[3];
     const float *lv = (const float *)linV, *av = (const float *)angV;
     cross3(av, r0, wr);
@@ -361,6 +372,10 @@ static float susForce(const Veh *v, u64 wheel, int i, float sS, float vS, float 
     float d0 = mc * 9.81f / kt, Ts = T - d0, x0 = v->x0[ax] > 0.01f ? v->x0[ax] : 0.4f * T, s0 = x0 - d0;
     float hi = 0.55f * Ts; if (hi > Ts - 0.09f) hi = Ts - 0.09f; if (hi < 0.3f * Ts) hi = 0.3f * Ts;
     if (s0 > hi) s0 = hi; if (s0 < 0.3f * Ts) s0 = 0.3f * Ts;
+    {   /* ride height: lowered on the coilovers the body sits deeper in its travel (less bump travel left), raised higher */
+        float lw = ax ? v->p.lowerR : v->p.lowerF;
+        if (lw != 0) { s0 += lw; if (s0 > Ts - 0.03f) s0 = Ts - 0.03f; if (s0 < 0.12f * Ts) s0 = 0.12f * Ts; }
+    }
     float pre = mc * 9.81f - k * s0;
     float fs = pre + k * sS, fd, kn = v->p.knee > 0.01f ? v->p.knee : 0.1f;
     if (vS >= 0) fd = vS < kn ? cc * v->p.zbl * vS : cc * (v->p.zbl * kn + v->p.zbh * (vS - kn));
@@ -403,7 +418,7 @@ static int vehSusp(Veh *v, int i, u64 wheel, u64 inst, u64 other, float *out, fl
     int j = s->pair; float so = j >= 0 && j < v->nw ? v->ws[j].s : 0;
     float F = susForce(v, wheel, i, sS, s->sv, so, j >= 0);
     const float *U = (const float *)(inst + 0x60);
-    float c[3] = { rf(wheel, 0x50), rf(wheel, 0x54), rf(wheel, 0x58) }, com[3] = { rf(inst, 0x70), rf(inst, 0x74), rf(inst, 0x78) };
+    float c[3] = { rf(wheel, 0x50), rf(wheel, 0x54), rf(wheel, 0x58) }, com[3] = { rf(inst, 0x70), rf(inst, 0x74), rf(inst, 0x78) }; spacerShift(v, wheel, c, com);
     float r[3] = { c[0] - com[0], c[1] - com[1], c[2] - com[2] };
     if (v->Mok && !v->strutOk && !v->strutBad)
     {   /* check that we can rebuild GTA's own suspension torque before we use our own direction */
@@ -579,11 +594,11 @@ static void vehStep(Veh *v, u64 *wp, int nw, float dt)
             if (p->brakeOn > 0.5f)
             {
                 float mD = s->front ? p->brakeMassF : p->brakeMassR; if (mD < 2) mD = 8;
-                float cool = (6.0f + 2.2f * fabsf(s->vx)) * (s->btemp - amb) + 5.0e-11f * powf(s->btemp + 273.0f, 4.0f);
+                float cool = (10.0f + 4.0f * fabsf(s->vx)) * (s->btemp - amb) + 5.0e-11f * powf(s->btemp + 273.0f, 4.0f);
                 s->btemp += dt * (s->bPow - cool) / (mD * 470.0f);
                 if (s->btemp < amb) s->btemp = amb; if (s->btemp > 1100) s->btemp = 1100;
                 float fa = p->brakeFade > 200 ? p->brakeFade : 550, over = s->btemp - fa;
-                s->bmu = over > 0 ? 1.0f - 0.4f * (over / 300.0f > 1 ? 1 : over / 300.0f) : 1.0f;
+                s->bmu = over > 0 ? 1.0f - 0.35f * (over / 350.0f > 1 ? 1 : over / 350.0f) : 1.0f;
             }
             else s->bmu = 1;
             float rlx = !s->front && p->relaxR > 0.05f ? p->relaxR : p->relax;
@@ -604,7 +619,7 @@ static void vehStep(Veh *v, u64 *wp, int nw, float dt)
             float tw = p->tWin > 5 ? p->tWin : 40, dT = (s->temp - (p->tOpt > 0 ? p->tOpt : 80)) / tw;
             float muT = dT < 0 ? 1 - p->coldLoss * (dT * dT > 1 ? 1 : dT * dT) : 1 - p->hotLoss * (dT * dT > 2.5f ? 2.5f : dT * dT);
             float po = p->pOpt > 5 ? p->pOpt : 32, dp = (s->press - po) / po;
-            float muP = 1 - 0.3f * dp * dp, muW = 1 - 0.25f * s->wear, muC = 1 - 5.0f * s->gam * s->gam;
+            float muP = 1 - 0.3f * dp * dp, muW = 1 - 0.25f * s->wear, muC = 1 - 5.0f * s->gam * s->gam; if (muC < 0.45f) muC = 0.45f;
             float mu = muT * muP * muW * muC; if (mu < 0.5f) mu = 0.5f; if (mu > 1.1f) mu = 1.1f;
             s->muF = mu;
         }
