@@ -162,6 +162,7 @@ namespace MidnightClub.Physics
             h.BrakeForce = s.Brake * 1.15f;
             h.HandBrakeForce = s.HBrake * 1.2f;
             if (rec != null) Setup.Apply(h, rec);
+            if (cfg.NativePhysics && !bike) h.SuspensionUpperLimit += 0.05f;   // more bump travel: real springs need room before GTA's wheel stops hard
             baseTMax = h.TractionCurveMax; baseSlide = h.TractionCurveMin / Math.Max(0.01f, h.TractionCurveMax); baseBias = HandlingMem.GetBias(h, HandlingMem.TractionBias); curRaw = s.Raw; HandlingMem.SyncAll(h, s.Raw); baseLat = h.TractionCurveLateral; baseBrake = h.BrakeForce; baseSteer = h.SteeringLock;
             appliedModel = hash; appliedKey = key; appliedCar = car;
             Log.Info("Sim handling " + spec.Id + ": " + h.Mass.ToString("0") + " kg, CoG " + h.CenterOfMassOffset.Y.ToString("0.00") + "/" + h.CenterOfMassOffset.Z.ToString("0.00") + ", drive front " + h.DriveBiasFront.ToString("0.00") + ", grip " + h.TractionCurveMax.ToString("0.00") + " (" + t.Name + ")");

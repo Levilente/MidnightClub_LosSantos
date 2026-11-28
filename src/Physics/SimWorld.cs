@@ -35,7 +35,7 @@ namespace MidnightClub.Physics
         private static readonly Dictionary<int, ModelStock> models = new Dictionary<int, ModelStock>();
         private static readonly Dictionary<string, float[]> paramCache = new Dictionary<string, float[]>();
         private static int avail = -1, nextScan, nextLog, playerHandle; private static long playerAddr;
-        private static readonly float[] st = new float[80];
+        private static readonly float[] st = new float[84];
         private static float lastSteps, lastOwn;
 
         // live state of your car
@@ -53,6 +53,7 @@ namespace MidnightClub.Physics
         public static float OptTemp { get; private set; }
         /// <summary>Mass of the physics body GTA simulates for your car (kg).</summary>
         public static float BodyMass { get; private set; }
+        private static float travelLog;
         [DllImport("MidnightClubPhysics.asi", CallingConvention = CallingConvention.Cdecl)] private static extern void MCP_VehTyresNew(long veh);
         [DllImport("MidnightClubPhysics.asi", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Unicode)] private static extern int MCP_SimDump(string path);
         private static int nextDump;
@@ -128,6 +129,7 @@ namespace MidnightClub.Physics
                         + ", tyres " + st[30].ToString("0") + "/" + st[31].ToString("0") + "/" + st[32].ToString("0") + "/" + st[33].ToString("0") + " C"
                         + ", GTA body " + st[73].ToString("0") + " kg (real " + (playerLive != null ? playerLive.Mass.ToString("0") : "?") + ")"
                         + ", inertia roll/pitch/yaw GTA " + st[74].ToString("0") + "/" + st[75].ToString("0") + "/" + st[76].ToString("0") + " real " + st[77].ToString("0") + "/" + st[78].ToString("0") + "/" + st[79].ToString("0") + " kg m2"
+                        + ", travel " + st[80].ToString("0.000") + "/" + st[81].ToString("0.000") + " m (handling " + travelLog.ToString("0.000") + "), GTA rest " + st[82].ToString("0.000") + "/" + st[83].ToString("0.000")
                         + ", rpm " + Rpm.ToString("0") + ", slip " + st[20].ToString("0.00") + "/" + st[21].ToString("0.00") + "/" + st[22].ToString("0.00") + "/" + st[23].ToString("0.00"));
                     lastSteps = st[5]; lastOwn = st[6];
                 }
@@ -258,6 +260,8 @@ namespace MidnightClub.Physics
             p[53] = (coil ? 0.55f : 0.5f) * bump; p[54] = (coil ? 0.44f : 0.4f) * bump; p[55] = (coil ? 0.85f : 0.8f) * reb; p[56] = (coil ? 0.65f : 0.6f) * reb;
             p[57] = arb * 1.5f * split; p[58] = arb * 1.5f * (1f - split); p[59] = 0.15f;
             p[60] = 1.7f; p[61] = 4f; p[62] = 3.5f;
+            p[63] = h != null && h.IsValid ? h.SuspensionUpperLimit - h.SuspensionLowerLimit : 0f;   // GTA's wheel travel
+            if (player) travelLog = p[63];
             // gearbox: overall ratios ([0] reverse)
             p[70] = L.Gear.Overall(1) * 1.05f;
             for (int i = 1; i <= Math.Min(11, L.Gear.Gears); i++) p[70 + i] = L.Gear.Overall(i);

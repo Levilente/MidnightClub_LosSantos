@@ -29,7 +29,7 @@ typedef struct
     float powC, longAt, tcs, abs, esc, mass, cda, cla, wheelbase, bike;         /* 30..39 */
     float parked, gears, frontShare, brakeBias, hold, power, pad46, pad47, pad48, pad49;  /* 40..49 */
     float susOn, fF, fR, zbl, zbh, zrl, zrh, arbF, arbR, knee;                   /* 50..59 suspension: ride frequency front/rear (Hz), damping ratios, ARB / spring ratio */
-    float bumpFrac, bumpK, maxFk, pad63, pad64, pad65, pad66, pad67, pad68, pad69;   /* 60..69 */
+    float bumpFrac, bumpK, maxFk, travel, pad64, pad65, pad66, pad67, pad68, pad69;   /* 60..69 travel: GTA's wheel travel (handling upper - lower limit, m) */
     float ratios[12];                                                           /* 70..81  [0] reverse, [g] overall ratio of gear g */
     float driven[MAXW];                                                         /* 82..91  1 = driven wheel */
     float full[CURVE_N], nb[CURVE_N];                                           /* 92..187 full-load torque, off-boost torque (Nm, 0..maxRpm) */
@@ -65,7 +65,8 @@ typedef struct
     double angErr, angMag; LONG angN; int bad;
     double sErr, sMag; LONG sN; int strutOk, strutBad; float M[12]; int Mok; float bodyMass;
     LONG steps, own;
-    float iGta[3], iTgt[3], iInv[3];   /* body inertia GTA uses / our target (roll, pitch, yaw), per principal axis the factor on our torques */
+    float iGta[3], iTgt[3], iInv[3];
+    unsigned short xh[2][128]; int xhN[2]; float tLearn[2];   /* where GTA's wheel really stops (compression histogram, 5 mm bins) */   /* body inertia GTA uses / our target (roll, pitch, yaw), per principal axis the factor on our torques */
 } Veh;
 static volatile int axisMode; static volatile LONG axA, axB;   /* which GTA tyre axis is the heading (1 = first, 2 = second), learned near straight ahead */
 
@@ -281,6 +282,30 @@ static int vehTyre(Veh *v, int i, u64 wheel, u64 inst, float *out, float *lin, f
    and the tyre's grip follows the real tyre load (a hopping wheel loses grip). The force acts along the strut
    (the body's vertical axis), not along a steep kerb-edge contact normal, so kerbs don't snap the car sideways. */
 static float susMc(const Veh *v, u64 wheel) { float sh = rf(wheel, 0x13C); if (sh < 0.02f || sh > 0.8f) sh = 1.0f / (v->nw > 0 ? v->nw : 4); return (v->bodyMass > 50 ? v->bodyMass : v->p.mass) * sh; }   /* the body GTA actually simulates */
+/* GTA's real wheel travel: the handling range, or lower where the wheel was seen to stop hard */
+static float suspTravel(const Veh *v, int ax)
+{
+    float T = v->p.travel > 0.08f && v->p.travel < 0.6f ? v->p.travel : 0.25f;
+    if (v->tLearn[ax] > 0.08f && v->tLearn[ax] < T) T = v->tLearn[ax];
+    return T;
+}
+static void learnTravel(Veh *v, int ax)
+{
+    unsigned short *h = v->xh[ax]; long tot = 0; for (int b = 0; b < 128; b++) tot += h[b];
+    if (tot > 1000)
+    {
+        for (int b = 126; b > 2; b--)
+        {
+            if (h[b] < 0.02 * tot) continue;
+            long above = 0; for (int j = b + 1; j < b + 5 && j < 128; j++) above += h[j];
+            float edge = (b + 1) * 0.005f;
+            if (h[b] >= 0.02 * tot && above < 0.01 * tot && edge > v->x0[ax] + 0.025f && (v->tLearn[ax] <= 0 || edge < v->tLearn[ax])) v->tLearn[ax] = edge;
+            break;
+        }
+    }
+    for (int b = 0; b < 128; b++) h[b] >>= 1;
+    v->xhN[ax] = 0;
+}
 static float susForce(const Veh *v, u64 wheel, int i, float sS, float vS, float sOther, int hasOther)
 {
     int ax = rf(wheel, 0x140) < 0 ? 1 : 0;
@@ -289,16 +314,18 @@ static float susForce(const Veh *v, u64 wheel, int i, float sS, float vS, float 
     /* GTA's travel (CWheel+0x130): at the end of it GTA makes a rigid body contact, which is what bounced the car.
        The static position sits at 30-50 % of that travel (GTA's own ride height when it allows), and our bump stop
        takes the rest progressively so the body never reaches GTA's hard limit. */
-    float T = rf(wheel, 0x130); if (!(T > 0.05f && T < 0.8f)) T = 0.25f;
-    float d0 = mc * 9.81f / kt, x0 = v->x0[ax] > 0.01f ? v->x0[ax] : 0.4f * T, s0 = x0 - d0;
-    if (s0 < 0.3f * T) s0 = 0.3f * T; if (s0 > 0.5f * T) s0 = 0.5f * T;
+    float T = suspTravel(v, ax);
+    float d0 = mc * 9.81f / kt, Ts = T - d0, x0 = v->x0[ax] > 0.01f ? v->x0[ax] : 0.4f * T, s0 = x0 - d0;
+    float hi = 0.55f * Ts; if (hi > Ts - 0.09f) hi = Ts - 0.09f; if (hi < 0.3f * Ts) hi = 0.3f * Ts;
+    if (s0 > hi) s0 = hi; if (s0 < 0.3f * Ts) s0 = 0.3f * Ts;
     float pre = mc * 9.81f - k * s0;
     float fs = pre + k * sS, fd, kn = v->p.knee > 0.01f ? v->p.knee : 0.1f;
     if (vS >= 0) fd = vS < kn ? cc * v->p.zbl * vS : cc * (v->p.zbl * kn + v->p.zbh * (vS - kn));
     else { float u = -vS; fd = -(u < kn ? cc * v->p.zrl * u : cc * (v->p.zrl * kn + v->p.zrh * (u - kn))); }
-    float bumpAt = T - d0 - 0.06f; if (bumpAt < s0 + 0.03f) bumpAt = s0 + 0.03f;
-    float over = sS - bumpAt, room = T - d0 - 0.01f - bumpAt; if (room < 0.02f) room = 0.02f;
-    float fb = over > 0 ? mc * 9.81f * 4.0f * (over / room) * (over / room) + k * 2.0f * over : 0.0f;   /* progressive rubber: 4 g of the corner's weight at the end */
+    float bumpAt = Ts - 0.06f; if (bumpAt < s0 + 0.04f) bumpAt = s0 + 0.04f;
+    float over = sS - bumpAt, room = Ts - 0.005f - bumpAt; if (room < 0.02f) room = 0.02f;
+    float fb = over > 0 ? mc * 9.81f * 5.0f * (over / room) * (over / room) + k * 2.0f * over : 0.0f;   /* progressive rubber: 5 g of the corner's weight at the end */
+    if (over > room) fb += k * 25.0f * (over - room);
     float fa = hasOther ? k * (ax ? v->p.arbR : v->p.arbF) * (sS - sOther) : 0.0f;
     float fo = fs + fd + fb + fa, mx = mc * 9.81f * (v->p.maxFk > 0 ? v->p.maxFk : 3.5f) + fb;
     if (fo < 0) fo = 0; if (fo > mx) fo = mx;
@@ -319,6 +346,9 @@ static int vehSusp(Veh *v, int i, u64 wheel, u64 inst, u64 other, float *out, fl
         return 0;
     }
     if (!s->cinit || gz < 20.0f) return 0;                       /* no contact for GTA: nothing to push */
+    {   int ax = rf(wheel, 0x140) < 0 ? 1 : 0, b = (int)(x * 200.0f);
+        if (b >= 0 && b < 128 && v->xh[ax][b] < 65000) v->xh[ax][b]++;
+        if (++v->xhN[ax] >= 6000) learnTravel(v, ax); }
     float dx = x - s->x1, sS = s->s + dx; if (sS < 0) sS = 0;   /* the wheel holds its place during the step, the body moves */
     int j = s->pair; float so = j >= 0 && j < v->nw ? v->ws[j].s : 0;
     float F = susForce(v, wheel, i, sS, s->sv, so, j >= 0);
@@ -670,7 +700,7 @@ static void vehStep(Veh *v, u64 *wp, int nw, float dt)
                 WSim *s = &v->ws[i]; float *q = r->w[i];
                 if (i >= nw) { for (int j = 0; j < 14; j++) q[j] = 0; continue; }
                 q[0] = s->fz; q[1] = s->ft; q[2] = rf(wp[i], 0x160); q[3] = s->s; q[4] = s->vx; q[5] = s->vy; q[6] = s->ta; q[7] = s->kappa;
-                q[8] = s->fxL; q[9] = s->fyL; q[10] = s->muF; q[11] = s->temp; q[12] = s->w; q[13] = rf(wp[i], 0x130);
+                q[8] = s->fxL; q[9] = s->fyL; q[10] = s->muF; q[11] = s->temp; q[12] = s->w; q[13] = suspTravel(v, rf(wp[i], 0x140) < 0 ? 1 : 0);
             }
         }
     }

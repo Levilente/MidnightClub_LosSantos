@@ -1,4 +1,12 @@
 # Changelog
+## 0.56.0 (2026-11-28)
+- The real cause of the bouncing, from the new recording: 0.54 took the wrong value for GTA's wheel travel (CWheel+0x130 is 0.67 m on the Jubilee, but the wheel really stops hard at 0.255 m of compression). The car rested at 80 % of the real travel, so the rear wheels sat on GTA's rigid stop 35-45 % of the time: the springs had nothing left to do and every bump went into the rigid contact.
+  - the travel now comes from the handling (upper - lower limit), and the mod also watches where each axle's wheel really stops and uses that if it is lower;
+  - GTA's upper limit is raised by 5 cm on the player's car, so the springs get room without the car riding much higher;
+  - the car rests at most at 55 % of the travel and at least 9 cm from the hard stop; the bump stop takes the last 6 cm progressively.
+  - Tested on the Jubilee in the quarter-car test (8 cm kerb, sharp pothole, +45 % load in braking): no rigid contact, settles in about half a second.
+- The log shows the travel used per axle, the handling's travel and GTA's own rest position.
+
 ## 0.55.0 (2026-11-28)
 - Body inertia (the GTA VI-style weight through direction changes): GTA takes a car's rotational inertia from its collision box, which is far off for many cars, so the body turned and rolled as if it weighed much less than it does. Our tyre, suspension and aero forces now turn the body with the real inertia, worked out from mass, wheelbase and track:
   - yaw: from the mass distribution (mid-engine cars are the most agile, front-engined muscle cars, SUVs and trucks the heaviest to turn);
