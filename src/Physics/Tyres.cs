@@ -6,7 +6,7 @@ namespace MidnightClub.Physics
     ///   F = D sin(C atan(Bx - E(Bx - atan Bx)))   (x = slip angle in rad, or slip ratio)
     /// D (peak friction) falls with load (load sensitivity), combined slip uses the MF weighting function
     ///   Gyk = cos(C atan(B kappa)), B = rBy1 cos(atan(rBy2 alpha)).
-    /// B, C, E were fitted offline (proto/mf_fit.py) to each type's peak slip and fall-off.</summary>
+    /// B, C, E were fitted offline (tools/mf_fit.py) to each type's peak slip and fall-off.</summary>
     public static class Tyres
     {
         public sealed class Mf
