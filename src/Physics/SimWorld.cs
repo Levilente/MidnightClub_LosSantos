@@ -23,7 +23,7 @@ namespace MidnightClub.Physics
         [DllImport("MidnightClubPhysics.asi", CallingConvention = CallingConvention.Cdecl)] private static extern int MCP_VehState(long veh, float[] o, int n);
         [DllImport("MidnightClubPhysics.asi", CallingConvention = CallingConvention.Cdecl)] private static extern int MCP_AxisFallbacks();
 
-        public const int VP = 204, CurveN = 48;
+        public const int VP = 212, CurveN = 48;
         /// <summary>Opponents in the current race (handles), set by the race code: they get the race assists.</summary>
         public static readonly HashSet<int> Rivals = new HashSet<int>();
         public static bool Available { get; private set; }
@@ -35,7 +35,7 @@ namespace MidnightClub.Physics
         private static readonly Dictionary<int, ModelStock> models = new Dictionary<int, ModelStock>();
         private static readonly Dictionary<string, float[]> paramCache = new Dictionary<string, float[]>();
         private static int avail = -1, nextScan, nextLog, playerHandle; private static long playerAddr;
-        private static readonly float[] st = new float[73];
+        private static readonly float[] st = new float[74];
         private static float lastSteps, lastOwn;
 
         // live state of your car
@@ -52,6 +52,8 @@ namespace MidnightClub.Physics
         public static float PeakSlip { get; private set; }
         public static float OptTemp { get; private set; }
         [DllImport("MidnightClubPhysics.asi", CallingConvention = CallingConvention.Cdecl)] private static extern void MCP_VehTyresNew(long veh);
+        [DllImport("MidnightClubPhysics.asi", CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Unicode)] private static extern int MCP_SimDump(string path);
+        private static int nextDump;
         /// <summary>New tyres on your car (workshop repair / compound change): wear back to zero.</summary>
         public static void NewTyres(Vehicle car) { try { if (Available && car != null && car.Exists()) MCP_VehTyresNew(car.MemoryAddress.ToInt64()); } catch { } }
 
@@ -108,6 +110,13 @@ namespace MidnightClub.Physics
                 }
                 else PlayerActive = false;
                 if (Game.GameTime >= nextScan) { nextScan = Game.GameTime + 400; Scan(playerCar, cfg); }
+                // developer mode: the last ~90 s of your car's physics, for analysis (probe\sim.bin)
+                if (cfg.DevMode && PlayerActive && Game.GameTime > nextDump && Probe.BaseDir != null)
+                {
+                    nextDump = Game.GameTime + 30000;
+                    try { var dir = System.IO.Path.Combine(Probe.BaseDir, "probe"); System.IO.Directory.CreateDirectory(dir); MCP_SimDump(System.IO.Path.Combine(dir, "sim.bin")); }
+                    catch (EntryPointNotFoundException) { nextDump = int.MaxValue; }
+                }
                 if (Game.GameTime > nextLog && PlayerActive)
                 {
                     nextLog = Game.GameTime + 20000;
@@ -115,6 +124,7 @@ namespace MidnightClub.Physics
                         + (st[7] < -1.5f ? "MISMATCH (own forces off)" : "error " + (st[7] * 100f).ToString("0.0") + " %") + ", suspension " + (st[8] > 0.5f ? "own" : "measuring") + ", axis fallbacks " + MCP_AxisFallbacks()
                         + ", strut " + (st[71] > 0.5f ? "own" : st[71] < -0.5f ? "GTA direction" : "checking") + ", axes " + (st[72] > 0.5f ? "learned " + st[72].ToString("0") : "learning")
                         + ", tyres " + st[30].ToString("0") + "/" + st[31].ToString("0") + "/" + st[32].ToString("0") + "/" + st[33].ToString("0") + " C"
+                        + ", GTA body " + st[73].ToString("0") + " kg (real " + (playerLive != null ? playerLive.Mass.ToString("0") : "?") + ")"
                         + ", rpm " + Rpm.ToString("0") + ", slip " + st[20].ToString("0.00") + "/" + st[21].ToString("0.00") + "/" + st[22].ToString("0.00") + "/" + st[23].ToString("0.00"));
                     lastSteps = st[5]; lastOwn = st[6];
                 }
@@ -276,6 +286,7 @@ namespace MidnightClub.Physics
             p[200] = (wc > 4 ? 800000f : heavy ? 330000f : 220000f) * (L.Gear.TyreR / 0.33f);
             p[201] = kind == "Super" ? 0.5f : sporty ? 0.4f : 0.25f;
             p[202] = t.ColdLoss; p[203] = t.HotLoss;
+            p[204] = 0.65f * t.OffroadLoss; p[205] = player && cfg.DevMode ? 1f : 0f; p[206] = L.AeroFront;
             // torque curves: full load and off-boost
             for (int i = 0; i < CurveN; i++) { p[92 + i] = L.Engine.Full[i]; p[92 + CurveN + i] = L.Engine.NoBoost[i]; }
             if (L.Engine.Ind == Induction.Supercharged)

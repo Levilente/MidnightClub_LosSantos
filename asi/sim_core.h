@@ -35,6 +35,7 @@ typedef struct
     float full[CURVE_N], nb[CURVE_N];                                           /* 92..187 full-load torque, off-boost torque (Nm, 0..maxRpm) */
     float ambient, tOpt, tWin, relax, pressF, pressR, pOpt, camF;              /* 188..195 tyre temperature window (C), relaxation length (m), cold pressures / optimum (psi), static camber (rad) */
     float camR, caster, toeF, unsprung, kt, camGain, coldLoss, hotLoss;         /* 196..203 caster, front toe (rad, + = out), unsprung mass per corner (kg), tyre vertical stiffness (N/m), camber recovery, grip loss cold / hot */
+    float offroad, record, aeroFront, pad207, pad208, pad209, pad210, pad211;     /* 204..211 grip lost on loose ground (share), record this vehicle (diagnostics) */
 } VParams;
 #define VP_N ((int)(sizeof(VParams) / 4))
 
@@ -49,7 +50,7 @@ typedef struct
     /* own wheel-ground contact: the wheel (unsprung mass) on its tyre spring, the body on the suspension */
     float s, sv, x1, ft; int calls, gc, cinit;
     /* tyre: lagged slip (relaxation length), camber, temperature, wear */
-    float taL, taRaw, vy, fxL, fyL, gam, temp, wear, muF, press;
+    float taL, taRaw, vy, fxL, fyL, gam, temp, wear, muF, press, ftF, surf;
 } WSim;
 
 typedef struct
@@ -61,12 +62,16 @@ typedef struct
     float engW, tcsF, boost, dt, yaw, vxB, escCut; int tcsAct, absAct, escAct, nGround, pairsDone, susReady;
     float x0[2]; int x0steps;
     double angErr, angMag; LONG angN; int bad;
-    double sErr, sMag; LONG sN; int strutOk, strutBad; float M[12]; int Mok;
+    double sErr, sMag; LONG sN; int strutOk, strutBad; float M[12]; int Mok; float bodyMass;
     LONG steps, own;
 } Veh;
 static volatile int axisMode; static volatile LONG axA, axB;   /* which GTA tyre axis is the heading (1 = first, 2 = second), learned near straight ahead */
 
 static Veh vehs[MAXV];
+/* diagnostics recorder (one vehicle, one record per physics step) */
+typedef struct { float t, dt, mass, speed, yaw, vxB, thr, brk, steer, gear; float w[4][14]; } SRec;
+#define SREC_CAP 8000
+static SRec *srec; static volatile LONG srecHead; static float srecT;
 static __thread Veh *cur;          /* vehicle whose wheel step is running on this thread */
 static LONG axisFallback;
 
@@ -152,6 +157,15 @@ static int vehTyre(Veh *v, int i, u64 wheel, u64 inst, float *out, float *lin, f
         if (!axisMode && fabsf(d1 - d2) < 0.5f) return 0;              /* not learned yet and ambiguous: leave it to GTA */
         float sf = dot3(f, F) >= 0 ? 1.0f : -1.0f, sg = dot3(g, Rt) >= 0 ? 1.0f : -1.0f;
         for (int j = 0; j < 3; j++) { fwd[j] = f[j] * sf; side[j] = g[j] * sg; }
+        /* the tyre works in the car's own plane: GTA tilts its axes with the contact normal, which on a kerb edge
+           points sideways and turns part of the side force into a vertical / sideways shove (kerb snapping) */
+        float fu = dot3(fwd, U), fh[3] = { fwd[0] - U[0] * fu, fwd[1] - U[1] * fu, fwd[2] - U[2] * fu }, lf = len3(fh);
+        if (lf > 0.3f)
+        {
+            for (int j = 0; j < 3; j++) fwd[j] = fh[j] / lf;
+            cross3(fwd, U, side); float ls = len3(side); if (ls > 0.3f) for (int j = 0; j < 3; j++) side[j] /= ls;
+            if (dot3(side, Rt) < 0) for (int j = 0; j < 3; j++) side[j] = -side[j];
+        }
     }
     else { InterlockedIncrement(&axisFallback); return 0; }
     float c[3] = { rf(wheel, 0x50), rf(wheel, 0x54), rf(wheel, 0x58) }, com[3] = { rf(inst, 0x70), rf(inst, 0x74), rf(inst, 0x78) };
@@ -167,7 +181,10 @@ static int vehTyre(Veh *v, int i, u64 wheel, u64 inst, float *out, float *lin, f
     ta -= 0.1f * s->gam * sgn;                                           /* camber thrust: a leaning tyre pushes towards its lean */
     float bl = (fabsf(vx) + 1.0f) * (v->dt > 0.001f ? v->dt : 0.011f) / (v->p.relax > 0.05f ? v->p.relax : 0.45f); if (bl > 1) bl = 1;
     float taE = s->taL + bl * (ta - s->taL);                             /* relaxation length: side force builds up over the first ~0.5 m */
-    float g = rf(wheel, 0x1A8); if (!(g > 0.3f)) g = 1.0f; if (g > 1.2f) g = 1.2f;
+    /* ground: GTA's own surface value (1 = road, lower = grass / dirt / sand), scaled by how much this tyre minds loose ground */
+    float sf0 = rf(wheel, 0x1A4); if (!(sf0 >= 0 && sf0 <= 1.5f)) sf0 = 1; if (sf0 > 1) sf0 = 1;
+    float g = 1.0f - (1.0f - sf0) * (v->p.offroad > 0 ? v->p.offroad : 0.6f); if (g < 0.25f) g = 0.25f;
+    s->surf = g; v->bodyMass = mass;
     float muS = v->p.wet * g * (s->muF > 0.3f ? s->muF : 1.0f);
     s->taRaw = ta; s->vy = vy; ta = taE;
     float fx, fy; vtyre(v, kappa, ta, load, muS, &fx, &fy);
@@ -195,14 +212,21 @@ static int vehTyre(Veh *v, int i, u64 wheel, u64 inst, float *out, float *lin, f
     angOf(wheel, inst, M, t, na);
     if (!(fabsf(Fw[0] + Fw[1] + Fw[2] + na[0] + na[1] + na[2]) < 1e8f)) { s->init = 0; return 0; }
     /* aerodynamic drag and downforce on the centre of mass, shared by the wheels on the ground */
-    float sp = len3(lv), aero[3] = { 0, 0, 0 };
+    /* aerodynamics: drag on the centre of mass, downforce (or lift) on each axle by the aero balance, so it changes
+       the handling at speed and not only the total grip */
+    float sp = len3(lv), aero[3] = { 0, 0, 0 }, down[3] = { 0, 0, 0 };
     if (sp > 1.0f && (v->p.cda > 0 || v->p.cla != 0))
     {
         float q = 0.5f * 1.2f * sp, ng = (float)(v->nGround > 0 ? v->nGround : v->nw);
-        for (int j = 0; j < 3; j++) aero[j] = (-q * v->p.cda * lv[j] - q * sp * v->p.cla * U[j]) / ng;
+        int nf = 0, nr = 0; for (int j = 0; j < v->nw; j++) { if (v->ws[j].front) nf++; else nr++; }
+        float af = v->p.aeroFront > 0.01f && v->p.aeroFront < 0.99f ? v->p.aeroFront : 0.45f;
+        float share = s->front ? (nf ? af / nf : 0) : (nr ? (1 - af) / nr : 0);
+        for (int j = 0; j < 3; j++) { aero[j] = -q * v->p.cda * lv[j] / ng; down[j] = -q * sp * v->p.cla * share * U[j]; }
+        float td[3], ad[3]; cross3(r0, down, td); angOf(wheel, inst, M, td, ad);
+        for (int j = 0; j < 3; j++) na[j] += ad[j];
     }
     float im = rf(inst, 0x3C);
-    for (int j = 0; j < 3; j++) { out[j] = Fw[j]; lin[j] = Fw[j] * km + aero[j] * im; ang[j] = na[j]; }
+    for (int j = 0; j < 3; j++) { out[j] = Fw[j]; lin[j] = Fw[j] * km + (aero[j] + down[j]) * im; ang[j] = na[j]; }
     s->vx = vx; s->ta = ta; s->fz = load; s->mu = muS; s->kappa = kappa; s->fxL = fx; s->fyL = latF;
     if (i == 0) { for (int j = 0; j < 12; j++) v->M[j] = M[j]; v->Mok = 1; }
     s->lx = dot3(r0, Rt); s->ly = dot3(r0, F);
@@ -219,7 +243,7 @@ static int vehTyre(Veh *v, int i, u64 wheel, u64 inst, float *out, float *lin, f
    a bump compresses the tyre first and kicks the wheel up; the body only feels it through the spring and damper,
    and the tyre's grip follows the real tyre load (a hopping wheel loses grip). The force acts along the strut
    (the body's vertical axis), not along a steep kerb-edge contact normal, so kerbs don't snap the car sideways. */
-static float susMc(const Veh *v, u64 wheel) { float sh = rf(wheel, 0x13C); if (sh < 0.02f || sh > 0.8f) sh = 1.0f / (v->nw > 0 ? v->nw : 4); return v->p.mass * sh; }
+static float susMc(const Veh *v, u64 wheel) { float sh = rf(wheel, 0x13C); if (sh < 0.02f || sh > 0.8f) sh = 1.0f / (v->nw > 0 ? v->nw : 4); return (v->bodyMass > 50 ? v->bodyMass : v->p.mass) * sh; }   /* the body GTA actually simulates */
 static float susForce(const Veh *v, u64 wheel, int i, float sS, float vS, float sOther, int hasOther)
 {
     int ax = rf(wheel, 0x140) < 0 ? 1 : 0;
@@ -277,7 +301,7 @@ static int vehSusp(Veh *v, int i, u64 wheel, u64 inst, u64 other, float *out, fl
         float sc = F / gz;
         for (int q = 0; q < 3; q++) { out[q] *= sc; lin[q] *= sc; ang[q] *= sc; }
     }
-    if (loadOut) *loadOut = s->ft;                               /* the tyre's grip comes from the tyre's own load */
+    if (loadOut) *loadOut = s->ftF;                              /* the tyre's grip comes from the tyre's own load (contact patch ~20 ms) */
     return 1;
 }
 /* after the step: the wheel on its tyre spring against the suspension, in sub-steps */
@@ -289,7 +313,7 @@ static void wheelHop(Veh *v, int i, u64 wheel, float dt)
     float mc = susMc(v, wheel);
     if (!s->cinit)
     {
-        s->s = x - mc * 9.81f / kt; if (s->s < 0) s->s = 0; s->sv = 0; s->ft = mc * 9.81f; s->cinit = 1; s->calls = 0; s->gc = 0;
+        s->s = x - mc * 9.81f / kt; if (s->s < 0) s->s = 0; s->sv = 0; s->ft = s->ftF = mc * 9.81f; s->cinit = 1; s->calls = 0; s->gc = 0;
         return;
     }
     float xe = s->gc ? x : -0.05f, xs = s->calls > 0 && s->gc ? s->x1 : xe, xr = (xe - xs) / dt;
@@ -306,6 +330,7 @@ static void wheelHop(Veh *v, int i, u64 wheel, float dt)
         if (s->s > 0.4f) { s->s = 0.4f; if (s->sv > 0) s->sv = 0; }
     }
     s->ft = ft; s->calls = 0; s->gc = 0;
+    float a = dt / 0.02f; if (a > 1) a = 1; s->ftF += (ft - s->ftF) * a;
 }
 
 static float vcurve(const Veh *v, const float *t, float rpm)
@@ -588,4 +613,21 @@ static void vehStep(Veh *v, u64 *wp, int nw, float dt)
     }
     if (!(v->engW > 0 && v->engW < 2000)) v->engW = p->idle / RPM_W;
     v->tcsAct = tcsAct; v->absAct = absAct;
+    if (p->record > 0.5f)
+    {
+        if (!srec) srec = (SRec *)VirtualAlloc(NULL, sizeof(SRec) * SREC_CAP, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+        if (srec)
+        {
+            LONG k = InterlockedIncrement(&srecHead) - 1; SRec *r = &srec[k % SREC_CAP];
+            srecT += dt;
+            r->t = srecT; r->dt = dt; r->mass = v->bodyMass; r->speed = vAvg; r->yaw = v->yaw; r->vxB = v->vxB; r->thr = thr; r->brk = brk; r->steer = steer; r->gear = (float)gear;
+            for (int i = 0; i < 4; i++)
+            {
+                WSim *s = &v->ws[i]; float *q = r->w[i];
+                if (i >= nw) { for (int j = 0; j < 14; j++) q[j] = 0; continue; }
+                q[0] = s->fz; q[1] = s->ft; q[2] = rf(wp[i], 0x160); q[3] = s->s; q[4] = s->vx; q[5] = s->vy; q[6] = s->ta; q[7] = s->kappa;
+                q[8] = s->fxL; q[9] = s->fyL; q[10] = s->muF; q[11] = s->temp; q[12] = s->w; q[13] = s->surf;
+            }
+        }
+    }
 }

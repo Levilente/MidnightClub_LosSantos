@@ -236,7 +236,7 @@ __declspec(dllexport) int MCP_VehCount(void) { int c = 0; for (int i = 0; i < MA
 __declspec(dllexport) int MCP_VehState(u64 veh, float *o, int n)
 {
     Veh *v = findVeh(veh); if (!v) return 0;
-    float s[73]; memset(s, 0, sizeof s);
+    float s[74]; memset(s, 0, sizeof s);
     s[0] = v->engW * RPM_W; s[1] = (float)v->tcsAct; s[2] = (float)v->absAct; s[3] = (float)v->escAct; s[4] = v->boost;
     s[5] = (float)v->steps; s[6] = (float)v->own; s[7] = v->bad ? -2.0f : v->angMag > 1e-6 ? (float)(v->angErr / v->angMag) : -1.0f;
     s[8] = (float)v->susReady; s[9] = (float)v->nw;
@@ -245,11 +245,21 @@ __declspec(dllexport) int MCP_VehState(u64 veh, float *o, int n)
         s[10 + i] = v->ws[i].w; s[20 + i] = v->ws[i].kappa; s[30 + i] = v->ws[i].temp; s[40 + i] = v->ws[i].wear;
         s[50 + i] = v->ws[i].press; s[60 + i] = v->ws[i].ta;
     }
-    s[70] = v->aPeakTan; s[71] = v->strutOk ? 1.0f : v->strutBad ? -1.0f : 0.0f; s[72] = (float)axisMode;
-    if (n > 73) n = 73; memcpy(o, s, (size_t)n * 4); return n;
+    s[70] = v->aPeakTan; s[71] = v->strutOk ? 1.0f : v->strutBad ? -1.0f : 0.0f; s[72] = (float)axisMode; s[73] = v->bodyMass;
+    if (n > 74) n = 74; memcpy(o, s, (size_t)n * 4); return n;
 }
 __declspec(dllexport) void MCP_VehTyresNew(u64 veh) { Veh *v = findVeh(veh); if (v) for (int i = 0; i < MAXW; i++) v->ws[i].wear = 0; }
 __declspec(dllexport) int MCP_AxisFallbacks(void) { return axisFallback; }
+__declspec(dllexport) int MCP_SimDump(const wchar_t *path)
+{
+    if (!srec) return 0;
+    LONG n = srecHead, cnt = n > SREC_CAP ? SREC_CAP : n, start = n > SREC_CAP ? n % SREC_CAP : 0;
+    FILE *f = _wfopen(path, L"wb"); if (!f) return 0;
+    int sz = (int)sizeof(SRec);
+    fwrite("MCSR", 1, 4, f); fwrite(&cnt, 4, 1, f); fwrite(&sz, 4, 1, f);
+    for (LONG i = 0; i < cnt; i++) fwrite(&srec[(start + i) % SREC_CAP], sizeof(SRec), 1, f);
+    fclose(f); return (int)cnt;
+}
 __declspec(dllexport) int MCP_Scaled(void) { return scaled; }
 __declspec(dllexport) int MCP_SuspDone(void) { return suspDone; }
 __declspec(dllexport) void MCP_SetAxle(int which, const float *p, int n) { if (which < 0 || which > 1) return; if (n > (int)(sizeof(Axle) / 4)) n = sizeof(Axle) / 4; memcpy((void *)&axle[which], p, (size_t)n * 4); }

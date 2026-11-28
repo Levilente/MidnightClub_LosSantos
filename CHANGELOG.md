@@ -1,4 +1,12 @@
 # Changelog
+## 0.51.1 (2026-11-28)
+- Grip fix: tyre friction was multiplied by an unrelated GTA wheel value (it drops to 0.65 on all wheels at times): removed. The ground now comes from GTA's real surface value (road / grass / dirt / sand) scaled by how much each tyre type minds loose ground.
+- Kerbs: the tyre works in the car's own plane; GTA tilts the tyre axes with the contact normal, which on a kerb edge points sideways and turned part of the side force into a sideways / vertical shove.
+- Suspension and tyre load follow the body mass GTA really simulates; the tyre load is the contact-patch load (~20 ms), not every probe jitter.
+- Aerodynamics: downforce acts on each axle by the aero balance (front / rear), not only on the centre of mass.
+- Semi-slicks / slicks / sport tyres work better cold (less cold loss, wider windows), shorter relaxation lengths.
+- Developer mode: the last ~90 s of your car's physics are saved to probe\sim.bin every 30 s for analysis; the log shows GTA's simulated body mass.
+
 ## 0.51.0 (2026-11-28)
 - Fix: at big steering angles (e.g. the Futo's drift lock) steering right turned the car left: the tyre's heading and side axes were picked by which was closer to the car's nose. GTA's axis order is now learned near straight ahead and always used.
 - Own wheel-ground contact: every wheel is an unsprung mass on the tyre's vertical spring between the road and the suspension, integrated after each physics step. Kerbs and bumps compress the tyre and kick the wheel up; the body feels them only through spring, damper and bump stop; a hopping wheel loses grip (tyre load = tyre spring force). The suspension force acts along the strut, not along a kerb-edge contact normal: no more kerb snapping sideways.

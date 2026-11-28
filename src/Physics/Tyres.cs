@@ -46,11 +46,11 @@ namespace MidnightClub.Physics
             switch (id)
             {
                 case Vintage: m.TOpt = 55f; m.TWin = 45f; m.ColdLoss = 0.04f; m.HotLoss = 0.18f; m.POpt = 30f; m.Relax = 0.6f; break;
-                case Touring: m.TOpt = 60f; m.TWin = 45f; m.ColdLoss = 0.04f; m.HotLoss = 0.15f; m.POpt = 35f; m.Relax = 0.5f; break;
-                case Uhp: m.TOpt = 70f; m.TWin = 40f; m.ColdLoss = 0.06f; m.HotLoss = 0.13f; m.POpt = 35f; m.Relax = 0.45f; break;
-                case Sport: m.TOpt = 75f; m.TWin = 35f; m.ColdLoss = 0.08f; m.HotLoss = 0.13f; m.POpt = 34f; m.Relax = 0.42f; break;
-                case Semi: m.TOpt = 85f; m.TWin = 30f; m.ColdLoss = 0.13f; m.HotLoss = 0.14f; m.POpt = 32f; m.Relax = 0.36f; break;
-                case Slick: m.TOpt = 95f; m.TWin = 25f; m.ColdLoss = 0.25f; m.HotLoss = 0.16f; m.POpt = 28f; m.Relax = 0.3f; break;
+                case Touring: m.TOpt = 55f; m.TWin = 45f; m.ColdLoss = 0.03f; m.HotLoss = 0.14f; m.POpt = 35f; m.Relax = 0.42f; break;
+                case Uhp: m.TOpt = 65f; m.TWin = 42f; m.ColdLoss = 0.04f; m.HotLoss = 0.12f; m.POpt = 35f; m.Relax = 0.38f; break;
+                case Sport: m.TOpt = 70f; m.TWin = 40f; m.ColdLoss = 0.05f; m.HotLoss = 0.12f; m.POpt = 34f; m.Relax = 0.35f; break;
+                case Semi: m.TOpt = 80f; m.TWin = 38f; m.ColdLoss = 0.06f; m.HotLoss = 0.12f; m.POpt = 32f; m.Relax = 0.3f; break;
+                case Slick: m.TOpt = 90f; m.TWin = 30f; m.ColdLoss = 0.15f; m.HotLoss = 0.14f; m.POpt = 28f; m.Relax = 0.25f; break;
                 case Drift: m.TOpt = 80f; m.TWin = 45f; m.ColdLoss = 0.05f; m.HotLoss = 0.08f; m.POpt = 36f; m.Relax = 0.45f; break;
                 case Drag: m.TOpt = 70f; m.TWin = 35f; m.ColdLoss = 0.15f; m.HotLoss = 0.12f; m.POpt = 22f; m.Relax = 0.5f; break;
                 case BikeSport: m.TOpt = 70f; m.TWin = 35f; m.ColdLoss = 0.1f; m.HotLoss = 0.12f; m.POpt = 36f; m.Relax = 0.3f; break;
