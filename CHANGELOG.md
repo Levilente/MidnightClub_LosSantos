@@ -1,4 +1,9 @@
 # Changelog
+## 0.60.0 (2026-11-28)
+- Gamepad steering assist rebuilt after Assetto Corsa's Advanced Gamepad Assist (adam10603): full stick puts the front tyres at their real peak slip angle measured against the front axle's actual direction of travel. The old limit added lock from the yaw rate, so when the rear stepped out it kept steering further in and over-rotated the car, even at level 10. Now: the limit may shrink a little when the car oversteers; the wheel self-steers towards the rear axle's path (like caster) with yaw damping, fading out as you move the stick; counter-steering by hand may go as far as the slide needs; dead zone, finer centre, rate slower at speed.
+- Tyre load sensitivity at real values (touring -0.22, UHP -0.18, sport -0.17, semi-slick -0.15, slick -0.12, bias-ply -0.25 per unit of extra load): the loaded outside tyres give relatively less grip, so weight transfer now costs grip the way it does on a real car. Tall, heavy cars (SUVs, old American cars) are no longer glued to the road.
+- The Native tyre model setting explains that it is the whole native simulation (keep it on).
+
 ## 0.59.0 (2026-11-28)
 - Data-driven vehicle physics: every vehicle has a spec sheet (697: all 615 career vehicles plus traffic, service and emergency vehicles, lorries, buses), built from its real counterpart by tools/specgen into res/specs/*.json (built into the DLL; data\specs\*.json can add or replace any vehicle). Each value is marked published, derived or estimated. Room for boats and aircraft in the same layout.
   - chassis: mass, weight distribution, centre-of-mass height, wheelbase, tracks, yaw / roll inertia;

@@ -423,42 +423,59 @@ namespace MidnightClub.Physics
         }
 
         // ------------------------------------------------------------------ gamepad steering assist
-        // Like Assetto Corsa's Advanced Gamepad Assist / Gran Turismo / Forza: the stick asks for a cornering demand,
-        // the assist turns it into a steering angle that doesn't go past the front tyres' peak slip angle at speed,
-        // smooths the rate the wheel can turn (faster at low speed), and adds a little counter-steer when the rear
-        // steps out. The raw stick is read on its own axis and the result is fed to GTA as the steering input.
-        private bool assistOn; private float steerOut, frontCut;
+        // After Assetto Corsa's Advanced Gamepad Assist (adam10603): the stick asks for a share of the steering angle
+        // that puts the front tyres at their peak slip angle, measured against the front axle's own direction of travel
+        // (not the yaw rate: when the rear steps out the yaw grows but the front axle's path does not, so the old
+        // yaw-based limit kept adding lock and over-rotated the car). Past that angle the tyre only scrubs. When the
+        // rear slides, the wheel self-steers towards the rear axle's direction of travel like caster does, with yaw
+        // damping, and counter-steering by hand may go as far as the slide needs. Rate-limited, slower at speed.
+        private bool assistOn; private float steerOut, smLimit = -1f, ctr, selfSm;
         private void GamepadAssist(Vehicle car, Drivetrain.Live L, float speed, float vx, float beta, float yaw, float dt)
         {
             int lvl = Math.Max(0, Math.Min(10, cfg.SteerAssist));
             assistOn = lvl > 0 && Game.LastInputMethod == InputMethod.GamePad && !car.Model.IsBike;
-            if (!assistOn) { steerOut = 0f; return; }
+            if (!assistOn || dt <= 0f) { steerOut = 0f; smLimit = -1f; return; }
             float k = lvl / 10f;
             float stick = Function.Call<float>(Hash.GET_DISABLED_CONTROL_NORMAL, 0, (int)Control.ScriptLeftAxisX);
-            // response curve: finer around the centre
-            float shaped = Math.Sign(stick) * (float)Math.Pow(Math.Abs(stick), 1f + 0.6f * k);
-            float lockRad = Math.Max(0.2f, baseSteer * (baseSteer > 3f ? 0.01745f : 1f));
-            // the angle that keeps the fronts at their peak slip, plus what the path itself needs
-            float v = Math.Max(1f, Math.Abs(vx));
-            float peak = L.Tyre.PeakDeg * 0.01745f * 1.4f;
-            float path = (float)Math.Atan(Math.Max(1f, L.Spec.Wheelbase) * Math.Abs(yaw) / v);
-            float maxAngle = Math.Min(lockRad, peak * (1.25f - 0.35f * k) + path);
-            // with the native tyres: the front tyres' real slip angle (like AC's Advanced Gamepad Assist): past the peak, take lock off
-            if (Native.DriveActive && SimWorld.PeakSlip > 0.01f && speed > 8f)
-            {
-                float over = Math.Abs(SimWorld.FrontSlip) / SimWorld.PeakSlip - (1.15f - 0.1f * k);
-                if (over > 0f) frontCut = Math.Min(0.6f, frontCut + over * dt * (4f + 4f * k)); else frontCut = Math.Max(0f, frontCut - dt * 2.5f);
-                maxAngle *= 1f - frontCut;
-            }
-            else frontCut = 0f;
-            float blend = Math.Min(1f, Math.Max(0f, (speed - 6f) / 14f));            // full lock when parking
-            float limit = lockRad + (maxAngle - lockRad) * blend * k;
-            float want = shaped * limit / lockRad;
-            // counter-steer: when the car slides, steer towards where it's going
-            if (speed > 5f && vx > 0f) want += Math.Max(-0.6f, Math.Min(0.6f, beta * 1.1f * k / Math.Max(0.2f, lockRad))) * (1f - Math.Abs(shaped) * 0.5f);
-            want = Math.Max(-1f, Math.Min(1f, want));
-            float rate = (4.5f - 2.5f * Math.Min(1f, speed / 40f)) * (1f - 0.3f * k) + 0.8f;   // full lock in ~0.25-0.5 s
-            float d = want - steerOut, maxD = rate * dt;
+            stick = Math.Abs(stick) < 0.06f ? 0f : Math.Sign(stick) * (Math.Abs(stick) - 0.06f) / 0.94f;              // dead zone
+            float shaped = Math.Sign(stick) * (float)Math.Pow(Math.Abs(stick), 1.25f + 0.35f * k);               // finer near the centre
+            const float D2R = 0.0174533f;
+            float lockDeg = Math.Max(10f, baseSteer > 3f ? baseSteer : baseSteer / D2R);
+            // velocities of the axles (right = +, yaw + = turning left)
+            var s = L.Spec; float wb = Math.Max(1f, s.Wheelbase), a = wb * (1f - s.FrontPct), b = wb * s.FrontPct;
+            var vel = car.Velocity; var rt = car.RightVector;
+            float vr = Vector3.Dot(vel, rt), vf = Math.Max(1f, Math.Abs(vx));
+            float bF = (float)Math.Atan2(vr - yaw * a, vf) / D2R, bR = (float)Math.Atan2(vr + yaw * b, vf) / D2R;   // degrees, + = moving right
+            // the front tyres' peak slip angle (the real tyre's, slightly above the curve's peak like AGA's target)
+            float peakDeg = L.TyreF != null ? L.TyreF.PeakDeg : L.Tyre.PeakDeg;
+            float target = Math.Max(3f, Math.Min(12f, peakDeg * (1.35f - 0.3f * k)));
+            float sgn = shaped > 0f ? 1f : shaped < 0f ? -1f : (steerOut >= 0f ? 1f : -1f);
+            float fade = Math.Min(1f, Math.Max(0f, (Math.Abs(vx) - 2.5f) / 5f));                                     // parking: raw lock
+            // steering limit while turning in: target slip plus the front axle's travel angle (allowed to cut the limit only a little)
+            float subLim = target * (0.4f + 0.35f * k);
+            float fAng = Math.Max(-subLim, Math.Min(lockDeg + 15f, sgn * bF));
+            float inward = Math.Max(0f, Math.Min(lockDeg, target + fAng));
+            // counter-steering: the stick points the way the rear is sliding
+            bool counter = Math.Abs(shaped) > 0.02f && sgn * bR > 0f;
+            float rawCtr = counter ? Math.Min(1f, Math.Max(0f, (Math.Abs(bR) - 4.5f) / 5.5f)) : 0f;
+            ctr += (rawCtr - ctr) * Math.Min(1f, dt * (rawCtr > ctr ? 12f : 5f));
+            float counterLim = Math.Max(0f, Math.Min(lockDeg, target * 0.5f + sgn * bR));
+            float limDeg = inward + (counterLim - inward) * ctr;
+            if (smLimit < 0f) smLimit = limDeg;
+            smLimit += (limDeg - smLimit) * Math.Min(1f, dt * 14f);
+            float limit = 1f + (smLimit / lockDeg - 1f) * fade;                                                   // share of full lock
+            // self-steer (caster): towards the rear axle's path, capped, with yaw damping; fades out as the stick moves
+            float self = Math.Max(-1f, Math.Min(1f, bR / lockDeg * 1.0f));
+            float cap = Math.Min(1f, (8f + 6f * k) / lockDeg);
+            self = Math.Max(-cap, Math.Min(cap, self)) + yaw * 0.12f * (30f / lockDeg) * k;
+            selfSm += (self - selfSm) * Math.Min(1f, dt * 10f);
+            float selfF = selfSm * fade * k * (1f - Math.Abs(shaped));
+            float want = Math.Max(-1f, Math.Min(1f, shaped * limit + selfF));
+            if (Native.DriveActive && SimWorld.PeakSlip > 0.01f && speed > 8f && Math.Abs(SimWorld.FrontSlip) > SimWorld.PeakSlip * 1.6f && Math.Sign(want) == Math.Sign(steerOut))
+                want *= 0.92f;                                                                                      // fronts far past the peak: ease off
+            // rate: full lock in ~0.2 s parked, ~0.6 s at motorway speed
+            float rate = (5f / (1f + Math.Max(0f, speed - 8f) / 14f)) * (1f - 0.25f * k) + 1.2f;
+            float d = want - steerOut, maxD = rate * dt * (Math.Abs(want) < Math.Abs(steerOut) ? 1.4f : 1f);          // centring a bit faster
             steerOut += Math.Max(-maxD, Math.Min(maxD, d));
             Function.Call(Hash.SET_CONTROL_VALUE_NEXT_FRAME, 0, (int)Control.VehicleMoveLeftRight, steerOut);
         }

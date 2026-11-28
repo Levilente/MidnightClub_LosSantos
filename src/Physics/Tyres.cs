@@ -24,17 +24,17 @@ namespace MidnightClub.Physics
         public const int Vintage = 0, Touring = 1, Uhp = 2, Sport = 3, Semi = 4, Slick = 5, Drift = 6, Drag = 7, BikeSport = 8, BikeTrack = 9, Knobbly = 10;
         public static readonly Mf[] Types =
         {
-            M(Vintage, "Bias-ply",          0.82f, 0.86f, -0.14f, 7.586f, 1.45f, -2.18f, 8.507f, 1.5f, -1.70f, 0.20f, 1.0f),
-            M(Touring, "Touring",           0.92f, 0.96f, -0.12f, 10.667f, 1.5f, -1.11f, 13.383f, 1.65f, 0.34f, 0.18f, 1.0f),
-            M(Uhp,     "Ultra-high perf.",  0.99f, 1.03f, -0.10f, 12.5f, 1.6f, -0.48f, 14.858f, 1.65f, 0.16f, 0.20f, 1.15f),
-            M(Sport,   "Sport",             1.04f, 1.08f, -0.10f, 12.727f, 1.65f, -0.54f, 14.329f, 1.65f, 0.06f, 0.24f, 1.2f),
-            M(Semi,    "Semi-slick",        1.14f, 1.17f, -0.09f, 13.529f, 1.7f, -0.46f, 14.718f, 1.65f, -0.20f, 0.36f, 1.35f),
-            M(Slick,   "Race slick",        1.40f, 1.42f, -0.08f, 14.444f, 1.8f, -0.2f, 14.536f, 1.65f, -0.80f, 0.62f, 1.6f),
-            M(Drift,   "Drift",             0.88f, 0.92f, -0.12f, 11.724f, 1.45f, -0.41f, 14.285f, 1.65f, 0.58f, 0.22f, 1.1f),
+            M(Vintage, "Bias-ply",          0.82f, 0.86f, -0.25f, 7.586f, 1.45f, -2.18f, 8.507f, 1.5f, -1.70f, 0.20f, 1.0f),
+            M(Touring, "Touring",           0.92f, 0.96f, -0.22f, 10.667f, 1.5f, -1.11f, 13.383f, 1.65f, 0.34f, 0.18f, 1.0f),
+            M(Uhp,     "Ultra-high perf.",  0.99f, 1.03f, -0.18f, 12.5f, 1.6f, -0.48f, 14.858f, 1.65f, 0.16f, 0.20f, 1.15f),
+            M(Sport,   "Sport",             1.04f, 1.08f, -0.17f, 12.727f, 1.65f, -0.54f, 14.329f, 1.65f, 0.06f, 0.24f, 1.2f),
+            M(Semi,    "Semi-slick",        1.14f, 1.17f, -0.15f, 13.529f, 1.7f, -0.46f, 14.718f, 1.65f, -0.20f, 0.36f, 1.35f),
+            M(Slick,   "Race slick",        1.40f, 1.42f, -0.12f, 14.444f, 1.8f, -0.2f, 14.536f, 1.65f, -0.80f, 0.62f, 1.6f),
+            M(Drift,   "Drift",             0.88f, 0.92f, -0.20f, 11.724f, 1.45f, -0.41f, 14.285f, 1.65f, 0.58f, 0.22f, 1.1f),
             M(Drag,    "Drag radial",       0.86f, 1.55f, -0.08f, 7.5f, 1.6f, -1.88f, 12.381f, 1.65f, 0.58f, 0.50f, 1.5f),
             M(BikeSport, "Sport (bike)",    1.08f, 1.15f, -0.09f, 12.727f, 1.65f, -0.54f, 14.329f, 1.65f, 0.06f, 0.26f, 1.2f),
             M(BikeTrack, "Track (bike)",    1.22f, 1.28f, -0.08f, 13.529f, 1.7f, -0.46f, 14.718f, 1.65f, -0.20f, 0.40f, 1.4f),
-            M(Knobbly, "Off-road knobbly",  0.80f, 0.85f, -0.12f, 6.207f, 1.45f, -3.0f, 8.507f, 1.5f, -1.70f, 0.15f, 0.55f),
+            M(Knobbly, "Off-road knobbly",  0.80f, 0.85f, -0.22f, 6.207f, 1.45f, -3.0f, 8.507f, 1.5f, -1.70f, 0.15f, 0.55f),
         };
 
         private static Mf M(int id, string n, float muY, float muX, float ls, float by, float cy, float ey, float bx, float cx, float ex, float wet, float off)
