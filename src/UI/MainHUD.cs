@@ -101,9 +101,9 @@ namespace MidnightClub.UI
         private static void Box(string tex, float x, float y, float w, float h, Color c) { Textures.DrawBox(tex, SX(x), SY(y), Ds.Px(w * su), h * su, c); }
         private static float GAdv(string p, char ch) { float v; return SpeedoGlyphs.Adv.TryGetValue(p + ":" + ch, out v) ? v : 0f; }
         /// <summary>Draws a string from the pre-rendered glyph set (gb/gm/gs). align: 0 left, 1 centre, 2 right.</summary>
-        private static void Glyphs(string p, string text, float x, float baseline, int align, Color c)
+        private static void Glyphs(string p, string text, float x, float baseline, int align, Color c, float kern = 0f)
         {
-            float tot = 0f; foreach (char ch in text) tot += GAdv(p, ch);
+            float tot = 0f; foreach (char ch in text) tot += GAdv(p, ch) + kern; tot -= kern;
             float cap = GAdv(p, 'H');
             float cx = align == 2 ? x - tot : align == 1 ? x - tot / 2f : x;
             foreach (char ch in text)
@@ -111,7 +111,7 @@ namespace MidnightClub.UI
                 float adv = GAdv(p, ch); if (adv <= 0f) continue;
                 string n = ch == '.' ? "dot" : ch == '\u2022' ? "bul" : ch.ToString();
                 Box(p + "_" + n, cx - cap * 0.08f, baseline - cap * 1.18f, adv + cap * 0.16f, cap * 1.36f, c);   // glyph PNGs carry 18% / 8% padding
-                cx += adv;
+                cx += adv + kern;
             }
         }
         private static readonly Color GearPink = Color.FromArgb(255, 232, 128, 140);
@@ -175,7 +175,11 @@ namespace MidnightClub.UI
                 if (sp.ManualMode) g = og < 0 ? "R" : og == 0 ? "N" : og.ToString();
                 else { int s0 = sp.Selector; g = s0 == 3 || s0 == 4 ? Physics.SimPhysics.SelNames[s0] + Math.Max(1, og) : Physics.SimPhysics.SelNames[s0]; }
             }
-            Glyphs("gb", g, 47.5f, 112f, 1, GearPink);
+            // gear: white, the shift light colour near the limiter; letter and number set tight, kept left of the speed digits
+            float lim = dts != null && Vehicles.Drivetrain.Current.Spec != null ? Vehicles.Drivetrain.Current.Spec.Redline : 0f;
+            float near = lim > 1000f ? (rpmReal - lim * 0.86f) / (lim * 0.1f) : (rpmShown - 0.86f) / 0.1f;
+            Color gc = near <= 0f ? Color.White : near >= 1f ? GearPink : Color.FromArgb(255, 255, (int)(255 - 23 * near), (int)(255 - 115 * near));
+            Glyphs("gb", g, g.Length > 1 ? 38f : 44f, 112f, 1, gc, g.Length > 1 ? -6f : 0f);
             Glyphs("gb", kmh.ToString(), 188f, 112f, 2, Color.White);
             // boost
             float y = 0f;
@@ -188,29 +192,31 @@ namespace MidnightClub.UI
                 boostShown = Ds.Damp(boostShown, want, want > boostShown ? (Vehicles.Setup.Has(r, "als") ? 9f : 3.5f) : 6f);
                 if (boostShown >= boostPeak) { boostPeak = boostShown; boostPeakT = 1.2f; }
                 else { boostPeakT -= Ds.Dt; if (boostPeakT <= 0f) boostPeak = Math.Max(boostShown, boostPeak - Ds.Dt * 0.8f); }
-                float span = 2.65f;                       // 1.2 bar fills 45% of the box, as in the reference
+                float span = Math.Max(1.2f, maxBar * 1.15f);   // the gauge spans the car's own boost range
                 Box("spd_boost", 0f, 0f, RefW, RefH, Color.White);
                 float f = Math.Min(1f, boostShown / span), pk = Math.Min(1f, boostPeak / span);
-                if (f > 0.005f) Box("px", 93f, 129f, 124f * f, 15f, BoostFill);
-                float tx = 93f + 124f * pk + 3f;
+                const float gx0 = 93f, gw = 54f;             // the gauge stays left of the number and the BAR label
+                Box("px", gx0, 136f, gw, 1f, Color.FromArgb(90, 255, 255, 255));
+                if (f > 0.005f) Box("px", gx0, 130f, gw * f, 13f, BoostFill);
+                float tx = gx0 + gw * pk;
                 Box("px", tx, 129.5f, 1.4f, 14f, Color.White);
-                Box("px", tx + 3f, 136.3f, 4f, 1.3f, Color.White);
+                Box("px", 150f, 130f, 1f, 13f, Color.FromArgb(70, 255, 255, 255));
                 Glyphs("gm", boostShown.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture), 188f, 143f, 2, Color.White);
             }
             // driver aid lights: light up while traction control, ABS or stability management is working
             var sim = Physics.SimPhysics.Instance;
             if (sim != null && dts != null)
             {
-                float ax = 12f;
+                float ax = 26f;
                 foreach (var a in new[] { new KeyValuePair<string, bool>("TCS", sim.TcsActive), new KeyValuePair<string, bool>("ABS", sim.AbsActive), new KeyValuePair<string, bool>("ESC", sim.EscActive) })
                 {
-                    if (a.Value) Ds.T(a.Key, SX(ax), SY(70f), 0.2f, Ds.Amber, Ds.Display);
-                    ax += 24f;
+                    Ds.T(a.Key, SX(ax), SY(24f), 0.2f, a.Value ? Ds.Amber : Color.FromArgb(60, 255, 255, 255), Ds.Display);
+                    ax += 19f;
                 }
                 // tyre temperatures (front left, front right, rear left, rear right): blue cold, green in the window, amber / red hot
                 if (Physics.SimWorld.PlayerActive && Physics.SimWorld.TyreTemp[0] > 1f)
                 {
-                    float opt = Physics.SimWorld.OptTemp, bx = SX(84f), by = SY(66f), bw = Ds.Px(7f * su), bh = 10f * su, gx = Ds.Px(2f * su), gy = 2f * su;
+                    float opt = Physics.SimWorld.OptTemp, bx = SX(6f), by = SY(22f), bw = Ds.Px(7f * su), bh = 10f * su, gx = Ds.Px(2f * su), gy = 2f * su;
                     for (int i = 0; i < 4; i++)
                     {
                         float tc = Physics.SimWorld.TyreTemp[i], d = tc - opt;

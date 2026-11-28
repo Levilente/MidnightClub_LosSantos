@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.64.1
+- Speedometer cleanup: gear letter and number set tight and kept clear of the speed digits (no more overlapping numbers); the gear is white and turns to the shift-light pink only near the limiter; TCS/ABS/ESC lights and tyre temperatures moved to the free top-left corner; the boost gauge stays left of the number and spans the car's own boost range.
+
+
 ## 0.64.0
 - Aero fully taken over from GTA: its drag coefficient and downforce modifier are zeroed on every simulated car; the native model applies the real ones only.
 - Real air: density from altitude, drag grows when the car slides sideways (side area), downforce / lift fades with the slip angle.
