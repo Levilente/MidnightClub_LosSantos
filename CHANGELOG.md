@@ -1,4 +1,7 @@
 # Changelog
+## 0.47.0 (2026-11-28): native suspension
+- **Own suspension inside GTA's physics step** (MidnightClubPhysics.asi), per wheel: spring rate from the real ride frequency (type, era, upgrade level, coilovers, spring sliders) with a preload that keeps the car's ride height (measured while it stands still), digressive dampers from real damping ratios (bump / rebound, slow / fast above 0.1 m/s, damping sliders), anti-roll bars working on the left-right compression difference (roll stiffness split by layout, bar sliders, race bars), a progressive bump stop near the end of travel. Replaces GTA's spring force (its direction is kept); the wheel load handed to the tyre model is the new one.
+
 ## 0.46.0 (2026-11-28): native tyre model, first version
 - **Pacejka inside GTA's physics step** (MidnightClubPhysics.asi): every friction evaluation of your wheels (4x per wheel per physics step) gets its force from the Magic Formula of the fitted tyre at the wheel's real load, with GTA's per-wheel slip (lateral slip velocity, longitudinal slip, contact speed) and MF combined slip. GTA's own force direction is kept, its magnitude is the model's.
 - **Bump rubber**: a kerb can no longer push a load spike of more than ~2.2x the static wheel load straight through the spring; above that the bump rubber takes it progressively (kerb snapping).

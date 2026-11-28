@@ -58,6 +58,37 @@ static void tyreModel(u64 wheel, float load, float *out, float *lin, float *ang)
     for (int i = 0; i < 3; i++) { lin[i] *= k; ang[i] *= k; }
     InterlockedIncrement(&scaled);
 }
+/* own suspension: spring + preload, digressive dampers (bump / rebound, low / high speed), progressive bump stop,
+   anti-roll bar from the axle partner's compression. Replaces GTA's spring force (its direction is kept). */
+typedef struct { float on, k, pre, cbl, cbh, crl, crh, karb, knee, bumpAt, bumpK, maxF; } Axle;
+static volatile Axle axle[2];
+static LARGE_INTEGER qf; static LARGE_INTEGER lastT[4]; static float lastPrev[4], dtStep[4] = { 1.0f / 60, 1.0f / 60, 1.0f / 60, 1.0f / 60 };
+static volatile LONG suspDone;
+static int ownSusp(int i, u64 wheel, u64 other, float *out, float *lin, float *ang, float *loadOut)
+{
+    const volatile Axle *a = &axle[i < 2 ? 0 : 1];
+    if (!(a->on > 0.5f) || a->k < 1.0f) return 0;
+    float x = rf(wheel, 0x160), prev = rf(wheel, 0x164);
+    if (!qf.QuadPart) QueryPerformanceFrequency(&qf);
+    if (prev != lastPrev[i]) { LARGE_INTEGER now; QueryPerformanceCounter(&now); if (lastT[i].QuadPart) { float d = (float)(now.QuadPart - lastT[i].QuadPart) / (float)qf.QuadPart; if (d > 1.0f / 300 && d < 1.0f / 20) dtStep[i] += (d - dtStep[i]) * 0.1f; } lastT[i] = now; lastPrev[i] = prev; }
+    float v = (x - prev) / dtStep[i];                                   /* + = compressing */
+    float fs = a->pre + a->k * x;
+    float fd;
+    if (v >= 0) fd = v < a->knee ? a->cbl * v : a->cbl * a->knee + a->cbh * (v - a->knee);
+    else { float u = -v; fd = -(u < a->knee ? a->crl * u : a->crl * a->knee + a->crh * (u - a->knee)); }
+    float fb = x > a->bumpAt ? a->bumpK * (x - a->bumpAt) * (x - a->bumpAt) * 50.0f : 0.0f;    /* progressive bump stop */
+    float fa = other ? a->karb * (x - rf(other, 0x160)) : 0.0f;
+    float f = fs + fd + fb + fa;
+    if (f < 0) f = 0; if (f > a->maxF) f = a->maxF;
+    float g = fabsf(out[2]);
+    if (g < 20.0f) return 0;                                            /* wheel in the air for GTA: leave it */
+    float k = f / g;
+    out[0] *= k; out[1] *= k; out[2] *= k;
+    for (int j = 0; j < 3; j++) { lin[j] *= k; ang[j] *= k; }
+    if (loadOut) *loadOut *= k;
+    InterlockedIncrement(&suspDone);
+    return 1;
+}
 /* bump rubber + digressive damping: a kerb can't fire a spike several times the static load through the spring */
 static void suspModel(float *out, float *lin, float *ang, float *loadOut)
 {
@@ -93,7 +124,7 @@ static void Susp(u64 wheel, u64 inst, u64 outVec, u64 lin, u64 ang, u64 loadOut,
     origSusp(wheel, inst, outVec, lin, ang, loadOut, slot, a8, a9, ctx, other, dt);
     InterlockedIncrement(&calls[1]);
     int i = whichWheel(wheel);
-    if (i >= 0 && outVec && lin && ang) suspModel((float *)outVec, (float *)lin, (float *)ang, (float *)loadOut);
+    if (i >= 0 && outVec && lin && ang && !ownSusp(i, wheel, other, (float *)outVec, (float *)lin, (float *)ang, (float *)loadOut)) suspModel((float *)outVec, (float *)lin, (float *)ang, (float *)loadOut);
     if (i < 0 || !recording || !ring) return;
     LONG n = InterlockedIncrement(&head) - 1; Rec *r = &ring[n % CAP];
     r->tick = GetTickCount(); r->kind = 2; r->wheel = (uint16_t)i; r->dt = asf(dt); r->load = rf(loadOut, 0);
@@ -152,6 +183,9 @@ __declspec(dllexport) int MCP_Install(void)
 __declspec(dllexport) const char *MCP_Status(void) { return status; }
 __declspec(dllexport) void MCP_SetModel(const float *p, int n) { if (n > (int)(sizeof(Model) / 4)) n = sizeof(Model) / 4; memcpy((void *)&model, p, (size_t)n * 4); }
 __declspec(dllexport) int MCP_Scaled(void) { return scaled; }
+__declspec(dllexport) int MCP_SuspDone(void) { return suspDone; }
+__declspec(dllexport) void MCP_SetAxle(int which, const float *p, int n) { if (which < 0 || which > 1) return; if (n > (int)(sizeof(Axle) / 4)) n = sizeof(Axle) / 4; memcpy((void *)&axle[which], p, (size_t)n * 4); }
+__declspec(dllexport) float MCP_Comp(int i) { return 0; }
 __declspec(dllexport) void MCP_SetWheels(u64 a, u64 b, u64 c, u64 d) { watch[0] = a; watch[1] = b; watch[2] = c; watch[3] = d; }
 __declspec(dllexport) void MCP_Record(int on)
 {

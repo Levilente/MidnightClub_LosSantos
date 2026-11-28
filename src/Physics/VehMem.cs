@@ -57,6 +57,14 @@ namespace MidnightClub.Physics
             return true;
         }
 
+        /// <summary>Suspension compression of a wheel (m, 0 = fully extended), NaN if unknown.</summary>
+        public static float Compression(VehicleWheel w)
+        {
+            if (Disabled) return float.NaN;
+            try { var a = w.MemoryAddress; if (a == IntPtr.Zero) return float.NaN; float c = F(a, 0x160); return c > -0.5f && c < 1.5f ? c : float.NaN; }
+            catch { Disabled = true; return float.NaN; }
+        }
+
         /// <summary>Each wheel's slip ratio (wheel surface speed vs. ground speed along its heading); NaN if unknown.</summary>
         public static float WheelSlip(VehicleWheel w, float groundSpeed)
         {
