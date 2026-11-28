@@ -88,6 +88,7 @@ namespace MidnightClub
                 new Gameplay.Collection(saves, money);
                 new Gameplay.Auction(saves, money, stack);
                 EventBus.Subscribe<MidnightTickEvent>(e => Gameplay.Radio.Tick(cfg));
+                EventBus.Subscribe<MidnightTickEvent>(e => UI.Minimap.Tick());
                 new Career.Story(saves, money) { stack = stack };
                 EventBus.Subscribe<MidnightTickEvent>(e =>
                 {

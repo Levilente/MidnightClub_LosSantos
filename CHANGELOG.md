@@ -1,4 +1,7 @@
 # Changelog
+## 0.53.1 (2026-11-28)
+- Fix: the minimap stayed empty until the big map was opened once (the GTA Online map's radar tiles weren't rebuilt). After entering the mode, as soon as the radar is on screen, the expanded radar is switched on and off once (with the fog of war lifted), which rebuilds them.
+
 ## 0.53.0 (2026-11-28)
 - UI scales to any resolution and aspect ratio: the whole interface is laid out on a 16:9 canvas fitted into the real screen (16:10 / 4:3 such as the Steam Deck get thin bars top and bottom, ultrawide at the sides). Every primitive (rects, rounded panels, textures, icons, sprites, text and text measurement, world labels, the minimap label) maps through it. Before, text was placed for 1280-unit-wide 16:9 only and slid off / apart on other aspect ratios.
 - Launcher: the window scales down to fit small or high-DPI screens (Steam Deck), clicks and drags scaled with it.

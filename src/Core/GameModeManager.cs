@@ -149,6 +149,7 @@ namespace MidnightClub.Core
                 saves.Save();
                 lastAutoSave = Game.GameTime;
                 SetState(GameMode.MIDNIGHT_CLUB);
+                UI.Minimap.Refresh(45);          // the radar shows nothing after the Online map loads until the big map is opened once
                 if (startGarage != null && !needCreator) { Script.Wait(0); Garages.EnterOnStart(startGarage); }
                 else if (!cfg.ShowWelcome) Screen.FadeIn(cfg.TransitionFadeMs);
                 // with the welcome screen on, the screen stays black and the welcome screen fades in itself (no gameplay flash)

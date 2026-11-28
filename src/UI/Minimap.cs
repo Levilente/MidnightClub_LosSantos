@@ -3,6 +3,7 @@ using System.Drawing;
 using GTA;
 using GTA.Math;
 using GTA.Native;
+using GTA.UI;
 
 namespace MidnightClub.UI
 {
@@ -12,6 +13,28 @@ namespace MidnightClub.UI
     {
         private static Scaleform mm; private static int setupAt = -100000;
         private static string street = ""; private static int streetAt;
+        private static int refreshFrames, refreshDelay;
+
+        /// <summary>After the GTA Online map is loaded the radar keeps its old (empty) tiles until the big map is opened
+        /// once: briefly switches the expanded radar on and off (and lifts the fog of war) so the tiles are rebuilt.</summary>
+        public static void Refresh(int delayFrames = 30) { refreshDelay = delayFrames; refreshFrames = 12; }
+        /// <summary>Every frame in the mode (also when the HUD isn't drawn).</summary>
+        public static void Tick() { try { RefreshTick(); } catch { } }
+        private static void RefreshTick()
+        {
+            if (refreshFrames <= 0) return;
+            if (refreshFrames == 12 && (Function.Call<bool>(Hash.IS_RADAR_HIDDEN) || Screen.IsFadedOut || Screen.IsFadingIn)) return;   // wait until the radar is really on screen (garage, fades)
+            if (refreshDelay > 0) { refreshDelay--; return; }
+            if (refreshFrames == 12)
+            {
+                Function.Call(Hash.SET_MINIMAP_IN_PROLOGUE, false);
+                Function.Call(Hash.SET_USE_ISLAND_MAP, false);
+                Function.Call(Hash.SET_MINIMAP_HIDE_FOW, true);
+                Function.Call(Hash.SET_RADAR_ZOOM, 0);
+            }
+            Function.Call(Hash.SET_BIGMAP_ACTIVE, refreshFrames > 1, false);
+            refreshFrames--;
+        }
 
         /// <summary>Minimap rectangle in screen fractions (from the safe zone and aspect ratio, like the game lays it out).</summary>
         public static void Rect(out float x, out float y, out float w, out float h)
