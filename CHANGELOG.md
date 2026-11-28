@@ -1,4 +1,8 @@
 # Changelog
+## 0.48.1 (2026-11-28)
+- GTA's artificial low-speed traction cut is fully off while the native tyre model runs: wheelspin and launch traction come only from the real torque against the tyre's grip.
+- Turbo kits back to their real lag (stage 1-3: 0.45 / 0.6 / 0.85 s, boost threshold by turbo size).
+
 ## 0.48.0 (2026-11-28): gamepad steering assist
 - **Gamepad steering assist** (0-10, default 5; Hub settings and launcher), like Assetto Corsa's Advanced Gamepad Assist / Gran Turismo / Forza: the stick sets a cornering demand, the steering angle never goes past the front tyres' peak slip at speed (plus what the path needs), full lock when parking, a softer response curve around the centre, a natural steering rate (faster at low speed), and a little counter-steer when the rear steps out. Gamepad only; keyboard and 0 = raw input.
 - Launch: GTA's artificial low-speed traction cut reduced to 35% while the native tyre model runs (wheelspin comes from the real torque), turbo kits spool quicker (stage 1-3 lag 0.35 / 0.45 / 0.6 s).

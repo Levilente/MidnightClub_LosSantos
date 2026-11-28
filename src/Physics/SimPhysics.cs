@@ -145,7 +145,7 @@ namespace MidnightClub.Physics
             h.TractionCurveMax = GripK * t.MuY;
             h.TractionCurveMin = h.TractionCurveMax * (0.5f + 0.5f * (0.7f * t.SlideY + 0.3f * t.SlideX));   // GTA scrubs past the peak far more than a real tyre: only half the MF fall-off
             h.TractionCurveLateral = ToHandlingAngle(s.TLat, t.PeakDeg * 1.4f);   // GTA's slip angle is measured at the body, the tyre's at the contact patch
-            h.LowSpeedTractionLossMultiplier = s.LowLoss * (cfg.NativePhysics ? 0.35f : 1f);   // GTA's artificial low-speed grip cut: the real torque makes the wheelspin
+            h.LowSpeedTractionLossMultiplier = cfg.NativePhysics ? 0f : s.LowLoss;   // GTA's artificial low-speed grip cut: the real torque makes the wheelspin
             h.TractionLossMultiplier = s.TLoss * t.OffroadLoss;
             if (!bike) HandlingMem.SetBias(h, HandlingMem.TractionBias, 0.5f, s.Raw);
             Suspension.Apply(h, spec, susp, Setup.Has(rec, "springs"), Setup.Has(rec, "arb"), s.Raw);
