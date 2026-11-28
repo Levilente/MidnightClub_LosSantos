@@ -1,4 +1,13 @@
 # Changelog
+## 0.62.0 (2026-11-28)
+- Gearbox fixes: the automatic was hunting (the Jubilee threw gears around). GTA briefly reports gear 0 during its own shifts and we took that as reverse and dropped to first; the shift points had no hysteresis. Now: an upshift only happens if the next gear stays well above the downshift point, downshifts wait 0.9 s after a shift, kick-down needs a sudden full throttle, and GTA's reverse is only followed for AI and traffic.
+- Selector P R N D S (Driving > Manual gearbox off): Square / Left Shift moves it forward, Circle / Left Ctrl back; P and R only when (nearly) stopped; P holds the car, N frees the engine, S holds gears longer and shifts near the redline. The pedals go straight to the gearbox: braking at a standstill in D no longer reverses, R drives backwards with the throttle. The HUD shows the selector and gear (D4, S3, R, N, P).
+- Manual (Manual gearbox on): Circle / Left Shift up, Square / Left Ctrl down, down from first while stopped = reverse.
+- While the real gearbox is on, Circle and Square no longer open the cinematic camera or the weapon wheel on the gamepad.
+- Rev the engine: neutral, or handbrake + throttle together (clutch in, like other racing games).
+- The race gearbox upgrade swaps any car to a sequential manual (fully adjustable).
+- Chase cameras: higher, and looking further ahead (the car sits lower in the frame instead of the middle). G-force motion is back on the chase cameras: accelerating pulls the camera back, braking pushes it in and dips the view, cornering slides it to the outside and leans the horizon (Camera motion (G) setting scales it). Action camera swings out to the side in a drift (NFS style). Speed shake from 60 km/h, growing smoothly to 400 km/h (Camera shake setting).
+
 ## 0.61.1 (2026-11-28)
 - Manual shifting on the gamepad: Circle (B) shifts up, Square (X) shifts down (their cinematic-camera and duck actions are off while manual shifting is on); the D-pad keeps the radio.
 

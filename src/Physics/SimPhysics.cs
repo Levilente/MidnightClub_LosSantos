@@ -423,19 +423,48 @@ namespace MidnightClub.Physics
             h.SteeringLock = baseSteer * (1f - 0.25f * t * t * (3f - 2f * t));
         }
 
-        // ------------------------------------------------------------------ manual shifting (own gearbox)
-        private bool kUp, kDn;
+        // ------------------------------------------------------------------ own gearbox: pedals, selector, manual shifting
+        // Automatic mode: Square / Left Shift moves the selector P R N D S forward, Circle / Left Ctrl back (P and R only
+        // when nearly stopped). Manual mode: Circle / Left Shift up, Square / Left Ctrl down (down from first = reverse).
+        // The pedals go straight to the gearbox (no GTA brake-to-reverse); neutral or handbrake + throttle revs the engine.
+        private bool kUp, kDn; private int sel = 3, selCar;
+        public static readonly string[] SelNames = { "P", "R", "N", "D", "S" };
+        public int Selector { get { return sel; } }
+        public bool OwnBoxOn { get { return cfg.OwnGearbox; } }
+        public bool ManualMode { get { return cfg.ManualShift; } }
         private void ManualShifting(Vehicle car)
         {
-            if (!cfg.ManualShift || !cfg.OwnGearbox || !Native.DriveActive || car.Model.IsBike) return;
-            // gamepad: Circle / B up, Square / X down (their own actions, cinematic camera and duck, are switched off)
+            if (!cfg.OwnGearbox || !Native.DriveActive || car.Model.IsBike) return;
+            if (car.Handle != selCar) { selCar = car.Handle; sel = 3; }
             bool pad = Game.LastInputMethod == InputMethod.GamePad;
-            if (pad) { Function.Call(Hash.DISABLE_CONTROL_ACTION, 0, (int)Control.VehicleCinCam, true); Function.Call(Hash.DISABLE_CONTROL_ACTION, 0, (int)Control.VehicleDuck, true); }
-            bool up = pad && Function.Call<bool>(Hash.IS_DISABLED_CONTROL_JUST_PRESSED, 0, (int)Control.VehicleCinCam);
-            bool dn = pad && Function.Call<bool>(Hash.IS_DISABLED_CONTROL_JUST_PRESSED, 0, (int)Control.VehicleDuck);
+            if (pad)
+            {
+                foreach (var c in new[] { Control.VehicleCinCam, Control.VehicleDuck, Control.VehicleSelectNextWeapon, Control.VehicleSelectPrevWeapon, Control.SelectWeapon, Control.VehicleAim })
+                    Function.Call(Hash.DISABLE_CONTROL_ACTION, 0, (int)c, true);
+            }
+            bool circle = pad && Function.Call<bool>(Hash.IS_DISABLED_CONTROL_JUST_PRESSED, 0, (int)Control.VehicleCinCam);
+            bool square = pad && Function.Call<bool>(Hash.IS_DISABLED_CONTROL_JUST_PRESSED, 0, (int)Control.VehicleDuck);
             bool ku = Game.IsKeyPressed(System.Windows.Forms.Keys.LShiftKey), kd = Game.IsKeyPressed(System.Windows.Forms.Keys.LControlKey);
-            if (ku && !kUp) up = true; if (kd && !kDn) dn = true; kUp = ku; kDn = kd;
-            if (up) SimWorld.Shift(car, 1); else if (dn) SimWorld.Shift(car, -1);
+            bool kbUp = ku && !kUp, kbDn = kd && !kDn; kUp = ku; kDn = kd;
+            float spd = car.Speed;
+            if (cfg.ManualShift)
+            {
+                if (circle || kbUp) SimWorld.Shift(car, 1); else if (square || kbDn) SimWorld.Shift(car, -1);
+            }
+            else
+            {
+                int dir = square || kbUp ? 1 : circle || kbDn ? -1 : 0;
+                if (dir != 0)
+                {
+                    int n = (sel + dir + 5) % 5;
+                    if ((n == 0 || n == 1) && spd > 1.5f) n = dir > 0 ? 2 : 3;                         // P / R only when (nearly) stopped
+                    if (sel == 1 && n == 0 && spd > 1.5f) n = sel;
+                    sel = n;
+                }
+            }
+            float thr = Function.Call<float>(Hash.GET_CONTROL_NORMAL, 0, (int)Control.VehicleAccelerate);
+            float brk = Function.Call<float>(Hash.GET_CONTROL_NORMAL, 0, (int)Control.VehicleBrake);
+            SimWorld.Drive(car, cfg.ManualShift ? 3 : sel, thr, brk);
         }
 
         // ------------------------------------------------------------------ gamepad steering assist

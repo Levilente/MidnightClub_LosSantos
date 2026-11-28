@@ -59,6 +59,8 @@ namespace MidnightClub.Physics
         private static int nextDump;
         /// <summary>New tyres on your car (workshop repair / compound change): wear back to zero.</summary>
         [DllImport("MidnightClubPhysics.asi", CallingConvention = CallingConvention.Cdecl)] private static extern void MCP_VehShift(long veh, int dir);
+        [DllImport("MidnightClubPhysics.asi", CallingConvention = CallingConvention.Cdecl)] private static extern void MCP_VehDrive(long veh, int own, int sel, float thr, float brk);
+        public static void Drive(Vehicle car, int sel, float thr, float brk) { try { if (Available && car != null && car.Exists()) MCP_VehDrive(car.MemoryAddress.ToInt64(), 1, sel, thr, brk); } catch { } }
         public static void Shift(Vehicle car, int dir) { try { if (Available && car != null && car.Exists()) MCP_VehShift(car.MemoryAddress.ToInt64(), dir); } catch { } }
         /// <summary>Own gearbox's gear and the brake disc temperatures of your car (from the native model).</summary>
         public static int OwnGear { get { return (int)st[84]; } }
@@ -366,6 +368,7 @@ namespace MidnightClub.Physics
             string bx = sh != null && sh.drivetrain != null && sh.drivetrain.gearbox != null ? sh.drivetrain.gearbox.type ?? "" : s.Year < 1985 ? "automatic" : "automatic";
             int bt = bx == "manual" ? 1 : bx == "automatic" ? 2 : bx == "dual-clutch" ? 3 : bx == "sequential" ? 4 : bx == "automated manual" ? 5 : bx == "CVT" ? 6 : bx == "single-speed" ? 7 : 2;
             p[212] = cfg.OwnGearbox && cfg.NativePhysics && !s.Bike && L.Gear.Gears >= 1 ? 1f : 0f;
+            if (player && (Vehicles.Setup.Has(rec, "gearbox") || Vehicles.Setup.Has(rec, "gearbox2"))) bt = 4;   // manual swap: the race gearbox is a sequential manual
             p[213] = bt;
             float shMs = sh != null && sh.drivetrain != null && sh.drivetrain.gearbox != null && sh.drivetrain.gearbox.shiftMs > 0 ? sh.drivetrain.gearbox.shiftMs : bt == 3 ? 120 : bt == 4 ? 70 : bt == 5 ? 180 : bt == 1 ? 350 : 280;
             if (player && Vehicles.Setup.Has(rec, "gearbox")) shMs *= 0.6f;                          // race gearbox: quicker shifts

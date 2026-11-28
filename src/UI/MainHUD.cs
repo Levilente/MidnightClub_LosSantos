@@ -169,6 +169,12 @@ namespace MidnightClub.UI
             // gear + speed
             int gear = v.CurrentGear;
             string g = v.Speed < 0.5f && v.Throttle <= 0 ? "N" : gear == 0 ? "R" : gear.ToString();
+            if (Physics.Native.DriveActive && MidnightClub.Physics.SimPhysics.Instance != null && MidnightClub.Physics.SimPhysics.Instance.OwnBoxOn)
+            {   // the real gearbox: selector and gear
+                var sp = MidnightClub.Physics.SimPhysics.Instance; int og = Physics.SimWorld.OwnGear;
+                if (sp.ManualMode) g = og < 0 ? "R" : og.ToString();
+                else { int s0 = sp.Selector; g = s0 == 3 || s0 == 4 ? Physics.SimPhysics.SelNames[s0] + Math.Max(1, og) : Physics.SimPhysics.SelNames[s0]; }
+            }
             Glyphs("gb", g, 47.5f, 112f, 1, GearPink);
             Glyphs("gb", kmh.ToString(), 188f, 112f, 2, Color.White);
             // boost
