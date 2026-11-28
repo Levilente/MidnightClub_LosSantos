@@ -259,7 +259,7 @@ namespace MidnightClub.Cameras
                 pivot = new Vector3(pos.X, pos.Y, pz);
             }
             pull = SmoothDamp(pull, Clamp(gLong, -0.8f, 1.2f) * 0.45f * gk, ref pullVel, 0.35f, dt);                       // G: accelerating pulls the camera back, braking pushes it in
-            side = SmoothDamp(side, Clamp(gLat, -1.2f, 1.2f) * 0.3f * gk, ref sideVel, 0.3f, dt);                      // G: cornering slides it to the outside
+            side = SmoothDamp(side, -Clamp(gLat, -1.2f, 1.2f) * 0.4f * gk, ref sideVel, 0.3f, dt);                    // G: turning left the camera moves left, the car is pulled out to the right of the picture
             // NFS ProStreet: every gear lets the camera a few centimetres further back (speed you can feel), with a small
             // tug on each upshift
             int gNow = Physics.Native.DriveActive ? Math.Max(1, Physics.SimWorld.OwnGear) : Math.Max(1, car.CurrentGear);

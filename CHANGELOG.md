@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.65.2
+- Chase cams: cornering G moves the camera to the inside of the turn, so the car is pulled out towards the outside of the picture.
+
+
 ## 0.65.1
 - Chase cams: rotation back to the trailing chase behaviour (in a drift the car floats out to the side); the arm follows the road's slope, so downhill the camera rises and looks down the road instead of the car hiding it.
 - Action cam: same placement as the close chase cam; in a drift it lets the car further out, drops lower and moves up level with the rear bumper on the inside of the slide.
