@@ -30,19 +30,20 @@ namespace MidnightClub.UI
         {
             if (!texturesRequested) { Function.Call(Hash.REQUEST_STREAMED_TEXTURE_DICT, "commonmenu", false); Function.Call(Hash.REQUEST_STREAMED_TEXTURE_DICT, "mpleaderboard", false); texturesRequested = true; }
             if (!Function.Call<bool>(Hash.HAS_STREAMED_TEXTURE_DICT_LOADED, dict)) { Rect(x, y, w, h, c); return; }
-            Function.Call(Hash.DRAW_SPRITE, dict, name, x + w / 2f, y + h / 2f, w, h, rot, c.R, c.G, c.B, c.A, false, 0);
+            Function.Call(Hash.DRAW_SPRITE, dict, name, Ds.MX(x + w / 2f), Ds.MY(y + h / 2f), Ds.MW(w), Ds.MH(h), rot, c.R, c.G, c.B, c.A, false, 0);
         }
 
         public static void Text(string s, float x, float y, float scale, Color c, Font f = Font.ChaletLondon, Alignment a = Alignment.Left, float wrap = 0f, bool shadow = false)
-        { new TextElement(s ?? "", new PointF(x * 1280f, y * 720f), Ds.Eff(scale), c, f, a, shadow, false, wrap * 1280f).ScaledDraw(); }
+        { Ds.Txt(s, x, y, Ds.Eff(scale), c, f, a, shadow, false, wrap); }
 
         public static float TextWidth(string s, float scale, Font f = Font.ChaletLondon)
         {
             Function.Call(Hash.BEGIN_TEXT_COMMAND_GET_SCREEN_WIDTH_OF_DISPLAY_TEXT, "STRING");
             Function.Call(Hash.ADD_TEXT_COMPONENT_SUBSTRING_PLAYER_NAME, s ?? "");
             Function.Call(Hash.SET_TEXT_FONT, (int)f);
-            Function.Call(Hash.SET_TEXT_SCALE, Ds.Eff(scale), Ds.Eff(scale));
-            return Function.Call<float>(Hash.END_TEXT_COMMAND_GET_SCREEN_WIDTH_OF_DISPLAY_TEXT, true);
+            float e = Ds.Eff(scale) * Ds.MS;
+            Function.Call(Hash.SET_TEXT_SCALE, e, e);
+            return Ds.UW(Function.Call<float>(Hash.END_TEXT_COMMAND_GET_SCREEN_WIDTH_OF_DISPLAY_TEXT, true));
         }
 
         /// <summary>Panel with a soft vertical gradient and a neon accent on the left.</summary>

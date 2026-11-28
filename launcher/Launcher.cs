@@ -127,6 +127,8 @@ namespace MidnightClubLauncher
         private sealed class Hit { public RectangleF R; public string Id; public Action Click; public Action<float> Drag; }
         private readonly List<Hit> hits = new List<Hit>();
         private Point dragFrom; private bool moving;
+        private const int LW = 1180, LH = 720; private float uiK = 1f;
+        private Point L(Point p) { return new Point((int)(p.X / uiK), (int)(p.Y / uiK)); }
         private readonly Timer anim = new Timer { Interval = 15 };
         private DateTime started = DateTime.Now;
 
@@ -134,7 +136,10 @@ namespace MidnightClubLauncher
         {
             Text = "Midnight Club: Los Santos";
             FormBorderStyle = FormBorderStyle.None; StartPosition = FormStartPosition.CenterScreen;
-            ClientSize = new Size(1180, 720); DoubleBuffered = true; KeyPreview = true;
+            // the window is designed at 1180 x 720 and scaled to fit any screen (Steam Deck, high DPI, small laptops)
+            try { var wa = Screen.PrimaryScreen.WorkingArea; uiK = Math.Min(1f, Math.Min(wa.Width * 0.96f / LW, wa.Height * 0.94f / LH)); } catch { uiK = 1f; }
+            if (uiK < 0.4f) uiK = 0.4f;
+            ClientSize = new Size((int)Math.Round(LW * uiK), (int)Math.Round(LH * uiK)); DoubleBuffered = true; KeyPreview = true;
             SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.OptimizedDoubleBuffer, true);
             try { Icon = Icon.ExtractAssociatedIcon(Application.ExecutablePath); } catch { }
             LoadAssets();
@@ -246,6 +251,7 @@ namespace MidnightClubLauncher
             { var a = S("Assists", "TractionControl", "Traction control", "0 = off. Higher levels hold the driven wheels closer to the tyre's peak slip and cut power sooner (on bikes it also stops wheelies).", "car-front", 0f, 10f, 1f, 4f); a.Fmt = "0"; drive.Items.Add(a); }
             { var a = S("Assists", "ABS", "ABS", "0 = off: the wheels can lock. Higher levels keep the braking slip closer to the tyre's peak.", "gauge", 0f, 10f, 1f, 6f); a.Fmt = "0"; drive.Items.Add(a); }
             { var a = S("Assists", "StabilityManagement", "Stability management", "0 = off. Higher levels step in earlier when the car slides: they brake the rotation and cut power.", "sparkles", 0f, 10f, 1f, 3f); a.Fmt = "0"; drive.Items.Add(a); }
+            drive.Items.Add(T("Physics", "TyreTemperature", "Tyre temperature", "Tyres warm up and cool down: grip window per compound, hot pressure from the cold setting. Off: always at working temperature.", "gauge", true));
             drive.Items.Add(T("Fitment", "Enabled", "Wheel fitment", "Camber, offset and stance from the workshops.", "wrench", true));
             cats.Add(drive);
 
@@ -324,24 +330,24 @@ namespace MidnightClubLauncher
         protected override void OnMouseMove(MouseEventArgs e)
         {
             if (moving) { Location = new Point(Location.X + e.X - dragFrom.X, Location.Y + e.Y - dragFrom.Y); return; }
-            if (dragId != null) { var h = hits.FirstOrDefault(x => x.Id == dragId); if (h != null && h.Drag != null) h.Drag(e.X); return; }
-            var hit = hits.LastOrDefault(x => x.R.Contains(e.Location));
+            if (dragId != null) { var h = hits.FirstOrDefault(x => x.Id == dragId); if (h != null && h.Drag != null) h.Drag(e.X / uiK); return; }
+            var hit = hits.LastOrDefault(x => x.R.Contains(L(e.Location)));
             hoverId = hit != null ? hit.Id : null;
             Cursor = hit != null ? Cursors.Hand : Cursors.Default;
         }
         protected override void OnMouseDown(MouseEventArgs e)
         {
             if (e.Button != MouseButtons.Left) return;
-            var hit = hits.LastOrDefault(x => x.R.Contains(e.Location));
-            if (hit == null) { if (e.Y < 56) { moving = true; dragFrom = e.Location; } return; }
+            var hit = hits.LastOrDefault(x => x.R.Contains(L(e.Location)));
+            if (hit == null) { if (e.Y < 56 * uiK) { moving = true; dragFrom = e.Location; } return; }
             pressId = hit.Id;
-            if (hit.Drag != null) { dragId = hit.Id; hit.Drag(e.X); }
+            if (hit.Drag != null) { dragId = hit.Id; hit.Drag(e.X / uiK); }
         }
         protected override void OnMouseUp(MouseEventArgs e)
         {
             moving = false;
             if (dragId != null) { dragId = null; pressId = null; return; }
-            var hit = hits.LastOrDefault(x => x.R.Contains(e.Location));
+            var hit = hits.LastOrDefault(x => x.R.Contains(L(e.Location)));
             if (hit != null && hit.Id == pressId && hit.Click != null) hit.Click();
             pressId = null;
         }
@@ -389,7 +395,7 @@ namespace MidnightClubLauncher
             Image blur; img.TryGetValue("art.bgblur_" + (light ? "light" : "dark"), out blur);
             using (var p = RoundPath(r, rad))
             {
-                if (blur != null) { var st = g.Save(); g.SetClip(p); g.DrawImage(blur, new Rectangle(0, 0, ClientSize.Width, ClientSize.Height)); g.Restore(st); }
+                if (blur != null) { var st = g.Save(); g.SetClip(p); g.DrawImage(blur, new Rectangle(0, 0, LW, LH)); g.Restore(st); }
                 using (var b = new SolidBrush(strong ? GlassStrong : GlassTint)) g.FillPath(b, p);
                 using (var pen = new Pen(Line, 1f)) g.DrawPath(pen, p);
             }
@@ -444,7 +450,7 @@ namespace MidnightClubLauncher
         /// <summary>Design preview: renders one page to a PNG (used for screenshots in development).</summary>
         public static void Render(string file, int page, int cat, bool light)
         {
-            var f = new LauncherForm(); f.page = page; f.cat = cat; f.light = light; f.started = DateTime.Now.AddSeconds(-3);
+            var f = new LauncherForm(); f.uiK = 1f; f.ClientSize = new Size(LW, LH); f.page = page; f.cat = cat; f.light = light; f.started = DateTime.Now.AddSeconds(-3);
             using (var bmp = new Bitmap(f.ClientSize.Width, f.ClientSize.Height))
             using (var g = Graphics.FromImage(bmp))
             {
@@ -458,7 +464,8 @@ namespace MidnightClubLauncher
         {
             var g = e.Graphics; g.SmoothingMode = SmoothingMode.AntiAlias; g.TextRenderingHint = TextRenderingHint.AntiAlias; g.PixelOffsetMode = PixelOffsetMode.HighQuality; g.InterpolationMode = InterpolationMode.HighQualityBilinear;
             hits.Clear();
-            int W = ClientSize.Width, H = ClientSize.Height;
+            if (Math.Abs(uiK - 1f) > 0.001f) g.ScaleTransform(uiK, uiK);
+            int W = LW, H = LH;
             Image bg; if (img.TryGetValue("art.bg_" + (light ? "light" : "dark"), out bg)) g.DrawImage(bg, 0, 0, W, H); else g.Clear(BackColor);
             // readability scrim: the left / content side is calmer, the art stays vivid on the right
             using (var sb = new LinearGradientBrush(new Rectangle(0, 0, W, H), Color.FromArgb(light ? 170 : 175, light ? Color.FromArgb(240, 242, 247) : Color.FromArgb(8, 9, 14)), Color.FromArgb(0, 0, 0, 0), 0f))

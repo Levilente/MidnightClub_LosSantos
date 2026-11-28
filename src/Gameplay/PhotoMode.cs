@@ -106,7 +106,7 @@ namespace MidnightClub.Gameplay
                     }
                     // ---- UI
                     float flash = 1f - Math.Min(1f, (Environment.TickCount - shotAt) / 350f);
-                    if (flash > 0) Ds.Rect(0f, 0f, 1f, 1f, Ds.A(Color.White, flash * 0.85f));
+                    if (flash > 0) Ds.RectPhys(0f, 0f, 1f, 1f, Ds.A(Color.White, flash * 0.85f));
                     if (ui && !shooting) Panel(sel, fov, roll, dof, FilterNames[filter], fstr, hour, lights, driver, saves.Data.PhotosTaken);
                     else if (!ui && !shooting) Ds.T("PHOTO MODE  ·  SPACE / Y  SHOW CONTROLS  ·  ENTER / A  SHOOT", 0.5f, 0.95f, 0.26f, Ds.A(Color.White, 0.55f), Ds.Display, GTA.UI.Alignment.Center);
                     Script.Wait(0);

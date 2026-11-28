@@ -863,9 +863,9 @@ namespace MidnightClub.Racing
 
         public static string FormatTime(int ms) { if (ms < 0) ms = 0; return (ms / 60000) + ":" + (ms / 1000 % 60).ToString("00") + "." + (ms % 1000 / 10).ToString("00"); }
 
-        private static void Rect(float x, float y, float w, float h, Color c) { Function.Call(Hash.DRAW_RECT, x + w / 2f, y + h / 2f, w, h, c.R, c.G, c.B, c.A, false); }
+        private static void Rect(float x, float y, float w, float h, Color c) { UI.Ds.Rect(x, y, w, h, c); }
         private static void Text(string s, float x, float y, float scale, Color c, Font f, Alignment a = Alignment.Left)
-        { new TextElement(s, new PointF(x * 1280f, y * 720f), MidnightClub.UI.Ds.Eff(scale), c, f, a, true, true).ScaledDraw(); }
+        { MidnightClub.UI.Ds.Txt(s, x, y, MidnightClub.UI.Ds.Eff(scale), c, f, a, true, true); }
 
         // ------------------------------------------------------------------ cleanup
         public void Cleanup()

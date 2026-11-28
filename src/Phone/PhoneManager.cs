@@ -170,6 +170,7 @@ namespace MidnightClub.Phone
             G(new MenuItem("Physics probe (developer)", () => Physics.Probe.Start(Physics.Probe.BaseDir)) { Value = () => Physics.Probe.Status, Description = () => "For the full tyre simulation: records 20 s of the car's raw wheel data while you drive and saves the game's code image for analysis (scripts\\MidnightClub\\probe). Reads only, changes nothing." }, "Driving", "gauge");
             G(flag("Native tyre model", "Native", () => cfg.NativePhysics, v => cfg.NativePhysics = v, "Physics"), "Driving", "gauge").Description = () => "On: the Pacejka tyre and bump-rubber suspension run inside GTA's own physics step (MidnightClubPhysics.asi). Off: the script model.";
             G(new MenuItem("Native physics test (developer)", () => Physics.Probe.StartHook(Physics.Probe.BaseDir)) { Value = () => Physics.Probe.Status, Description = () => "Stage 2 of the native simulation: hooks GTA's tyre and suspension functions read-only and records what they compute for 15 s (needs MidnightClubPhysics.asi). Changes nothing." }, "Driving", "gauge");
+            G(flag("Tyre temperature", "TyreTemperature", () => cfg.TyreTemps, v => cfg.TyreTemps = v, "Physics"), "Driving", "gauge").Description = () => "On: tyres warm up and cool down (grip window per compound, hot pressure from the cold setting). Off: tyres are always at their working temperature. Wear stays on.";
             G(lvl("Gamepad steering assist", "GamepadSteering", () => cfg.SteerAssist, v => cfg.SteerAssist = v), "Driving", "gamepad-2").Description = () => "Like Assetto Corsa's Advanced Gamepad Assist: the stick sets a cornering demand, the steering never goes past the front tyres' peak slip at speed, turns at a natural rate, and counter-steers a little when the rear steps out. 0 = raw input. Gamepad only.";
             G(lvl("Traction control", "TractionControl", () => cfg.TcsLevel, v => cfg.TcsLevel = v), "Driving", "car");
             G(lvl("ABS", "ABS", () => cfg.AbsLevel, v => cfg.AbsLevel = v), "Driving", "shield");
@@ -530,7 +531,7 @@ namespace MidnightClub.Phone
             Function.Call(Hash.HIDE_HUD_AND_RADAR_THIS_FRAME);
             float a = Ds.EaseOut(openT);
             // the world is blurred behind (MenuMGIn); a theme scrim + a soft floor keep text readable
-            Ds.Rect(0f, 0f, 1f, 1f, Ds.A(Th.Scrim, a));
+            Ds.RectPhys(0f, 0f, 1f, 1f, Ds.A(Th.Scrim, a));
             Ds.VGrad(0f, 0.7f, 1f, 0.3f, Ds.A(Ds.Bg, 0f), Ds.A(Ds.Bg, 0.55f * a), 5);
             float ty = 0.048f - (1f - a) * 0.02f;
             Ds.Logo(X0, ty, 0.8f, a, GTA.UI.Alignment.Left, false);

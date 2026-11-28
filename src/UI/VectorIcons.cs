@@ -49,6 +49,7 @@ namespace MidnightClub.UI
             if (id != null && Textures.Draw("icon_" + id, cx, cy, size, c)) return;
             S[] shapes; if (id == null || !set.TryGetValue(id, out shapes) || c.A == 0) return;
             int resW, resH; Ds.Resolution(out resW, out resH);
+            size = Ds.MH(size); cx = Ds.MX(cx); cy = Ds.MY(cy);       // canvas -> screen
             int px = Math.Max(8, (int)Math.Round(size * resH));
             string key = id + ":" + px;
             List<Box> boxes; if (!cache.TryGetValue(key, out boxes)) cache[key] = boxes = Raster(shapes, px);

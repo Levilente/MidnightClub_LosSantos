@@ -39,7 +39,7 @@ namespace MidnightClub.UI
             {
                 Function.Call(Hash.REQUEST_STREAMED_TEXTURE_DICT, dict, false);
                 if (!Function.Call<bool>(Hash.HAS_STREAMED_TEXTURE_DICT_LOADED, dict)) return false;
-                Function.Call(Hash.DRAW_SPRITE, dict, model, x + w / 2f, y + h / 2f, w, h, 0f, tint.R, tint.G, tint.B, tint.A, false, 0);
+                Function.Call(Hash.DRAW_SPRITE, dict, model, Ds.MX(x + w / 2f), Ds.MY(y + h / 2f), Ds.MW(w), Ds.MH(h), 0f, tint.R, tint.G, tint.B, tint.A, false, 0);
                 return true;
             }
             if (missing.Contains(model)) return false;

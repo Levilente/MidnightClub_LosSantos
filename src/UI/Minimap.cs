@@ -18,8 +18,9 @@ namespace MidnightClub.UI
         {
             float sz = Function.Call<float>(Hash.GET_SAFE_ZONE_SIZE);
             float margin = 0.5f * Math.Abs(sz - 1f);
-            w = 1f / (4f * Ds.Aspect) * 1.0f; h = 1f / 5.674f;
-            x = margin; y = 1f - margin - h;
+            // the game draws the radar on the real screen: compute it there, then express it on the UI canvas
+            float pw = 1f / (4f * Ds.PhysAspect), ph = 1f / 5.674f, px = margin, py = 1f - margin - ph;
+            x = Ds.UX(px); y = Ds.UY(py); w = Ds.UW(pw); h = ph / Ds.MS;
         }
 
         public static void Draw()

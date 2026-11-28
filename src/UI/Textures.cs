@@ -90,7 +90,9 @@ namespace MidnightClub.UI
         public static void Flush() { if (ready) NewFrameCheck(); }
 
         /// <summary>Draws a texture into a box: x, y = top-left (screen fractions), w = width (screen-width fraction), h = height (screen-height fraction).</summary>
-        public static bool DrawBox(string name, float x, float y, float w, float h, Color c)
+        public static bool DrawBox(string name, float x, float y, float w, float h, Color c) { return DrawBoxPhys(name, Ds.MX(x), Ds.MY(y), Ds.MW(w), Ds.MH(h), c); }
+        /// <summary>DrawBox in real screen fractions (already mapped from the canvas).</summary>
+        public static bool DrawBoxPhys(string name, float x, float y, float w, float h, Color c)
         {
             if (!Has(name)) return false;
             if (c.A == 0) return true;
@@ -114,6 +116,7 @@ namespace MidnightClub.UI
             {
                 var sp = Take(name, true);
                 float w = 720f * Screen.AspectRatio;
+                size = Ds.MH(size); cx = Ds.MX(cx); cy = Ds.MY(cy);
                 sp.Size = new SizeF(size * 720f, size * 720f);
                 sp.Position = new PointF(cx * w, cy * 720f);
                 sp.Color = c;

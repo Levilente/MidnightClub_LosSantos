@@ -33,8 +33,8 @@ namespace MidnightClub.UI
         public const Font Body = Font.ChaletLondon;
 
         private static float aspect = 1.7777f; private static int aspectFrame = -1;
-        /// <summary>Screen width / height. Used so circles and icons stay square on any resolution.</summary>
-        public static float Aspect
+        /// <summary>The real screen width / height.</summary>
+        public static float PhysAspect
         {
             get
             {
@@ -43,8 +43,34 @@ namespace MidnightClub.UI
                 return aspect;
             }
         }
+        // ---------------------------------------------------------------- canvas
+        // The whole UI is laid out on a 16:9 canvas (x, y = 0..1 of the canvas) that is fitted into the real screen
+        // whatever its resolution and aspect ratio: 16:10 / 4:3 (Steam Deck) get thin bars top and bottom, ultrawide
+        // gets them at the sides. Every primitive maps through here, so nothing slides off or overlaps.
+        public const float CanvasAspect = 16f / 9f;
+        private static float cvSx = 1f, cvSy = 1f, cvOx, cvOy; private static int cvFrame = -1;
+        private static void Cv()
+        {
+            int f = Game.FrameCount; if (f == cvFrame) return; cvFrame = f;
+            float a = PhysAspect;
+            if (a < CanvasAspect - 0.01f) { cvSx = 1f; cvSy = a / CanvasAspect; cvOx = 0f; cvOy = (1f - cvSy) * 0.5f; }
+            else if (a > CanvasAspect + 0.01f) { cvSy = 1f; cvSx = CanvasAspect / a; cvOy = 0f; cvOx = (1f - cvSx) * 0.5f; }
+            else { cvSx = cvSy = 1f; cvOx = cvOy = 0f; }
+        }
+        /// <summary>Canvas -> screen.</summary>
+        public static float MX(float x) { Cv(); return cvOx + x * cvSx; }
+        public static float MY(float y) { Cv(); return cvOy + y * cvSy; }
+        public static float MW(float w) { Cv(); return w * cvSx; }
+        public static float MH(float h) { Cv(); return h * cvSy; }
+        /// <summary>Text scale factor (GTA text scales with the screen height).</summary>
+        public static float MS { get { Cv(); return cvSy; } }
+        /// <summary>Screen -> canvas (for world-to-screen projections and the game's own HUD parts).</summary>
+        public static float UX(float x) { Cv(); return (x - cvOx) / cvSx; }
+        public static float UY(float y) { Cv(); return (y - cvOy) / cvSy; }
+        /// <summary>Canvas width / height (layout aspect): used so circles and icons stay square.</summary>
+        public static float Aspect { get { return CanvasAspect; } }
         /// <summary>Converts a height-relative length to the same on-screen length along x.</summary>
-        public static float Px(float h) { return h / Aspect; }
+        public static float Px(float h) { return h / CanvasAspect; }
         public static bool StreaksOn = false;
 
         public static Color A(Color c, float a) { a = a < 0 ? 0 : a > 1 ? 1 : a; return Color.FromArgb((int)(c.A * a), c.R, c.G, c.B); }
@@ -77,7 +103,9 @@ namespace MidnightClub.UI
 
         /// <summary>Rectangle snapped to whole screen pixels, so neighbouring strips (gradients, slanted rows)
         /// meet exactly: no overlapping seams (visible lines) and no gaps.</summary>
-        public static void Rect(float x, float y, float w, float h, Color c)
+        public static void Rect(float x, float y, float w, float h, Color c) { RectPhys(MX(x), MY(y), MW(w), MH(h), c); }
+        /// <summary>Rect in real screen fractions (already mapped).</summary>
+        public static void RectPhys(float x, float y, float w, float h, Color c)
         {
             if (c.A <= 0 || w <= 0 || h <= 0) return;
             Res();
@@ -180,7 +208,14 @@ namespace MidnightClub.UI
         public static float Eff(float scale) { return scale < 0.42f ? 0.42f - (0.42f - scale) * 0.62f : scale; }
 
         public static void T(string s, float x, float y, float scale, Color c, Font f = Body, Alignment a = Alignment.Left, float wrap = 0f)
-        { if (c.A > 2) new TextElement(s ?? "", new PointF(x * 1280f, y * 720f), Eff(scale), c, f, a, false, false, wrap * 1280f).ScaledDraw(); }
+        { if (c.A > 2) Txt(s, x, y, Eff(scale), c, f, a, false, false, wrap); }
+        /// <summary>Raw text on the canvas: effScale is the final GTA scale at 16:9 (no legibility lift).</summary>
+        public static void Txt(string s, float x, float y, float effScale, Color c, Font f, Alignment a, bool shadow, bool outline, float wrap = 0f)
+        {
+            float sw = Screen.ScaledWidth;
+            try { new TextElement(s ?? "", new PointF(MX(x) * sw, MY(y) * 720f), effScale * MS, c, f, a, shadow, outline, wrap > 0f ? MW(wrap) * sw : 0f).ScaledDraw(); }
+            catch (InvalidOperationException) { }    // SHVDN's text splitter can throw when another script draws in the same frame
+        }
 
         /// <summary>Offset from a text's draw y to the visual middle of its capitals, per font (measured in game).</summary>
         public static float MidOffset(float scale, Font f) { float e = Eff(scale); return f == Display ? (2.05f + 32.9f * e) / 1080f : (2.25f + 35.2f * e) / 1080f; }   // measured in game (text calibration card)
@@ -193,9 +228,12 @@ namespace MidnightClub.UI
             Function.Call(Hash.BEGIN_TEXT_COMMAND_GET_SCREEN_WIDTH_OF_DISPLAY_TEXT, "STRING");
             Function.Call(Hash.ADD_TEXT_COMPONENT_SUBSTRING_PLAYER_NAME, s ?? "");
             Function.Call(Hash.SET_TEXT_FONT, (int)f);
-            Function.Call(Hash.SET_TEXT_SCALE, Eff(scale), Eff(scale));
-            return Function.Call<float>(Hash.END_TEXT_COMMAND_GET_SCREEN_WIDTH_OF_DISPLAY_TEXT, true);
+            float e = Eff(scale) * MS;
+            Function.Call(Hash.SET_TEXT_SCALE, e, e);
+            return UW(Function.Call<float>(Hash.END_TEXT_COMMAND_GET_SCREEN_WIDTH_OF_DISPLAY_TEXT, true));
         }
+        /// <summary>Screen width fraction -> canvas width fraction.</summary>
+        public static float UW(float w) { Cv(); return w / cvSx; }
 
         private static readonly Dictionary<string, string> fitCache = new Dictionary<string, string>();
         /// <summary>Shortens text with an ellipsis so it fits maxW.</summary>

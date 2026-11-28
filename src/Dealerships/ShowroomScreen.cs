@@ -332,8 +332,8 @@ namespace MidnightClub.Dealerships
         }
 
         private void Flash(string s) { note = s; noteUntil = Game.GameTime + 4000; }
-        private static void Rect(float x, float y, float w, float h, Color c) { Function.Call(Hash.DRAW_RECT, x + w / 2f, y + h / 2f, w, h, c.R, c.G, c.B, c.A, false); }
+        private static void Rect(float x, float y, float w, float h, Color c) { UI.Ds.Rect(x, y, w, h, c); }
         private static void Text(string s, float x, float y, float scale, Color c, Font f, Alignment a = Alignment.Left, float wrap = 0f)
-        { new TextElement(s, new PointF(x * 1280f, y * 720f), MidnightClub.UI.Ds.Eff(scale), c, f, a, false, true, wrap * 1280f).ScaledDraw(); }
+        { MidnightClub.UI.Ds.Txt(s, x, y, MidnightClub.UI.Ds.Eff(scale), c, f, a, false, true, wrap); }
     }
 }

@@ -117,7 +117,7 @@ namespace MidnightClub.Gameplay
             {
                 int now = Environment.TickCount, left = clock - now;
                 Game.DisableAllControlsThisFrame(); Function.Call(Hash.HIDE_HUD_AND_RADAR_THIS_FRAME);
-                Ds.Rect(0f, 0f, 1f, 1f, Ds.A(Ds.Bg, 0.92f));
+                Ds.RectPhys(0f, 0f, 1f, 1f, Ds.A(Ds.Bg, 0.92f));
                 Ds.T("AUCTION HOUSE", 0.5f, 0.12f, 0.32f, Ds.Muted, Ds.Display, GTA.UI.Alignment.Center);
                 Ds.T(l.Car.Name.ToUpperInvariant(), 0.5f, 0.15f, 1.1f, Ds.Text, Ds.Display, GTA.UI.Alignment.Center);
                 PerformanceIndex.Badge(PerformanceIndex.Of(l.Car), 0.5f - Ds.Px(0.05f), 0.25f, 0.032f);

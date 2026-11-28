@@ -73,22 +73,23 @@ namespace MidnightClub.UI
         {
             if (c.A <= 0 || w <= 0 || h <= 0) return;
             int W = RW, H = RH;
+            x = Ds.MX(x); y = Ds.MY(y); w = Ds.MW(w); h = Ds.MH(h); r *= Ds.MS;     // canvas -> screen
             float X0 = (float)Math.Round(x * W), X1 = (float)Math.Round((x + w) * W), Y0 = (float)Math.Round(y * H), Y1 = (float)Math.Round((y + h) * H);
             float R = (float)Math.Round(Math.Min(r * H / 1080f, Math.Min((X1 - X0) / 2f, (Y1 - Y0) / 2f)));
-            if (R < 1.5f || !Textures.Has("q_tl")) { Ds.Rect(x, y, w, h, c); return; }
+            if (R < 1.5f || !Textures.Has("q_tl")) { Ds.RectPhys(x, y, w, h, c); return; }
             Func<float, float> fx = v => v / W; Func<float, float> fy = v => v / H;
             // one GTA rect for the centre column (where text sits; GTA rects are budgeted per frame), the two side
             // columns are textures: corner pieces + a plain strip. Text never sits in the radius-wide side columns.
-            Ds.Rect(fx(X0 + R), fy(Y0), fx(X1 - X0 - 2 * R), fy(Y1 - Y0), c);
+            Ds.RectPhys(fx(X0 + R), fy(Y0), fx(X1 - X0 - 2 * R), fy(Y1 - Y0), c);
             if (Y1 - Y0 - 2 * R > 0.5f)
             {
-                Textures.DrawBox("px", fx(X0), fy(Y0 + R), fx(R), fy(Y1 - Y0 - 2 * R), c);
-                Textures.DrawBox("px", fx(X1 - R), fy(Y0 + R), fx(R), fy(Y1 - Y0 - 2 * R), c);
+                Textures.DrawBoxPhys("px", fx(X0), fy(Y0 + R), fx(R), fy(Y1 - Y0 - 2 * R), c);
+                Textures.DrawBoxPhys("px", fx(X1 - R), fy(Y0 + R), fx(R), fy(Y1 - Y0 - 2 * R), c);
             }
-            Textures.DrawBox("q_tl", fx(X0), fy(Y0), fx(R), fy(R), c);
-            Textures.DrawBox("q_tr", fx(X1 - R), fy(Y0), fx(R), fy(R), c);
-            Textures.DrawBox("q_bl", fx(X0), fy(Y1 - R), fx(R), fy(R), c);
-            Textures.DrawBox("q_br", fx(X1 - R), fy(Y1 - R), fx(R), fy(R), c);
+            Textures.DrawBoxPhys("q_tl", fx(X0), fy(Y0), fx(R), fy(R), c);
+            Textures.DrawBoxPhys("q_tr", fx(X1 - R), fy(Y0), fx(R), fy(R), c);
+            Textures.DrawBoxPhys("q_bl", fx(X0), fy(Y1 - R), fx(R), fy(R), c);
+            Textures.DrawBoxPhys("q_br", fx(X1 - R), fy(Y1 - R), fx(R), fy(R), c);
         }
 
         /// <summary>Rounded outline (1-2 px). Corner rings are textures, straight edges are rects.</summary>
@@ -96,23 +97,24 @@ namespace MidnightClub.UI
         {
             if (c.A <= 0) return;
             int W = RW, H = RH;
+            x = Ds.MX(x); y = Ds.MY(y); w = Ds.MW(w); h = Ds.MH(h); r *= Ds.MS; thickPx *= Ds.MS;   // canvas -> screen
             float X0 = (float)Math.Round(x * W), X1 = (float)Math.Round((x + w) * W), Y0 = (float)Math.Round(y * H), Y1 = (float)Math.Round((y + h) * H);
             float R = (float)Math.Round(Math.Min(r * H / 1080f, Math.Min((X1 - X0) / 2f, (Y1 - Y0) / 2f)));
             float t = Math.Max(1f, (float)Math.Round(thickPx * H / 1080f));
             if (R < 2f) R = 0f;
             Func<float, float> fx = v => v / W; Func<float, float> fy = v => v / H;
             // outlines are textures only (no GTA rect budget): edges are thin strips that never cross text
-            Textures.DrawBox("px", fx(X0 + R), fy(Y0), fx(X1 - X0 - 2 * R), fy(t), c);
-            Textures.DrawBox("px", fx(X0 + R), fy(Y1 - t), fx(X1 - X0 - 2 * R), fy(t), c);
-            Textures.DrawBox("px", fx(X0), fy(Y0 + R), fx(t), fy(Y1 - Y0 - 2 * R), c);
-            Textures.DrawBox("px", fx(X1 - t), fy(Y0 + R), fx(t), fy(Y1 - Y0 - 2 * R), c);
+            Textures.DrawBoxPhys("px", fx(X0 + R), fy(Y0), fx(X1 - X0 - 2 * R), fy(t), c);
+            Textures.DrawBoxPhys("px", fx(X0 + R), fy(Y1 - t), fx(X1 - X0 - 2 * R), fy(t), c);
+            Textures.DrawBoxPhys("px", fx(X0), fy(Y0 + R), fx(t), fy(Y1 - Y0 - 2 * R), c);
+            Textures.DrawBoxPhys("px", fx(X1 - t), fy(Y0 + R), fx(t), fy(Y1 - Y0 - 2 * R), c);
             if (R <= 0f) return;
             // corner rings come in four stroke ratios; pick the one whose stroke matches t
             float ratio = t / R; string q = ratio < 0.095f ? "qo7" : ratio < 0.16f ? "qo12" : ratio < 0.26f ? "qo20" : "qo32";
-            Textures.DrawBox(q + "_tl", fx(X0), fy(Y0), fx(R), fy(R), c);
-            Textures.DrawBox(q + "_tr", fx(X1 - R), fy(Y0), fx(R), fy(R), c);
-            Textures.DrawBox(q + "_bl", fx(X0), fy(Y1 - R), fx(R), fy(R), c);
-            Textures.DrawBox(q + "_br", fx(X1 - R), fy(Y1 - R), fx(R), fy(R), c);
+            Textures.DrawBoxPhys(q + "_tl", fx(X0), fy(Y0), fx(R), fy(R), c);
+            Textures.DrawBoxPhys(q + "_tr", fx(X1 - R), fy(Y0), fx(R), fy(R), c);
+            Textures.DrawBoxPhys(q + "_bl", fx(X0), fy(Y1 - R), fx(R), fy(R), c);
+            Textures.DrawBoxPhys(q + "_br", fx(X1 - R), fy(Y1 - R), fx(R), fy(R), c);
         }
 
         /// <summary>Frosted glass card: translucent fill, hairline border and a top highlight (light source).</summary>

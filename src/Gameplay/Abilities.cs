@@ -176,8 +176,8 @@ namespace MidnightClub.Gameplay
             UI.MainHUD.RowY = 0f;
         }
 
-        private static void Rect(float x, float y, float w, float h, Color c) { Function.Call(Hash.DRAW_RECT, x + w / 2f, y + h / 2f, w, h, c.R, c.G, c.B, c.A, false); }
+        private static void Rect(float x, float y, float w, float h, Color c) { UI.Ds.Rect(x, y, w, h, c); }
         private static void Txt(string s, float x, float y, Alignment a)
-        { new TextElement(s, new PointF(x * 1280f, y * 720f), MidnightClub.UI.Ds.Eff(0.24f), Color.White, Font.ChaletLondon, a, true, true).ScaledDraw(); }
+        { MidnightClub.UI.Ds.Txt(s, x, y, MidnightClub.UI.Ds.Eff(0.24f), Color.White, Font.ChaletLondon, a, true, true); }
     }
 }

@@ -35,7 +35,7 @@ typedef struct
     float full[CURVE_N], nb[CURVE_N];                                           /* 92..187 full-load torque, off-boost torque (Nm, 0..maxRpm) */
     float ambient, tOpt, tWin, relax, pressF, pressR, pOpt, camF;              /* 188..195 tyre temperature window (C), relaxation length (m), cold pressures / optimum (psi), static camber (rad) */
     float camR, caster, toeF, unsprung, kt, camGain, coldLoss, hotLoss;         /* 196..203 caster, front toe (rad, + = out), unsprung mass per corner (kg), tyre vertical stiffness (N/m), camber recovery, grip loss cold / hot */
-    float offroad, record, aeroFront, rcF, rcR, pad209, pad210, pad211;     /* 204..211 grip lost on loose ground (share), record this vehicle (diagnostics) */
+    float offroad, record, aeroFront, rcF, rcR, thermal, pad210, pad211;     /* 204..211 grip lost on loose ground (share), record this vehicle (diagnostics) */
 } VParams;
 #define VP_N ((int)(sizeof(VParams) / 4))
 
@@ -438,6 +438,7 @@ static void vehStep(Veh *v, u64 *wp, int nw, float dt)
             float hc = 18.0f + 2.8f * fabsf(s->vx);
             s->temp += dt * (0.4f * pSl + pRo - hc * (s->temp - amb)) / 7000.0f;
             if (s->temp > 160) s->temp = 160; if (s->temp < amb - 5) s->temp = amb - 5;
+            if (!(p->thermal > 0.5f)) s->temp = p->tOpt > 0 ? p->tOpt : 80;   /* temperature simulation off: always at working temperature */
             s->wear += 6e-8f * pSl * dt; if (s->wear > 1) s->wear = 1;
             float pc = s->front ? p->pressF : p->pressR; if (pc < 10) pc = 32;
             s->press = pc * (s->temp + 273.0f) / (amb + 273.0f);

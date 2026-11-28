@@ -594,7 +594,7 @@ namespace MidnightClub.Racing
                 UI.Theme.FullscreenFrame();
                 Game.DisableAllControlsThisFrame();
                 Function.Call(Hash.HIDE_HUD_AND_RADAR_THIS_FRAME);
-                UI.Ds.HGrad(0f, 0f, 1f, 1f, UI.Ds.A(UI.Ds.Bg, 0.94f * a), UI.Ds.A(UI.Ds.Bg, 0.55f * a), 24);
+                UI.Ds.RectPhys(0f, 0f, 1f, 1f, UI.Ds.A(UI.Ds.Bg, 0.55f * a)); UI.Ds.HGrad(0f, 0f, 1f, 1f, UI.Ds.A(UI.Ds.Bg, 0.94f * a), UI.Ds.A(UI.Ds.Bg, 0.55f * a), 24);
                 UI.Ds.Streaks(0f, 0.1f, 1f, 0.8f, acc, 0.22f * a, 16, 0.4f);
                 float x = 0.08f + (1f - a) * -0.03f;
                 UI.Ds.T(r.Kind.ToString().ToUpperInvariant() + "  ·  " + r.Name.ToUpperInvariant(), x, 0.12f, 0.3f, UI.Ds.A(acc, a), UI.Ds.Display);
@@ -643,6 +643,6 @@ namespace MidnightClub.Racing
         }
 
         private static void T(string s, float x, float y, float scale, Color c, Font f)
-        { new TextElement(s, new PointF(x * 1280f, y * 720f), MidnightClub.UI.Ds.Eff(scale), c, f, Alignment.Center, true, true).ScaledDraw(); }
+        { MidnightClub.UI.Ds.Txt(s, x, y, MidnightClub.UI.Ds.Eff(scale), c, f, Alignment.Center, true, true); }
     }
 }

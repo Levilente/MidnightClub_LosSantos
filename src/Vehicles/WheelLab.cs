@@ -123,7 +123,7 @@ namespace MidnightClub.Vehicles
 
         private void Draw(VehicleWheel[] wheels)
         {
-            Function.Call(Hash.DRAW_RECT, 0.5f, 0.17f, 0.62f, 0.25f, 0, 0, 0, 200, false);
+            UI.Ds.Rect(0.19f, 0.045f, 0.62f, 0.25f, Color.FromArgb(200, 0, 0, 0));
             var lines = new List<string> { "~y~WHEEL LAB~s~   PgUp/PgDn field   +/- scale   Backspace reset   F9 close", scanText };
             for (int f = 0; f < fields.Count; f++)
             {
@@ -133,7 +133,7 @@ namespace MidnightClub.Vehicles
             float y = 0.05f;
             foreach (var l in lines)
                 foreach (var part in l.Split('\n'))
-                { new TextElement(part, new PointF(0.2f * 1280f, y * 720f), 0.3f, Color.White, Font.ChaletLondon, Alignment.Left, false, true).ScaledDraw(); y += 0.026f; }
+                { UI.Ds.Txt(part, 0.2f, y, 0.3f, Color.White, Font.ChaletLondon, Alignment.Left, false, true); y += 0.026f; }
         }
     }
 }

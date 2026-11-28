@@ -1,4 +1,9 @@
 # Changelog
+## 0.53.0 (2026-11-28)
+- UI scales to any resolution and aspect ratio: the whole interface is laid out on a 16:9 canvas fitted into the real screen (16:10 / 4:3 such as the Steam Deck get thin bars top and bottom, ultrawide at the sides). Every primitive (rects, rounded panels, textures, icons, sprites, text and text measurement, world labels, the minimap label) maps through it. Before, text was placed for 1280-unit-wide 16:9 only and slid off / apart on other aspect ratios.
+- Launcher: the window scales down to fit small or high-DPI screens (Steam Deck), clicks and drags scaled with it.
+- Tyre temperature simulation can be switched off (Settings > Driving > Tyre temperature, launcher, config [Physics] TyreTemperature): tyres then always sit at their working temperature; wear stays on.
+
 ## 0.52.0 (2026-11-28)
 Fixes from the first physics recording (probe\sim.bin):
 - Suspension damping: the dampers were far too digressive (effective ~17 % of critical at body speeds); the body pitched / rolled +-8 cm at 2 Hz and the tyre load swung by 47 % of its mean, with the wheels in the air 5-6 % of the time - that bouncing was most of the "on ice" feel. Now firm low-speed body control (bump 50 %, rebound 80 % of critical up to 0.12 m/s, then 25 % / 40 %): a kerb now overshoots ~35 % and settles in one cycle (was ~65 %).

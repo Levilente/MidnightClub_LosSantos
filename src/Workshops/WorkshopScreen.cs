@@ -1103,10 +1103,10 @@ namespace MidnightClub.Workshops
         private static string Clean(string s) { return string.IsNullOrEmpty(s) ? s : Regex.Replace(s, "~[a-zA-Z]~", ""); }
 
         private void Flash(string s) { note = s; noteUntil = Game.GameTime + 3500; }
-        private static void Rect(float x, float y, float w, float h, Color c) { Function.Call(Hash.DRAW_RECT, x + w / 2f, y + h / 2f, w, h, c.R, c.G, c.B, c.A, false); }
+        private static void Rect(float x, float y, float w, float h, Color c) { UI.Ds.Rect(x, y, w, h, c); }
         private static void Text(string s, float x, float y, float scale, Color c, Font f, Alignment a = Alignment.Left, float wrap = 0f)
         {   // SHVDN's text splitter can throw when another script draws long text in the same frame: skip that one label, keep the workshop open
-            try { new TextElement(s, new PointF(x * 1280f, y * 720f), MidnightClub.UI.Ds.Eff(scale), c, f, a, false, true, wrap * 1280f).ScaledDraw(); } catch (InvalidOperationException) { }
+            MidnightClub.UI.Ds.Txt(s, x, y, MidnightClub.UI.Ds.Eff(scale), c, f, a, false, true, wrap);
         }
     }
 }

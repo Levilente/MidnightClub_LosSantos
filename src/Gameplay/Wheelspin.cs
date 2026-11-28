@@ -51,7 +51,7 @@ namespace MidnightClub.Gameplay
             {
                 float el = (Environment.TickCount - start) / 1000f;
                 Game.DisableAllControlsThisFrame(); Function.Call(Hash.HIDE_HUD_AND_RADAR_THIS_FRAME);
-                Ds.Rect(0f, 0f, 1f, 1f, Ds.A(Ds.Bg, 0.9f));
+                Ds.RectPhys(0f, 0f, 1f, 1f, Ds.A(Ds.Bg, 0.9f));
                 Ds.Streaks(0f, 0.2f, 1f, 0.6f, super ? Ds.Amber : Ds.Violet, 0.4f, 10, 1.2f);
                 Ds.T(super ? "SUPER WHEELSPIN" : "WHEELSPIN", 0.5f, 0.08f, 1.0f, super ? Ds.Amber : Ds.Text, Ds.Display, GTA.UI.Alignment.Center);
                 float cw = Ds.Px(0.24f), ch = 0.17f, gap = Ds.Px(0.03f), total = reels * cw + (reels - 1) * gap, x0 = 0.5f - total / 2f, cy = 0.5f;

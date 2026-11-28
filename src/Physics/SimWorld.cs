@@ -215,7 +215,7 @@ namespace MidnightClub.Physics
             else { abs = s.Year >= 1992 ? 8 : 0; tcs = s.Year >= 2006 ? 7 : 0; esc = s.Year >= 2008 ? 7 : 0; }
             if (s.Bike) { esc = 0; tcs = player ? tcs : Math.Min(tcs, 5); }
             float pw = PowerOf(car);
-            string key = (player ? "P|" : "A|") + (int)(pw * 50f) + "|" + L.Key + "|" + wc + "|" + tcs + "|" + abs + "|" + esc + "|" + (parked ? 1 : 0) + "|" + (int)(wet * 50f) + (player ? "|" + Vehicles.Setup.Key(rec) : "");
+            string key = (player ? "P|" : "A|") + (cfg.TyreTemps ? "T" : "t") + (int)(pw * 50f) + "|" + L.Key + "|" + wc + "|" + tcs + "|" + abs + "|" + esc + "|" + (parked ? 1 : 0) + "|" + (int)(wet * 50f) + (player ? "|" + Vehicles.Setup.Key(rec) : "");
             float[] p;
             if (paramCache.TryGetValue(key, out p) && !player) return p;
             p = new float[VP];
@@ -295,6 +295,7 @@ namespace MidnightClub.Physics
             if (s.Year < 1975) { rcF += 0.03f; rcR = Math.Max(rcR, 0.25f); }          // old cars: live rear axles
             float rh = 0.009f * Vehicles.Setup.TuneValue(rec, 11);                       // ride height (0.9 cm per step) moves the roll centres with it
             p[207] = Math.Max(0.0f, rcF + rh * 1.5f); p[208] = Math.Max(0.0f, rcR + rh * 1.5f);
+            p[209] = cfg.TyreTemps ? 1f : 0f;
             // torque curves: full load and off-boost
             for (int i = 0; i < CurveN; i++) { p[92 + i] = L.Engine.Full[i]; p[92 + CurveN + i] = L.Engine.NoBoost[i]; }
             if (L.Engine.Ind == Induction.Supercharged)

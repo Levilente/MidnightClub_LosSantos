@@ -40,7 +40,7 @@ namespace MidnightClub.UI
             if (dist > 40f || string.IsNullOrEmpty(label)) return;
             var sp = Screen.WorldToScreen(g + new Vector3(0, 0, 3.7f), false);
             if (sp.X <= 0 && sp.Y <= 0) return;
-            float x = sp.X / 1280f, y = sp.Y / 720f, la = Ds.Clamp01((40f - dist) / 12f);
+            float x = Ds.UX(sp.X / 1280f), y = Ds.UY(sp.Y / 720f), la = Ds.Clamp01((40f - dist) / 12f);
             string L = label.ToUpperInvariant(), A2 = (action ?? "").ToUpperInvariant();
             float cw = Math.Max(Ds.Width(L, 0.4f, Ds.Display), Ds.Width(A2, 0.26f, Ds.Display)) + Ds.Px(Th.Px(36f)), chh = Th.Px(string.IsNullOrEmpty(A2) ? 42f : 64f);
             Kit.Glass(x - cw / 2f, y - chh, cw, chh, Th.R_Lg, la, true);
@@ -55,7 +55,7 @@ namespace MidnightClub.UI
             if (dist > 25f) return;
             var sp = Screen.WorldToScreen(pos, false);
             if (sp.X <= 0 && sp.Y <= 0) return;
-            float x = sp.X / 1280f, y = sp.Y / 720f, a = Ds.Clamp01((25f - dist) / 8f);
+            float x = Ds.UX(sp.X / 1280f), y = Ds.UY(sp.Y / 720f), a = Ds.Clamp01((25f - dist) / 8f);
             string t = (title ?? "").ToUpperInvariant();
             float w = Math.Max(Ds.Width(t, 0.38f, Ds.Display), Ds.Width(sub ?? "", 0.32f, Ds.Display)) + Ds.Px(Th.Px(36f)), h = Th.Px(64f);
             Kit.Glass(x - w / 2f, y - h, w, h, Th.R_Lg, a, true);

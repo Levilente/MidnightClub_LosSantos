@@ -139,7 +139,7 @@ namespace MidnightClub.Racing
             {
                 float el = (Environment.TickCount - start) / 1000f;
                 Game.DisableAllControlsThisFrame(); Function.Call(Hash.HIDE_HUD_AND_RADAR_THIS_FRAME);
-                Ds.Rect(0f, 0f, 1f, 1f, Ds.A(Ds.Bg, 0.92f));
+                Ds.RectPhys(0f, 0f, 1f, 1f, Ds.A(Ds.Bg, 0.92f));
                 Ds.Streaks(0f, 0.1f, 1f, 0.8f, place == 1 ? Ds.Amber : Ds.Violet, 0.45f, 14, 0.8f);
                 Ds.T(d.Name.ToUpperInvariant(), 0.5f, 0.08f, 0.4f, Ds.Muted, Ds.Display, GTA.UI.Alignment.Center);
                 Ds.T(place == 1 ? "CHAMPION" : place == 2 ? "RUNNER-UP" : "THIRD", 0.5f, 0.11f, 1.6f, place == 1 ? Ds.Amber : Ds.Text, Ds.Display, GTA.UI.Alignment.Center);

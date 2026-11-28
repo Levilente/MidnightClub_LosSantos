@@ -51,7 +51,7 @@ namespace MidnightClub.UI
             while (Game.GameTime < end)
             {
                 float t = (Game.GameTime - start) / (float)ms, e = Ds.EaseOut(Math.Min(1f, (Game.GameTime - start) / 600f));
-                Ds.Rect(0f, 0f, 1f, 1f, Ds.Bg);
+                Ds.RectPhys(0f, 0f, 1f, 1f, Ds.Bg);
                 var glow = Th.Light ? Color.FromArgb(255, 255, 214, 222) : Color.FromArgb(255, 70, 14, 30);
                 Ds.VGrad(0f, 0.25f, 1f, 0.25f, Ds.A(Ds.Bg, 0f), Ds.A(glow, 0.9f), 12);
                 Ds.VGrad(0f, 0.5f, 1f, 0.25f, Ds.A(glow, 0.9f), Ds.A(Ds.Bg, 0f), 12);
@@ -69,6 +69,6 @@ namespace MidnightClub.UI
         }
 
         private static void T(string s, float x, float y, float scale, Color c, Font f)
-        { new TextElement(s, new PointF(x * 1280f, y * 720f), MidnightClub.UI.Ds.Eff(scale), c, f, Alignment.Center, false, true, 0.6f * 1280f).ScaledDraw(); }
+        { MidnightClub.UI.Ds.Txt(s, x, y, MidnightClub.UI.Ds.Eff(scale), c, f, Alignment.Center, false, true, 0.6f); }
     }
 }

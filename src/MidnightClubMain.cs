@@ -137,7 +137,7 @@ namespace MidnightClub
             GTA.UI.Screen.FadeOut(0);
             GTA.Native.Function.Call(GTA.Native.Hash.HIDE_HUD_AND_RADAR_THIS_FRAME);
             GTA.Native.Function.Call(GTA.Native.Hash.THEFEED_HIDE_THIS_FRAME);
-            UI.Ds.Rect(0f, 0f, 1f, 1f, UI.Ds.Bg);
+            UI.Ds.RectPhys(0f, 0f, 1f, 1f, UI.Ds.Bg);
             UI.Ds.Logo(0.5f, 0.4f, 2.2f, 1f, GTA.UI.Alignment.Center, true);
             UI.Ds.T("STARTING", 0.5f, 0.6f, 0.3f, UI.Ds.Muted, UI.Ds.Display, GTA.UI.Alignment.Center);
             var p = Game.Player.Character;
