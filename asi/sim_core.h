@@ -56,6 +56,7 @@ typedef struct
     float s, sv, x1, ft; int calls, gc, cinit;
     /* tyre: lagged slip (relaxation length), camber, temperature, wear */
     float taL, taRaw, vy, fxL, fyL, gam, temp, wear, muF, press, ftF, surf, xLast;
+    float fLong;                         /* last force along the body's heading (N) */
     float btemp, bmu, sRef, bPow;        /* brake disc temperature (C), brake fade factor, suspension reference (static) position */
 } WSim;
 
@@ -73,6 +74,7 @@ typedef struct
     int gOwn; float shT, sinceShift, cvtR; volatile LONG shiftReq;
     int sel, pedOwn, revReq, gM; float pThr, pBrk, thrAvg, pClutch;   /* ...; manual position (-1 R, 0 N, 1..), clutch pedal */   /* selector (P R N D S), the player's own pedals, manual reverse */   /* own gearbox: gear, shift timer, time since the last shift, CVT ratio, requested manual shift */
     float iGta[3], iTgt[3], iInv[3];
+    float fwdZ, vxPrev, resX, comp; int resOk;   /* hidden resistance: GTA's own drag / limiter force along the heading, measured and cancelled */
     int clampN[2]; float tLearn[2];   /* where GTA's wheel really stops: its compression held bit-exact step after step above the ride height */   /* body inertia GTA uses / our target (roll, pitch, yaw), per principal axis the factor on our torques */
 } Veh;
 static volatile int axisMode; static volatile LONG axA, axB;   /* which GTA tyre axis is the heading (1 = first, 2 = second), learned near straight ahead */
@@ -298,12 +300,18 @@ static int vehTyre(Veh *v, int i, u64 wheel, u64 inst, float *out, float *lin, f
         float td[3], ad[3]; cross3(r0, down, td); angOfV(v, wheel, inst, M, td, ad);
         for (int j = 0; j < 3; j++) na[j] += ad[j];
     }
+    if (v->comp > 1.0f && sp > 1.0f && v->p.bike < 0.5f)
+    {   /* cancel the resistance GTA still adds on its own (measured in vehStep), along the motion */
+        float ng = (float)(v->nGround > 0 ? v->nGround : v->nw), sg = dot3(lv, F) >= 0 ? 1.0f : -1.0f;
+        for (int j = 0; j < 3; j++) aero[j] += v->comp * sg * F[j] / ng;
+    }
     float im = rf(inst, 0x3C);
     for (int j = 0; j < 3; j++) { out[j] = Fw[j]; lin[j] = Fw[j] * km + (aero[j] + down[j]) * im; ang[j] = na[j]; }
     s->vx = vx; s->ta = ta; s->fz = load; s->mu = muS; s->kappa = kappa; s->fxL = fx; s->fyL = latF;
     if (i == 0) { for (int j = 0; j < 12; j++) v->M[j] = M[j]; v->Mok = 1; bodyInertia(v, inst, M, mass); }
     s->lx = dot3(r0, Rt); s->ly = dot3(r0, F);
-    if (i == 0) { v->yaw = dot3(av, U); v->vxB = dot3(lv, F); }
+    if (i == 0) { v->yaw = dot3(av, U); v->vxB = dot3(lv, F); v->fwdZ = F[2]; }
+    s->fLong = dot3(Fw, F);
     InterlockedIncrement(&s->seen);
     InterlockedIncrement(&v->own);
     return 1;
@@ -484,6 +492,25 @@ static void vehStep(Veh *v, u64 *wp, int nw, float dt)
     if (dt <= 0 || dt > 0.1f) return;
     v->dt = dt; v->steps++;
     u64 veh = v->veh; const VParams *p = &v->p;
+    {   /* hidden resistance: body acceleration along the heading against everything we apply (tyres, aero, slope, our
+           compensation); what is left over is GTA's own drag / speed limiter. Estimated slowly, only cancelled when it
+           opposes the motion, and never past a third of g. */
+        float m = v->bodyMass > 50 ? v->bodyMass : p->mass, vx = v->vxB;
+        int grounded = v->nGround >= v->nw && v->nw >= 3;
+        if (v->resOk && grounded && fabsf(vx) > 4.0f && p->bike < 0.5f && m > 50)
+        {
+            float fs = 0; for (int i = 0; i < v->nw; i++) fs += v->ws[i].fLong;
+            float sg = vx >= 0 ? 1.0f : -1.0f, sp = fabsf(vx);
+            float aero = -0.5f * 1.2f * p->cda * vx * sp, grav = -m * 9.81f * v->fwdZ;
+            float x = m * (vx - v->vxPrev) / dt - (fs + aero + grav + sg * v->comp);
+            float lim = 0.6f * m * 9.81f; if (x > lim) x = lim; if (x < -lim) x = -lim;
+            v->resX += (x - v->resX) * (dt / 2.0f);
+            float c = -v->resX * sg; if (c < 0) c = 0; if (c > 0.33f * m * 9.81f) c = 0.33f * m * 9.81f;
+            v->comp += (c - v->comp) * (dt / 1.0f);
+        }
+        else if (fabsf(vx) < 2.0f) v->comp *= 0.98f;
+        v->vxPrev = vx; v->resOk = 1;
+    }
     if (nw > MAXW) nw = MAXW;
     for (int i = 0; i < nw; i++) v->wheel[i] = wp[i];
     v->nw = nw;

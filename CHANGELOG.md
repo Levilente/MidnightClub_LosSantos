@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.63.1
+- Speedometer: P, D and S gear glyphs (the HUD could only draw digits, N and R, so D3 showed as 3 and P as nothing).
+- Hidden resistance: the car measures what GTA still adds on its own along the heading (its drag / speed limiter, ~3–5 kN on the Jubilee at 80–130 km/h, which ate most of the pull in the higher gears) against everything the simulation applies (tyres, aero, slope) and cancels it. Logged in the Native world line.
+
+
 ## 0.63.0
 - Real gearbox is always on, with three modes (Driving settings → Gearbox): Automatic (GTA-like: throttle goes, brake brakes, keep braking at a standstill to reverse; brake is the throttle in reverse), Manual (the gears the car really has: manual / DCT / sequential / automated manual R-N-1-2-3..., automatic cars P-R-N-D-S selector with D1/S3 on the HUD), Manual w/ clutch (H-pattern cars need LB / L1 / Left Alt held while shifting, otherwise slow, rough shifts).
 - Own gearbox uses every real gear from the spec sheet (e.g. Jubilee's 8-speed), not the set squeezed into GTA's gear count – fixes the huge 2→3 gap and weak pull in 3rd.

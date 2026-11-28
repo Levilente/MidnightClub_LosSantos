@@ -248,6 +248,7 @@ __declspec(dllexport) int MCP_VehState(u64 veh, float *o, int n)
     s[70] = v->aPeakTan; s[71] = v->strutOk ? 1.0f : v->strutBad ? -1.0f : 0.0f; s[72] = (float)axisMode; s[73] = v->bodyMass;
     for (int k = 0; k < 3; k++) { s[74 + k] = v->iGta[k]; s[77 + k] = v->iTgt[k]; }
     s[80] = suspTravel(v, 0); s[81] = suspTravel(v, 1); s[82] = v->x0[0]; s[83] = v->x0[1];
+    s[96] = v->comp; s[97] = v->resX;
     s[84] = v->pedOwn && v->sel >= 5 ? (float)(v->gM == 0 ? 0 : v->gM < 0 ? -1 : v->gM) : (float)v->gOwn; s[85] = v->shT;
     for (int i = 0; i < 10 && i < v->nw; i++) s[86 + i] = v->ws[i].btemp;
     if (n > 100) n = 100; memcpy(o, s, (size_t)n * 4); return n;

@@ -140,7 +140,7 @@ namespace MidnightClub.Physics
                         + ", GTA body " + st[73].ToString("0") + " kg (real " + (playerLive != null ? playerLive.Mass.ToString("0") : "?") + ")"
                         + ", inertia roll/pitch/yaw GTA " + st[74].ToString("0") + "/" + st[75].ToString("0") + "/" + st[76].ToString("0") + " real " + st[77].ToString("0") + "/" + st[78].ToString("0") + "/" + st[79].ToString("0") + " kg m2"
                         + ", travel " + st[80].ToString("0.000") + "/" + st[81].ToString("0.000") + " m (handling " + travelLog.ToString("0.000") + "), GTA rest " + st[82].ToString("0.000") + "/" + st[83].ToString("0.000")
-                        + ", rpm " + Rpm.ToString("0") + ", slip " + st[20].ToString("0.00") + "/" + st[21].ToString("0.00") + "/" + st[22].ToString("0.00") + "/" + st[23].ToString("0.00"));
+                        + ", rpm " + Rpm.ToString("0") + ", slip " + st[20].ToString("0.00") + "/" + st[21].ToString("0.00") + "/" + st[22].ToString("0.00") + "/" + st[23].ToString("0.00") + ", hidden resistance " + (-st[97]).ToString("0") + " N (cancelled " + st[96].ToString("0") + " N), gear " + st[84].ToString("0") + " sel " + (SimPhysics.Instance != null ? SimPhysics.Instance.Selector : -1) + " box " + PlayerBox);
                     lastSteps = st[5]; lastOwn = st[6];
                 }
             }
