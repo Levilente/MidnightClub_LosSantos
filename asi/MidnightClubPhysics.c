@@ -38,21 +38,12 @@ static float mf(float x, float b, float c, float e) { float bx = b * x; return s
 static float muAt(float base, float fz) { float d = model.fz0 > 1.0f ? (fz - model.fz0) / model.fz0 : 0.0f; if (d < -0.9f) d = -0.9f; if (d > 3.0f) d = 3.0f; float m = base * (1.0f + model.loadSens * d); return m < 0.05f ? 0.05f : m; }
 static void tyreModel(u64 wheel, float load, float *out, float *lin, float *ang)
 {
+    /* GTA's tyre runs on the Magic Formula curve of the fitted compound (peak, peak slip angle, fall-off are written
+       into the handling data by the mod); what GTA can't do is load sensitivity per wheel at its own physics rate:
+       its friction is linear in the load. Here each wheel's force gets mu(Fz) / mu0 of the real tyre, and the wet factor. */
+    (void)wheel;
     if (!(model.on > 0.5f) || load < 1.0f) return;
-    float fh = sqrtf(out[0] * out[0] + out[1] * out[1]);
-    if (fh < 30.0f) return;
-    float vx = rf(wheel, 0xB0), vy = rf(wheel, 0xB4), vz = rf(wheel, 0xB8);
-    float v = sqrtf(vx * vx + vy * vy + vz * vz);
-    float vs = rf(wheel, 0x1C4), vlong = rf(wheel, 0x1C0);
-    float alpha = atan2f(fabsf(vs), v > 1.0f ? v : 1.0f);
-    float kappa = fabsf(vlong) / (v > 2.5f ? v : 2.5f); if (kappa > 1.0f) kappa = 1.0f;
-    /* Magic Formula, combined slip (MF weighting functions) */
-    float fy = muAt(model.muY, load) * load * mf(alpha, model.By, model.Cy, model.Ey);
-    float fx = muAt(model.muX, load) * load * mf(kappa, model.Bx, model.Cx, model.Ex);
-    float gyk = cosf(model.Rc * atanf(model.Rb1 * cosf(atanf(model.Rb2 * alpha)) * kappa)); if (gyk < 0.02f) gyk = 0.02f;
-    float gxa = cosf(model.Rc * atanf(model.Rb1 * cosf(atanf(model.Rb2 * kappa)) * alpha)); if (gxa < 0.02f) gxa = 0.02f;
-    float f = sqrtf(fy * gyk * fy * gyk + fx * gxa * fx * gxa) * model.grip;
-    float k = f / fh;
+    float k = muAt(model.muY, load) / (model.muY > 0.05f ? model.muY : 1.0f) * model.grip;
     if (k < model.scaleMin) k = model.scaleMin; if (k > model.scaleMax) k = model.scaleMax;
     out[0] *= k; out[1] *= k; out[2] *= k;
     for (int i = 0; i < 3; i++) { lin[i] *= k; ang[i] *= k; }
@@ -72,6 +63,7 @@ static int ownSusp(int i, u64 wheel, u64 other, float *out, float *lin, float *a
     if (!qf.QuadPart) QueryPerformanceFrequency(&qf);
     if (prev != lastPrev[i]) { LARGE_INTEGER now; QueryPerformanceCounter(&now); if (lastT[i].QuadPart) { float d = (float)(now.QuadPart - lastT[i].QuadPart) / (float)qf.QuadPart; if (d > 1.0f / 300 && d < 1.0f / 20) dtStep[i] += (d - dtStep[i]) * 0.1f; } lastT[i] = now; lastPrev[i] = prev; }
     float v = (x - prev) / dtStep[i];                                   /* + = compressing */
+    if (v > 2.5f || v < -2.5f) return 0;                               /* an impact, not suspension travel: leave it to the game */
     float fs = a->pre + a->k * x;
     float fd;
     if (v >= 0) fd = v < a->knee ? a->cbl * v : a->cbl * a->knee + a->cbh * (v - a->knee);

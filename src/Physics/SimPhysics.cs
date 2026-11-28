@@ -200,7 +200,7 @@ namespace MidnightClub.Physics
                 Apply(car, rec);
                 var L = Live; if (L == null) return;
                 float dt = Math.Min(0.05f, Math.Max(0.001f, Game.LastFrameTime));
-                if (!car.IsInAir) Suspension.Filter(car, dt, L.Tyre.MuY);
+                if (!car.IsInAir && !Native.Active) Suspension.Filter(car, dt, L.Tyre.MuY);   // the native bump stop / dampers replace the script filter
                 if (Game.GameTime > kerbLogAt) { kerbLogAt = Game.GameTime + 15000; if (Suspension.Count > 0) { Log.Info("Kerb filter: " + Suspension.Count + " corrections in 15 s"); Suspension.Count = 0; } }
                 Frame(car, rec, L, dt);
                 Suspension.Set(car.Velocity, car.WorldRotationVelocity);

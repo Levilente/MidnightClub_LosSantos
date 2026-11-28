@@ -50,7 +50,7 @@ namespace MidnightClub.Physics
                 {
                     nextUpdate = Game.GameTime + 500;
                     var t = L.Tyre; float wheelLoad = L.Mass * 9.81f / (L.Spec.Bike ? 2f : 4f);
-                    var p = new float[] { 1f, t.MuY, t.MuX, t.LoadSens, t.By, t.Cy, t.Ey, t.Bx, t.Cx, t.Ex, t.Rb1, t.Rb2, t.Rc, wheelLoad, wet, wheelLoad, 2.2f, 0.3f, 2.5f, 0f };
+                    var p = new float[] { 1f, t.MuY, t.MuX, t.LoadSens, t.By, t.Cy, t.Ey, t.Bx, t.Cx, t.Ex, t.Rb1, t.Rb2, t.Rc, wheelLoad, wet, wheelLoad, 2.2f, 0.5f, 1.3f, 0f };
                     MCP_SetModel(p, p.Length);
                     Axles(car, L);
                 }
@@ -101,7 +101,7 @@ namespace MidnightClub.Physics
                 float x0 = Math.Max(0.03f, rh[ax]);
                 float pre = mc * 9.81f - k * x0;
                 float karb = k * arbF * 2f * (ax == 0 ? split : 1f - split);
-                var p = new float[] { 1f, k, pre, cc * (coil ? 0.36f : 0.28f) * bump, cc * 0.12f * bump, cc * (coil ? 0.60f : 0.48f) * reb, cc * 0.20f * reb, karb, 0.10f, Math.Min(0.22f, x0 * 1.7f), k * 4f, mc * 9.81f * 6f };
+                var p = new float[] { 1f, k, pre, cc * (coil ? 0.36f : 0.30f) * bump, cc * 0.14f * bump, cc * (coil ? 0.62f : 0.55f) * reb, cc * 0.24f * reb, karb, 0.10f, Math.Min(0.22f, x0 * 1.7f), k * 4f, mc * 9.81f * 3.5f };
                 MCP_SetAxle(ax, p, p.Length);
             }
         }

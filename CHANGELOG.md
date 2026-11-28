@@ -1,4 +1,8 @@
 # Changelog
+## 0.47.1 (2026-11-28)
+- Native tyre: no grip / no turn-in fixed. The slip values read from GTA's wheel were off by about 2x, so the Pacejka force came out at about half. The tyre curve (peak, peak slip angle, fall-off) is already the Magic Formula in GTA's handling data, so the native side now adds what GTA can't do: per-wheel load sensitivity at physics rate, and the wet factor.
+- Native suspension: no more launching off walls (impacts are left to the game, force capped at 3.5x the corner weight), less bouncing (ride frequency +0.08 Hz per level and +0.15 Hz for coilovers instead of 0.15 / 0.25, more damping), the script kerb filter is off while the native suspension runs.
+
 ## 0.47.0 (2026-11-28): native suspension
 - **Own suspension inside GTA's physics step** (MidnightClubPhysics.asi), per wheel: spring rate from the real ride frequency (type, era, upgrade level, coilovers, spring sliders) with a preload that keeps the car's ride height (measured while it stands still), digressive dampers from real damping ratios (bump / rebound, slow / fast above 0.1 m/s, damping sliders), anti-roll bars working on the left-right compression difference (roll stiffness split by layout, bar sliders, race bars), a progressive bump stop near the end of travel. Replaces GTA's spring force (its direction is kept); the wheel load handed to the tyre model is the new one.
 

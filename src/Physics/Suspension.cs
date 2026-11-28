@@ -32,7 +32,7 @@ namespace MidnightClub.Physics
                 default: f = 1.3f; break;
             }
             if (s.Year < 1975) f *= 0.85f; else if (s.Year < 1990) f *= 0.93f;
-            return f + 0.15f * level + (coilovers ? 0.25f : 0f);
+            return f + 0.08f * level + (coilovers ? 0.15f : 0f);
         }
 
         /// <summary>Applied relative to the car's own GTA values (whose units SHVDN exposes in GTA's internal form): the
