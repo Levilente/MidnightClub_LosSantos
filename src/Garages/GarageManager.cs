@@ -102,7 +102,7 @@ namespace MidnightClub.Garages
             {
                 try
                 {
-                    defs = GarageDefinitions.Load(dataDir);
+                    if (defs.Count == 0) defs = GarageDefinitions.Load(dataDir);
                     foreach (var v in saves.Data.Vehicles.Where(v => v.GarageId != null && Def(v.GarageId) == null)) { v.GarageId = null; v.ParkingSlot = 0; }
                     saves.Data.Garages.RemoveAll(o => Def(o.Id) == null);
                     GrantStarterGarage();
@@ -257,6 +257,7 @@ namespace MidnightClub.Garages
         public GarageDefinition StartGarage()
         {
             if (saves.Data == null) return null;
+            if (defs.Count == 0) { try { defs = GarageDefinitions.Load(dataDir); } catch (Exception ex) { Log.Error("Loading garages", ex); } }   // called before the mode switch loads them
             var cur = CurrentRecord();
             string id = cur != null && cur.GarageId != null && Owned(cur.GarageId) != null && Def(cur.GarageId) != null ? cur.GarageId : null;
             if (id == null && saves.Data.LastGarageId != null && Owned(saves.Data.LastGarageId) != null && Def(saves.Data.LastGarageId) != null) id = saves.Data.LastGarageId;
