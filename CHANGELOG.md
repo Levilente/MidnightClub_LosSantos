@@ -1,4 +1,8 @@
 # Changelog
+## 0.43.1 (2026-11-28)
+- Tyres: the slot after the traction minimum is 1 / (max - min), the slope of GTA's grip fall-off past the peak. It was left at the stock value, so every changed tyre curve fell off with the wrong slope. Now kept in step.
+- Suspension: softer base (GTA's stock cars ride ~15% stiffer than the real type and damp much harder), softer roll bars.
+
 ## 0.43.0 (2026-11-28): handling memory fixed at the root
 - **The cause of the understeer found** (from the probe's memory dump): GTA keeps biases as front/rear pairs and several tyre-curve values with a precomputed inverse next to them; ScriptHookVDotNet writes only one field. Setting the traction balance to 0.5 halved the front grip, the tuning clamps squeezed the suspension and roll-bar balance, and new tyre curves ran with old inverses. All handling writes now go through a writer that keeps both halves and the inverses right (convention detected per car), and the stock block is restored byte-exact.
 - Suspension: lowering per level halved (the car no longer sits down), kerb filter tighter and no longer switched off by kerb contacts (logs how often it corrects).

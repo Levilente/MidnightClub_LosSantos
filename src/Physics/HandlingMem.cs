@@ -57,7 +57,17 @@ namespace MidnightClub.Physics
         }
         public static void SyncAll(HandlingData h, byte[] snap)
         {
-            SyncInverse(h, TractionMax, snap); SyncInverse(h, TractionMin, snap); SyncInverse(h, TractionLateral, snap); SyncInverse(h, SpringDelta, snap);
+            SyncInverse(h, TractionMax, snap); SyncInverse(h, TractionLateral, snap); SyncInverse(h, SpringDelta, snap);
+            // the slot after the minimum holds 1 / (max - min): the slope of the fall-off past the peak
+            if (snap != null)
+            {
+                float mx0 = S(snap, TractionMax), mn0 = S(snap, TractionMin), k0 = S(snap, TractionMin + 4);
+                if (mx0 - mn0 > 0.01f && Math.Abs(k0 * (mx0 - mn0) - 1f) < 0.05f)
+                {
+                    float mx = R(h, TractionMax), mn = R(h, TractionMin);
+                    W(h, TractionMin + 4, 1f / Math.Max(0.02f, mx - mn));
+                }
+            }
         }
 
         public static string Describe(byte[] snap)

@@ -45,12 +45,14 @@ namespace MidnightClub.Physics
             float era = s.Year < 1975 ? 0.85f : s.Year < 1990 ? 0.93f : 1f;
             float k = f / (fBase / era);                            // vs. GTA's (era-less) stock car
             float zc = coilovers ? 1.25f : 1f, zr = coilovers ? 1.3f : 1f;
-            h.SuspensionForce *= k * k;
-            h.SuspensionCompressionDamping *= k * zc;
-            h.SuspensionReboundDamping *= k * zr;
+            // GTA's stock cars ride about 15% stiffer than the real type (and damp much harder at low speed)
+            const float gtaF = 1.15f;
+            h.SuspensionForce *= k * k / (gtaF * gtaF);
+            h.SuspensionCompressionDamping *= k * zc * 0.65f / gtaF;
+            h.SuspensionReboundDamping *= k * zr * 0.75f / gtaF;
             float tr = (1f - 0.04f * level - (coilovers ? 0.03f : 0f)) / era;
             h.SuspensionUpperLimit *= tr; h.SuspensionLowerLimit *= tr;
-            h.AntiRollBarForce *= era * (1f + 0.10f * level) * (raceBars ? 1.15f : 1f);
+            h.AntiRollBarForce *= 0.8f * era * (1f + 0.10f * level) * (raceBars ? 1.15f : 1f);
             float arbBias = s.FrontDrive >= 0.95f ? 0.62f : s.Layout == "RR" ? 0.47f : s.Layout == "MR" || s.Layout == "AWD-M" ? 0.52f : 0.57f;
             HandlingMem.SetBias(h, HandlingMem.ArbBias, HandlingMem.GetBias(h, HandlingMem.ArbBias) * 0.5f + arbBias * 0.5f, raw);
             Core.Log.Info("Suspension " + s.Id + ": " + f.ToString("0.00") + " Hz (x" + (k * k).ToString("0.00") + " springs), travel x" + tr.ToString("0.00"));
