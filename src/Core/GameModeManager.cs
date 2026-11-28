@@ -102,8 +102,8 @@ namespace MidnightClub.Core
 
                 Vector3 pos; float heading;
                 var gi = Garages != null && data.HasPosition ? Garages.InteriorAt(new Vector3(data.PosX, data.PosY, data.PosZ)) : null;
-                var startGarage = cfg.StartInGarage && Garages != null ? Garages.StartGarage() : null;
-                if (startGarage != null) { pos = startGarage.SpawnOut.Position; heading = startGarage.SpawnOut.Heading; Log.Info("Starting in the last garage: " + startGarage.Id); }
+                var startGarage = Garages != null ? Garages.StartGarage() : null;   // always: the garage of the active car
+                if (startGarage != null) { pos = startGarage.SpawnOut.Position; heading = startGarage.SpawnOut.Heading; Log.Info("Starting in the active car's garage: " + startGarage.Id); }
                 else if (gi != null) { pos = gi.SpawnOut.Position; heading = gi.SpawnOut.Heading; Log.Info("Saved position was inside " + gi.Id + "; spawning outside"); }
                 else if (data.HasPosition) { pos = new Vector3(data.PosX, data.PosY, data.PosZ); heading = data.Heading; }
                 else

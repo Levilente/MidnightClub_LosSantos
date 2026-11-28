@@ -1,4 +1,7 @@
 # Changelog
+## 0.42.2 (2026-11-28)
+- Every session starts inside the garage your active car lives in (else the last garage you used, else any garage you own). The old "start in last garage" switch is gone.
+
 ## 0.42.1 (2026-11-28): physics probe
 - Settings > Driving > **Physics probe (developer)**: groundwork for the full tyre simulation. Saves the game's decrypted code image, the memory offsets ScriptHookVDotNet found for this build, and 20 s of raw wheel / vehicle memory with the driving state next to it (scripts\MidnightClub\probe). Reads only.
 

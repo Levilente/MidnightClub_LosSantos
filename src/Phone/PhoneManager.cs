@@ -189,7 +189,6 @@ namespace MidnightClub.Phone
                 Description = () => "Tuned in every time you get in a car." }, "World", "radio");
             G(flag("Dynamic weather", "DynamicWeather", () => cfg.DynamicWeather, v => cfg.DynamicWeather = v, "World"), "World", "cloud-sun");
             G(flag("Always night", "AlwaysNight", () => cfg.AlwaysNight, v => cfg.AlwaysNight = v, "World"), "World", "star");
-            G(flag("Start in your last garage", "StartInGarage", () => cfg.StartInGarage, v => cfg.StartInGarage = v, "Gameplay"), "Gameplay", "house");
             G(flag("Police", "Enabled", () => cfg.PoliceEnabled, v => cfg.PoliceEnabled = v, "Police"), "Gameplay", "siren");
             return m;
         }

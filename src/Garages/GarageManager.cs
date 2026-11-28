@@ -252,12 +252,16 @@ namespace MidnightClub.Garages
         }
 
         // ------------------------------------------------------------------ inside
-        /// <summary>The garage the session should start in: the last one you used, else the current car's home.</summary>
+        /// <summary>The garage every session starts in: the one your active car lives in; else the last one you used,
+        /// else any garage you own.</summary>
         public GarageDefinition StartGarage()
         {
             if (saves.Data == null) return null;
-            var id = saves.Data.LastGarageId; if (id == null || Owned(id) == null) { var cur = CurrentRecord(); id = cur != null ? cur.GarageId : null; }
-            return id != null && Owned(id) != null ? Def(id) : null;
+            var cur = CurrentRecord();
+            string id = cur != null && cur.GarageId != null && Owned(cur.GarageId) != null && Def(cur.GarageId) != null ? cur.GarageId : null;
+            if (id == null && saves.Data.LastGarageId != null && Owned(saves.Data.LastGarageId) != null && Def(saves.Data.LastGarageId) != null) id = saves.Data.LastGarageId;
+            if (id == null) { var any = saves.Data.Garages.FirstOrDefault(o => Def(o.Id) != null); if (any != null) id = any.Id; }
+            return id != null ? Def(id) : null;
         }
 
         /// <summary>Loading into Midnight Club: start inside your last garage, with your cars around you.</summary>

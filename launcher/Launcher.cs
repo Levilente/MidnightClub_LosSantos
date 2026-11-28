@@ -283,7 +283,6 @@ namespace MidnightClubLauncher
             pol.Items.Add(T("Police", "Enabled", "Police", "Police chase you for speeding, crashes and races.", "siren", true));
             pol.Items.Add(S("Police", "Difficulty", "Police difficulty", "How hard pursuits are to shake.", "shield-alert", 0.5f, 2f, 0.1f, 1f));
             var sp = S("Police", "SpeedTriggerKmh", "Speeding trigger", "Speed (km/h) at which a patrol takes notice.", "gauge", 60f, 220f, 5f, 115f); sp.Fmt = "0"; pol.Items.Add(sp);
-            pol.Items.Add(T("Gameplay", "StartInGarage", "Start in your last garage", "Loading in puts you in the last garage you used.", "house", true));
             pol.Items.Add(T("Gameplay", "BlockVehicleExit", "Stay in the car", "Holding exit doesn't leave the car in Midnight Club.", "car-front", true));
             cats.Add(pol);
 
