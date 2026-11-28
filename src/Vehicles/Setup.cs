@@ -19,7 +19,7 @@ namespace MidnightClub.Vehicles
         {
             I("Tyres", "Front pressure", null, v => (30f + v * 0.4f).ToString("0.0") + " psi"),
             I("Tyres", "Rear pressure", null, v => (30f + v * 0.4f).ToString("0.0") + " psi"),
-            I("Gearing", "Final drive", "gearbox", v => ((Drivetrain.Current != null ? Drivetrain.Current.Final : 3.55f) * (1f - 0.02f * v)).ToString("0.00") + " : 1"),
+            I("Gearing", "Final drive", "gearbox", v => ((Drivetrain.Current != null ? Drivetrain.Current.Gear.BaseFinal : 3.55f) * (1f - 0.02f * v)).ToString("0.00") + " : 1"),
             I("Alignment", "Front camber", "springs", v => (-1.0f + v * 0.25f).ToString("0.0") + "°"),
             I("Alignment", "Rear camber", "springs", v => (-0.8f + v * 0.2f).ToString("0.0") + "°"),
             I("Alignment", "Front toe", "springs", v => (v * 0.05f).ToString("+0.00;-0.00;0.00") + "°"),
@@ -31,8 +31,8 @@ namespace MidnightClub.Vehicles
             I("Springs", "Ride height", "springs", v => (12f + v * 0.9f).ToString("0.0") + " cm"),
             I("Damping", "Rebound", "springs", v => (8f + v * 0.6f).ToString("0.0")),
             I("Damping", "Bump", "springs", v => (5f + v * 0.4f).ToString("0.0")),
-            I("Aero", "Front downforce", "aero", v => (60 + (v + 10) * 6).ToString() + " kgf"),
-            I("Aero", "Rear downforce", "aero", v => (90 + (v + 10) * 9).ToString() + " kgf"),
+            I("Aero", "Front downforce", "aero", v => (60 + (v + 10) * 6).ToString() + " kgf @200"),
+            I("Aero", "Rear downforce", "aero", v => (90 + (v + 10) * 9).ToString() + " kgf @200"),
             I("Brakes", "Balance", "brakes", v => (55 + v * 1.5f).ToString("0") + "% front"),
             I("Brakes", "Pressure", "brakes", v => (100 + v * 6).ToString() + "%"),
             I("Differential", "Acceleration lock", "diff", v => (50 + v * 5).ToString() + "%"),
@@ -49,7 +49,7 @@ namespace MidnightClub.Vehicles
                 var s = Drivetrain.Current;
                 if (s == null) return (1f - 0.03f * v).ToString("x0.00");
                 if (n > s.Gears) return "-";
-                return (s.Ratios[n - 1] * (1f - 0.03f * v)).ToString("0.00") + " : 1";
+                return (s.Gear.BaseRatios[n - 1] * (1f - 0.03f * v)).ToString("0.00") + " : 1";
             });
         }
         /// <summary>A tuning value (-10..10), 0 when the part it needs isn't installed.</summary>
@@ -63,8 +63,8 @@ namespace MidnightClub.Vehicles
             new Part { Id = "springs", Name = "Race springs & dampers", Desc = "Adjustable coilovers: unlocks springs, ride height, damping and alignment tuning.", Price = 9000, Pi = 8 },
             new Part { Id = "arb", Name = "Race anti-roll bars", Desc = "Adjustable front and rear bars.", Price = 4500, Pi = 4 },
             new Part { Id = "diff", Name = "Race differential", Desc = "Limited-slip diff with adjustable lock (and centre balance on AWD).", Price = 7500, Pi = 6 },
-            new Part { Id = "gearbox", Name = "Race gearbox", Desc = "Adjustable final drive: shorter for acceleration, longer for top speed.", Price = 8000, Pi = 6 },
-            new Part { Id = "gearbox2", Name = "Fully adjustable gearbox", Desc = "Dog-box with a ratio for every gear: tune each gear on top of the final drive.", Price = 16000, Pi = 5, Needs = "gearbox" },
+            new Part { Id = "gearbox", Name = "Race gearbox", Desc = "Close-ratio six-speed with automatic ratios (every car becomes a 6-speed) and an adjustable final drive. The car is rebuilt when you drive out.", Price = 8000, Pi = 6 },
+            new Part { Id = "gearbox2", Name = "Fully adjustable gearbox", Desc = "Arrives with the race gearbox's six ratios; every gear can then be tuned on top of the final drive.", Price = 16000, Pi = 5, Needs = "gearbox" },
             new Part { Id = "brakes", Name = "Race brake kit", Desc = "Adjustable balance and pressure, better bite.", Price = 6000, Pi = 5 },
             new Part { Id = "aero", Name = "Adjustable aero", Desc = "Splitter and wing with adjustable downforce: grip at speed, costs top speed.", Price = 11000, Pi = 10 },
             new Part { Id = "weight1", Name = "Weight reduction: street", Desc = "-4% weight.", Price = 5000, Pi = 8 },
@@ -72,7 +72,13 @@ namespace MidnightClub.Vehicles
             new Part { Id = "weight3", Name = "Weight reduction: race", Desc = "-12% weight, stripped interior (needs sport).", Price = 25000, Pi = 14, Needs = "weight2" },
             new Part { Id = "awd", Name = "AWD conversion", Desc = "All-wheel drive: launches and traction. Replaces RWD conversion.", Price = 30000, Pi = 15 },
             new Part { Id = "rwd", Name = "RWD conversion", Desc = "Rear-wheel drive: the drift build. Replaces AWD conversion.", Price = 18000, Pi = 2 },
-            new Part { Id = "als", Name = "Anti-lag system", Desc = "Keeps the turbo spooled: pops and crackles off throttle, punchier pull from low revs. Needs a turbo.", Price = 9500, Pi = 6 },
+            new Part { Id = "turbo1", Name = "Turbo stage 1", Desc = "Turbo kit (or an uprated turbo on a turbo engine): low boost, quick spool.", Price = 6500, Pi = 8 },
+            new Part { Id = "turbo2", Name = "Turbo stage 2", Desc = "Bigger turbo, more boost: strong mid-range, a little more lag.", Price = 9500, Pi = 8, Needs = "turbo1" },
+            new Part { Id = "turbo3", Name = "Turbo stage 3", Desc = "Big single turbo: huge top end, real lag below the boost threshold.", Price = 14000, Pi = 10, Needs = "turbo2" },
+            new Part { Id = "sc1", Name = "Supercharger stage 1", Desc = "Positive-displacement supercharger: instant boost from idle, no lag, some drive loss.", Price = 7500, Pi = 8 },
+            new Part { Id = "sc2", Name = "Supercharger stage 2", Desc = "Smaller pulley, more boost everywhere.", Price = 10000, Pi = 8, Needs = "sc1" },
+            new Part { Id = "sc3", Name = "Supercharger stage 3", Desc = "Large twin-screw blower: massive torque from low revs.", Price = 14500, Pi = 10, Needs = "sc2" },
+            new Part { Id = "als", Name = "Anti-lag system", Desc = "Keeps the turbo spooled: pops and crackles off throttle, boost holds between shifts. Needs a turbo.", Price = 9500, Pi = 6 },
             new Part { Id = "pipe", Name = "Straight-pipe exhaust", Desc = "Loud, raw and raspy. A little more power.", Price = 3500, Pi = 2 },
         };
 
@@ -94,8 +100,7 @@ namespace MidnightClub.Vehicles
             float pf = V(0), pr = V(1);
             h.TractionCurveMax *= 1f - 0.004f * (pf + pr) - 0.0015f * (pf * pf + pr * pr) / 10f;
             h.TractionBiasFront = Clamp(h.TractionBiasFront - 0.004f * (pf - pr), 0.36f, 0.64f);
-            // gearing (with the real drivetrain the final drive and gear ratios are applied by Drivetrain)
-            if (!Drivetrain.Enabled) { h.InitialDriveMaxFlatVelocity *= 1f + 0.025f * V(2); h.InitialDriveForce *= 1f - 0.02f * V(2); }
+            // gearing, aero and power are part of the simulation (Drivetrain / SimPhysics)
             // alignment: negative camber = more cornering grip, less braking; toe out = sharper turn-in; caster = stability
             float camber = -(V(3) + V(4)) / 2f;
             h.TractionCurveLateral *= 1f - 0.006f * camber; h.TractionCurveMin *= 1f + 0.004f * camber; h.BrakeForce *= 1f - 0.004f * Math.Abs(camber);
@@ -110,7 +115,6 @@ namespace MidnightClub.Vehicles
             // damping
             h.SuspensionReboundDamping *= 1f + 0.05f * V(12); h.SuspensionCompressionDamping *= 1f + 0.05f * V(13);
             // aero: grip at speed, costs top speed
-            if (Has(r, "aero")) { float df = (V(14) + V(15) + 20f) / 40f; h.TractionCurveMax *= 1.02f + 0.05f * df; h.InitialDriveMaxFlatVelocity *= 0.995f - 0.025f * df; h.TractionBiasFront = Clamp(h.TractionBiasFront + 0.01f * (V(14) - V(15)) / 10f, 0.36f, 0.64f); }
             // brakes
             if (Has(r, "brakes")) h.BrakeForce *= 1.08f;
             h.BrakeBiasFront = Clamp(h.BrakeBiasFront + 0.015f * V(16), 0.3f, 0.8f); h.BrakeForce *= 1f + 0.03f * V(17);
@@ -123,8 +127,7 @@ namespace MidnightClub.Vehicles
             h.SteeringLock *= 1f + 0.035f * V(21);
             // weight
             float w = Has(r, "weight3") ? 0.88f : Has(r, "weight2") ? 0.92f : Has(r, "weight1") ? 0.96f : 1f;
-            h.Mass *= w; h.InitialDriveForce /= (float)Math.Sqrt(w);
-            if (Has(r, "pipe")) h.InitialDriveForce *= 1.02f;
+            h.Mass *= w;
         }
 
         /// <summary>Extra engine power (via the cheat-power multiplier, combined with ECU): anti-lag at low revs, straight pipe.</summary>

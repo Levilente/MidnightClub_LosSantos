@@ -243,10 +243,11 @@ namespace MidnightClub.UI
                     case Control.FrontendRight: case Control.Context: return "PDRIGHT";
                     case Control.FrontendPause: case Control.FrontendPauseAlternate: return "PSTART";
                     case Control.FrontendSelect: case Control.NextCamera: return "PBACK";
-                    case Control.VehicleLookBehind: return "PRS";
+                    case Control.VehicleLookBehind: case Control.FrontendRs: return "PRS";
                     case Control.Sprint: case Control.VehicleDuck: return "PA";
                 }
             }
+            if (!pad && c == Control.FrontendRs) return "R";
             try
             {
                 string s = Function.Call<string>(Hash.GET_CONTROL_INSTRUCTIONAL_BUTTONS_STRING, 2, (int)c, true);

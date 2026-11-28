@@ -26,8 +26,8 @@ namespace MidnightClub.Vehicles
         private readonly Config cfg;
         private readonly HashSet<int> warned = new HashSet<int>();
 
-        public static readonly string[] CompoundNames = { "Street", "Sport", "Semi-slick", "Race slick", "Drift" };
-        public static readonly float[] CompoundGrip = { 1.00f, 1.05f, 1.10f, 1.16f, 1.00f };
+        public static readonly string[] CompoundNames = { "Factory", "Sport", "Semi-slick", "Race slick", "Drift", "Drag radial" };
+        public static readonly float[] CompoundGrip = { 1.00f, 1.05f, 1.10f, 1.16f, 1.00f, 0.95f };
 
         public FitmentManager(VehicleManager vehicles, Config cfg)
         {
@@ -41,8 +41,7 @@ namespace MidnightClub.Vehicles
             var car = vehicles.Current; var rec = vehicles.CurrentRecord;
             if (car == null || !car.Exists() || rec == null) { RestoreGrip(); return; }
             ApplyTo(car, rec);
-            if (Simcade.Active) RestoreGrip();     // simcade owns the handling and stacks the compound itself
-            else ApplyGrip(car, CompoundGrip[Math.Max(0, Math.Min(4, rec.TyreCompound))]);
+            RestoreGrip();     // the simulation owns the handling and the tyre model
         }
 
         /// <summary>Writes the record's stance onto any spawned car (driven or parked in a garage).</summary>

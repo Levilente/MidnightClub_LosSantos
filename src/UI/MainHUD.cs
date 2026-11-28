@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System;
 using System.Drawing;
 using GTA;
@@ -12,7 +13,7 @@ namespace MidnightClub.UI
     {
         private readonly float hx, hy;
         private string deltaText; private Color deltaColor; private int deltaAt = -10000;
-        private float rpmShown, speedShown, cashShown = -1, xpShown;
+        private float rpmShown, rpmRealShown, speedShown, cashShown = -1, xpShown;
         private string xpText; private int xpAt = -10000; private long xpAcc;
 
         public MainHUD(float x, float y)
@@ -143,7 +144,7 @@ namespace MidnightClub.UI
             speedShown = Ds.Damp(speedShown, v.Speed * 3.6f, 14f);
             rpmShown = Ds.Damp(rpmShown, Math.Max(0f, Math.Min(1f, v.CurrentRPM)), 18f);
             int kmh = (int)Math.Round(speedShown);
-            bool turbo = r != null && r.Toggles != null && r.Toggles.Contains(18);
+            bool turbo = Vehicles.Drivetrain.Current != null ? Vehicles.Drivetrain.HasBoost : r != null && r.Toggles != null && r.Toggles.Contains(18);
             bool nos = r != null && r.NosLevel > 0;
             bool ability = Gameplay.Abilities.Instance != null && Gameplay.Abilities.Instance.Selected != null;
             int extraRows = (nos ? 1 : 0) + (ability ? 1 : 0);
@@ -158,7 +159,8 @@ namespace MidnightClub.UI
             int step = Math.Max(0, Math.Min(50, (int)Math.Round(rpmShown * 50f))) * 2;
             Box("spd_rev_" + step.ToString("000"), 0f, 0f, RefW, RefH, Color.White);
             var dts = Vehicles.Drivetrain.Current;
-            float rpmReal = dts != null ? dts.Idle + Math.Max(0f, Math.Min(1f, (rpmShown - 0.2f) / 0.8f)) * (dts.Redline - dts.Idle) : rpmShown * 9000f;
+            rpmRealShown = Ds.Damp(rpmRealShown, dts != null ? Vehicles.Drivetrain.EngineRpm : rpmShown * 9000f, 18f);
+            float rpmReal = rpmRealShown;
             int rpmNum = (int)Math.Round(rpmReal / 100f) * 100;
             string rpmTxt = rpmNum.ToString();
             Glyphs("gs", rpmTxt, 195f, 57f, 2, RevRed);
@@ -176,6 +178,7 @@ namespace MidnightClub.UI
                 float maxBar = 1.0f + 0.15f * r.EcuLevel + (Vehicles.Setup.Has(r, "als") ? 0.2f : 0f);
                 float want = Math.Max(0f, v.Throttle) * Math.Max(0f, Math.Min(1f, (rpmShown - 0.25f) / 0.45f)) * maxBar;
                 if (Vehicles.Setup.Has(r, "als") && v.Throttle <= 0.05f) want = 0.35f * maxBar;
+                if (dts != null) want = Vehicles.Drivetrain.BoostBar;          // the real boost from the engine model (lag, spool, supercharger)
                 boostShown = Ds.Damp(boostShown, want, want > boostShown ? (Vehicles.Setup.Has(r, "als") ? 9f : 3.5f) : 6f);
                 if (boostShown >= boostPeak) { boostPeak = boostShown; boostPeakT = 1.2f; }
                 else { boostPeakT -= Ds.Dt; if (boostPeakT <= 0f) boostPeak = Math.Max(boostShown, boostPeak - Ds.Dt * 0.8f); }
@@ -187,6 +190,17 @@ namespace MidnightClub.UI
                 Box("px", tx, 129.5f, 1.4f, 14f, Color.White);
                 Box("px", tx + 3f, 136.3f, 4f, 1.3f, Color.White);
                 Glyphs("gm", boostShown.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture), 188f, 143f, 2, Color.White);
+            }
+            // driver aid lights: light up while traction control, ABS or stability management is working
+            var sim = Physics.SimPhysics.Instance;
+            if (sim != null && dts != null)
+            {
+                float ax = 12f;
+                foreach (var a in new[] { new KeyValuePair<string, bool>("TCS", sim.TcsActive), new KeyValuePair<string, bool>("ABS", sim.AbsActive), new KeyValuePair<string, bool>("ESC", sim.EscActive) })
+                {
+                    if (a.Value) Ds.T(a.Key, SX(ax), SY(70f), 0.2f, Ds.Amber, Ds.Display);
+                    ax += 24f;
+                }
             }
             // NOS / ability rows: the reference NOS row sits 36 ref px under the boost row; without turbo the rows move up
             rowBase = turbo ? 0f : -36f;

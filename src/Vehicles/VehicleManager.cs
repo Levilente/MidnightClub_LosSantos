@@ -54,6 +54,22 @@ namespace MidnightClub.Vehicles
             return v;
         }
 
+        /// <summary>Rebuilds the driven car in place (same spot, heading and driver): needed when a part changes something
+        /// GTA only sets up at spawn (the gearbox).</summary>
+        public Vehicle Respawn()
+        {
+            var old = Current; var rec = CurrentRecord;
+            if (old == null || !old.Exists() || rec == null) return old;
+            Capture();
+            var ped = Game.Player.Character; bool driving = ped.IsInVehicle(old);
+            var pos = old.Position; float hd = old.Heading;
+            old.Delete();
+            var v = Create(rec, pos, hd);
+            Current = v;
+            if (driving) ped.SetIntoVehicle(v, VehicleSeat.Driver);
+            return v;
+        }
+
         /// <summary>Spawns a parked/display copy of an owned car without making it the driven car.</summary>
         public Vehicle SpawnDisplay(OwnedVehicle rec, Vector3 pos, float heading)
         {
@@ -69,7 +85,10 @@ namespace MidnightClub.Vehicles
             var model = rec.ModelHash != 0 ? new Model(rec.ModelHash) : new Model(rec.Model);
             if (!model.IsValid || !model.IsInCdImage || !model.IsVehicle) throw new Exception("Vehicle model not available in this game build: " + rec.Model);
             if (!model.Request(5000)) throw new Exception("Vehicle model failed to load: " + rec.Model);
-            var v = World.CreateVehicle(model, pos, heading);
+            if (Physics.SimPhysics.Instance != null) Physics.SimPhysics.Instance.PrepareSpawn(model, rec);   // gear count is fixed at spawn
+            Vehicle v;
+            try { v = World.CreateVehicle(model, pos, heading); }
+            finally { if (Physics.SimPhysics.Instance != null) Physics.SimPhysics.Instance.AfterSpawn(model); }
             model.MarkAsNoLongerNeeded();
             if (v == null || !v.Exists()) throw new Exception("World.CreateVehicle returned nothing for " + rec.Model);
 
@@ -94,7 +113,7 @@ namespace MidnightClub.Vehicles
             if (r.Toggles != null) foreach (var t in r.Toggles) Function.Call(Hash.TOGGLE_VEHICLE_MOD, v, t, true);
             if (r.WindowTint >= 0) Function.Call(Hash.SET_VEHICLE_WINDOW_TINT, v, r.WindowTint);
             if (r.Livery >= 0) Function.Call(Hash.SET_VEHICLE_LIVERY, v, r.Livery);
-            if (r.DriftTyres || r.TyreCompound == 4) Function.Call(Hash.SET_DRIFT_TYRES, v, true);
+            Function.Call(Hash.SET_DRIFT_TYRES, v, false);   // drift rubber is a Pacejka compound in the simulation, not GTA's low-grip tyres
             if (!string.IsNullOrEmpty(r.EngineSound)) try { Function.Call(Hash.FORCE_USE_AUDIO_GAME_OBJECT, v, r.EngineSound); } catch { }
             Setup.ApplyAudio(v, r);
             v.EngineHealth = Math.Max(r.EngineHealth, 300f);
@@ -139,7 +158,8 @@ namespace MidnightClub.Vehicles
         {
             var v = Current; var r = CurrentRecord;
             if (v == null || r == null || !v.Exists()) return;
-            float pw = (1f + 0.06f * r.EcuLevel + Setup.PowerBonus(r, v) + Setup.SwapPower(r.EngineSound)) * (Drivetrain.Current != null ? Drivetrain.TorqueMult : 1f);
+            // with the simulation running, every power source (curve, boost, ECU, parts, swaps) is inside the powertrain model
+            float pw = Drivetrain.Current != null ? Drivetrain.TorqueMult : 1f + 0.06f * r.EcuLevel + Setup.PowerBonus(r, v) + Setup.SwapPower(r.EngineSound);
             bool boosted = Gameplay.Abilities.NosActive || (Gameplay.StyleSystem.Instance != null && Gameplay.StyleSystem.Instance.Slipstreaming);
             if (!boosted && (Math.Abs(pw - 1f) > 0.001f || Drivetrain.Current != null)) Function.Call(Hash.SET_VEHICLE_CHEAT_POWER_INCREASE, v, pw);   // ECU (+6 %/stage), parts, torque curve
             var p = v.Position;

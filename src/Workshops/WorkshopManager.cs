@@ -163,6 +163,15 @@ namespace MidnightClub.Workshops
                 Function.Call(Hash.CLEAR_PED_TASKS, ped);
                 cine.Delete(); cine = null;
                 new WorkshopScreen(w, vehicles, registry, saves, money).Run();
+                // a new gearbox is built into the car when it rolls out (GTA sets the gear count up at spawn)
+                car = vehicles.Current;
+                if (Physics.SimPhysics.Instance != null && Physics.SimPhysics.Instance.NeedsRebuild(car, vehicles.CurrentRecord))
+                {
+                    GTA.UI.Screen.FadeOut(250); Script.Wait(280);
+                    try { car = vehicles.Respawn(); Log.Info("Car rebuilt with its new gearbox: " + (car != null ? car.HighGear : 0) + " gears"); }
+                    catch (Exception ex) { Log.Error("Rebuild after workshop", ex); }
+                    GTA.UI.Screen.FadeIn(350);
+                }
                 // drive-out shot: from the forecourt, the car rolls out of the door
                 car = vehicles.Current;
                 if (car != null && car.Exists())

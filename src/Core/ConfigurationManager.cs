@@ -38,6 +38,7 @@ namespace MidnightClub.Core
         public bool DynamicWeather = true, SpeedEffects = true;
         public string UiTheme = "Auto";
         public bool RealDrivetrain = true, InversePower = true;
+        public int TcsLevel = 4, AbsLevel = 6, EscLevel = 3;          // driver aids, 0 = off .. 10 = maximum
         public string RadioStation = "";
         public float PoliceSpeedKmh = 115f, PoliceDifficulty = 1f;
         public long TierRep2 = 1000, TierRep3 = 3500, TierRep4 = 9000, TierRep5 = 20000;
@@ -101,6 +102,9 @@ namespace MidnightClub.Core
             c.SimcadeStability = Get(s, "Simcade", "StabilityAssist", c.SimcadeStability);
             c.SimcadeWeight = Get(s, "Simcade", "Weight", c.SimcadeWeight);
             c.RealDrivetrain = Get(s, "Simcade", "RealDrivetrain", c.RealDrivetrain); c.InversePower = Get(s, "Simcade", "InversePower", c.InversePower);
+            c.TcsLevel = Math.Max(0, Math.Min(10, Get(s, "Assists", "TractionControl", c.TcsLevel)));
+            c.AbsLevel = Math.Max(0, Math.Min(10, Get(s, "Assists", "ABS", c.AbsLevel)));
+            c.EscLevel = Math.Max(0, Math.Min(10, Get(s, "Assists", "StabilityManagement", c.EscLevel)));
             c.PoliceEnabled = Get(s, "Police", "Enabled", c.PoliceEnabled);
             c.AlwaysNight = Get(s, "World", "AlwaysNight", c.AlwaysNight);
             c.TrafficDensity = Get(s, "World", "TrafficDensity", c.TrafficDensity); c.ParkedDensity = Get(s, "World", "ParkedDensity", c.ParkedDensity);

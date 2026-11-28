@@ -64,7 +64,7 @@ namespace MidnightClub
                 new Workshops.WorkshopManager(saves, money, registry, vehicles, stack);
                 new FitmentManager(vehicles, cfg);
                 new WorldSim.GasStations(vehicles, saves);
-                new Simcade(vehicles, registry, cfg, Path.Combine(dir, "data"));
+                new Physics.SimPhysics(vehicles, registry, cfg, Path.Combine(dir, "data"));
                 new WheelLab(vehicles, cfg);
                 var dealers = new Dealerships.DealershipManager(saves, money, registry, vehicles, garages, calendar, stack, Path.Combine(dir, "data"));
                 var races = new Racing.RaceManager(saves, money, registry, vehicles, calendar, stack, Path.Combine(dir, "data"));

@@ -30,7 +30,7 @@ namespace MidnightClub.Vehicles
             pi += Mod(r, 11) * 22 + Mod(r, 13) * 12 + Mod(r, 12) * 7 + Mod(r, 15) * 7;
             if (r.Toggles != null && r.Toggles.Contains(18)) pi += 30;
             pi += r.EcuLevel * 18 + r.NosLevel * 9 + Setup.PiBonus(r) + (int)(Setup.SwapPower(r.EngineSound) * 300);
-            pi += new[] { 0, 10, 22, 34, -5 }[Math.Max(0, Math.Min(4, r.TyreCompound))];
+            pi += new[] { 0, 10, 22, 34, -5, 4 }[Math.Max(0, Math.Min(5, r.TyreCompound))];
             return Math.Max(100, Math.Min(999, pi));
         }
         public static int Of(VehicleInfo info) { return info == null ? 100 : Math.Max(100, Math.Min(999, 120 + (int)(info.Performance * 720f))); }

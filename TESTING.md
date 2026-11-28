@@ -2,6 +2,20 @@
 
 Tick items off or note what happened. Logs: `scripts\MidnightClub\MidnightClub.log` and `ScriptHookVDotNet.log`; Claude can read them from the game folder.
 
+
+## 0.41.0 - real data simulation
+- [ ] Get in any car: log shows "Spec <car> (real data|generated): ... hp @ rpm, Nm @ rpm, engine, gears, kg, % front, CoG, CdA, ClA, tyres", "Powertrain <car>: ... 0-100 x s, top y km/h" and "Sim handling <car>: kg, CoG, drive front, grip".
+- [ ] Floor it through the gears a few times: data\physics_calibration.ini appears (GTA's response per gear). After that, acceleration should match the 0-100 the real data view shows (roughly).
+- [ ] Sultan (sim): handbrake at speed swings the rear out; lifting mid-corner tucks the nose in; flooring it out of a slow corner with TCS 0 steps the rear out.
+- [ ] Turbo car: boost gauge builds with lag after you floor it; supercharged car: boost is instant.
+- [ ] Workshop > Performance > Forced induction: Turbo stage 1-3 and Supercharger stage 1-3, descriptions show real hp / Nm / bar; buying a supercharger stage removes the turbo (and vice versa).
+- [ ] Buy the Race gearbox, drive out: a short fade, the car is rebuilt, log "Car rebuilt with its new gearbox: 6 gears"; the HUD reaches 6th.
+- [ ] Settings > Driving: Traction control / ABS / Stability management 0-10 (also in the launcher). TCS / ABS / ESC lights on the speedometer while they work.
+- [ ] Garage / dealership / workshop: R3 (pad) or R (keyboard) switches between game stats and real data + torque/power curves.
+- [ ] Drag radials (muscle / racing workshops): launches hard, slides wide in corners. Race slicks in rain: very little grip.
+- [ ] Bike (Bati 801, Hakuchou): wheelies in 1st/2nd at full throttle with TCS 0; with TCS 8+ the front stays down.
+- [ ] Top speed: a supercar keeps pulling well past the old GTA limits until drag stops it.
+
 ## 0.38.0
 - Simulation driving model: turn-in is sharper, no hidden yaw damping; a RWD car with throttle can be held in a drift (counter-steer + throttle). Toggle Inverse power off to feel the difference.
 - Race diff at high acceleration lock: power oversteer; low lock: inside wheel spins in tight corners.

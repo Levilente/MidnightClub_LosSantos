@@ -119,9 +119,8 @@ namespace MidnightClub.Phone
 
         private string DrivingLabel()
         {
-            var cfg = Config.Current; float[] iv = { 0.7f, 1f, 1.3f }; string[] nm = { "Arcade", "Simcade", "Simulation" };
-            for (int i = 0; i < 3; i++) if (Math.Abs(cfg.SimcadeIntensity - iv[i]) < 0.01f) return nm[i];
-            return "Custom";
+            var cfg = Config.Current;
+            return "TCS " + cfg.TcsLevel + " · ABS " + cfg.AbsLevel + " · ESC " + cfg.EscLevel;
         }
 
         private Menu SettingsMenu(string group)
@@ -134,11 +133,9 @@ namespace MidnightClub.Phone
                 { "Camera motion (G)", "How much the chase cameras lean into acceleration, braking and corners. Mounted cameras stay locked to the body." },
                 { "Speed FOV", "How much the field of view widens with speed, in every camera." },
                 { "Camera shake", "Rumble at high speed and over rough ground (chase cameras)." },
-                { "Simcade handling", "Era-correct weight, roll and grip per car. Off = GTA's stock handling." },
-                { "Handling intensity", "How strongly the simcade model changes the car." },
-                { "Car weight feel", "Weight transfer under braking and turning in." },
-                { "Steering assist", "Counter-steer help when the rear steps out." },
-                { "Stability assist", "Keeps the car from spinning on throttle." },
+                { "Traction control", "0 = off. Higher levels hold the driven wheels closer to the tyre's peak slip and cut power sooner (on bikes it also stops wheelies)." },
+                { "ABS", "0 = off: the wheels can lock. Higher levels keep the braking slip closer to the tyre's peak." },
+                { "Stability management", "0 = off. Higher levels step in earlier when the car starts to slide: they brake the rotation and cut power." },
                 { "HUD", "Speedometer, minimap and race HUD." },
                 { "Speed effects", "Speed lines and edge vignette at high speed." },
                 { "Welcome screen", "The Midnight Club title card when you switch in with F7." },
@@ -164,19 +161,12 @@ namespace MidnightClub.Phone
             G(num("Camera motion (G)", "GForceIntensity", () => cfg.CameraGForce, v => cfg.CameraGForce = v, 0f, 2f, 0.1f, "Camera"), "Camera", "move");
             G(num("Speed FOV", "DynamicFovIntensity", () => cfg.CameraFovScale, v => cfg.CameraFovScale = v, 0f, 2f, 0.1f, "Camera"), "Camera", "aperture");
             G(num("Camera shake", "ShakeIntensity", () => cfg.CameraShake, v => cfg.CameraShake = v, 0f, 2f, 0.1f, "Camera"), "Camera", "sparkles");
-            string[] models = { "Arcade", "Simcade", "Simulation" };
-            float[][] mv = { new[] { 0.7f, 1.4f, 1.5f, 0.6f }, new[] { 1f, 1f, 1f, 1f }, new[] { 1.3f, 0.35f, 0.25f, 1.3f } };
-            Func<int> curModel = () => { for (int i = 0; i < 3; i++) if (Math.Abs(cfg.SimcadeIntensity - mv[i][0]) < 0.01f && Math.Abs(cfg.SimcadeSteerAssist - mv[i][1]) < 0.01f && Math.Abs(cfg.SimcadeStability - mv[i][2]) < 0.01f) return i; return -1; };
-            Action<int> setModel = i => { cfg.SimcadeIntensity = mv[i][0]; cfg.SimcadeSteerAssist = mv[i][1]; cfg.SimcadeStability = mv[i][2]; cfg.SimcadeWeight = mv[i][3]; Config.Save("Simcade", "Intensity", mv[i][0]); Config.Save("Simcade", "SteeringAssist", mv[i][1]); Config.Save("Simcade", "StabilityAssist", mv[i][2]); Config.Save("Simcade", "Weight", mv[i][3]); };
-            G(new MenuItem("Driving model", () => setModel((Math.Max(0, curModel()) + 1) % 3)) { Value = () => curModel() < 0 ? "Custom" : models[curModel()], OnAdjust = d => setModel(((curModel() < 0 ? 1 : curModel()) + d + 3) % 3),
-                Description = () => "Arcade: grippy and forgiving. Simcade: weight, roll and era-correct handling with light assists. Simulation: full weight transfer, no anti-spin assist." }, "Driving", "gauge");
-            G(flag("Simcade handling", "Enabled", () => cfg.SimcadeEnabled, v => cfg.SimcadeEnabled = v, "Simcade"), "Driving", "car");
-            G(flag("Real drivetrain", "RealDrivetrain", () => cfg.RealDrivetrain, v => cfg.RealDrivetrain = v, "Simcade"), "Driving", "gauge");
-            G(flag("Inverse power", "InversePower", () => cfg.InversePower, v => cfg.InversePower = v, "Simcade"), "Driving", "flame");
-            G(num("Handling intensity", "Intensity", () => cfg.SimcadeIntensity, v => cfg.SimcadeIntensity = v, 0f, 1.5f, 0.1f, "Simcade"), "Driving", "sliders-horizontal");
-            G(num("Car weight feel", "Weight", () => cfg.SimcadeWeight, v => cfg.SimcadeWeight = v, 0f, 1.5f, 0.1f, "Simcade"), "Driving", "mountain-snow");
-            G(num("Steering assist", "SteeringAssist", () => cfg.SimcadeSteerAssist, v => cfg.SimcadeSteerAssist = v, 0f, 1.5f, 0.1f, "Simcade"), "Driving", "route");
-            G(num("Stability assist", "StabilityAssist", () => cfg.SimcadeStability, v => cfg.SimcadeStability = v, 0f, 1.5f, 0.1f, "Simcade"), "Driving", "shield");
+            Func<string, string, Func<int>, Action<int>, MenuItem> lvl = (label, key, get, set) =>
+                new MenuItem(label) { Value = () => get() == 0 ? "Off" : get() + " / 10", OnAdjust = d => { int v = Math.Max(0, Math.Min(10, get() + d)); set(v); Config.Save("Assists", key, v); } };
+            G(new MenuItem("Physics") { Enabled = false, Value = () => "Simulation", Description = () => "One physics model: real power and torque curves, gearing, weight, centre of gravity, aero and Pacejka tyres for every car and bike." }, "Driving", "gauge");
+            G(lvl("Traction control", "TractionControl", () => cfg.TcsLevel, v => cfg.TcsLevel = v), "Driving", "car");
+            G(lvl("ABS", "ABS", () => cfg.AbsLevel, v => cfg.AbsLevel = v), "Driving", "shield");
+            G(lvl("Stability management", "StabilityManagement", () => cfg.EscLevel, v => cfg.EscLevel = v), "Driving", "route");
             string[] themes = { "Auto", "Dark", "Light" };
             Action<int> setTheme = d => { int i = Math.Max(0, Array.IndexOf(themes, cfg.UiTheme)); i = (i + d + 3) % 3; cfg.UiTheme = themes[i]; Config.Save("HUD", "Theme", cfg.UiTheme); Th.Mode = (UiMode)i; };
             G(new MenuItem("Theme", () => setTheme(1)) { Value = () => cfg.UiTheme, OnAdjust = setTheme, Description = () => "Auto follows the in-game clock: light glass by day, dark at night." }, "Display", "palette");
@@ -278,7 +268,7 @@ namespace MidnightClub.Phone
             apps.Add(world);
             // ---------------- SETTINGS
             var set = new App { Name = "Settings", Icon = "settings", Accent = Th.Violet };
-            set.Tiles.Add(T("Driving", "gauge", "Driving model (arcade, simcade, simulation) and assists.", () => SettingsMenu("Driving"), () => DrivingLabel(), 2, 1));
+            set.Tiles.Add(T("Driving", "gauge", "Simulation physics and the driver aids: traction control, ABS, stability (0-10 each).", () => SettingsMenu("Driving"), () => DrivingLabel(), 2, 1));
             set.Tiles.Add(T("Cameras", "eye", "Midnight Club cameras and speed FOV.", () => SettingsMenu("Camera"), () => Config.Current.CustomCameras ? "Custom" : "Game"));
             set.Tiles.Add(T("Display", "monitor", "HUD, speed effects and the welcome screen.", () => SettingsMenu("Display"), () => Config.Current.ShowHud ? "HUD on" : "HUD off"));
             set.Tiles.Add(T("World", "cloud-sun", "Traffic, pedestrians, weather, time and radio.", () => SettingsMenu("World"), () => Config.Current.AlwaysNight ? "Always night" : "Day & night"));

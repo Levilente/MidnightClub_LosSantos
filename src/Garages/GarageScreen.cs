@@ -217,11 +217,13 @@ namespace MidnightClub.Garages
             float[] stats = info == null ? null : new[] { info.MaxSpeed / maxSpeed, info.Acceleration / maxAccel, info.Braking / maxBrake, info.Traction / maxGrip };
             string sub = info == null ? r.Model : info.Make.ToUpperInvariant() + "   " + VehicleRegistry.ClassName(info.Class).ToUpperInvariant() + "   TIER " + info.Tier;
             var cv = cars[index].Value;
-            if (Simcade.Active && cv != null && cv.Exists()) sub += "   " + Simcade.Instance.For(cv).Archetype.ToUpperInvariant() + " HANDLING";
+            UI.SpecPanel.HandleToggle();
+            var live = cv != null && cv.Exists() ? Drivetrain.ForDisplay(cv, r) : null;
+            if (live != null) sub += "   " + UI.SpecPanel.Chip(live);
             Studio.CarStrip(r.Favorite ? "FAVOURITE" : "MY GARAGE", mgr.Title(r).ToUpperInvariant(), sub, stats,
                 new[] { "$" + PricingEngine.EstimatedValue(info, r.Stats.DistanceKm, r.EngineHealth, r.BodyHealth).ToString("N0"), "ESTIMATED VALUE", "",
                         "CONDITION  " + cond + "%", r.Stats.DistanceKm.ToString("0.0") + " KM  ·  BEST " + r.Stats.TopSpeedKmh.ToString("0") + " KM/H", "PLATE  " + r.Plate },
-                cars.Count > 1 ? "<  " + (index + 1) + " / " + cars.Count + "  >" : null);
+                cars.Count > 1 ? "<  " + (index + 1) + " / " + cars.Count + "  >" : null, live);
             if (note != null && Game.GameTime < noteUntil)
             {
                 Theme.Card(0.36f, 0.14f, 0.28f, 0.05f);
@@ -230,8 +232,8 @@ namespace MidnightClub.Garages
             if (!menus.IsOpen)
             {
                 bool here = cars.Any(c => c.Key == arrivedIn);
-                if (g.Customizable) Buttons.Draw(Control.FrontendAccept, "Drive out", Control.FrontendCancel, here ? "Leave in current car" : "Leave", Control.FrontendX, "Manage", Control.FrontendY, "Customise garage", Control.FrontendRight, "", Control.FrontendLeft, "Choose car");
-                else Buttons.Draw(Control.FrontendAccept, "Drive out", Control.FrontendCancel, here ? "Leave in current car" : "Leave", Control.FrontendX, "Manage", Control.FrontendRight, "", Control.FrontendLeft, "Choose car");
+                if (g.Customizable) Buttons.Draw(Control.FrontendAccept, "Drive out", Control.FrontendCancel, here ? "Leave in current car" : "Leave", Control.FrontendX, "Manage", Control.FrontendRs, UI.SpecPanel.PromptLabel, Control.FrontendY, "Customise garage", Control.FrontendRight, "", Control.FrontendLeft, "Choose car");
+                else Buttons.Draw(Control.FrontendAccept, "Drive out", Control.FrontendCancel, here ? "Leave in current car" : "Leave", Control.FrontendX, "Manage", Control.FrontendRs, UI.SpecPanel.PromptLabel, Control.FrontendRight, "", Control.FrontendLeft, "Choose car");
             }
         }
 

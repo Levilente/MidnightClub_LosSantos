@@ -83,16 +83,19 @@ namespace MidnightClub.UI
         }
 
         /// <summary>Bottom car card (garage / showroom): chip + counter, big car name, subtitle, four stats, details right.</summary>
-        public static void CarStrip(string kicker, string name, string sub, float[] stats, string[] rightLines, string counter)
+        public static void CarStrip(string kicker, string name, string sub, float[] stats, string[] rightLines, string counter, Vehicles.Drivetrain.Live real = null)
         {
-            float x = 0.045f, w = 0.91f, h = Th.Px(190f), y = 1f - Th.Px(100f) - h;
+            bool showReal = SpecPanel.Real && real != null;
+            float x = 0.045f, w = 0.91f, h = Th.Px(showReal ? 262f : 190f), y = 1f - Th.Px(100f) - h;
+            if (showReal) SpecPanel.Curve(real, 0.62f, y - Th.Px(16f) - Th.Px(200f), 0.335f, Th.Px(200f));
             Kit.Glass(x, y, w, h, Th.R_Lg + 4f);
             float ix = x + Ds.Px(Th.Px(28f));
             float kw = Kit.Chip(kicker, ix, y + Th.Px(30f), Th.Accent, Th.On(Th.Accent), 0.24f);
             if (counter != null) Ds.TM(counter, ix + kw + Ds.Px(Th.Px(12f)), y + Th.Px(30f), 0.28f, Th.Sub, Ds.Display);
             Ds.TM(Ds.Fit(name, 1.0f, w * 0.55f, Ds.Display), ix, y + Th.Px(78f), 1.0f, Th.Text, Ds.Display);
             Ds.TM(sub, ix, y + Th.Px(116f), 0.28f, Th.Sub, Ds.Display);
-            if (stats != null)
+            if (showReal) SpecPanel.Grid(real, ix, y + Th.Px(136f), w * 0.62f, 4, 8);
+            else if (stats != null)
             {
                 string[] labels = { "SPEED", "ACCELERATION", "BRAKING", "HANDLING" };
                 float sw = Ds.Px(Th.Px(170f)), gap = Ds.Px(Th.Px(22f));

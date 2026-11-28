@@ -240,21 +240,9 @@ namespace MidnightClubLauncher
             Func<string, string, string, string, string, float, float, float, float, Setting> S = (sec, key, label, desc, icon, min, max, step, def) => new Setting { Sec = sec, Key = key, Label = label, Desc = desc, Icon = icon, Kind = Kind.Slider, Min = min, Max = max, Step = step, Def = def.ToString(CultureInfo.InvariantCulture) };
 
             var drive = new Category { Name = "Driving", Icon = "gauge", Accent = Red };
-            float[][] mv = { new[] { 0.7f, 1.4f, 1.5f, 0.6f }, new[] { 1f, 1f, 1f, 1f }, new[] { 1.3f, 0.35f, 0.25f, 1.3f } };
-            drive.Items.Add(new Setting
-            {
-                Label = "Driving model", Desc = "Arcade: grippy and forgiving. Simcade: weight, roll and era-correct handling. Simulation: full weight transfer, no anti-spin assist.",
-                Icon = "car-front", Kind = Kind.Choice, Options = new[] { "Arcade", "Simcade", "Simulation" },
-                GetChoice = c => { for (int i = 0; i < 3; i++) if (Math.Abs(c.GetF("Simcade", "Intensity", 1f) - mv[i][0]) < 0.01f && Math.Abs(c.GetF("Simcade", "SteeringAssist", 1f) - mv[i][1]) < 0.01f && Math.Abs(c.GetF("Simcade", "StabilityAssist", 1f) - mv[i][2]) < 0.01f) return i; return -1; },
-                SetChoice = (c, i) => { c.Set("Simcade", "Intensity", Fs(mv[i][0])); c.Set("Simcade", "SteeringAssist", Fs(mv[i][1])); c.Set("Simcade", "StabilityAssist", Fs(mv[i][2])); c.Set("Simcade", "Weight", Fs(mv[i][3])); }
-            });
-            drive.Items.Add(T("Simcade", "Enabled", "Simcade handling", "Era-correct weight, roll and grip for every car. Off: GTA's stock handling.", "car-front", true));
-            drive.Items.Add(T("Simcade", "RealDrivetrain", "Real drivetrain", "Real gears, final drive, redline and torque curve per car. No artificial top-speed limit.", "gauge", true));
-            drive.Items.Add(T("Simcade", "InversePower", "Inverse power", "Gives back the drive GTA cuts when you're sideways: hold drifts on the throttle.", "sparkles", true));
-            drive.Items.Add(S("Simcade", "Intensity", "Handling intensity", "How strongly the simcade model changes the car.", "gauge", 0f, 1.5f, 0.1f, 1f));
-            drive.Items.Add(S("Simcade", "Weight", "Weight feel", "Weight transfer under braking and turning in.", "gauge", 0f, 1.5f, 0.1f, 1f));
-            drive.Items.Add(S("Simcade", "SteeringAssist", "Steering assist", "Counter-steer help when the rear steps out.", "gauge", 0f, 1.5f, 0.1f, 1f));
-            drive.Items.Add(S("Simcade", "StabilityAssist", "Stability assist", "Keeps the car from spinning on throttle.", "gauge", 0f, 1.5f, 0.1f, 1f));
+            { var a = S("Assists", "TractionControl", "Traction control", "0 = off. Higher levels hold the driven wheels closer to the tyre's peak slip and cut power sooner (on bikes it also stops wheelies).", "car-front", 0f, 10f, 1f, 4f); a.Fmt = "0"; drive.Items.Add(a); }
+            { var a = S("Assists", "ABS", "ABS", "0 = off: the wheels can lock. Higher levels keep the braking slip closer to the tyre's peak.", "gauge", 0f, 10f, 1f, 6f); a.Fmt = "0"; drive.Items.Add(a); }
+            { var a = S("Assists", "StabilityManagement", "Stability management", "0 = off. Higher levels step in earlier when the car slides: they brake the rotation and cut power.", "sparkles", 0f, 10f, 1f, 3f); a.Fmt = "0"; drive.Items.Add(a); }
             drive.Items.Add(T("Fitment", "Enabled", "Wheel fitment", "Camber, offset and stance from the workshops.", "wrench", true));
             cats.Add(drive);
 

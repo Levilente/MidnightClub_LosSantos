@@ -113,7 +113,7 @@ namespace MidnightClub.Workshops
             foreach (var kv in instMods) if (Function.Call<int>(Hash.GET_VEHICLE_MOD, car, kv.Key) != kv.Value) Function.Call(Hash.SET_VEHICLE_MOD, car, kv.Key, kv.Value, kv.Key == 23 && rec.LetteredTyres);
             foreach (int t in new[] { 18, 20, 22 }) Function.Call(Hash.TOGGLE_VEHICLE_MOD, car, t, instToggles.Contains(t));
             Function.Call(Hash.SET_VEHICLE_WINDOW_TINT, car, instTint);
-            Function.Call(Hash.SET_DRIFT_TYRES, car, rec.TyreCompound == 4);
+            Function.Call(Hash.SET_DRIFT_TYRES, car, false);
             pvCompound = pvEcu = pvNos = -1;
         }
 
@@ -259,20 +259,24 @@ namespace MidnightClub.Workshops
         {
             Action<int, int> mod = (type, lv) => { if (lv <= 0) return; int n = Function.Call<int>(Hash.GET_NUM_VEHICLE_MODS, car, type); if (n > 0) Function.Call(Hash.SET_VEHICLE_MOD, car, type, Math.Min(n - 1, lv - 1), false); };
             mod(11, b.Engine); mod(12, b.Brakes); mod(13, b.Gearbox); mod(15, b.Susp);
-            if (b.Turbo) Function.Call(Hash.TOGGLE_VEHICLE_MOD, car, 18, true);
+            if (b.Turbo)
+            {
+                Function.Call(Hash.TOGGLE_VEHICLE_MOD, car, 18, true);
+                if (!preview && Physics.Engine.TurboStage(rec) == 0 && Physics.Engine.ScStage(rec) == 0 && Physics.RealData.For(car).Ind == Physics.Induction.NA) { if (rec.Parts == null) rec.Parts = new List<string>(); rec.Parts.Add("turbo1"); }
+            }
             if (b.Xenon) Function.Call(Hash.TOGGLE_VEHICLE_MOD, car, 22, true);
             if (b.Tint >= 0) Function.Call(Hash.SET_VEHICLE_WINDOW_TINT, car, b.Tint);
             if (preview)
             {
                 if (b.Ecu > rec.EcuLevel) pvEcu = b.Ecu;
                 if (b.Nos > rec.NosLevel) pvNos = b.Nos;
-                if (b.Compound >= 0) { pvCompound = b.Compound; Function.Call(Hash.SET_DRIFT_TYRES, car, b.Compound == 4); }
+                if (b.Compound >= 0) { pvCompound = b.Compound; Function.Call(Hash.SET_DRIFT_TYRES, car, false); }
             }
             else
             {
                 if (b.Ecu > rec.EcuLevel) { rec.EcuLevel = b.Ecu; Function.Call(Hash.SET_VEHICLE_CHEAT_POWER_INCREASE, car, 1f + 0.06f * b.Ecu); }
                 if (b.Nos > rec.NosLevel) rec.NosLevel = b.Nos;
-                if (b.Compound >= 0) { rec.TyreCompound = b.Compound; Function.Call(Hash.SET_DRIFT_TYRES, car, b.Compound == 4); }
+                if (b.Compound >= 0) { rec.TyreCompound = b.Compound; Function.Call(Hash.SET_DRIFT_TYRES, car, false); }
             }
             if (b.Wheels.HasValue && car.Mods.AllowedWheelTypes.Contains(b.Wheels.Value))
             {
@@ -292,16 +296,17 @@ namespace MidnightClub.Workshops
             m.Add(new MenuItem("Engine", () => menus.Push(PerfCat("Engine", "front", c =>
             {
                 AddModMenu(c, "Engine upgrade", 11, 0.06, "front");
-                c.Add(new MenuItem("ECU tune", () => menus.Push(Ecu())) { Value = () => rec.EcuLevel == 0 ? "Stock" : "Stage " + rec.EcuLevel, Description = () => "Remapped engine management: +6% power per stage on top of the engine upgrade." });
+                c.Add(new MenuItem("ECU tune", () => menus.Push(Ecu())) { Value = () => rec.EcuLevel == 0 ? "Stock" : "Stage " + rec.EcuLevel, Description = () => "Remapped engine management: about +3% torque per stage on a naturally aspirated engine, +7% and more boost per stage on a turbo or supercharged one." });
                 c.Add(PartItem("pipe"));
                 c.Add(new MenuItem("Engine swap", () => menus.Push(EngineSwap())) { Value = () => SwapName(rec.EngineSound), Description = () => "Swap in a different engine: new sound and more power. Preview revs it in the bay before you buy." });
             }))) { Value = () => GtaLevel(11), Description = () => "Engine upgrades, ECU maps, exhaust and engine swaps." });
             m.Add(new MenuItem("Forced induction", () => menus.Push(PerfCat("Forced induction", "front", c =>
             {
-                c.Add(Toggle("Turbo", 18, Disc(2500 + bp * 8 / 100, 3)));
+                for (int st = 1; st <= 3; st++) { c.Add(InductionItem("turbo", st)); }
+                for (int st = 1; st <= 3; st++) { c.Add(InductionItem("sc", st)); }
                 c.Add(PartItem("als"));
                 c.Add(new MenuItem("Nitrous kit", () => menus.Push(Nitrous())) { Value = () => rec.NosLevel == 0 ? "None" : "Stage " + rec.NosLevel, Description = () => "Hold Shift (keyboard) or RB / R1 (controller) to fire. Bigger stages: more power, longer burn, faster refill." });
-            }))) { Value = () => (rec.Toggles != null && rec.Toggles.Contains(18) ? "Turbo" : "N/A") + (rec.NosLevel > 0 ? " + NOS" : ""), Description = () => "Turbo, anti-lag and nitrous." });
+            }))) { Value = () => InductionValue() + (rec.NosLevel > 0 ? " + NOS" : ""), Description = () => "Turbo or supercharger (3 stages each, never both), anti-lag and nitrous." });
             m.Add(new MenuItem("Drivetrain", () => menus.Push(PerfCat("Drivetrain", "default", c =>
             {
                 AddModMenu(c, "Transmission", 13, 0.045, "default");
@@ -351,13 +356,68 @@ namespace MidnightClub.Workshops
             {
                 if (rec.Parts.Contains(p.Id)) { Flash("Already installed."); return; }
                 if (p.Needs != null && !rec.Parts.Contains(p.Needs)) { Flash("Needs " + Setup.Parts.First(x => x.Id == p.Needs).Name + " first."); return; }
-                if (p.Id == "als" && !(rec.Toggles != null && rec.Toggles.Contains(18))) { Flash("Anti-lag needs a turbo."); return; }
+                if (p.Id == "als" && !TurboEngine()) { Flash("Anti-lag needs a turbo."); return; }
                 if (!Pay(price, p.Name)) return;
                 rec.Parts.Add(p.Id);
                 if (p.Id == "awd") rec.Parts.Remove("rwd"); if (p.Id == "rwd") rec.Parts.Remove("awd");
                 Setup.ApplyAudio(car, rec);
                 Bought(p.Name, price);
             }) { Value = () => rec.Parts.Contains(p.Id) ? "~g~INSTALLED" : "$" + price.ToString("N0") + "  ·  PI +" + p.Pi, Description = () => p.Desc + " Unlocks its settings in Hub > Garage > Tuning setup." };
+        }
+
+        private bool TurboEngine()
+        {
+            var spec = Physics.RealData.For(car);
+            return Physics.Engine.TurboStage(rec) > 0 || (spec.Ind == Physics.Induction.Turbo && Physics.Engine.ScStage(rec) == 0);
+        }
+        private string InductionValue()
+        {
+            var spec = Physics.RealData.For(car); int ts = Physics.Engine.TurboStage(rec), ss = Physics.Engine.ScStage(rec);
+            if (ts > 0) return "Turbo " + ts; if (ss > 0) return "Supercharger " + ss;
+            return spec.Ind == Physics.Induction.Turbo ? "Factory turbo" : spec.Ind == Physics.Induction.Supercharged ? "Factory supercharger" : spec.Ind == Physics.Induction.Electric ? "Electric" : "NA";
+        }
+        /// <summary>Turbo / supercharger stage row: stages build on each other, the two kinds replace each other.
+        /// The description shows the real power and torque the engine makes with it.</summary>
+        private MenuItem InductionItem(string kind, int stage)
+        {
+            if (rec.Parts == null) rec.Parts = new List<string>();
+            var spec = Physics.RealData.For(car);
+            bool turbo = kind == "turbo", factory = turbo ? spec.Ind == Physics.Induction.Turbo : spec.Ind == Physics.Induction.Supercharged;
+            string id = kind + stage;
+            var part = Setup.Parts.First(x => x.Id == id);
+            string name = (turbo ? (factory ? "Uprated turbo" : spec.Ind == Physics.Induction.Supercharged ? "Turbo conversion" : "Turbo kit") : (factory ? "Uprated supercharger" : spec.Ind == Physics.Induction.Turbo ? "Supercharger conversion" : "Supercharger kit")) + " stage " + stage;
+            Func<int> cur = () => turbo ? Physics.Engine.TurboStage(rec) : Physics.Engine.ScStage(rec);
+            Func<long> price = () => { long p = 0; for (int s2 = cur() + 1; s2 <= stage; s2++) p += Disc(PricingEngine.Round(Setup.Parts.First(x => x.Id == kind + s2).Price + bp * 0.012 * s2), 3); return p; };
+            Func<List<string>> withPart = () =>
+            {
+                var l = new List<string>(rec.Parts.Where(x => !x.StartsWith("turbo") && !x.StartsWith("sc") && (turbo || x != "als")));
+                for (int s2 = 1; s2 <= stage; s2++) l.Add(kind + s2);
+                return l;
+            };
+            Func<string> numbers = () =>
+            {
+                var now = Physics.Engine.Build(spec, rec, Function.Call<int>(Hash.GET_VEHICLE_MOD, car, 11));
+                var test = new OwnedVehicle { Parts = withPart(), EcuLevel = rec.EcuLevel, EngineSound = rec.EngineSound, Setup = rec.Setup };
+                var e = Physics.Engine.Build(spec, test, Function.Call<int>(Hash.GET_VEHICLE_MOD, car, 11));
+                float d = e.PeakHp - now.PeakHp;
+                return e.PeakHp.ToString("0") + " hp @ " + e.PeakHpRpm.ToString("0") + " rpm, " + e.PeakNm.ToString("0") + " Nm @ " + e.PeakNmRpm.ToString("0") + " rpm (" + (d >= 0 ? "+" : "") + d.ToString("0") + " hp), " + e.BoostBar.ToString("0.0") + " bar.";
+            };
+            return new MenuItem(name, () =>
+            {
+                if (spec.Ind == Physics.Induction.Electric) { Flash("Electric cars can't take forced induction."); return; }
+                if (cur() >= stage) { Flash("Already installed."); return; }
+                long p = price();
+                if (!Pay(p, name)) return;
+                bool swapped = rec.Parts.Any(x => turbo ? x.StartsWith("sc") : x.StartsWith("turbo"));
+                rec.Parts = withPart();
+                Function.Call(Hash.TOGGLE_VEHICLE_MOD, car, 18, TurboEngine());
+                Setup.ApplyAudio(car, rec);
+                Bought(name + (swapped ? (turbo ? " (supercharger removed)" : " (turbo removed)") : ""), p);
+            })
+            {
+                Value = () => spec.Ind == Physics.Induction.Electric ? "N/A" : cur() >= stage ? "~g~INSTALLED" : "$" + price().ToString("N0") + "  ·  PI +" + part.Pi,
+                Description = () => part.Desc + " " + numbers() + (rec.Parts.Any(x => turbo ? x.StartsWith("sc") : x.StartsWith("turbo")) ? (turbo ? " Replaces the supercharger." : " Replaces the turbo.") : "")
+            };
         }
 
         private Menu Nitrous()
@@ -489,23 +549,29 @@ namespace MidnightClub.Workshops
         {
             var m = new Menu("Tyre compound", Title()) { IsShopList = true };
             m.OnOpen = () => focus = "side";
-            m.OnHighlight = i => { pvCompound = i; Function.Call(Hash.SET_DRIFT_TYRES, car, i == 4); };
-            m.OnBack = () => { pvCompound = -1; Function.Call(Hash.SET_DRIFT_TYRES, car, rec.TyreCompound == 4); menus.Pop(); };
-            long[] prices = { 0, Disc(PricingEngine.Round(1500 + bp * 0.01), 4), Disc(PricingEngine.Round(3000 + bp * 0.02), 4), Disc(PricingEngine.Round(6000 + bp * 0.035), 4), Disc(3000, 4) };
-            string[] desc = { "Everyday road tyres. Stock grip.", "Sticky road tyres: +5% grip.", "Track-day rubber: +10% grip.", "Full race slicks: +16% grip.", "Hard low-grip compound for drifting." };
+            m.OnHighlight = i => { pvCompound = i; };
+            m.OnBack = () => { pvCompound = -1; Function.Call(Hash.SET_DRIFT_TYRES, car, false); menus.Pop(); };
+            long[] prices = { 0, Disc(PricingEngine.Round(1500 + bp * 0.01), 4), Disc(PricingEngine.Round(3000 + bp * 0.02), 4), Disc(PricingEngine.Round(6000 + bp * 0.035), 4), Disc(3000, 4), Disc(PricingEngine.Round(2500 + bp * 0.012), 4) };
+            var spec = Physics.RealData.For(car);
+            Func<int, string> desc = c =>
+            {
+                var t = Physics.Tyres.ForCompound(c, spec.Tyre, spec.Bike);
+                string what = c == 0 ? "The tyres the car left the factory on." : c == 1 ? "Sticky road tyres." : c == 2 ? "Track-day rubber, road legal." : c == 3 ? "Full race slicks: huge dry grip, hopeless in the rain." : c == 4 ? "Hard, predictable compound that holds an angle." : "Soft, tall sidewall drag radials: massive launch traction, little side grip.";
+                return what + "  Pacejka: " + t.Name + ", peak μ " + t.MuY.ToString("0.00") + " lateral / " + t.MuX.ToString("0.00") + " longitudinal, peak slip " + t.PeakDeg.ToString("0.0") + "°, " + (t.SlideY * 100f).ToString("0") + "% grip when sliding, wet " + ((1f - t.WetLoss) * 100f).ToString("0") + "%.";
+            };
             for (int i = 0; i < FitmentManager.CompoundNames.Length; i++)
             {
                 int c = i;
-                bool locked = (c == 3 && w.Specialty != "Racing") || (c == 4 && w.Specialty != "Tuner" && w.Specialty != "Racing");
+                bool locked = (c == 3 && w.Specialty != "Racing") || (c == 4 && w.Specialty != "Tuner" && w.Specialty != "Racing") || (c == 5 && w.Specialty != "Racing" && w.Specialty != "Muscle");
                 m.Add(new MenuItem(FitmentManager.CompoundNames[c] + (locked ? "" : (c >= 3 ? "  [EXCLUSIVE]" : "")), () =>
                 {
                     if (rec.TyreCompound == c) return;
-                    if (locked) { Flash(c == 3 ? "Race slicks: Southside Speed Lab only." : "Drift compound: Runway Tuning LSIA or Southside Speed Lab."); return; }
+                    if (locked) { Flash(c == 3 ? "Race slicks: Southside Speed Lab only." : c == 5 ? "Drag radials: muscle and racing workshops." : "Drift compound: Runway Tuning LSIA or Southside Speed Lab."); return; }
                     if (!Pay(prices[c], FitmentManager.CompoundNames[c] + " tyres")) return;
                     rec.TyreCompound = c;
-                    Function.Call(Hash.SET_DRIFT_TYRES, car, c == 4);
+                    
                     Bought(FitmentManager.CompoundNames[c] + " tyres", prices[c]);
-                }) { Value = () => rec.TyreCompound == c ? "~g~FITTED" : (prices[c] == 0 ? "Free" : "$" + prices[c].ToString("N0")), Description = () => desc[c] });
+                }) { Value = () => rec.TyreCompound == c ? "~g~FITTED" : (prices[c] == 0 ? "Free" : "$" + prices[c].ToString("N0")), Description = () => desc(c) });
             }
             return m;
         }
@@ -943,9 +1009,9 @@ namespace MidnightClub.Workshops
                 UI.Ds.TM(nt, 0.5f, 0.045f + nh / 2f, 0.32f, UI.Th.Text, Font.ChaletLondon, Alignment.Center);
             }
             bool adjust = cur != null && cur.Enabled && cur.OnAdjust != null;
-            if (root) Buttons.Draw(Control.FrontendLb, "", Control.FrontendRb, "Category", Control.FrontendAccept, "Select", Control.FrontendCancel, "Exit");
+            if (root) Buttons.Draw(Control.FrontendLb, "", Control.FrontendRb, "Category", Control.FrontendAccept, "Select", Control.FrontendRs, UI.SpecPanel.PromptLabel, Control.FrontendCancel, "Exit");
             else if (adjust) Buttons.Draw(Control.FrontendLeft, "", Control.FrontendRight, "Adjust", Control.FrontendAccept, "Select", Control.FrontendCancel, "Back");
-            else Buttons.Draw(Control.FrontendAccept, m.IsShopList ? "Buy" : "Select", Control.FrontendCancel, "Back");
+            else Buttons.Draw(Control.FrontendAccept, m.IsShopList ? "Buy" : "Select", Control.FrontendRs, UI.SpecPanel.PromptLabel, Control.FrontendCancel, "Back");
         }
 
         private static void Key(float x, float y, string k)
@@ -966,7 +1032,7 @@ namespace MidnightClub.Workshops
             int eng = lv(11), brk = lv(12), box = lv(13), sus = lv(15), arm = lv(16);
             float speed = Scale(spd0, 35f, 95f) + eng * 0.12f + (turbo ? 0.2f : 0) + ecu * 0.1f + box * 0.05f;
             float accel = Scale(acc0, 0.12f, 0.55f) + eng * 0.22f + box * 0.15f + (turbo ? 0.3f : 0) + ecu * 0.12f + nos * 0.2f;
-            float comp = FitmentManager.CompoundGrip[Math.Max(0, Math.Min(4, cmp))];
+            float comp = FitmentManager.CompoundGrip[Math.Max(0, Math.Min(5, cmp))];
             float asphalt = Scale(trc0 * comp, 1.5f, 3.4f) * 0.75f + Scale(brk0, 0.3f, 1.6f) * 0.25f + brk * 0.1f + sus * 0.12f - (cmp == 4 ? 0.6f : 0);
             var cls = info != null ? info.Class : VehicleClass.Sedans;
             bool offWheels = (installed ? instWheelType : car.Mods.WheelType) == VehicleWheelType.Offroad;
@@ -981,20 +1047,38 @@ namespace MidnightClub.Workshops
         /// <summary>Stat strip along the bottom (never over the car): five stats with live preview deltas + ratings.</summary>
         private void DrawStatCard(Menu m)
         {
+            UI.SpecPanel.HandleToggle();
+            var live = Drivetrain.ForDisplay(car, rec);
+            bool real = UI.SpecPanel.Real && live != null;
             var st = Stats(false);
             baseStats = Stats(true);
-            float x0 = 0.35f, x1 = 0.96f, h = UI.Th.Px(118f), top = 1f - UI.Th.Px(96f) - h;
+            float x0 = 0.35f, x1 = 0.96f, h = UI.Th.Px(real ? 136f : 118f), top = 1f - UI.Th.Px(96f) - h;
+            if (real) UI.SpecPanel.Curve(live, x1 - 0.3f, top - UI.Th.Px(14f) - UI.Th.Px(180f), 0.3f, UI.Th.Px(180f));
             UI.Kit.Glass(x0, top, x1 - x0, h, UI.Th.R_Lg);
             float ix = x0 + UI.Ds.Px(UI.Th.Px(22f)), iw = x1 - x0 - UI.Ds.Px(UI.Th.Px(44f));
             string head = (info != null ? info.Make.ToUpperInvariant() + "  " : "") + Title().ToUpperInvariant();
             int road = (int)Math.Round((st[0] * 0.35f + st[1] * 0.35f + st[2] * 0.3f) * 100f);
             int off = (int)Math.Round((st[0] * 0.25f + st[1] * 0.3f + st[3] * 0.45f) * 100f);
             float chipW = UI.Ds.Width("ROAD " + road, 0.26f, Cond) + UI.Ds.Width("OFF-ROAD " + off, 0.26f, Cond) + UI.Ds.Px(UI.Th.Px(48f));
-            UI.Ds.TM(UI.Ds.Fit(head, 0.4f, iw - chipW - UI.Ds.Px(UI.Th.Px(140f)), Cond), ix, top + UI.Th.Px(28f), 0.4f, UI.Th.Text, Cond);
+            UI.Ds.TM(UI.Ds.Fit(head, 0.4f, iw - chipW - UI.Ds.Px(UI.Th.Px(220f)), Cond), ix, top + UI.Th.Px(28f), 0.4f, UI.Th.Text, Cond);
             float cx = x1 - UI.Ds.Px(UI.Th.Px(22f)) - chipW;
-            if (Simcade.Active) { var pr = Simcade.Instance.For(car); string an = pr.Archetype.ToUpperInvariant(); UI.Kit.Chip(an, cx - UI.Ds.Width(an, 0.24f, Cond) - UI.Ds.Px(UI.Th.Px(28f)), top + UI.Th.Px(28f), UI.Th.Track, UI.Th.Sub, 0.24f); }
+            if (live != null) { string an = UI.SpecPanel.Chip(live); UI.Kit.Chip(an, cx - UI.Ds.Width(an, 0.22f, Cond) - UI.Ds.Px(UI.Th.Px(28f)), top + UI.Th.Px(28f), UI.Th.Track, UI.Th.Sub, 0.22f); }
             cx += UI.Kit.Chip("ROAD " + road, cx, top + UI.Th.Px(28f), UI.Th.Accent, UI.Th.On(UI.Th.Accent), 0.26f) + UI.Ds.Px(UI.Th.Px(8f));
             UI.Kit.Chip("OFF-ROAD " + off, cx, top + UI.Th.Px(28f), UI.Th.Amber, UI.Th.On(UI.Th.Amber), 0.26f);
+            if (real)
+            {
+                var cells = UI.SpecPanel.Cells(live);
+                int[] pick = { 0, 1, 2, 4, 5 };
+                float gap0 = UI.Ds.Px(UI.Th.Px(20f)), cw0 = (iw - gap0 * 4) / 5f;
+                for (int i = 0; i < 5; i++)
+                {
+                    var c = cells[pick[i]]; float px = ix + i * (cw0 + gap0);
+                    UI.Ds.TM(c[0], px, top + UI.Th.Px(62f), 0.22f, UI.Th.Sub, Cond);
+                    UI.Ds.TM(UI.Ds.Fit(c[1], 0.38f, cw0, Cond), px, top + UI.Th.Px(86f), 0.38f, UI.Th.Text, Cond);
+                    UI.Ds.TM(UI.Ds.Fit(c[2], 0.2f, cw0, UI.Ds.Body), px, top + UI.Th.Px(110f), 0.2f, UI.Th.Sub, UI.Ds.Body);
+                }
+                return;
+            }
             string[] names = { "SPEED", "ACCELERATION", "HANDLING", "OFF-ROAD", "STRENGTH" };
             float gap = UI.Ds.Px(UI.Th.Px(20f)), cw = (iw - gap * 4) / 5f;
             for (int i = 0; i < 5; i++)

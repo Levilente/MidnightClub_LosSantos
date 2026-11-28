@@ -308,17 +308,19 @@ namespace MidnightClub.Dealerships
                 int cond = (int)Math.Round((item.Preview.EngineHealth + item.Preview.BodyHealth) / 20f);
                 right.Add(""); right.Add("CONDITION  " + cond + "%"); right.Add(item.Preview.Stats.DistanceKm.ToString("0") + " KM  ·  " + item.Preview.Mods.Count + " MODS"); right.Add("SELLER  " + item.Seller.ToUpperInvariant());
             }
+            UI.SpecPanel.HandleToggle();
+            var live = Selected != null && Selected.Exists() ? Drivetrain.ForDisplay(Selected, item.Preview) : null;
             Studio.CarStrip(item.Badge != null ? item.Badge.ToUpperInvariant() : "IN STOCK", v.DisplayName.ToUpperInvariant(),
                 v.Make.ToUpperInvariant() + "   " + VehicleRegistry.ClassName(v.Class).ToUpperInvariant() + "   TIER " + v.Tier
-                    + (Simcade.Active && Selected != null && Selected.Exists() ? "   " + Simcade.Instance.For(Selected).Archetype.ToUpperInvariant() + " HANDLING" : ""),
+                    + (live != null ? "   " + UI.SpecPanel.Chip(live) : ""),
                 new[] { v.MaxSpeed / maxSpeed, v.Acceleration / maxAccel, v.Braking / maxBrake, v.Traction / maxGrip }, right.ToArray(),
-                "<  " + (index + 1) + " / " + stock.Count + "  >");
+                "<  " + (index + 1) + " / " + stock.Count + "  >", live);
             if (note != null && Game.GameTime < noteUntil)
             {
                 Theme.Card(0.36f, 0.14f, 0.28f, 0.05f);
                 Ds.TM(note, 0.5f, 0.165f, 0.3f, Th.Text, Ds.Body, Alignment.Center);
             }
-            if (!menus.IsOpen) Buttons.Draw(Control.FrontendAccept, "Buy", Control.FrontendCancel, "Leave", Control.FrontendX, "Test drive", Control.LookLeftRight, "Look around", Control.FrontendRt, "Zoom", Control.FrontendRight, "", Control.FrontendLeft, "Browse");
+            if (!menus.IsOpen) Buttons.Draw(Control.FrontendAccept, "Buy", Control.FrontendCancel, "Leave", Control.FrontendX, "Test drive", Control.FrontendRs, UI.SpecPanel.PromptLabel, Control.LookLeftRight, "Look around", Control.FrontendRt, "Zoom", Control.FrontendRight, "", Control.FrontendLeft, "Browse");
         }
 
         private void Bar(string label, float val, float x, float y)

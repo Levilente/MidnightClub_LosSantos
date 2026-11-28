@@ -1,191 +1,248 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
 using GTA;
-using GTA.Math;
 using GTA.Native;
 using MidnightClub.Persistence;
+using MidnightClub.Physics;
 
 namespace MidnightClub.Vehicles
 {
-    /// <summary>Real drivetrain on top of GTA's: every car gets a gearbox (gear count, ratios, final drive), a redline,
-    /// a tyre radius and a torque curve that fit its era and type. From these:
-    ///  - the top-gear speed is the real one (redline / ratios / tyre), GTA's flat-velocity limiter and hard speed cap
-    ///    are moved out of the way, so top speed comes from power against drag;
-    ///  - the engine pulls along its torque curve (weak off idle, peak, fall-off near the redline), final drive and
-    ///    per-gear ratios change the force at the wheels;
-    ///  - "inverse power": GTA cuts drive force when the car is sideways; that cut is compensated (like the
-    ///    InversePower mod), so you can hold a slide on the throttle;
-    ///  - a differential model: locking under power makes both rear tyres break loose together (power oversteer),
-    ///    an open diff loses drive to the inside wheel; deceleration lock decides how the car rotates off throttle.
-    /// No yaw helpers or drift assists: the car only gets what its drivetrain would give it.</summary>
+    /// <summary>The powertrain of the car you drive, computed from real data: engine torque curve with boost lag, gear
+    /// ratios and final drive, drivetrain losses, rotating inertia. Each frame the force the real engine would put on
+    /// the road (torque x overall ratio x efficiency / tyre radius) becomes an acceleration target, and GTA's engine is
+    /// driven to exactly that through its power multiplier. How much acceleration GTA gives per unit multiplier in each
+    /// gear is measured while you drive (and saved per model), so the result follows the real figures, not GTA's.
+    /// Gear spacing: GTA's gear ranges are re-scaled per gear (through the flat-velocity value) so every gear ends at
+    /// the real redline speed of the real ratio.</summary>
     public static class Drivetrain
     {
-        public sealed class Spec
+        public sealed class Live
         {
-            public int Gears; public float[] Ratios; public float Final, Idle = 850f, Redline, TyreR = 0.33f;
-            public float Low, PeakAt, TopDrop; public bool Turbo;
-            public float DriveInertia = 1f, ShiftRate = 1f, LockA, LockD;
-            public float TopGearSpeed;        // m/s at the redline in top gear
-            public string Kind;
+            public string Key, CalKey; public CarSpec Spec; public EngineState Engine; public Gearing Gear; public Tyres.Mf Tyre; public PerfResult Perf;
+            public float Mass, Cda, Cla, AeroFront, S0Top = 1f;   // S0Top: first guess of GTA's top-gear speed per flat-velocity unit
+            public int Gears { get { return Gear.Gears; } }
+            public float[] Ratios { get { return Gear.Ratios; } }
+            public float Final { get { return Gear.Final; } }
+            public float Idle { get { return Spec.Idle; } }
+            public float Redline { get { return Spec.Redline; } }
         }
-        private static readonly Dictionary<int, Spec> cache = new Dictionary<int, Spec>();
-        public static Spec Current { get; private set; }
-        /// <summary>Engine force multiplier for this frame (multiplied into the cheat-power multiplier).</summary>
+
+        public static Live Current { get; private set; }
+        /// <summary>Power multiplier for this frame (GTA's cheat-power value).</summary>
         public static float TorqueMult = 1f;
-        /// <summary>Real drivetrain switched on (config [Simcade] RealDrivetrain).</summary>
-        public static bool Enabled { get { return Core.Config.Current != null && Core.Config.Current.SimcadeEnabled && Core.Config.Current.RealDrivetrain; } }
         public static float EngineRpm { get; private set; }
+        public static float BoostBar { get { return Current != null ? Current.Engine.BoostNowBar : 0f; } }
+        public static bool HasBoost { get { return Current != null && Current.Engine.BoostBar > 0.01f; } }
+        public static float AccelDemand { get; private set; }      // m/s2 the engine asks for at full throttle in this gear
+        public static float TcsCut, EscCut;                          // set by the assists (0..1)
+        public static bool Enabled { get { return true; } }
 
-        private static float Clamp(float v, float a, float b) { return v < a ? a : v > b ? b : v; }
+        private static readonly Dictionary<string, Live> cache = new Dictionary<string, Live>();
 
-        public static Spec For(Vehicle car, VehicleInfo info, string arch, int year, bool turboKit)
+        public static Live Build(Vehicle car, OwnedVehicle r, CarSpec s, int compound, float stockMass)
         {
-            int key = car.Model.Hash * 3 + (turboKit ? 1 : 0);
-            Spec s; if (cache.TryGetValue(key, out s)) return s;
-            s = new Spec { Kind = arch };
-            var r = new Random(car.Model.Hash);
-            // gearbox by era and type
-            // keep the car's own gear count: GTA builds the ratio table when the car spawns, so changing the number
-            // of gears on a live car leaves gears without a ratio (no drive at all in the "new" top gear)
-            s.Gears = Math.Max(1, Math.Min(10, car.HighGear > 0 ? car.HighGear : car.HandlingData.InitialDriveGears));
-            if (arch == "Classic" && year < 1975) s.Gears = 4;
-            float r1, rTop;
-            switch (arch)
+            return BuildWith(car, r, s, compound, stockMass, Math.Max(1, car.HighGear > 0 ? car.HighGear : s.Gears));
+        }
+        private static Live BuildWith(Vehicle car, OwnedVehicle r, CarSpec s, int compound, float stockMass, int gears)
+        {
+            int eng = Function.Call<int>(Hash.GET_VEHICLE_MOD, car, 11);
+            string key = car.Model.Hash + "|" + Setup.Key(r) + "|" + compound + "|" + eng + "|" + gears + "|" + (r != null ? r.EcuLevel + "|" + r.EngineSound : "");
+            Live L; if (cache.TryGetValue(key, out L)) return L;
+            L = new Live { Key = key, Spec = s };
+            bool gtaTurbo = Engine.TurboStage(r) > 0 || (s.Ind == Induction.Turbo && Engine.ScStage(r) == 0);
+            L.CalKey = s.Id + "|e" + eng + (gtaTurbo ? "|t" : "");   // GTA's own engine level and turbo change its response
+            L.Engine = Engine.Build(s, r, eng);
+            float w = Setup.Has(r, "weight3") ? 0.88f : Setup.Has(r, "weight2") ? 0.92f : Setup.Has(r, "weight1") ? 0.96f : 1f;
+            L.Mass = (s.Curated ? s.Kg : stockMass) * w + (s.Bike ? 75f : 0f);
+            L.Tyre = Tyres.ForCompound(compound, s.Tyre, s.Bike);
+            L.Gear = Gearing.Build(s, L.Engine, r, gears, L.Mass, L.Tyre);
+            // aero: the adjustable kit (splitter + wing) adds downforce, balance and drag
+            L.Cda = s.CdA; L.Cla = s.ClA; L.AeroFront = s.AeroFront;
+            if (Setup.Has(r, "aero"))
             {
-                case "Super": s.Redline = 8500; r1 = 3.2f; rTop = 0.72f; s.Final = 3.4f; s.LockA = 0.45f; s.LockD = 0.35f; break;
-                case "AWD": s.Redline = 7200; r1 = 3.4f; rTop = 0.78f; s.Final = 3.7f; s.LockA = 0.40f; s.LockD = 0.30f; break;
-                case "Sports": s.Redline = 7500; r1 = 3.4f; rTop = 0.78f; s.Final = 3.7f; s.LockA = 0.40f; s.LockD = 0.30f; break;
-                case "Tuner": s.Redline = 8000; r1 = 3.6f; rTop = 0.82f; s.Final = 4.1f; s.LockA = 0.40f; s.LockD = 0.25f; break;
-                case "Drift": s.Redline = 7800; r1 = 3.6f; rTop = 0.85f; s.Final = 4.1f; s.LockA = 0.75f; s.LockD = 0.40f; break;
-                case "Muscle": s.Redline = 6000; r1 = 2.9f; rTop = 0.70f; s.Final = 3.3f; s.LockA = 0.25f; s.LockD = 0.15f; break;
-                case "Luxury": s.Redline = 6500; r1 = 3.5f; rTop = 0.70f; s.Final = 3.1f; s.LockA = 0.10f; s.LockD = 0.10f; break;
-                case "Classic": s.Redline = 6000; r1 = 3.3f; rTop = 0.90f; s.Final = 3.7f; s.LockA = 0.15f; s.LockD = 0.10f; break;
-                case "FWD": s.Redline = 6800; r1 = 3.6f; rTop = 0.80f; s.Final = 4.0f; s.LockA = 0.10f; s.LockD = 0.10f; break;
-                case "Rally": s.Redline = 7500; r1 = 3.6f; rTop = 0.85f; s.Final = 4.3f; s.LockA = 0.55f; s.LockD = 0.30f; break;
-                case "Heavy": s.Redline = 4800; r1 = 4.2f; rTop = 0.75f; s.Final = 3.7f; s.LockA = 0.10f; s.LockD = 0.10f; s.TyreR = 0.38f; break;
-                default: s.Redline = 6500; r1 = 3.5f; rTop = 0.78f; s.Final = 3.9f; s.LockA = 0.10f; s.LockD = 0.10f; break;
+                float fk = 60 + (Setup.TuneValue(r, 14) + 10) * 6, rk = 90 + (Setup.TuneValue(r, 15) + 10) * 9;   // kgf at 200 km/h
+                float q = 0.5f * Perf.Rho * 55.56f * 55.56f;
+                float cf = fk * 9.81f / q, cr = rk * 9.81f / q;
+                L.Cla = Math.Max(0f, s.ClA) * 0.5f + cf + cr; L.AeroFront = cf / (cf + cr); L.Cda = s.CdA + 0.3f * (cf + cr);
             }
-            if (year < 1970) s.Redline -= 500;
-            if (arch == "Super") s.TyreR = 0.345f;
-            s.Ratios = new float[s.Gears];
-            for (int i = 0; i < s.Gears; i++)
-            {
-                float t = s.Gears == 1 ? 0f : (float)Math.Pow(i / (float)(s.Gears - 1), 0.9);
-                s.Ratios[i] = r1 * (float)Math.Pow(rTop / r1, t);
-            }
-            // torque curve
-            s.Turbo = turboKit || (year >= 2006 && (arch == "Super" || arch == "AWD" || arch == "Tuner" || arch == "Sports" || arch == "Street" || arch == "FWD"));
-            switch (arch)
-            {
-                case "Muscle": s.Low = 0.82f; s.PeakAt = 0.45f; s.TopDrop = 0.30f; s.DriveInertia = 0.85f; break;
-                case "Classic": s.Low = 0.70f; s.PeakAt = 0.55f; s.TopDrop = 0.35f; s.DriveInertia = 0.85f; break;
-                case "Heavy": s.Low = 0.80f; s.PeakAt = 0.35f; s.TopDrop = 0.45f; s.DriveInertia = 0.75f; break;
-                case "Super": s.Low = 0.60f; s.PeakAt = 0.70f; s.TopDrop = 0.12f; s.DriveInertia = 1.25f; break;
-                case "Tuner": case "Drift": s.Low = 0.55f; s.PeakAt = 0.72f; s.TopDrop = 0.12f; s.DriveInertia = 1.15f; break;
-                default: s.Low = 0.62f; s.PeakAt = 0.62f; s.TopDrop = 0.20f; s.DriveInertia = 1.0f; break;
-            }
-            if (s.Turbo) { s.Low = Math.Min(s.Low, 0.55f); s.PeakAt = 0.45f; s.TopDrop = 0.22f; }
-            // shifts: old automatics are slow, modern dual-clutch boxes snap
-            s.ShiftRate = year < 1980 ? 0.8f : year < 2000 ? 1.0f : year < 2012 ? 1.4f : 2.0f;
-            if (arch == "Super") s.ShiftRate *= 1.4f;
-            // personality
-            s.Final *= 0.96f + (float)r.NextDouble() * 0.08f;
-            // match the gearing to the car: the top gear must not be the limiter (top speed comes from power and drag)
-            float est = info != null && info.MaxSpeed > 10f ? info.MaxSpeed : 50f;
-            Func<float> vtop = () => s.Redline * 2f * (float)Math.PI / 60f * s.TyreR / (s.Ratios[s.Gears - 1] * s.Final);
-            float want = est * 1.3f;
-            if (vtop() < want * 0.9f || vtop() > want * 1.5f) s.Final = Clamp(s.Final * vtop() / want, 2.4f, 5.2f);
-            s.TopGearSpeed = vtop();
-            cache[key] = s;
-            Core.Log.Info("Drivetrain " + (info != null ? info.Id : car.Model.Hash.ToString()) + ": " + s.Gears + " gears, final " + s.Final.ToString("0.00") + ", redline " + s.Redline + ", top gear " + (s.TopGearSpeed * 3.6f).ToString("0") + " km/h" + (s.Turbo ? ", turbo" : ""));
-            return s;
+            L.Perf = Perf.Run(s, L.Engine, L.Gear, L.Mass, L.Cda, L.Cla, L.AeroFront, L.Tyre, Setup.Has(r, "awd") ? 0.35f : Setup.Has(r, "rwd") ? 0f : s.FrontDrive, s.FrontPct, s.CgH, s.Year);
+            if (cache.Count > 64) cache.Clear();
+            cache[key] = L;
+            Core.Log.Info("Powertrain " + s.Id + ": " + L.Engine.PeakHp.ToString("0") + " hp @" + L.Engine.PeakHpRpm.ToString("0") + ", " + L.Engine.PeakNm.ToString("0") + " Nm @" + L.Engine.PeakNmRpm.ToString("0")
+                + ", " + L.Engine.InductionLabel + ", " + L.Gear.Gears + " gears, final " + L.Gear.Final.ToString("0.00") + ", " + L.Mass.ToString("0") + " kg, 0-100 " + L.Perf.T100.ToString("0.0") + " s, top " + L.Perf.TopKmh.ToString("0") + " km/h, tyres " + L.Tyre.Name);
+            return L;
         }
 
-        /// <summary>Normalised engine torque at a GTA rpm fraction (0.2 idle .. 1.0 redline).</summary>
-        public static float Torque(Spec s, float rpmFrac)
+        /// <summary>Real data for any vehicle on screen (showroom, garage): the gearbox it will have when it's yours.</summary>
+        public static Live ForDisplay(Vehicle car, OwnedVehicle r)
         {
-            float x = Clamp((rpmFrac - 0.2f) / 0.8f, 0f, 1f);   // 0 idle .. 1 redline
-            if (s.Turbo)
+            try
             {
-                // spool to the plateau, hold, fall off at the top
-                if (x < s.PeakAt) return s.Low + (1f - s.Low) * Smooth(x / s.PeakAt);
-                if (x < 0.8f) return 1f;
-                return 1f - s.TopDrop * Smooth((x - 0.8f) / 0.2f);
+                if (car == null || !car.Exists()) return null;
+                var s = RealData.For(car);
+                var h = car.HandlingData;
+                int stockGears = Physics.SimPhysics.Instance != null ? Physics.SimPhysics.Instance.StockGears(car) : h.InitialDriveGears;
+                int gears = SpawnGears(r, stockGears, RealData.PlannedGears(car.Model.Hash, stockGears));
+                float mass = Physics.SimPhysics.Instance != null ? Physics.SimPhysics.Instance.StockMass(car) : h.Mass;
+                return BuildWith(car, r, s, r != null ? Math.Max(0, Math.Min(5, r.TyreCompound)) : 0, mass, gears);
             }
-            if (x < s.PeakAt) return s.Low + (1f - s.Low) * Smooth(x / s.PeakAt);
-            return 1f - s.TopDrop * Smooth((x - s.PeakAt) / (1f - s.PeakAt));
-        }
-        private static float Smooth(float t) { t = Clamp(t, 0f, 1f); return t * t * (3f - 2f * t); }
-        private static float Mean(Spec s) { float m = 0f; for (int i = 0; i <= 20; i++) m += Torque(s, 0.2f + 0.8f * i / 20f); return m / 21f; }
-
-        // tuning hooks (Setup): final drive factor and per-gear ratio factors (shorter = higher number = more force)
-        public static float FinalFactor(OwnedVehicle r) { return 1f - 0.02f * Setup.TuneValue(r, Setup.FinalDriveIndex); }
-        public static float GearFactor(OwnedVehicle r, int gear) { return gear < 1 || gear > 6 ? 1f : 1f - 0.03f * Setup.TuneValue(r, Setup.GearIndex0 + gear - 1); }
-
-        /// <summary>Handling side: gear count, top-gear speed (GTA's flat velocity) and the hard speed cap, engine inertia,
-        /// shift speed. Called by Simcade.Apply with the stock values.</summary>
-        public static void ApplyHandling(HandlingData h, Spec s, OwnedVehicle r, VehicleInfo info, float stockFlat, float stockDI, float stockUp, float stockDown, int transmissionLevel)
-        {
-            float est = info != null && info.MaxSpeed > 10f ? info.MaxSpeed : 50f;
-            float vtop = s.TopGearSpeed / FinalFactor(r) / GearFactor(r, s.Gears);
-            h.InitialDriveMaxFlatVelocity = stockFlat * vtop / est;
-            h.InitialDriveMaxVelocity = h.InitialDriveMaxFlatVelocity * 1.6f;     // the hard cap stays well clear: drag decides
-            h.DriveInertia = stockDI * s.DriveInertia;
-            float shift = s.ShiftRate * (1f + 0.35f * Math.Max(0, transmissionLevel + 1));
-            h.ClutchChangeRateScaleUpShift = stockUp * shift; h.ClutchChangeRateScaleDownShift = stockDown * shift;
+            catch (Exception ex) { Core.Log.Error("Spec display", ex); return null; }
         }
 
-        private static float yawKick;
-        /// <summary>Per frame while driving: torque curve, final drive / gear ratios, open-diff loss, inverse power and the
-        /// differential's yaw contribution.</summary>
-        public static void Tick(Vehicle car, Spec s, OwnedVehicle r, bool inversePower, float dt)
+        // ------------------------------------------------------------------ calibration (measured per model, saved)
+        private sealed class Cal { public float[] A = new float[12], S = new float[12]; public int[] NA = new int[12], NS = new int[12]; }
+        private static readonly Dictionary<string, Cal> cals = new Dictionary<string, Cal>();
+        private static string calFile; private static bool calDirty; private static int calSaveAt;
+        public static void Init(string dataDir)
         {
-            Current = s;
-            float rpm = car.CurrentRPM, thr = Math.Max(0f, car.Throttle);
-            EngineRpm = s.Idle + Clamp((rpm - 0.2f) / 0.8f, 0f, 1f) * (s.Redline - s.Idle);
-            int gear = Math.Max(1, Math.Min(s.Gears, car.CurrentGear));
-            float mult = Torque(s, rpm) / Mean(s) * FinalFactor(r) * GearFactor(r, gear);
-            var h = car.HandlingData;
-            float rear = 1f - Clamp(h.DriveBiasFront, 0f, 1f);
-            bool diffPart = Setup.Has(r, "diff");
-            float lockA = diffPart ? Clamp((50f + 5f * Setup.TuneValue(r, 18)) / 100f, 0f, 1f) : s.LockA;
-            float lockD = diffPart ? Clamp((25f + 2.5f * Setup.TuneValue(r, 19)) / 100f, 0f, 1f) : s.LockD;
-            var v = car.Velocity; float speed = v.Length();
-            var fwd = car.ForwardVector; var wv = car.WorldRotationVelocity;
-            float latG = Math.Abs(speed * wv.Z) / 9.81f;
-            // open diff: in a hard corner the unloaded inside wheel spins and eats drive
-            if (speed > 5f && thr > 0.2f) mult *= 1f - (1f - lockA) * Clamp(latG - 0.4f, 0f, 0.8f) * 0.35f * thr;
-            TorqueMult = Clamp(mult, 0.25f, 2.5f);
-            if (car.IsInAir || speed < 3f) return;
-            var fv = new Vector3(fwd.X, fwd.Y, 0); var vv = new Vector3(v.X, v.Y, 0);
-            if (fv.Length() < 0.1f || vv.Length() < 1f) return;
-            fv.Normalize(); vv.Normalize();
-            float cos = Vector3.Dot(fv, vv); if (cos < 0.2f) return;          // reversing or spinning out
-            float angle = (float)Math.Acos(Clamp(cos, -1f, 1f));
-            float fwdSpeed = Vector3.Dot(v, fwd);
-            float wheelspin = Clamp((car.WheelSpeed - fwdSpeed) / Math.Max(4f, fwdSpeed), 0f, 1f);
-            var nv = v;
-            // inverse power: GTA scales drive force down with the slide angle; give it back on the driven axle
-            if (inversePower && thr > 0.05f && rear > 0.3f && angle > 0.08f)
+            calFile = Path.Combine(dataDir, "physics_calibration.ini");
+            try
             {
-                float baseAccel = h.InitialDriveForce * 9.81f * TorqueMult * (s.Ratios[gear - 1] / s.Ratios[0]) * thr;
-                float comp = 1f / Math.Max(0.35f, cos) - 1f;
-                nv += fwd * (baseAccel * Clamp(comp, 0f, 1.6f) * rear * 0.9f * dt);
+                if (!File.Exists(calFile)) return;
+                Cal c = null;
+                foreach (var line in File.ReadAllLines(calFile))
+                {
+                    var t = line.Trim();
+                    if (t.StartsWith("[") && t.EndsWith("]")) { c = new Cal(); cals[t.Substring(1, t.Length - 2)] = c; continue; }
+                    if (c == null) continue;
+                    int eq = t.IndexOf('='); if (eq < 2) continue;
+                    string k = t.Substring(0, eq); float v; int i;
+                    if (!float.TryParse(t.Substring(eq + 1), NumberStyles.Float, CultureInfo.InvariantCulture, out v)) continue;
+                    if (!int.TryParse(k.Substring(1), out i) || i < 0 || i >= 12) continue;
+                    if (k[0] == 'A') { c.A[i] = v; c.NA[i] = 50; } else if (k[0] == 'S') { c.S[i] = v; c.NS[i] = 50; }
+                }
             }
-            if (nv != v) car.Velocity = nv;
-            // differential yaw: a locked rear axle spinning both tyres lets the rear step out under power;
-            // decel lock calms or frees the rear when you lift
-            float dir = Math.Abs(wv.Z) > 0.05f ? Math.Sign(wv.Z) : Math.Sign(car.SteeringAngle);
-            float yaw = 0f;
-            if (rear > 0.3f && thr > 0.4f && wheelspin > 0.06f)
-                yaw += dir * lockA * rear * thr * Math.Min(1f, wheelspin * 3f) * 1.1f;
-            else if (thr < 0.1f && speed > 12f && latG > 0.3f)
-                yaw += dir * (0.5f - lockD) * Math.Min(1f, latG) * 0.35f;
-            yawKick += (yaw - yawKick) * Math.Min(1f, dt * 8f);
-            if (Math.Abs(yawKick) > 0.005f)
-                Function.Call(Hash.SET_ENTITY_ANGULAR_VELOCITY, car, wv.X, wv.Y, wv.Z + yawKick * dt);
+            catch (Exception ex) { Core.Log.Error("physics calibration load", ex); }
+        }
+        public static void SaveCal()
+        {
+            if (!calDirty || calFile == null) return;
+            try
+            {
+                var sb = new System.Text.StringBuilder("; measured GTA response per model (power per unit multiplier, gear range per flat velocity). Delete to re-measure.\r\n");
+                foreach (var kv in cals)
+                {
+                    sb.Append("[").Append(kv.Key).Append("]\r\n");
+                    for (int i = 0; i < 12; i++) { if (kv.Value.NA[i] >= 8) sb.Append("A" + i + "=" + kv.Value.A[i].ToString("0.####", CultureInfo.InvariantCulture) + "\r\n"); if (kv.Value.NS[i] >= 8) sb.Append("S" + i + "=" + kv.Value.S[i].ToString("0.####", CultureInfo.InvariantCulture) + "\r\n"); }
+                }
+                File.WriteAllText(calFile, sb.ToString()); calDirty = false;
+            }
+            catch (Exception ex) { Core.Log.Error("physics calibration save", ex); }
+        }
+        private static Cal CalFor(Live L) { Cal c; if (!cals.TryGetValue(L.CalKey, out c)) cals[L.CalKey] = c = new Cal(); return c; }
+
+        /// <summary>GTA acceleration (m/s2) per unit power multiplier at full throttle in a gear: measured, else a first guess.</summary>
+        private static float A(Live L, float stockDriveForce, int gear, int gtaGears)
+        {
+            var c = CalFor(L); int g = Math.Max(1, Math.Min(11, gear));
+            if (c.NA[g] >= 4) return c.A[g];
+            float t = gtaGears <= 1 ? 0f : (g - 1f) / (gtaGears - 1f);
+            return Math.Max(0.3f, stockDriveForce * 9.81f * (2.2f - 1.2f * t));
+        }
+        /// <summary>GTA's top speed of a gear divided by the flat-velocity value: measured, else a first guess.</summary>
+        private static float S(Live L, int gear, int gtaGears)
+        {
+            var c = CalFor(L); int g = Math.Max(1, Math.Min(11, gear));
+            if (c.NS[g] >= 4) return c.S[g];
+            float t = gtaGears <= 1 ? 1f : (g - 1f) / (gtaGears - 1f);
+            return L.S0Top * (float)Math.Pow(0.9 / 3.33, 1.0 - t);
         }
 
-        public static void Off() { Current = null; TorqueMult = 1f; yawKick = 0f; }
+        // ------------------------------------------------------------------ per-gear range (flat velocity)
+        private static int lastGear = -1, settleUntil; private static float lastFlat, settleSpeed;
+        private static void Flat(Vehicle car, Live L, int gear, float speed, bool downshift)
+        {
+            var h = car.HandlingData; if (h == null || !h.IsValid) return;
+            int g = Math.Max(1, Math.Min(L.Gear.Gears, gear));
+            float want = L.Gear.Speed(g, L.Spec.Redline) / Math.Max(0.05f, S(L, g, car.HighGear));
+            if (downshift) { settleUntil = Game.GameTime + 2500; settleSpeed = speed; }
+            if (Game.GameTime < settleUntil && speed <= settleSpeed + 1f) want = Math.Max(want, speed / (0.92f * Math.Max(0.05f, S(L, g, car.HighGear))));   // no shift hunting right after a downshift
+            want = Math.Max(5f, Math.Min(250f, want));
+            if (Math.Abs(want - lastFlat) < lastFlat * 0.02f) return;
+            h.InitialDriveMaxFlatVelocity = want;
+            float topFlat = L.Gear.Speed(L.Gear.Gears, L.Spec.Redline) / Math.Max(0.05f, S(L, L.Gear.Gears, car.HighGear));
+            h.InitialDriveMaxVelocity = Math.Max(want, topFlat) * 1.3f;
+            lastFlat = want;
+            refresh = !refresh;
+            Function.Call(Hash.MODIFY_VEHICLE_TOP_SPEED, car, refresh ? 1f : 1.0001f);   // make the vehicle re-read the flat velocity (1 = neutral)
+        }
+        private static bool refresh;
+
+        // ------------------------------------------------------------------ per frame
+        private static float prevM = 1f, smoothM = 1f; private static int gearSince;
+        /// <summary>Power multiplier for this frame. measuredAccel: GTA's own longitudinal acceleration over the last frame
+        /// (NaN when it can't be measured cleanly).</summary>
+        public static void Tick(Vehicle car, Live L, OwnedVehicle r, float dt, float stockDriveForce, float measuredAccel, bool cleanSample, float slideCos)
+        {
+            Current = L;
+            int gear = car.CurrentGear;
+            float rpmFrac = car.CurrentRPM, thr = Math.Max(0f, car.Throttle);
+            float speed = car.Speed;
+            // gear changes: re-range the new gear
+            if (gear != lastGear)
+            {
+                bool down = lastGear > 0 && gear > 0 && gear < lastGear;
+                if (lastGear >= 0) gearSince = Game.GameTime;
+                lastGear = gear; lastFlat = -1f;
+                if (gear > 0) Flat(car, L, gear, speed, down);
+            }
+            else if (gear > 0 && Game.GameTime < settleUntil + 100) Flat(car, L, gear, speed, false);
+            int g = Math.Max(1, Math.Min(L.Gear.Gears, gear <= 0 ? 1 : gear));
+            float rpm = Math.Max(L.Spec.Idle, rpmFrac * L.Spec.Redline);
+            EngineRpm = rpm;
+            float torque = L.Engine.Torque(rpm, thr, dt);
+            float ov = L.Gear.Overall(g) * (gear <= 0 ? 0.9f : 1f);
+            float force = torque * ov * L.Gear.Efficiency / L.Gear.TyreR;
+            float meff = L.Mass * (1.04f + 0.0025f * ov * ov * (L.Spec.Bike ? 0.3f : 1f));
+            AccelDemand = force / meff;
+            // learn GTA's response in this gear
+            var c = CalFor(L); int gi = Math.Max(1, Math.Min(11, gear));
+            if (cleanSample && gear > 0 && thr > 0.97f && !float.IsNaN(measuredAccel) && Game.GameTime - gearSince > 600 && rpmFrac > 0.3f && rpmFrac < 0.95f && prevM > 0.05f)
+            {
+                float sample = measuredAccel / prevM, cur = A(L, stockDriveForce, gi, car.HighGear);
+                if (sample > cur * 0.25f && sample < cur * 4f)
+                {
+                    c.A[gi] = c.NA[gi] == 0 ? sample : c.A[gi] + (sample - c.A[gi]) * Math.Min(1f, dt / 0.8f);
+                    if (c.NA[gi] < 1000) c.NA[gi]++;
+                    calDirty = true;
+                }
+            }
+            if (cleanSample && gear > 0 && rpmFrac > 0.3f && rpmFrac < 0.97f && Game.GameTime - gearSince > 600 && car.Clutch > 0.9f && lastFlat > 0f)
+            {
+                float ws = Math.Abs(car.WheelSpeed);
+                float sm = ws / rpmFrac / lastFlat;
+                if (sm > 0.05f && sm < 20f)
+                {
+                    c.S[gi] = c.NS[gi] == 0 ? sm : c.S[gi] + (sm - c.S[gi]) * Math.Min(1f, dt / 1.5f);
+                    if (c.NS[gi] < 1000) c.NS[gi]++;
+                    calDirty = true;
+                    if (c.NS[gi] == 4 || c.NS[gi] % 120 == 0) { lastFlat = -1f; Flat(car, L, gear, speed, false); }
+                }
+            }
+            if (Game.GameTime > calSaveAt) { calSaveAt = Game.GameTime + 30000; SaveCal(); }
+            float M = AccelDemand / A(L, stockDriveForce, gi, car.HighGear);
+            // GTA cuts drive force when the car is sideways: give it back (a real engine doesn't care about the slide)
+            float rear = 1f - Math.Max(0f, Math.Min(1f, car.HandlingData.DriveBiasFront));
+            if (slideCos < 0.995f && slideCos > 0.2f) M *= 1f + rear * Math.Min(1.6f, 1f / Math.Max(0.35f, slideCos) - 1f);
+            M *= (1f - Math.Max(0f, Math.Min(0.95f, TcsCut))) * (1f - Math.Max(0f, Math.Min(0.95f, EscCut)));
+            M = Math.Max(0.02f, Math.Min(14f, M));
+            smoothM += (M - smoothM) * Math.Min(1f, dt * 25f);
+            TorqueMult = smoothM;
+            prevM = TorqueMult;
+        }
+
+        /// <summary>Gear count the car should be built with (applied when it spawns: GTA builds the gearbox then).</summary>
+        public static int SpawnGears(OwnedVehicle r, int stockGears, int specGears)
+        {
+            if (Setup.Has(r, "gearbox")) return 6;
+            if (specGears > 0) return Math.Min(6, specGears);
+            return stockGears;
+        }
+
+        public static void Off() { Current = null; TorqueMult = 1f; prevM = smoothM = 1f; lastGear = -1; lastFlat = -1f; TcsCut = EscCut = 0f; SaveCal(); }
+        /// <summary>Used by the tuning menu (gear ratio values).</summary>
+        public static void Forget() { cache.Clear(); }
     }
 }
