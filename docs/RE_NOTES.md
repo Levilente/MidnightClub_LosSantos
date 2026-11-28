@@ -43,3 +43,16 @@ RVAs below are relative to the image base.
   loadOut = wheel load (N) handed to Friction.
 - Next: map the per-wheel slip state (candidates CWheel 0x1C4, 0x1CC, 0x1D0, 0x1B8, 0x1C0) and the contact frame, then
   stage 3: replace the outputs with the Pacejka model (force -> lin = F/m, ang = scaled consistently).
+
+## Stage 4: friction function inputs (0xF1E8B0), fully mapped
+- Args: (CWheel*, phys inst*, outForce, outLin, outAng, axisA, axisB, spinAcc*, load, invInertiaRot*, linVel*, angVel*, ?, ctx*, otherWheel*, gravity).
+- inst: +0x40/+0x50/+0x60 right/forward/up rows, +0x70 centre of mass (world), +0x13C mass, +0x3C 1/mass,
+  +0x30 (or +0xD0 when inst+0x265 & 0x20) inverse inertia diagonal (body frame).
+- Early out when load <= 0.01 * mass * gravity (outputs zeroed, axes not written).
+- Contact velocity = linVel + angVel x (CWheel+0x50 - inst+0x70) - CWheel+0x90 (ground velocity).
+- axisA/axisB: tyre axes built by 0xF1D280 / 0xF1CCB0 (steer angle CWheel+0x1CC).
+- outLin = outForce * CWheel+0x144 * inst+0x3C. outAng = Mt * (S o (M * (r x F))), M = 3 rows of 16 bytes at invInertiaRot.
+- Lever r = contact + a * right + b * up - CoM; normal cars: a = +-CWheel[0] * CWheel+0x11C * 0.5 (sign from CWheel+0x204 bit 1),
+  b = handling+0xE8 (front) / +0xEC (rear) roll-centre height (+ CWheel+0x14C when byte CWheel+0x20D); CWheel+0x120 = CHandlingData*.
+- spinAcc = (tyre torque - drive torque) * ctx+0xC. CWheel+0x1D0/0x1DC drive, +0x1D4/0x1E0 brake inputs.
+- 0xF27F40 args: (ctx, &CVehicle+0xB70, &+0xB80, out, wheel pointer array, wheel count, maxVel/ratio, gear, dt, ?, CVehicle+0xC9C).

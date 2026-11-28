@@ -80,7 +80,7 @@ namespace MidnightClub.Physics
                 if (Game.GameTime > nextDriveLog)
                 {
                     nextDriveLog = Game.GameTime + 20000;
-                    Core.Log.Info("Native drivetrain: " + (state[15] - lastSteps) + " steps, " + (state[16] - lastOwn) + " own tyre evaluations, " + (state[17] - lastFallback) + " axis fallbacks in 20 s; body coupling error " + (state[18] * 100f).ToString("0.0") + " %; rpm " + Rpm.ToString("0")
+                    Core.Log.Info("Native drivetrain: " + (state[15] - lastSteps) + " steps, " + (state[16] - lastOwn) + " own tyre evaluations, " + (state[17] - lastFallback) + " axis fallbacks in 20 s; body coupling " + (state[18] < -1.5f ? "MISMATCH, own forces disabled" : "error " + (state[18] * 100f).ToString("0.0") + " %") + "; rpm " + Rpm.ToString("0")
                         + "; spin " + state[3].ToString("0.0") + "/" + state[4].ToString("0.0") + "/" + state[5].ToString("0.0") + "/" + state[6].ToString("0.0") + " rad/s, slip " + state[7].ToString("0.00") + "/" + state[8].ToString("0.00") + "/" + state[9].ToString("0.00") + "/" + state[10].ToString("0.00"));
                     lastSteps = state[15]; lastOwn = state[16]; lastFallback = state[17];
                 }

@@ -1,4 +1,14 @@
 # Changelog
+## 0.49.0 (2026-11-28)
+- Full native simulation (MidnightClubPhysics.asi stage 4), at GTA's physics rate:
+  - Own tyre forces: slip from the contact-point velocity of each Runge-Kutta stage against the wheel's own spin, Pacejka per direction, load sensitivity, combined slip (normalised slip / friction ellipse), sliding grip held at ~80 % of peak. Forces enter the body exactly like GTA's (F/m, I^-1 (r x F) in the body frame): lateral force at the roll centre, longitudinal force near the contact patch, so squat, dive and wheelies come from the physics.
+  - Wheel spin integrated in ~1 ms sub-steps, implicit in the tyre stiffness: real wheelspin, lock-up, burnouts.
+  - Engine from the real torque curve (with live boost), engine braking, rev limiter, clutch slip at launch, engine inertia through the gearbox.
+  - Differentials: clutch LSD per axle (preload + power/coast ramp; tunable with the diff upgrade, locked at max), AWD centre coupling, open diffs on everyday cars.
+  - Brakes with real lock-up, handbrake, auto-hold at standstill; ABS per wheel and torque-based TCS (0-10) at physics rate.
+  - GTA's own drive and brake forces are no longer used; GTA's gearbox, sounds and smoke follow the real wheel speeds.
+- Safety: the body coupling is checked against GTA's own force every evaluation; on a mismatch or bad values the model falls back to the scaled GTA tyre.
+
 ## 0.48.1 (2026-11-28)
 - GTA's artificial low-speed traction cut is fully off while the native tyre model runs: wheelspin and launch traction come only from the real torque against the tyre's grip.
 - Turbo kits back to their real lag (stage 1-3: 0.45 / 0.6 / 0.85 s, boost threshold by turbo size).
