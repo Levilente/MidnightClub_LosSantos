@@ -145,7 +145,7 @@ namespace MidnightClub.Physics
             h.TractionCurveMax = GripK * t.MuY;
             h.TractionCurveMin = h.TractionCurveMax * (0.5f + 0.5f * (0.7f * t.SlideY + 0.3f * t.SlideX));   // GTA scrubs past the peak far more than a real tyre: only half the MF fall-off
             h.TractionCurveLateral = ToHandlingAngle(s.TLat, t.PeakDeg * 1.4f);   // GTA's slip angle is measured at the body, the tyre's at the contact patch
-            h.LowSpeedTractionLossMultiplier = s.LowLoss;
+            h.LowSpeedTractionLossMultiplier = s.LowLoss * (cfg.NativePhysics ? 0.35f : 1f);   // GTA's artificial low-speed grip cut: the real torque makes the wheelspin
             h.TractionLossMultiplier = s.TLoss * t.OffroadLoss;
             if (!bike) HandlingMem.SetBias(h, HandlingMem.TractionBias, 0.5f, s.Raw);
             Suspension.Apply(h, spec, susp, Setup.Has(rec, "springs"), Setup.Has(rec, "arb"), s.Raw);
@@ -295,6 +295,7 @@ namespace MidnightClub.Physics
             }
             if (nv != v) car.Velocity = nv;
             setVx = Vector3.Dot(nv, fwd);
+            GamepadAssist(car, L, speed, vx, beta, yaw, dt);
             if (!ground) { WriteGrip(h, L, 1f, 1f, 1f); SteeringByspeed(h, speed); return; }
             // ---- tyres: loads, load sensitivity, combined slip
             float m = L.Mass, g = 9.81f, wb = Math.Max(1f, spec.Wheelbase), track = Math.Max(0.6f, spec.Track);
@@ -387,8 +388,42 @@ namespace MidnightClub.Physics
 
         private void SteeringByspeed(HandlingData h, float speed)
         {
+            if (assistOn) { h.SteeringLock = baseSteer; return; }      // the gamepad assist limits the angle itself
             float t = Math.Min(1f, speed / 70f);
             h.SteeringLock = baseSteer * (1f - 0.25f * t * t * (3f - 2f * t));
+        }
+
+        // ------------------------------------------------------------------ gamepad steering assist
+        // Like Assetto Corsa's Advanced Gamepad Assist / Gran Turismo / Forza: the stick asks for a cornering demand,
+        // the assist turns it into a steering angle that doesn't go past the front tyres' peak slip angle at speed,
+        // smooths the rate the wheel can turn (faster at low speed), and adds a little counter-steer when the rear
+        // steps out. The raw stick is read on its own axis and the result is fed to GTA as the steering input.
+        private bool assistOn; private float steerOut;
+        private void GamepadAssist(Vehicle car, Drivetrain.Live L, float speed, float vx, float beta, float yaw, float dt)
+        {
+            int lvl = Math.Max(0, Math.Min(10, cfg.SteerAssist));
+            assistOn = lvl > 0 && Game.LastInputMethod == InputMethod.GamePad && !car.Model.IsBike;
+            if (!assistOn) { steerOut = 0f; return; }
+            float k = lvl / 10f;
+            float stick = Function.Call<float>(Hash.GET_DISABLED_CONTROL_NORMAL, 0, (int)Control.ScriptLeftAxisX);
+            // response curve: finer around the centre
+            float shaped = Math.Sign(stick) * (float)Math.Pow(Math.Abs(stick), 1f + 0.6f * k);
+            float lockRad = Math.Max(0.2f, baseSteer * (baseSteer > 3f ? 0.01745f : 1f));
+            // the angle that keeps the fronts at their peak slip, plus what the path itself needs
+            float v = Math.Max(1f, Math.Abs(vx));
+            float peak = L.Tyre.PeakDeg * 0.01745f * 1.4f;
+            float path = (float)Math.Atan(Math.Max(1f, L.Spec.Wheelbase) * Math.Abs(yaw) / v);
+            float maxAngle = Math.Min(lockRad, peak * (1.25f - 0.35f * k) + path);
+            float blend = Math.Min(1f, Math.Max(0f, (speed - 6f) / 14f));            // full lock when parking
+            float limit = lockRad + (maxAngle - lockRad) * blend * k;
+            float want = shaped * limit / lockRad;
+            // counter-steer: when the car slides, steer towards where it's going
+            if (speed > 5f && vx > 0f) want += Math.Max(-0.6f, Math.Min(0.6f, beta * 1.1f * k / Math.Max(0.2f, lockRad))) * (1f - Math.Abs(shaped) * 0.5f);
+            want = Math.Max(-1f, Math.Min(1f, want));
+            float rate = (4.5f - 2.5f * Math.Min(1f, speed / 40f)) * (1f - 0.3f * k) + 0.8f;   // full lock in ~0.25-0.5 s
+            float d = want - steerOut, maxD = rate * dt;
+            steerOut += Math.Max(-maxD, Math.Min(maxD, d));
+            Function.Call(Hash.SET_CONTROL_VALUE_NEXT_FRAME, 0, (int)Control.VehicleMoveLeftRight, steerOut);
         }
     }
 }

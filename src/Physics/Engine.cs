@@ -94,7 +94,7 @@ namespace MidnightClub.Physics
                 if (ts > 0)
                 {
                     if (s.Ind == Induction.Turbo) { bar = facBoost * new[] { 1f, 1.2f, 1.4f, 1.65f }[ts]; spoolHi = nmRpm + new[] { 0f, 300f, 700f, 1200f }[ts]; tau *= new[] { 1f, 1.1f, 1.25f, 1.45f }[ts]; }
-                    else { ind = Induction.Turbo; bar = Math.Max(new[] { 0f, 0.5f, 0.8f, 1.1f }[ts], facBoost * new[] { 0f, 1.0f, 1.25f, 1.5f }[ts]); spoolLo = s.Redline * 0.25f; spoolHi = s.Redline * new[] { 0f, 0.45f, 0.52f, 0.6f }[ts]; tau = new[] { 0.5f, 0.45f, 0.6f, 0.85f }[ts]; e.Kit = true; }
+                    else { ind = Induction.Turbo; bar = Math.Max(new[] { 0f, 0.5f, 0.8f, 1.1f }[ts], facBoost * new[] { 0f, 1.0f, 1.25f, 1.5f }[ts]); spoolLo = s.Redline * 0.25f; spoolHi = s.Redline * new[] { 0f, 0.45f, 0.52f, 0.6f }[ts]; tau = new[] { 0.5f, 0.35f, 0.45f, 0.6f }[ts]; e.Kit = true; }
                     keepFactory = false;
                 }
                 else if (ss > 0)

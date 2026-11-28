@@ -1,4 +1,8 @@
 # Changelog
+## 0.48.0 (2026-11-28): gamepad steering assist
+- **Gamepad steering assist** (0-10, default 5; Hub settings and launcher), like Assetto Corsa's Advanced Gamepad Assist / Gran Turismo / Forza: the stick sets a cornering demand, the steering angle never goes past the front tyres' peak slip at speed (plus what the path needs), full lock when parking, a softer response curve around the centre, a natural steering rate (faster at low speed), and a little counter-steer when the rear steps out. Gamepad only; keyboard and 0 = raw input.
+- Launch: GTA's artificial low-speed traction cut reduced to 35% while the native tyre model runs (wheelspin comes from the real torque), turbo kits spool quicker (stage 1-3 lag 0.35 / 0.45 / 0.6 s).
+
 ## 0.47.1 (2026-11-28)
 - Native tyre: no grip / no turn-in fixed. The slip values read from GTA's wheel were off by about 2x, so the Pacejka force came out at about half. The tyre curve (peak, peak slip angle, fall-off) is already the Magic Formula in GTA's handling data, so the native side now adds what GTA can't do: per-wheel load sensitivity at physics rate, and the wet factor.
 - Native suspension: no more launching off walls (impacts are left to the game, force capped at 3.5x the corner weight), less bouncing (ride frequency +0.08 Hz per level and +0.15 Hz for coilovers instead of 0.15 / 0.25, more damping), the script kerb filter is off while the native suspension runs.
