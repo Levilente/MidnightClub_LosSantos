@@ -261,7 +261,7 @@ namespace MidnightClub.Physics
             }
             tcs += (tcsWant - tcs) * Math.Min(1f, dt / (tcsWant > tcs ? 0.03f : 0.15f));
             TcsActive = tcs > 0.05f;
-            Drivetrain.TcsCut = tcs;
+            Drivetrain.TcsCut = Native.DriveActive ? 0f : tcs;       // the native drivetrain runs its own TCS at physics rate
             // stability management: when the body slip grows past the limit and the yaw makes it worse, brake the yaw and cut power
             float escWant = 0f;
             if (escL > 0 && ground && speed > 6f && vx > 0f)
@@ -280,6 +280,8 @@ namespace MidnightClub.Physics
             }
             esc += (escWant - esc) * Math.Min(1f, dt / (escWant > esc ? 0.05f : 0.25f));
             EscActive = esc > 0.05f;
+            Native.Drive(car, L, rec, esc, tcsL, absL, hand, dt);
+            if (Native.DriveActive) { TcsActive = Native.TcsOn; }
             Drivetrain.EscCut = esc;
             // ---- powertrain
             float slideCos = speed > 3f && vx > 0f ? Math.Abs(vx) / Math.Max(0.1f, (float)Math.Sqrt(vx * vx + vy * vy)) : 1f;
@@ -356,8 +358,9 @@ namespace MidnightClub.Physics
             }
             else absMult = Math.Min(1f, absMult + dt * 5f);
             h.BrakeForce = baseBrake * absMult;
+            if (Native.DriveActive) AbsActive = Native.AbsOn;
             // ---- wheelies: the front lifts only when the real thrust can overcome the weight on the front axle
-            if (thr > 0.5f && vx > 0.5f && car.CurrentGear > 0)
+            if (thr > 0.5f && vx > 0.5f && car.CurrentGear > 0 && !Native.DriveActive)   // native: the thrust at the contact patch lifts the front by itself
             {
                 float lr = wf * wb;
                 float aLift = g * lr / cgh;

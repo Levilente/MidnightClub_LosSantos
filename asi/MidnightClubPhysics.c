@@ -1,4 +1,5 @@
 /* MidnightClubPhysics.asi - native side of Midnight Club: Los Santos' simulation (GTA V Enhanced 2.0.1158).
+   Stage 4 (sim_core.h): own tyre forces, wheel spin, engine, clutch, differentials, brakes, ABS, TCS at GTA's physics rate.
 
    Stage 2 (read-only): hooks GTA's per-wheel tyre-friction and suspension functions (called from the wheel
    physics integrator, 4 times per physics step - Runge-Kutta) and records what they compute for the player's car.
@@ -15,12 +16,14 @@
 typedef uint64_t u64;
 typedef void (*Fn16)(u64,u64,u64,u64,u64,u64,u64,u64,u64,u64,u64,u64,u64,u64,u64,u64);
 typedef void (*Fn12)(u64,u64,u64,u64,u64,u64,u64,u64,u64,u64,u64,u64);
+typedef void (*Fn11)(u64,u64,u64,u64,u64,u64,u64,u64,u64,u64,u64);
 
 static const unsigned char SIG_FRICTION[128] = { 0x41, 0x57, 0x41, 0x56, 0x41, 0x55, 0x41, 0x54, 0x56, 0x57, 0x55, 0x53, 0x48, 0x81, 0xec, 0x28, 0x02, 0x00, 0x00, 0x44, 0x0f, 0x29, 0xbc, 0x24, 0x10, 0x02, 0x00, 0x00, 0x44, 0x0f, 0x29, 0xb4, 0x24, 0x00, 0x02, 0x00, 0x00, 0x44, 0x0f, 0x29, 0xac, 0x24, 0xf0, 0x01, 0x00, 0x00, 0x44, 0x0f, 0x29, 0xa4, 0x24, 0xe0, 0x01, 0x00, 0x00, 0x44, 0x0f, 0x29, 0x9c, 0x24, 0xd0, 0x01, 0x00, 0x00, 0x44, 0x0f, 0x29, 0x94, 0x24, 0xc0, 0x01, 0x00, 0x00, 0x44, 0x0f, 0x29, 0x8c, 0x24, 0xb0, 0x01, 0x00, 0x00, 0x44, 0x0f, 0x29, 0x84, 0x24, 0xa0, 0x01, 0x00, 0x00, 0x0f, 0x29, 0xbc, 0x24, 0x90, 0x01, 0x00, 0x00, 0x0f, 0x29, 0xb4, 0x24, 0x80, 0x01, 0x00, 0x00, 0xf3, 0x0f, 0x10, 0xbc, 0x24, 0xb0, 0x02, 0x00, 0x00, 0x4c, 0x8b, 0xa4, 0x24, 0x90, 0x02, 0x00, 0x00, 0x41, 0xc7, 0x40, 0x08 };
 static const unsigned char SIG_SUSP[128] = { 0x41, 0x57, 0x41, 0x56, 0x41, 0x55, 0x41, 0x54, 0x56, 0x57, 0x55, 0x53, 0x48, 0x81, 0xec, 0x68, 0x01, 0x00, 0x00, 0x44, 0x0f, 0x29, 0xbc, 0x24, 0x50, 0x01, 0x00, 0x00, 0x44, 0x0f, 0x29, 0xb4, 0x24, 0x40, 0x01, 0x00, 0x00, 0x44, 0x0f, 0x29, 0xac, 0x24, 0x30, 0x01, 0x00, 0x00, 0x44, 0x0f, 0x29, 0xa4, 0x24, 0x20, 0x01, 0x00, 0x00, 0x44, 0x0f, 0x29, 0x9c, 0x24, 0x10, 0x01, 0x00, 0x00, 0x44, 0x0f, 0x29, 0x94, 0x24, 0x00, 0x01, 0x00, 0x00, 0x44, 0x0f, 0x29, 0x8c, 0x24, 0xf0, 0x00, 0x00, 0x00, 0x44, 0x0f, 0x29, 0x84, 0x24, 0xe0, 0x00, 0x00, 0x00, 0x0f, 0x29, 0xbc, 0x24, 0xd0, 0x00, 0x00, 0x00, 0x0f, 0x29, 0xb4, 0x24, 0xc0, 0x00, 0x00, 0x00, 0x4d, 0x89, 0xce, 0x4d, 0x89, 0xc7, 0x49, 0x89, 0xd4, 0x48, 0x89, 0xcf, 0x48, 0x8b, 0x84, 0x24, 0xf8, 0x01, 0x00, 0x00, 0xf3 };
 
-static Fn16 origFriction; static Fn12 origSusp;
-static volatile LONG installed; static char status[256] = "not installed";
+static const unsigned char SIG_STEP[128] = { 0x41, 0x57, 0x41, 0x56, 0x41, 0x55, 0x41, 0x54, 0x56, 0x57, 0x55, 0x53, 0x48, 0x81, 0xec, 0xe8, 0x05, 0x00, 0x00, 0x44, 0x0f, 0x29, 0xbc, 0x24, 0xd0, 0x05, 0x00, 0x00, 0x44, 0x0f, 0x29, 0xb4, 0x24, 0xc0, 0x05, 0x00, 0x00, 0x44, 0x0f, 0x29, 0xac, 0x24, 0xb0, 0x05, 0x00, 0x00, 0x44, 0x0f, 0x29, 0xa4, 0x24, 0xa0, 0x05, 0x00, 0x00, 0x44, 0x0f, 0x29, 0x9c, 0x24, 0x90, 0x05, 0x00, 0x00, 0x44, 0x0f, 0x29, 0x94, 0x24, 0x80, 0x05, 0x00, 0x00, 0x44, 0x0f, 0x29, 0x8c, 0x24, 0x70, 0x05, 0x00, 0x00, 0x44, 0x0f, 0x29, 0x84, 0x24, 0x60, 0x05, 0x00, 0x00, 0x0f, 0x29, 0xbc, 0x24, 0x50, 0x05, 0x00, 0x00, 0x0f, 0x29, 0xb4, 0x24, 0x40, 0x05, 0x00, 0x00, 0x4c, 0x89, 0xce, 0x49, 0x89, 0xcc, 0xf3, 0x44, 0x0f, 0x10, 0x8c, 0x24, 0x80, 0x06, 0x00, 0x00, 0xf3, 0x44, 0x0f, 0x10, 0xb4 };
+static Fn16 origFriction; static Fn12 origSusp; static Fn11 origStep;
+static volatile LONG installed; static int stepHooked; static char status[256] = "not installed";
 static volatile u64 watch[4];
 
 typedef struct { uint32_t tick; uint16_t kind, wheel; float dt, load; float out[4], lin[3], ang[3], spin, wspin, comp, x; } Rec;   /* 64 bytes */
@@ -93,6 +96,8 @@ static void suspModel(float *out, float *lin, float *ang, float *loadOut)
     if (loadOut) *loadOut *= k;
 }
 
+#include "sim_core.h"
+
 static int whichWheel(u64 w) { for (int i = 0; i < 4; i++) if (watch[i] == w && w) return i; return -1; }
 static float rf(u64 p, int o) { return p ? *(float *)(p + o) : 0.0f; }
 static float asf(u64 v) { float f; memcpy(&f, &v, 4); return f; }
@@ -102,7 +107,8 @@ static void Friction(u64 wheel, u64 inst, u64 outVec, u64 lin, u64 ang, u64 st1,
     origFriction(wheel, inst, outVec, lin, ang, st1, st2, spin, load, a10, a11, a12, a13, ctx, other, dt);
     InterlockedIncrement(&calls[0]);
     int i = whichWheel(wheel);
-    if (i >= 0 && outVec && lin && ang) tyreModel(wheel, asf(load), (float *)outVec, (float *)lin, (float *)ang);
+    if (i >= 0 && outVec && lin && ang && !ownTyre(i, wheel, inst, (float *)outVec, (float *)lin, (float *)ang, asf(load), st1, st2, a10, a11, a12, asf(dt)))
+        tyreModel(wheel, asf(load), (float *)outVec, (float *)lin, (float *)ang);
     if (i < 0 || !recording || !ring) return;
     LONG n = InterlockedIncrement(&head) - 1; Rec *r = &ring[n % CAP];
     r->tick = GetTickCount(); r->kind = 1; r->wheel = (uint16_t)i; r->dt = asf(dt); r->load = asf(load);
@@ -123,6 +129,17 @@ static void Susp(u64 wheel, u64 inst, u64 outVec, u64 lin, u64 ang, u64 loadOut,
     for (int k = 0; k < 4; k++) r->out[k] = rf(outVec, 4 * k);
     for (int k = 0; k < 3; k++) { r->lin[k] = rf(lin, 4 * k); r->ang[k] = rf(ang, 4 * k); }
     r->spin = rf(slot, 0); r->wspin = rf(wheel, 0x170); r->comp = rf(wheel, 0x160); r->x = 0;
+}
+
+/* per-vehicle wheel integration step (0xF27F40): after it, our wheel spins / drivetrain for the player's car */
+static void Step(u64 ctx, u64 b70, u64 b80, u64 out, u64 wheels, u64 count, u64 a7, u64 gear, u64 dt, u64 a10, u64 a11)
+{
+    origStep(ctx, b70, b80, out, wheels, count, a7, gear, dt, a10, a11);
+    if (!wheels || !watch[0] || (count & 0xFFFFFFFF) != 4) return;
+    u64 *wp = (u64 *)wheels;
+    if (wp[0] != watch[0]) return;
+    u64 w4[4] = { watch[0], watch[1], watch[2], watch[3] };
+    driveStep(w4, asf(dt));
 }
 
 /* trampoline: the 12 stolen push bytes, then jmp [rip+0] back to target+12 */
@@ -165,20 +182,40 @@ static unsigned char *locate(const unsigned char *sig, u64 rva)
 __declspec(dllexport) int MCP_Install(void)
 {
     if (InterlockedCompareExchange(&installed, 1, 0) != 0) return 1;
-    unsigned char *f = locate(SIG_FRICTION, 0xF1E8B0), *s = locate(SIG_SUSP, 0xF1DB20);
+    unsigned char *f = locate(SIG_FRICTION, 0xF1E8B0), *s = locate(SIG_SUSP, 0xF1DB20), *st = locate(SIG_STEP, 0xF27F40);
     if (!f || !s) { snprintf(status, sizeof status, "code not recognised (friction %p, suspension %p): not hooked", f, s); installed = 0; return 0; }
     origFriction = (Fn16)makeTrampoline(f); origSusp = (Fn12)makeTrampoline(s);
     if (!origFriction || !origSusp || !patch(f, (void *)Friction) || !patch(s, (void *)Susp)) { snprintf(status, sizeof status, "hook failed"); return 0; }
-    snprintf(status, sizeof status, "hooked friction at +0x%llX, suspension at +0x%llX", (u64)(f - (unsigned char *)GetModuleHandleA(NULL)), (u64)(s - (unsigned char *)GetModuleHandleA(NULL)));
+    if (st) { origStep = (Fn11)makeTrampoline(st); if (!origStep || !patch(st, (void *)Step)) { origStep = NULL; st = NULL; } }
+    stepHooked = st != NULL;
+    snprintf(status, sizeof status, "hooked friction at +0x%llX, suspension at +0x%llX, wheel step %s", (u64)(f - (unsigned char *)GetModuleHandleA(NULL)), (u64)(s - (unsigned char *)GetModuleHandleA(NULL)), st ? "hooked" : "not recognised (no own drivetrain)");
     return 1;
 }
 __declspec(dllexport) const char *MCP_Status(void) { return status; }
-__declspec(dllexport) void MCP_SetModel(const float *p, int n) { if (n > (int)(sizeof(Model) / 4)) n = sizeof(Model) / 4; memcpy((void *)&model, p, (size_t)n * 4); }
+__declspec(dllexport) void MCP_SetModel(const float *p, int n) { if (n > (int)(sizeof(Model) / 4)) n = sizeof(Model) / 4; memcpy((void *)&model, p, (size_t)n * 4); if (model.on > 0.5f) peaks(); }
+__declspec(dllexport) int MCP_DriveAvailable(void) { return stepHooked; }
+__declspec(dllexport) void MCP_SetDrive(const float *p, int n)
+{
+    if (!stepHooked) { drv.on = 0; return; }
+    if (n > (int)(sizeof(Drive) / 4)) n = sizeof(Drive) / 4;
+    int was = drv.on > 0.5f; memcpy((void *)&drv, p, (size_t)n * 4);
+    if (!was && drv.on > 0.5f) { for (int i = 0; i < 4; i++) { ws[i].init = 0; ws[i].seen = 0; } tcsF = 1; engW = drv.idle / RPM_W; }
+}
+__declspec(dllexport) void MCP_SetCurve(const float *t, int n) { if (n > CURVE_N) n = CURVE_N; for (int i = 0; i < n; i++) curve[i] = t[i]; }
+/* state for the mod: rpm, tcs, abs, spin x4, slip ratio x4, tan(slip angle) x4, steps, own evaluations, axis fallbacks, coupling error */
+__declspec(dllexport) int MCP_GetState(float *o, int n)
+{
+    float v[20]; v[0] = engW * RPM_W; v[1] = (float)tcsLive; v[2] = (float)absLive;
+    for (int i = 0; i < 4; i++) { v[3 + i] = ws[i].w; v[7 + i] = ws[i].kappa; v[11 + i] = ws[i].ta; }
+    v[15] = (float)steps; v[16] = (float)ownCount; v[17] = (float)axisFallback; v[18] = coupleBad ? -2.0f : angMag > 1e-6 ? (float)(angErr / angMag) : -1.0f; v[19] = tcsF;
+    if (n > 20) n = 20; for (int i = 0; i < n; i++) o[i] = v[i];
+    return n;
+}
 __declspec(dllexport) int MCP_Scaled(void) { return scaled; }
 __declspec(dllexport) int MCP_SuspDone(void) { return suspDone; }
 __declspec(dllexport) void MCP_SetAxle(int which, const float *p, int n) { if (which < 0 || which > 1) return; if (n > (int)(sizeof(Axle) / 4)) n = sizeof(Axle) / 4; memcpy((void *)&axle[which], p, (size_t)n * 4); }
 __declspec(dllexport) float MCP_Comp(int i) { return 0; }
-__declspec(dllexport) void MCP_SetWheels(u64 a, u64 b, u64 c, u64 d) { watch[0] = a; watch[1] = b; watch[2] = c; watch[3] = d; }
+__declspec(dllexport) void MCP_SetWheels(u64 a, u64 b, u64 c, u64 d) { if (watch[0] != a) for (int i = 0; i < 4; i++) ws[i].init = 0; watch[0] = a; watch[1] = b; watch[2] = c; watch[3] = d; }
 __declspec(dllexport) void MCP_Record(int on)
 {
     if (on && !ring) ring = (Rec *)VirtualAlloc(NULL, sizeof(Rec) * CAP, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);

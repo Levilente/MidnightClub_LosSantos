@@ -197,6 +197,14 @@ namespace MidnightClub.Vehicles
             else if (!DirectGears && gear > 0 && Game.GameTime < settleUntil + 100) Flat(car, L, gear, speed, false);
             int g = Math.Max(1, Math.Min(L.Gear.Gears, gear <= 0 ? 1 : gear));
             float rpm = Math.Max(L.Spec.Idle, rpmFrac * L.Spec.Redline);
+            if (Physics.Native.DriveActive)
+            {   // the native drivetrain owns the engine: GTA's own drive force isn't used, nothing to calibrate
+                EngineRpm = Math.Max(L.Spec.Idle, Physics.Native.Rpm);
+                float ovn = L.Gear.Overall(g);
+                AccelDemand = L.Engine.SteadyTorque(EngineRpm) * ovn * L.Gear.Efficiency / L.Gear.TyreR / Math.Max(1f, L.Mass);
+                TorqueMult = 1f; prevM = smoothM = 1f;
+                return;
+            }
             EngineRpm = rpm;
             float torque = L.Engine.Torque(rpm, thr, dt);
             float ov = L.Gear.Overall(g) * (gear <= 0 ? 0.9f : 1f);

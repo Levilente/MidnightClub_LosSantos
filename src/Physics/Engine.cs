@@ -39,6 +39,19 @@ namespace MidnightClub.Physics
             BoostNowBar = Ind == Induction.Supercharged ? BoostBar * BoostState * Math.Min(1f, rpm / (Redline * 0.35f)) : 0f;
             return full - (Ind == Induction.Supercharged ? full * ScLoss * (rpm / Redline) * (rpm / Redline) * (1f - BoostState * 0.5f) : 0f);
         }
+        /// <summary>Full-load torque curve at the boost the engine has right now (for the native drivetrain, which looks
+        /// it up at physics rate). Advances the boost state like Torque().</summary>
+        public void CurveNow(float[] dst, float rpm, float throttle, float dt)
+        {
+            Torque(rpm, throttle, dt);
+            for (int i = 0; i < N && i < dst.Length; i++)
+            {
+                float r = MaxRpm * i / (N - 1), full = Full[i], nb = NoBoost[i];
+                if (Ind == Induction.Turbo) dst[i] = nb + (full - nb) * BoostState;
+                else if (Ind == Induction.Supercharged) dst[i] = full - full * ScLoss * (r / Redline) * (r / Redline) * (1f - Math.Max(0f, Math.Min(1f, throttle)) * 0.5f);
+                else dst[i] = full;
+            }
+        }
         public float SteadyTorque(float rpm) { return rpm > Redline * 1.01f ? 0f : At(Full, rpm); }
     }
 
